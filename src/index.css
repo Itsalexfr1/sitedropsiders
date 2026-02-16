@@ -24,52 +24,25 @@
   }
 
   /* Light Mode */
-  .light-mode body {
-    background-color: #f5f5f5;
-    color: #1a1a1a;
+  /* Light Mode - Negative Filter Approach */
+  html.light-mode {
+    filter: invert(1) hue-rotate(180deg);
   }
 
-  .light-mode .bg-dark-bg {
-    background-color: #ffffff !important;
+  /* Re-invert media to keep them looking normal */
+  html.light-mode img,
+  html.light-mode video,
+  html.light-mode iframe,
+  html.light-mode picture,
+  html.light-mode svg {
+    filter: invert(1) hue-rotate(180deg);
+    box-shadow: none !important;
   }
 
-  .light-mode .text-white {
-    color: #1a1a1a !important;
-  }
-
-  .light-mode .text-gray-400 {
-    color: #666666 !important;
-  }
-
-  .light-mode .text-gray-500 {
-    color: #888888 !important;
-  }
-
-  .light-mode .border-white\/10 {
-    border-color: rgba(0, 0, 0, 0.1) !important;
-  }
-
-  .light-mode .bg-white\/5 {
-    background-color: rgba(0, 0, 0, 0.05) !important;
-  }
-
-  .light-mode nav {
-    background-color: rgba(255, 255, 255, 0.9) !important;
-    border-bottom-color: rgba(0, 0, 0, 0.1) !important;
-  }
-
-  /* Logo handling for light/dark modes */
-  .logo-footer {
-    filter: invert(1) brightness(0);
-  }
-
-  .light-mode .logo-footer {
-    filter: none;
-  }
-
-  /* Search results in light mode */
-  .light-mode .bg-dark-bg\/95 {
-    background-color: rgba(255, 255, 255, 0.95) !important;
+  /* Ensure background stays dark initially so it inverts to light */
+  html.light-mode body {
+    background-color: var(--color-dark-bg);
+    color: white;
   }
 }
 
