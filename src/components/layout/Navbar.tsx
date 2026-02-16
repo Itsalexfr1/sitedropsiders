@@ -1,0 +1,286 @@
+import { useState, useMemo } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X, Search, Sun, Moon } from 'lucide-react';
+import { twMerge } from 'tailwind-merge';
+import { useHoverSound } from '../../hooks/useHoverSound';
+import newsData from '../../data/news.json';
+
+const navItems = [
+    { name: 'News', path: '/news' },
+    { name: 'Récaps', path: '/recap' },
+    { name: 'Galerie', path: '/galerie' },
+    { name: 'Interviews', path: '/interviews' },
+    { name: 'Agenda', path: '/agenda' },
+    { name: 'Team', path: '/team' },
+];
+
+export function Navbar() {
+    const [isOpen, setIsOpen] = useState(false);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [isDarkMode, setIsDarkMode] = useState(true);
+    const location = useLocation();
+    const navigate = useNavigate();
+    const playHoverSound = useHoverSound();
+
+    const toggleTheme = () => {
+        setIsDarkMode(!isDarkMode);
+        // Toggle dark mode class on document
+        document.documentElement.classList.toggle('light-mode');
+    };
+
+    // Search functionality
+    const searchResults = useMemo(() => {
+        if (!searchQuery.trim()) return [];
+
+        const query = searchQuery.toLowerCase();
+        return (newsData as any[])
+            .filter((item: any) =>
+                item.title?.toLowerCase().includes(query) ||
+                item.summary?.toLowerCase().includes(query) ||
+                item.category?.toLowerCase().includes(query)
+            )
+            .slice(0, 5); // Limit to 5 results
+    }, [searchQuery]);
+
+    const handleSearchResultClick = (item: any) => {
+        const categoryPath = item.category.toLowerCase() === 'news' ? 'news' :
+            item.category.toLowerCase() === 'recap' ? 'recap' :
+                'interviews';
+        navigate(`/${categoryPath}/${item.id}`);
+        setIsSearchOpen(false);
+        setSearchQuery('');
+    };
+
+    return (
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-bg/40 backdrop-blur-md border-b border-white/10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-20">
+                    {/* Logo */}
+                    <Link to="/" className="flex items-center group py-2">
+                        <img
+                            src="/Logo.png"
+                            alt="DROPSIDERS"
+                            className="h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                        />
+                    </Link>
+
+                    {/* Desktop Navigation */}
+                    <div className="hidden md:flex items-center gap-1">
+                        {navItems.map((item) => (
+                            <NavItem key={item.path} item={item} isActive={location.pathname === item.path} />
+                        ))}
+                    </div>
+
+                    {/* Right Side Actions */}
+                    <div className="flex items-center gap-2">
+                        {/* Search Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={() => setIsSearchOpen(!isSearchOpen)}
+                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
+                        >
+                            <Search className="w-5 h-5" />
+                        </motion.button>
+
+                        {/* Theme Toggle Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={toggleTheme}
+                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
+                        >
+                            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+                        </motion.button>
+
+                        {/* Mobile Menu Button */}
+                        <div className="md:hidden">
+                            <button
+                                onClick={() => setIsOpen(!isOpen)}
+                                onMouseEnter={playHoverSound}
+                                className="p-2 text-gray-400 hover:text-white transition-colors"
+                            >
+                                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Search Bar */}
+                <AnimatePresence>
+                    {isSearchOpen && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="overflow-hidden pb-4"
+                        >
+                            <div className="relative max-w-2xl mx-auto">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher sur le site..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red/50 transition-colors"
+                                    autoFocus
+                                />
+
+                                {/* Search Results Dropdown */}
+                                {searchQuery && searchResults.length > 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="absolute top-full left-0 right-0 mt-2 bg-dark-bg/95 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
+                                    >
+                                        {searchResults.map((item: any) => (
+                                            <motion.button
+                                                key={item.id}
+                                                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                                                onClick={() => handleSearchResultClick(item)}
+                                                onMouseEnter={playHoverSound}
+                                                className="w-full text-left px-4 py-3 border-b border-white/5 last:border-0 transition-colors"
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.title}
+                                                        className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className="text-[10px] font-bold text-neon-red uppercase tracking-wider">
+                                                                {item.category}
+                                                            </span>
+                                                            <span className="text-[10px] text-gray-500">
+                                                                {item.date}
+                                                            </span>
+                                                        </div>
+                                                        <h4 className="text-sm font-bold text-white line-clamp-1 mb-1">
+                                                            {item.title}
+                                                        </h4>
+                                                        <p className="text-xs text-gray-400 line-clamp-2">
+                                                            {item.summary}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </motion.button>
+                                        ))}
+                                    </motion.div>
+                                )}
+
+                                {/* No Results Message */}
+                                {searchQuery && searchResults.length === 0 && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="absolute top-full left-0 right-0 mt-2 bg-dark-bg/95 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center z-[100]"
+                                    >
+                                        <p className="text-gray-400 text-sm">Aucun résultat trouvé pour "{searchQuery}"</p>
+                                    </motion.div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Mobile Navigation */}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="md:hidden bg-dark-bg/95 border-b border-white/10 overflow-hidden"
+                    >
+                        <div className="px-4 pt-2 pb-6 space-y-1">
+                            {navItems.map((item) => {
+                                const isActive = location.pathname === item.path;
+                                return (
+                                    <motion.div
+                                        key={item.path}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onMouseEnter={playHoverSound}
+                                    >
+                                        <Link
+                                            to={item.path}
+                                            onClick={() => setIsOpen(false)}
+                                            className={twMerge(
+                                                "block px-3 py-4 text-base font-medium border-l-2 transition-colors",
+                                                isActive
+                                                    ? "border-neon-red text-neon-red bg-neon-red/5"
+                                                    : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
+                                            )}
+                                        >
+                                            {item.name}
+                                        </Link>
+                                    </motion.div>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </nav>
+    );
+}
+
+function NavItem({ item, isActive }: { item: typeof navItems[0], isActive: boolean }) {
+    const [isHovered, setIsHovered] = useState(false);
+    const playHoverSound = useHoverSound();
+
+    return (
+        <motion.div
+            onMouseEnter={() => {
+                setIsHovered(true);
+                playHoverSound();
+            }}
+            onMouseLeave={() => setIsHovered(false)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative"
+        >
+            <Link
+                to={item.path}
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className={twMerge(
+                    "relative block px-4 py-2 text-sm font-bold tracking-wider transition-all duration-300",
+                    isActive
+                        ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]"
+                        : "text-gray-400 hover:text-neon-red hover:drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]"
+                )}
+            >
+                <span className="relative z-10">{item.name}</span>
+
+                {/* Hover Background Highlight */}
+                <AnimatePresence>
+                    {isHovered && (
+                        <motion.div
+                            layoutId="nav-hover"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="absolute inset-0 bg-white/5 rounded-xl border border-white/10 z-0"
+                            transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
+                        />
+                    )}
+                </AnimatePresence>
+
+                {/* Active Indicator Underline */}
+                {isActive && (
+                    <motion.div
+                        layoutId="navbar-indicator"
+                        className="absolute -bottom-1 left-4 right-4 h-0.5 bg-neon-red shadow-[0_0_15px_#ff0033] z-10"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                )}
+            </Link>
+        </motion.div>
+    );
+}

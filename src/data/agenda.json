@@ -1,0 +1,132 @@
+[
+    {
+        "id": 1,
+        "title": "Tomorrowland Winter",
+        "date": "2026-03-14",
+        "location": "Alpe d'Huez, France",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/10-48-32518154-high.webp",
+        "description": "L'édition hivernale magique de Tomorrowland dans les Alpes françaises.",
+        "url": "https://winter.tomorrowland.com/fr/bienvenue"
+    },
+    {
+        "id": 2,
+        "title": "Experts Only (MMW)",
+        "date": "2026-03-24",
+        "location": "Miami, USA",
+        "type": "Showcase",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/g8e9obqwwaatwjs-standard.jpg",
+        "description": "Le label de John Summit prend le contrôle de Miami Music Week.",
+        "url": "https://dice.fm/partner/tickets/event/mx8y59-experts-only-miami-music-week-2026-24th-mar-the-ground-miami-miami-club-space-miami-miami-floyd-miami-miami-tickets"
+    },
+    {
+        "id": 3,
+        "title": "Ultra Music Festival",
+        "date": "2026-03-27",
+        "location": "Miami, USA",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/phase-2-has-arrived-ultra2026-1-819x1024-high.jpg",
+        "description": "Le premier festival mondial de musique électronique au cœur de Miami.",
+        "url": "https://ultramusicfestival.com"
+    },
+    {
+        "id": 4,
+        "title": "Coachella - Weekend 1",
+        "date": "2026-04-10",
+        "location": "Indio, USA",
+        "type": "Festival",
+        "image": "https://images.unsplash.com/photo-1541480601022-2308c0f02487?q=80&w=2070",
+        "description": "Le festival iconique mêlant musique et art dans le désert californien.",
+        "url": "https://www.coachella.com"
+    },
+    {
+        "id": 5,
+        "title": "Coachella - Weekend 2",
+        "date": "2026-04-17",
+        "location": "Indio, USA",
+        "type": "Festival",
+        "image": "https://images.unsplash.com/photo-1541480601022-2308c0f02487?q=80&w=2070",
+        "description": "Deuxième week-end de magie dans le désert d'Indio.",
+        "url": "https://www.coachella.com"
+    },
+    {
+        "id": 6,
+        "title": "EDC Week (Las Vegas)",
+        "date": "2026-05-13",
+        "location": "Las Vegas, USA",
+        "type": "Events",
+        "image": "https://images.unsplash.com/photo-1514525253361-bee8a18744ad?q=80&w=2064",
+        "description": "Une semaine de fêtes non-stop dans les meilleurs clubs de Vegas.",
+        "url": "https://lasvegas.electricdaisycarnival.com/edc-week/"
+    },
+    {
+        "id": 7,
+        "title": "EDC Las Vegas",
+        "date": "2026-05-15",
+        "location": "Las Vegas, USA",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/edcw_2026_mk_lu_full_fest_mobile_750x600_r01-1-high-mserp3.jpg",
+        "description": "Célébration des 30 ans sous le ciel électrique du Speedway.",
+        "url": "https://lasvegas.electricdaisycarnival.com/"
+    },
+    {
+        "id": 8,
+        "title": "Cercle Festival",
+        "date": "2026-05-22",
+        "location": "Paris, France",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/public-_1_-high.png",
+        "description": "Une expérience unique au Musée de l'Air et de l'Espace.",
+        "url": "https://festival.cercle.io"
+    },
+    {
+        "id": 11,
+        "title": "Les Déferlantes",
+        "date": "2026-07-10",
+        "location": "Le Barcarès, France",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/medias_2026_01_xa7d-flwjhl8xnqnj2k0srns8cbpjxjjlyl2irh49e_695fafb698faf-high.webp",
+        "description": "Le plus grand festival du sud de la France.",
+        "url": "https://www.festival-lesdeferlantes.com/"
+    },
+    {
+        "id": 13,
+        "title": "Dour Festival",
+        "date": "2026-07-15",
+        "location": "Dour, Belgium",
+        "type": "Festival",
+        "image": "https://images.unsplash.com/photo-1514525253361-bee243870eb2?q=80&w=2070",
+        "description": "L'incontournable festival alternatif et pointu en Wallonie.",
+        "url": "https://www.dourfestival.eu/fr/"
+    },
+    {
+        "id": 9,
+        "title": "Tomorrowland - Weekend 1",
+        "date": "2026-07-17",
+        "location": "Boom, Belgium",
+        "type": "Festival",
+        "image": "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070",
+        "description": "Premier week-end du plus grand festival EDM au monde.",
+        "url": "https://www.tomorrowland.com"
+    },
+    {
+        "id": 10,
+        "title": "Tomorrowland - Weekend 2",
+        "date": "2026-07-24",
+        "location": "Boom, Belgium",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/tomorrowland-festivals-2026-2027-high.png",
+        "description": "Le chapitre final de la People of Tomorrow à Boom.",
+        "url": "https://www.tomorrowland.com"
+    },
+    {
+        "id": 12,
+        "title": "Awakenings",
+        "date": "2026-07-31",
+        "location": "Hilvarenbeek, Netherlands",
+        "type": "Festival",
+        "image": "https://primary.jwwb.nl/public/x/b/s/temp-rsueidauyieolliplvix/612501000_18552165703012278_4835255164595031144_n-high.jpg",
+        "description": "Le plus grand festival techno du monde.",
+        "url": "https://www.awakenings.com/en/"
+    }
+]
