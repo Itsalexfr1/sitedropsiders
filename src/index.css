@@ -8,6 +8,7 @@
   --color-neon-green: #39ff14;
   --color-neon-orange: #ff6600;
   --color-neon-yellow: #ffcc00;
+  --color-neon-blue: #0070ff;
   --color-dark-bg: #0a0a0a;
   --color-dark-card: rgba(255, 255, 255, 0.05);
 
@@ -213,5 +214,24 @@
 
   .animate-glow {
     animation: glow 4s infinite ease-in-out;
+  }
+
+  .animate-gradient-x {
+    background-size: 200% auto;
+    animation: gradient-x 3s linear infinite;
+  }
+
+  @keyframes gradient-x {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
   }
 }
