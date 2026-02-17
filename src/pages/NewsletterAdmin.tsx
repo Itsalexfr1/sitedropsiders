@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { Mail, Users, Calendar, Trash2, Download, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import localSubscribersData from '../data/subscribers.json';
+
 interface Subscriber {
     email: string;
     firstName: string | null;
@@ -42,13 +44,20 @@ export function NewsletterAdmin() {
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     setSubscribers(data);
-                    setFilteredSubscribers(data);
+                    return; // Success, exit
                 }
             } else {
-                console.error('Failed to load subscribers');
+                console.warn('API unavailable, falling back to local data');
             }
         } catch (error) {
             console.error('Error loading subscribers:', error);
+        }
+
+        // Fallback to local data if API fails
+        if (Array.isArray(localSubscribersData)) {
+            // Cast to Subscriber[] to satisfy TS if needed, or rely on inference
+            const localData = localSubscribersData as unknown as Subscriber[];
+            setSubscribers(localData);
         }
     };
 

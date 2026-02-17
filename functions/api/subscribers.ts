@@ -1,5 +1,6 @@
+import { b64_to_utf8 } from '../utils';
 
-export const onRequestGet = async (context) => {
+export const onRequestGet = async (context: any) => {
     const { request, env } = context;
 
     const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
@@ -41,10 +42,10 @@ export const onRequestGet = async (context) => {
         }
 
         const fileData = await response.json();
-        const content = atob(fileData.content.replace(/\n/g, ''));
+        const content = b64_to_utf8(fileData.content.replace(/\n/g, ''));
 
         return new Response(content, { status: 200, headers });
-    } catch (err) {
+    } catch (err: any) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
     }
 };

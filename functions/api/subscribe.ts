@@ -1,5 +1,6 @@
+import { utf8_to_b64, b64_to_utf8 } from '../utils';
 
-export const onRequestPost = async (context) => {
+export const onRequestPost = async (context: any) => {
     const { request, env } = context;
 
     // Configuration (Default or Env Vars)
@@ -53,27 +54,28 @@ export const onRequestPost = async (context) => {
         });
 
         if (!getResponse.ok && getResponse.status !== 404) {
-            return new Response(JSON.stringify({ error: 'Erreur lors de la récupération des abonnés' }), { status: 502, headers });
+            const errorText = await getResponse.text();
+            return new Response(JSON.stringify({ error: 'Erreur lors de la récupération des abonnés', details: errorText }), { status: 502, headers });
         }
 
-        let currentData = [];
+        let currentData: any[] = [];
         let sha = null;
 
         if (getResponse.ok) {
-            const fileData = await getResponse.json();
-            // Decode base64 content
-            // Note: atob in Cloudflare Worker handles base64
-            const content = atob(fileData.content.replace(/\n/g, ''));
+            const fileData: any = await getResponse.json();
+            // Decode base64 content with UTF-8 support
             try {
+                const content = b64_to_utf8(fileData.content.replace(/\n/g, ''));
                 currentData = JSON.parse(content);
             } catch (e) {
+                console.error("Error parsing current data:", e);
                 currentData = [];
             }
             sha = fileData.sha;
         }
 
         // 2. Check for duplicate
-        if (currentData.some(sub => sub.email === email)) {
+        if (currentData.some((sub: any) => sub.email === email)) {
             return new Response(JSON.stringify({ error: 'Déjà inscrit' }), { status: 409, headers });
         }
 
@@ -88,7 +90,17 @@ export const onRequestPost = async (context) => {
         const updatedData = [...currentData, newSubscriber];
 
         // 4. Update file
-        const updatedContent = btoa(JSON.stringify(updatedData, null, 2)); // btoa for base64
+        // Encode with UTF-8 support
+        const updatedContent = utf8_to_b64(JSON.stringify(updatedData, null, 2));
+
+        const putBody: any = {
+            message: `Nouvel abonné : ${email}`,
+            content: updatedContent
+        };
+
+        if (sha) {
+            putBody.sha = sha;
+        }
 
         const putResponse = await fetch(getUrl, {
             method: 'PUT',
@@ -98,21 +110,18 @@ export const onRequestPost = async (context) => {
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                message: `Nouvel abonné : ${email}`,
-                content: updatedContent,
-                sha: sha // Required if updating
-            })
+            body: JSON.stringify(putBody)
         });
 
         if (!putResponse.ok) {
             const errorText = await putResponse.text();
+            console.error("GitHub API Error:", errorText);
             return new Response(JSON.stringify({ error: 'Erreur lors de la sauvegarde', details: errorText }), { status: 500, headers });
         }
 
         return new Response(JSON.stringify({ success: true, subscriber: newSubscriber }), { status: 200, headers });
 
-    } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), { status: 500, headers });
     }
 };

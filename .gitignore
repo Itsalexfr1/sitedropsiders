@@ -28,3 +28,11 @@ dist-ssr
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Wrangler
+.wrangler
+
+# Scripts
+check_token.cjs
+check_token_write.cjs
+.env.script
