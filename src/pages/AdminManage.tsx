@@ -21,18 +21,21 @@ export function AdminManage() {
         setLoading(true);
         try {
             let data: any[] = [];
-            if (activeTab === 'News') {
-                const res = await import('../data/news.json');
-                data = res.default.filter((item: any) => item.category === 'News');
-            } else if (activeTab === 'Recaps') {
-                const res = await import('../data/recaps.json');
-                data = res.default;
-            } else if (activeTab === 'Interviews') {
-                const res = await import('../data/news.json');
-                data = res.default.filter((item: any) => item.category === 'Interview');
-            } else if (activeTab === 'Agenda') {
-                const res = await import('../data/agenda.json');
-                data = res.default;
+            if (activeTab === 'News' || activeTab === 'Interviews') {
+                const res = await fetch('/api/data?type=news');
+                const json = await res.json();
+                if (Array.isArray(json)) {
+                    data = activeTab === 'News'
+                        ? json.filter((item: any) => item.category === 'News')
+                        : json.filter((item: any) => item.category === 'Interview');
+                }
+            } else {
+                const type = activeTab === 'Recaps' ? 'recaps' : 'agenda';
+                const res = await fetch(`/api/data?type=${type}`);
+                const json = await res.json();
+                if (Array.isArray(json)) {
+                    data = json;
+                }
             }
             setItems(data);
         } catch (error) {
