@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
@@ -18,6 +19,25 @@ import { Newsletter } from './pages/Newsletter';
 import { NewsletterAdmin } from './pages/NewsletterAdmin';
 
 function App() {
+  useEffect(() => {
+    const originalTitle = document.title;
+    const scrollText = "DROPSIDERS : L'actu de tous les festivals ";
+
+    let position = 0;
+    const interval = setInterval(() => {
+      document.title = scrollText.substring(position) + scrollText.substring(0, position);
+      position++;
+      if (position >= scrollText.length) {
+        position = 0;
+      }
+    }, 200);
+
+    return () => {
+      clearInterval(interval);
+      document.title = originalTitle;
+    };
+  }, []);
+
   return (
     <Router>
       <Layout>
