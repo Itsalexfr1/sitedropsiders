@@ -24,6 +24,7 @@ const genres = {
     'Awakenings': 'Techno',
     'Coachella': 'Multi-Genre',
     'Cercle': 'Melodic Techno',
+    'Cercle Festival': 'Melodic Techno',
     'Dour Festival': 'Multi-Genre',
     'Les DÃ©ferlantes': 'Multi-Genre',
     'Opening Party': 'Multi-Genre',

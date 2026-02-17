@@ -81,22 +81,22 @@ export function Agenda() {
     };
 
     const getEventStyles = (genre: string) => {
-        const g = (genre || '').toLowerCase();
+        const g = (genre || '').toLowerCase().trim();
         let color = 'cyan'; // Default
 
-        if (g === 'techno') color = 'red';
-        else if (g === 'melodic techno') color = 'yellow';
-        else if (g === 'tech house') color = 'green';
-        else if (g === 'big room') color = 'purple';
-        else if (g === 'house') color = 'pink';
-        else if (g === 'hardmusic') color = 'orange';
-        else if (g === 'multi-genre') color = 'blue';
+        if (g.includes('melodic')) color = 'yellow';
+        else if (g.includes('techno')) color = 'red';
+        else if (g.includes('tech house')) color = 'green';
+        else if (g.includes('big room')) color = 'purple';
+        else if (g.includes('house')) color = 'pink';
+        else if (g.includes('hardmusic')) color = 'orange';
+        else if (g.includes('multi-genre')) color = 'blue';
 
-        const isMulti = g === 'multi-genre';
+        const isMulti = g.includes('multi-genre');
 
         return {
             text: isMulti ? 'text-white' : `text-neon-${color}`,
-            bg: isMulti ? 'bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue bg-[length:200%_auto] animate-gradient-x opacity-90' : `bg-neon-${color}/10`,
+            bg: isMulti ? 'bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue bg-[length:200%_auto] animate-gradient-x opacity-90' : `bg-neon-${color}/30`,
             border: isMulti ? 'border-white/20' : `border-neon-${color}/20`,
             borderStrong: isMulti ? 'border-white/50' : `border-neon-${color}`,
             borderMedium: isMulti ? 'border-white/30' : `border-neon-${color}/30`,
@@ -163,7 +163,7 @@ export function Agenda() {
                                     animate={{ opacity: 1, x: 0 }}
                                     whileHover={{ scale: 1.02 }}
                                     transition={{ delay: index * 0.1 }}
-                                    className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-neon-red/50 transition-all duration-300"
+                                    className={`group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 ${styles.hoverBorder} ${styles.shadow}`}
                                 >
                                     <div
                                         onClick={() => toggleEvent(event.id)}
@@ -187,7 +187,7 @@ export function Agenda() {
                                                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${styles.bg} ${styles.text} mb-2`}>
                                                         {event.type} {event.genre && <span className="opacity-70 ml-1">• {event.genre}</span>}
                                                     </span>
-                                                    <h3 className={`text-xl font-bold text-white ${styles.hoverText} transition-colors mb-1`}>
+                                                    <h3 className={`text-xl font-bold text-white ${styles.hoverText} transition-all duration-300 mb-1`}>
                                                         {event.title}
                                                     </h3>
                                                     <div className="flex items-center gap-4 text-sm text-gray-400">
@@ -203,7 +203,7 @@ export function Agenda() {
                                                     rel="noopener noreferrer"
                                                     onClick={(e) => e.stopPropagation()}
                                                     onMouseEnter={(e) => e.stopPropagation()}
-                                                    className="px-6 py-2 rounded-lg bg-white/10 hover:bg-neon-red hover:text-white transition-colors text-sm font-medium whitespace-nowrap"
+                                                    className={`px-6 py-2 rounded-lg bg-white/10 ${styles.bg} ${styles.hoverText} transition-all duration-300 text-sm font-medium whitespace-nowrap border ${styles.borderMedium} ${styles.hoverBorder}`}
                                                 >
                                                     SITE OFFICIEL
                                                 </a>
