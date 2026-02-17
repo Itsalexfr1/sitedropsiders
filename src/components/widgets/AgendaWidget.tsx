@@ -90,7 +90,9 @@ export function AgendaWidget() {
                                 <div className="flex justify-between items-start mb-1.5">
                                     <div className="flex flex-col">
                                         <span className={`text-[10px] font-bold ${styles.text} border ${styles.borderMedium} px-1.5 py-0 rounded-full w-fit mb-0.5`}>
-                                            {event.type} {event.genre && <span className="opacity-70 ml-1">• {event.genre}</span>}
+                                            {event.type !== 'Events' && event.type}
+                                            {event.type !== 'Events' && event.genre && <span className="opacity-70 ml-1">• </span>}
+                                            {event.genre}
                                         </span>
                                         <h4 className={`text-[13px] font-bold text-white ${styles.groupHoverText} transition-all duration-300 line-clamp-1`}>{event.title}</h4>
                                     </div>

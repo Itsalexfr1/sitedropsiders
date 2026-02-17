@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, MapPin, Camera, Play, X } from 'lucide-react';
 import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
+import { NewsletterForm } from '../components/widgets/NewsletterForm';
 
 export function RecapDetail() {
     const { t, language } = useLanguage();
@@ -342,14 +343,7 @@ export function RecapDetail() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <input
-                                            type="email"
-                                            placeholder={t('article_detail.newsletter_placeholder')}
-                                            className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-neon-red/50 transition-colors"
-                                        />
-                                        <button className="w-full py-3 bg-neon-red hover:bg-neon-red/80 text-white text-xs font-black uppercase rounded-xl transition-all duration-300 shadow-lg shadow-neon-red/20 hover:shadow-neon-red/40">
-                                            {t('article_detail.newsletter_btn')}
-                                        </button>
+                                        <NewsletterForm variant="compact" />
                                     </div>
                                 </div>
                             </div>

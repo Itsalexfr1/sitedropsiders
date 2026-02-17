@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { Mail, User, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLanguage } from '../../context/LanguageContext';
 
 interface NewsletterFormProps {
     variant?: 'default' | 'compact';
 }
 
 export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
+    const { t } = useLanguage();
     const [email, setEmail] = useState('');
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -24,13 +26,13 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
 
         if (!email) {
             setStatus('error');
-            setErrorMessage('L\'email est requis');
+            setErrorMessage(t('newsletter_form.error_required'));
             return;
         }
 
         if (!validateEmail(email)) {
             setStatus('error');
-            setErrorMessage('Veuillez entrer un email valide');
+            setErrorMessage(t('newsletter_form.error_invalid'));
             return;
         }
 
@@ -55,7 +57,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
 
             if (!response.ok) {
                 setStatus('error');
-                setErrorMessage(data.error || 'Une erreur est survenue.');
+                setErrorMessage(data.error || t('newsletter_form.error_server'));
                 return;
             }
 
@@ -69,7 +71,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
         } catch (error) {
             console.error('Newsletter Error:', error);
             setStatus('error');
-            setErrorMessage('Erreur de connexion serveur.');
+            setErrorMessage(t('newsletter_form.error_server'));
         } finally {
             setIsSubmitting(false);
         }
@@ -83,7 +85,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                 {/* Email Field */}
                 <div className="relative group">
                     <label htmlFor="email" className="block text-xs font-black text-neon-red uppercase tracking-widest mb-3">
-                        Email *
+                        {t('newsletter_form.email_label')}
                     </label>
                     <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
@@ -92,7 +94,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder="votre.email@exemple.fr"
+                            placeholder={t('newsletter_form.email_placeholder')}
                             className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all duration-300"
                             required
                         />
@@ -105,7 +107,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                         {/* First Name */}
                         <div className="relative group">
                             <label htmlFor="firstName" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3">
-                                Prénom (optionnel)
+                                {t('newsletter_form.first_name_label')}
                             </label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
@@ -114,7 +116,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                                     id="firstName"
                                     value={firstName}
                                     onChange={(e) => setFirstName(e.target.value)}
-                                    placeholder="Prénom"
+                                    placeholder={t('newsletter_form.first_name_placeholder')}
                                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-cyan focus:bg-white/10 transition-all duration-300"
                                 />
                             </div>
@@ -123,7 +125,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                         {/* Last Name */}
                         <div className="relative group">
                             <label htmlFor="lastName" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3">
-                                Nom (optionnel)
+                                {t('newsletter_form.last_name_label')}
                             </label>
                             <div className="relative">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
@@ -132,7 +134,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                                     id="lastName"
                                     value={lastName}
                                     onChange={(e) => setLastName(e.target.value)}
-                                    placeholder="Nom"
+                                    placeholder={t('newsletter_form.last_name_placeholder')}
                                     className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-cyan focus:bg-white/10 transition-all duration-300"
                                 />
                             </div>
@@ -151,12 +153,12 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                     {isSubmitting ? (
                         <>
                             <Loader2 className="w-5 h-5 animate-spin" />
-                            Inscription en cours...
+                            {t('newsletter_form.submitting_btn')}
                         </>
                     ) : (
                         <>
                             <Mail className="w-5 h-5" />
-                            S'abonner à la Newsletter
+                            {t('newsletter_form.submit_btn')}
                         </>
                     )}
                 </motion.button>
@@ -172,7 +174,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                         >
                             <CheckCircle2 className="w-5 h-5 text-neon-green flex-shrink-0" />
                             <p className="text-sm text-neon-green font-bold">
-                                Merci ! Vous êtes maintenant inscrit à notre newsletter 🎉
+                                {t('newsletter_form.success_msg')}
                             </p>
                         </motion.div>
                     )}
@@ -192,10 +194,9 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
 
                 {/* Privacy Notice */}
                 <p className="text-xs text-gray-500 text-center leading-relaxed">
-                    En vous inscrivant, vous acceptez de recevoir nos newsletters. Vous pouvez vous désinscrire à tout moment.
-                    Vos données sont protégées conformément à notre{' '}
+                    {t('newsletter_form.privacy_notice')}
                     <a href="/privacy-policy" className="text-neon-cyan hover:underline">
-                        politique de confidentialité
+                        {t('newsletter_form.privacy_link')}
                     </a>
                     .
                 </p>

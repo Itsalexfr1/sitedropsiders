@@ -279,7 +279,9 @@ export function Agenda() {
                                                 </div>
                                                 <div>
                                                     <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold ${styles.bg} ${styles.text} mb-2`}>
-                                                        {event.type} {event.genre && <span className="opacity-70 ml-1">• {event.genre}</span>}
+                                                        {event.type !== 'Events' && event.type}
+                                                        {event.type !== 'Events' && event.genre && <span className="opacity-70 ml-1">• </span>}
+                                                        {event.genre}
                                                     </span>
                                                     <h3 className={`text-xl font-bold text-white ${styles.hoverText} transition-all duration-300 mb-1`}>
                                                         {event.title}
