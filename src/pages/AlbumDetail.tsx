@@ -6,11 +6,13 @@ import galerieData from '../data/galerie.json';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { Mail } from 'lucide-react';
+import { extractIdFromSlug } from '../utils/slugify';
 
 export function AlbumDetail() {
     const { t } = useLanguage();
     const { id } = useParams();
-    const album = galerieData.find(a => a.id === id);
+    const albumId = extractIdFromSlug(id || '') || id;
+    const album = galerieData.find(a => a.id === albumId);
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
     if (!album) {

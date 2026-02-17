@@ -4,6 +4,7 @@ import recapsData from '../../data/recaps.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
+import { getRecapLink } from '../../utils/slugify';
 
 export function RecapWidget() {
     const { t, language } = useLanguage();
@@ -32,7 +33,7 @@ export function RecapWidget() {
             ) : (
                 <div className="flex-1 grid grid-cols-2 gap-3">
                     {latestRecaps.map((item: any, index: number) => (
-                        <Link to={`/recaps/${item.id}`} key={item.id} className="block group">
+                        <Link to={getRecapLink(item)} key={item.id} className="block group">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}

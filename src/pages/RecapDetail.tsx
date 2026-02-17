@@ -6,12 +6,14 @@ import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
+import { extractIdFromSlug, getRecapLink } from '../utils/slugify';
 
 export function RecapDetail() {
     const { t, language } = useLanguage();
     const { id } = useParams();
     const playHoverSound = useHoverSound();
-    const recap = (recapsData as any[]).find((item: any) => item.id === parseInt(id || '0'));
+    const recapId = extractIdFromSlug(id || '');
+    const recap = (recapsData as any[]).find((item: any) => item.id === recapId);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     useEffect(() => {
@@ -293,7 +295,7 @@ export function RecapDetail() {
                                     {relatedRecaps.map((rel: any) => (
                                         <Link
                                             key={rel.id}
-                                            to={`/recaps/${rel.id}`}
+                                            to={getRecapLink(rel)}
                                             className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0"
                                             onClick={() => window.scrollTo(0, 0)}
                                         >

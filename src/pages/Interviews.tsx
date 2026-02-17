@@ -6,6 +6,7 @@ import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
+import { getArticleLink } from '../utils/slugify';
 
 export function Interviews() {
     const { t, language } = useLanguage();
@@ -72,7 +73,7 @@ export function Interviews() {
                                 transition={{ delay: index * 0.1, duration: 0.5 }}
                                 className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300 shadow-2xl flex flex-col"
                             >
-                                <Link to={`/interviews/${item.id}`} className="flex-1 flex flex-col">
+                                <Link to={getArticleLink(item)} className="flex-1 flex flex-col">
                                     <div className="relative aspect-[16/9] overflow-hidden">
                                         <img
                                             src={item.image}

@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
+import { getAgendaLink } from '../../utils/slugify';
 
 export function AgendaWidget() {
     const { t, language } = useLanguage();
@@ -72,7 +73,7 @@ export function AgendaWidget() {
                     return (
                         <Link
                             key={event.id}
-                            to={`/agenda?event=${event.id}`}
+                            to={getAgendaLink(event)}
                             className="block"
                         >
                             <motion.div

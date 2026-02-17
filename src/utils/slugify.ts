@@ -7,18 +7,49 @@ export function slugify(text: string): string {
         .replace(/^-+|-+$/g, ''); // Supprime les tirets au début et à la fin
 }
 
-export function generateSlug(title: string, id: number): string {
+export function generateSlug(title: string, id: number | string): string {
+    if (typeof id === 'string' && isNaN(Number(id))) {
+        return id;
+    }
     const slug = slugify(title);
     return `${slug}-${id}`;
 }
 
-export function extractIdFromSlug(slug: string): number | null {
-    const match = slug.match(/-(\d+)$/);
-    return match ? parseInt(match[1], 10) : null;
+export function extractIdFromSlug(slug: string | undefined): number | string | null {
+    if (!slug) return null;
+
+    // Si le slug ressemble à un ID numérique pur
+    if (/^\d+$/.test(slug)) return parseInt(slug, 10);
+
+    // Check for slug-id (new: title-123)
+    const endMatch = slug.match(/-(\d+)$/);
+    if (endMatch) return parseInt(endMatch[1], 10);
+
+    // Check for id_slug (old: 123_title)
+    const startMatch = slug.match(/^(\d+)[_-]/);
+    if (startMatch) return parseInt(startMatch[1], 10);
+
+    // Si c'est un slug texte (ex: Galerie)
+    return slug;
 }
 
-export function getArticleLink(article: { id: number; title: string; category?: string }): string {
+export function getArticleLink(article: { id: number | string; title: string; category?: string }): string {
     const slug = generateSlug(article.title, article.id);
     const isInterview = article.category?.toLowerCase().includes('interview');
     return isInterview ? `/interviews/${slug}` : `/news/${slug}`;
+}
+
+export function getRecapLink(recap: { id: number | string; title: string }): string {
+    const slug = generateSlug(recap.title, recap.id);
+    return `/recaps/${slug}`;
+}
+
+export function getGalleryLink(gallery: { id: number | string; title: string }): string {
+    const slug = generateSlug(gallery.title, gallery.id);
+    return `/galerie/${slug}`;
+}
+
+export function getAgendaLink(event: { id: number | string; title: string }): string {
+    const slug = generateSlug(event.title, event.id);
+    return `/agenda?event=${slug}`;
 }

@@ -6,10 +6,12 @@ import agendaData from '../data/agenda.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 
+import { extractIdFromSlug } from '../utils/slugify';
+
 export function Agenda() {
     const { t, language } = useLanguage();
     const playHoverSound = useHoverSound();
-    const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
+    const [expandedEvent, setExpandedEvent] = useState<number | string | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
@@ -102,17 +104,17 @@ export function Agenda() {
 
     // Auto-expand event from URL parameter
     useEffect(() => {
-        const eventId = searchParams.get('event');
-        if (eventId) {
-            const id = parseInt(eventId);
+        const eventParam = searchParams.get('event');
+        if (eventParam) {
+            const id = extractIdFromSlug(eventParam);
             // Find the event to select its month automatically
             const event = agendaData.find((e: any) => e.id === id);
             if (event) {
                 const date = new Date(event.date);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 setSelectedMonth(monthKey);
+                setExpandedEvent(event.id);
             }
-            setExpandedEvent(id);
             // Remove the parameter from URL after opening
             setSearchParams({});
             // Scroll to the event after a short delay

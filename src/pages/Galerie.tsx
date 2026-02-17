@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react';
 import galerieData from '../data/galerie.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
+import { getGalleryLink } from '../utils/slugify';
 
 const ALBUMS_PER_PAGE = 8;
 
@@ -99,7 +100,7 @@ export function Galerie() {
                                 transition={{ duration: 0.3, delay: index * 0.05 }}
                             >
                                 <Link
-                                    to={`/galerie/${album.id}`}
+                                    to={getGalleryLink(album)}
                                     className="group relative block aspect-[4/5] rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red/50 transition-all duration-500 shadow-2xl"
                                 >
                                     <motion.div
