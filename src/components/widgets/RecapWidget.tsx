@@ -20,7 +20,7 @@ export function RecapWidget() {
                     <span className="w-2 h-2 bg-neon-orange rounded-full animate-pulse shadow-[0_0_10px_#ff6600]" />
                     {t('home.latest_recaps').toUpperCase()}
                 </h3>
-                <Link to="/recap" className="text-sm text-neon-orange hover:underline transition-all flex items-center gap-1 font-bold tracking-tight">
+                <Link to="/recaps" className="text-sm text-neon-orange hover:underline transition-all flex items-center gap-1 font-bold tracking-tight">
                     {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
                 </Link>
             </div>
@@ -32,7 +32,7 @@ export function RecapWidget() {
             ) : (
                 <div className="flex-1 grid grid-cols-2 gap-3">
                     {latestRecaps.map((item: any, index: number) => (
-                        <Link to={`/recap/${item.id}`} key={item.id} className="block group">
+                        <Link to={`/recaps/${item.id}`} key={item.id} className="block group">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}

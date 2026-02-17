@@ -5,6 +5,8 @@ import { Menu, X, Search, Sun, Moon } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
+import recapsData from '../../data/recaps.json';
+import agendaData from '../../data/agenda.json';
 import { useLanguage } from '../../context/LanguageContext';
 
 export function Navbar() {
@@ -19,7 +21,7 @@ export function Navbar() {
 
     const navItems = [
         { name: t('nav.news'), path: '/news' },
-        { name: t('nav.recaps'), path: '/recap' },
+        { name: t('nav.recaps'), path: '/recaps' },
         { name: t('nav.galleries'), path: '/galerie' },
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.agenda'), path: '/agenda' },
@@ -36,25 +38,48 @@ export function Navbar() {
         setLanguage(language === 'fr' ? 'en' : 'fr');
     };
 
-    // Search functionality
     const searchResults = useMemo(() => {
         if (!searchQuery.trim()) return [];
 
         const query = searchQuery.toLowerCase();
-        return (newsData as any[])
+
+        const filteredNews = (newsData as any[])
+            .map(item => ({ ...item, searchType: item.category.toLowerCase() }))
             .filter((item: any) =>
                 item.title?.toLowerCase().includes(query) ||
-                item.summary?.toLowerCase().includes(query) ||
-                item.category?.toLowerCase().includes(query)
-            )
-            .slice(0, 5); // Limit to 5 results
+                item.summary?.toLowerCase().includes(query)
+            );
+
+        const filteredRecaps = (recapsData as any[])
+            .map(item => ({ ...item, searchType: 'recap', category: 'Recaps' }))
+            .filter((item: any) =>
+                item.title?.toLowerCase().includes(query) ||
+                item.festival?.toLowerCase().includes(query)
+            );
+
+        const filteredAgenda = (agendaData as any[])
+            .map(item => ({ ...item, searchType: 'agenda', category: 'Agenda' }))
+            .filter((item: any) =>
+                item.title?.toLowerCase().includes(query) ||
+                item.location?.toLowerCase().includes(query) ||
+                item.genre?.toLowerCase().includes(query)
+            );
+
+        return [...filteredNews, ...filteredRecaps, ...filteredAgenda]
+            .slice(0, 10); // Limit to 10 results
     }, [searchQuery]);
 
     const handleSearchResultClick = (item: any) => {
-        const categoryPath = item.category.toLowerCase() === 'news' ? 'news' :
-            item.category.toLowerCase() === 'recap' ? 'recap' :
-                'interviews';
-        navigate(`/${categoryPath}/${item.id}`);
+        let path = '';
+        const searchType = item.searchType || item.category?.toLowerCase();
+
+        if (searchType === 'news') path = `/news/${item.id}`;
+        else if (searchType === 'recap') path = `/recaps/${item.id}`;
+        else if (searchType === 'interview') path = `/news/${item.id}`; // Interviews are in news table
+        else if (searchType === 'agenda') path = `/agenda?event=${item.id}`;
+        else if (searchType === 'galerie') path = `/galerie/${item.id}`;
+
+        if (path) navigate(path);
         setIsSearchOpen(false);
         setSearchQuery('');
     };

@@ -63,7 +63,7 @@ export function Recap() {
                                 transition={{ delay: index * 0.05 }}
                                 className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-all duration-300 shadow-2xl hover:shadow-neon-red/20"
                             >
-                                <Link to={`/recap/${item.id}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                                <Link to={`/recaps/${item.id}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                                     <div className="h-72 overflow-hidden bg-black/40 relative">
                                         <img
                                             src={item.coverImage || item.image}

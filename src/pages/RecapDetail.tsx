@@ -23,7 +23,7 @@ export function RecapDetail() {
                 <div className="text-center py-20">
                     <h1 className="text-4xl font-display font-black text-white mb-4">{t('recap_detail.not_found_title')}</h1>
                     <Link
-                        to="/recap"
+                        to="/recaps"
                         className="text-neon-red hover:underline font-bold"
                         onMouseEnter={playHoverSound}
                     >
@@ -292,7 +292,7 @@ export function RecapDetail() {
                                     {relatedRecaps.map((rel: any) => (
                                         <Link
                                             key={rel.id}
-                                            to={`/recap/${rel.id}`}
+                                            to={`/recaps/${rel.id}`}
                                             className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0"
                                             onClick={() => window.scrollTo(0, 0)}
                                         >
