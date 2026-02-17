@@ -1,6 +1,6 @@
-
 import { useState, useEffect } from 'react';
-import { Send, Copy, Eye, Layout, Type, Link, Image as ImageIcon, Users } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Send, Copy, Eye, Layout, Type, Link as LinkIcon, Image as ImageIcon, Users, ArrowLeft } from 'lucide-react';
 import localSubscribersData from '../data/subscribers.json';
 
 export function NewsletterCreate() {
@@ -176,11 +176,20 @@ export function NewsletterCreate() {
         <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-7xl mx-auto h-[800px] flex flex-col">
                 <div className="flex items-center justify-between mb-8">
-                    <div>
-                        <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Créateur de Newsletter
-                        </h1>
-                        <p className="text-gray-400">Composez votre email et exportez le HTML</p>
+                    <div className="flex items-center gap-6">
+                        <Link
+                            to="/admin"
+                            className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
+                            title="Retour au tableau de bord"
+                        >
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        </Link>
+                        <div>
+                            <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                Créateur de Newsletter
+                            </h1>
+                            <p className="text-gray-400">Composez votre email et exportez le HTML</p>
+                        </div>
                     </div>
                     <div className="flex gap-4">
                         <button
@@ -277,7 +286,7 @@ export function NewsletterCreate() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                        <Link className="w-4 h-4" /> Bouton Texte
+                                        <LinkIcon className="w-4 h-4" /> Bouton Texte
                                     </label>
                                     <input
                                         type="text"
