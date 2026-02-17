@@ -128,5 +128,95 @@
     "image": "/images/imported/22bb5ebd462cbe17ad62b0d3d790ba70.jpg",
     "description": "Le plus grand festival techno du monde.",
     "url": "https://www.awakenings.com/en/"
+  },
+  {
+    "id": 20,
+    "title": "John Summit - Experts Only (Opening)",
+    "date": "2026-06-01",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "La résidence exclusive de John Summit au nouveau superclub d'Ibiza.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 21,
+    "title": "John Summit - Experts Only",
+    "date": "2026-06-08",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 22,
+    "title": "John Summit - Experts Only",
+    "date": "2026-06-15",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 23,
+    "title": "John Summit - Experts Only",
+    "date": "2026-06-22",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 24,
+    "title": "John Summit - Experts Only",
+    "date": "2026-06-29",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 25,
+    "title": "John Summit - Experts Only",
+    "date": "2026-07-06",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 26,
+    "title": "John Summit - Experts Only",
+    "date": "2026-07-13",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 27,
+    "title": "John Summit - Experts Only",
+    "date": "2026-07-20",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "/2026_UNVRS_JOHNSUMMIT_LAUNCH_SQUARE_1080X1080px-1024x1024.jpg",
+    "description": "Experts Only takeover at UNVRS.",
+    "url": "https://unvrs.com/"
+  },
+  {
+    "id": 28,
+    "title": "John Summit - Experts Only (Closing)",
+    "date": "2026-07-27",
+    "location": "UNVRS, Ibiza",
+    "type": "Résidence",
+    "image": "https://images.unsplash.com/photo-1571266028243-d220c6e2e5e4?q=80&w=2070",
+    "description": "La grande soirée de clôture de la résidence.",
+    "url": "https://unvrs.com/"
   }
 ]

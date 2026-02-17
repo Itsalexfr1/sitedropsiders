@@ -14,11 +14,13 @@ export function Agenda() {
     const upcomingEvents = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Reset to start of day
-        return agendaData.filter((event: any) => {
-            const eventDate = new Date(event.date);
-            eventDate.setHours(0, 0, 0, 0);
-            return eventDate >= today;
-        });
+        return agendaData
+            .filter((event: any) => {
+                const eventDate = new Date(event.date);
+                eventDate.setHours(0, 0, 0, 0);
+                return eventDate >= today;
+            })
+            .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
     }, []);
 
     // Auto-expand event from URL parameter

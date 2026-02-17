@@ -5,7 +5,18 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { motion } from 'framer-motion';
 
 export function AgendaWidget() {
-    const upcomingEvents = agendaData.slice(0, 6);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingEvents = agendaData
+        .filter((event: any) => {
+            const eventDate = new Date(event.date);
+            eventDate.setHours(0, 0, 0, 0);
+            return eventDate >= today;
+        })
+        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+        .slice(0, 6);
+
     const playHoverSound = useHoverSound();
 
     return (
