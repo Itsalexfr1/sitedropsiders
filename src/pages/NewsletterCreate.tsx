@@ -4,7 +4,6 @@ import { Send, Copy, Eye, Layout, Type, Link, Image as ImageIcon, Users } from '
 
 export function NewsletterCreate() {
     const [subject, setSubject] = useState('');
-    const [preheader, setPreheader] = useState('');
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
@@ -58,12 +57,14 @@ export function NewsletterCreate() {
 </head>
 <body>
     <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
-        ${preheader}
+        ${subject}
     </div>
-    <div class="container">
-        <div class="header"></div>
-        ${imageUrl ? `<img src="${imageUrl}" alt="Cover" class="image" style="display:block; width:100%; max-width:600px;">` : ''}
-        <div class="content">
+                            <div class="header" style="text-align: center; padding: 20px 0;">
+                                <img src="https://dropsiders.eu/Logo.png" alt="Dropsiders" width="150" style="display: block; margin: 0 auto; max-width: 150px;">
+                            </div>
+                            <div style="height: 2px; background: linear-gradient(90deg, #ff0033 0%, #00f2ea 100%); width: 100%;"></div>
+                            ${imageUrl ? `<img src="${imageUrl}" alt="Cover" class="image" style="display:block; width:100%; max-width:600px;">` : ''}
+                            <div class="content">
             <h1 class="title">${title}</h1>
             <div class="text">
                 ${content.replace(/\n/g, '<br>')}
@@ -197,16 +198,6 @@ export function NewsletterCreate() {
                                         onChange={(e) => setSubject(e.target.value)}
                                         className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
                                         placeholder="Ex: Les meilleurs festivals de l'été sont là !"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Preheader (Aperçu)</label>
-                                    <input
-                                        type="text"
-                                        value={preheader}
-                                        onChange={(e) => setPreheader(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                        placeholder="Ce qui s'affiche après le sujet dans la boîte mail"
                                     />
                                 </div>
                             </div>
