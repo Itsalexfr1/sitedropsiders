@@ -260,14 +260,14 @@ export function RecapDetail() {
                                         >
                                             <img
                                                 src={image}
-                                                alt={`${recap.title} - Photo ${index + 1}`}
+                                                alt={`${recap.title} - ${t('common.photo')} ${index + 1}`}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 loading="lazy"
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                                                 <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                                                     <p className="text-white font-black uppercase italic tracking-wider text-sm">{t('recap_detail.gallery_expand')}</p>
-                                                    <p className="text-white/60 text-xs mt-1">Photo {index + 1}</p>
+                                                    <p className="text-white/60 text-xs mt-1">{t('common.photo')} {index + 1}</p>
                                                 </div>
                                             </div>
 

@@ -8,8 +8,8 @@ export type TranslationKey =
     | 'interviews.badge' | 'interviews.title' | 'interviews.title_span' | 'interviews.read_more' | 'interviews.no_interviews' | 'interviews.no_interviews_subtitle'
     | 'team.title' | 'team.join_title' | 'team.join_desc' | 'team.contact_btn'
     | 'galerie.badge' | 'galerie.title' | 'galerie.title_span' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_others'
-    | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results'
-    | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results'
+    | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results' | 'common.photo' | 'common.gallery_alt'
+    | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results' | 'agenda.infos_tickets' | 'agenda.no_events_selection' | 'agenda.loading'
     | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
     | 'recap_detail.not_found_title' | 'recap_detail.not_found_btn' | 'recap_detail.back_to_recaps' | 'recap_detail.video_available' | 'recap_detail.video_title' | 'recap_detail.gallery_expand' | 'recap_detail.related_title' | 'recap_detail.view_all_recaps'
     | 'album_detail.not_found_title' | 'album_detail.back_to_galerie' | 'album_detail.share_btn' | 'album_detail.default_category'
@@ -108,6 +108,8 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'common.location': { fr: 'Lieu', en: 'Location' },
     'common.search': { fr: 'Rechercher sur le site...', en: 'Search on the site...' },
     'common.no_results': { fr: 'Aucun résultat trouvé pour', en: 'No results found for' },
+    'common.photo': { fr: 'Photo', en: 'Photo' },
+    'common.gallery_alt': { fr: 'Galerie', en: 'Gallery' },
 
     'agenda.title': { fr: 'AGENDA', en: 'AGENDA' },
     'agenda.title_span': { fr: '2026', en: '2026' },
@@ -119,6 +121,9 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'agenda.official_site': { fr: 'SITE OFFICIEL', en: 'OFFICIAL SITE' },
     'agenda.no_results': { fr: 'Aucun événement à venir pour le moment', en: 'No upcoming events for now' },
     'agenda.filter_by': { fr: 'Filtrer par :', en: 'Filter by:' },
+    'agenda.infos_tickets': { fr: 'Infos / Tickets', en: 'Infos / Tickets' },
+    'agenda.no_events_selection': { fr: 'Aucun événement trouvé pour cette sélection', en: 'No events found for this selection' },
+    'agenda.loading': { fr: 'Chargement...', en: 'Loading...' },
 
     'article_detail.back_to_news': { fr: 'Retour aux news', en: 'Back to news' },
     'article_detail.back_to_interviews': { fr: 'Retour aux interviews', en: 'Back to interviews' },

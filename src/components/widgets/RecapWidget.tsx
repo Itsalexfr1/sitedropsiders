@@ -6,7 +6,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 
 export function RecapWidget() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     const latestRecaps = (recapsData as any[])
         .slice(0, 6);
@@ -58,7 +58,7 @@ export function RecapWidget() {
                                 </div>
                                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
                                     <h4 className="text-[11px] font-bold text-white leading-tight group-hover:text-neon-orange transition-colors line-clamp-1">{item.title}</h4>
-                                    <p className="text-[9px] text-gray-400 mt-0.5 font-medium">{item.date}</p>
+                                    <p className="text-[9px] text-gray-400 mt-0.5 font-medium">{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</p>
                                 </div>
                             </motion.div>
                         </Link>

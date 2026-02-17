@@ -137,8 +137,8 @@ export function Navbar() {
                             title={language === 'fr' ? 'Switch to English' : 'Passer en Français'}
                         >
                             <img
-                                src={language === 'fr' ? "https://flagcdn.com/w40/gb.png" : "https://flagcdn.com/w40/fr.png"}
-                                alt={language === 'fr' ? "English" : "Français"}
+                                src={language === 'fr' ? "https://flagcdn.com/w40/fr.png" : "https://flagcdn.com/w40/gb.png"}
+                                alt={language === 'fr' ? "Français" : "English"}
                                 className="w-6 h-auto rounded-sm shadow-sm"
                             />
                         </motion.button>

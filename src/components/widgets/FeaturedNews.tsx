@@ -5,7 +5,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 
 export function FeaturedNews() {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     const latestNews = (newsData as any[])
         .filter((item: any) => item.category === 'News')
@@ -57,7 +57,7 @@ export function FeaturedNews() {
                         <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
                             <span className="text-neon-red font-black">{heroNews.category}</span>
                             <span>•</span>
-                            <span>{heroNews.date}</span>
+                            <span>{new Date(heroNews.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                         <h2 className="text-3xl md:text-4xl font-display font-bold text-white leading-tight group-hover:text-neon-red transition-colors">
                             {heroNews.title}

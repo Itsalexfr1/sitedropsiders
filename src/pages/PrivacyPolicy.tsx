@@ -1,7 +1,199 @@
 import { motion } from 'framer-motion';
 import { Shield, Lock, Eye, Database, Mail } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export function PrivacyPolicy() {
+    const { language } = useLanguage();
+
+    if (language === 'en') {
+        return (
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12"
+                >
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="p-4 bg-neon-red/10 border border-neon-red/20 rounded-2xl">
+                            <Shield className="w-8 h-8 text-neon-red" />
+                        </div>
+                        <h1 className="text-4xl md:text-5xl font-display font-bold text-white uppercase">
+                            PRIVACY <span className="text-neon-red">POLICY</span>
+                        </h1>
+                    </div>
+                    <p className="text-gray-400 text-sm italic">
+                        Last updated: February 16, 2026
+                    </p>
+                </motion.div>
+
+                <div className="space-y-8 text-gray-300">
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.1 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <Eye className="w-6 h-6 text-neon-red" />
+                            <h2 className="text-2xl font-bold text-white">1. Introduction</h2>
+                        </div>
+                        <p className="leading-relaxed">
+                            Welcome to Dropsiders.eu. We respect your privacy and are committed to protecting your personal data.
+                            This privacy policy informs you about how we process your personal data when you visit our website
+                            and informs you of your privacy rights.
+                        </p>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <Database className="w-6 h-6 text-neon-red" />
+                            <h2 className="text-2xl font-bold text-white">2. Data We Collect</h2>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-2">Usage Data</h3>
+                                <p className="leading-relaxed">
+                                    We automatically collect certain information when you visit our site, including:
+                                </p>
+                                <ul className="list-disc list-inside mt-2 space-y-1 ml-4">
+                                    <li>IP address</li>
+                                    <li>Browser type and version</li>
+                                    <li>Pages visited and time spent on each page</li>
+                                    <li>Date and time of your visit</li>
+                                    <li>Device used (computer, mobile, tablet)</li>
+                                </ul>
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-semibold text-white mb-2">Data You Provide to Us</h3>
+                                <p className="leading-relaxed">
+                                    If you subscribe to our newsletter or contact us, we collect:
+                                </p>
+                                <ul className="list-disc list-inside mt-2 space-y-1 ml-4">
+                                    <li>First and last name</li>
+                                    <li>Email address</li>
+                                    <li>Any message or content you send to us</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <Lock className="w-6 h-6 text-neon-red" />
+                            <h2 className="text-2xl font-bold text-white">3. How We Use Your Data</h2>
+                        </div>
+                        <p className="leading-relaxed mb-3">
+                            We use your personal data to:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li>Provide and maintain our service</li>
+                            <li>Send you our newsletter (if you are subscribed)</li>
+                            <li>Improve our website and your user experience</li>
+                            <li>Analyze site usage to optimize our content</li>
+                            <li>Respond to your requests and questions</li>
+                            <li>Detect and prevent fraud or abuse</li>
+                        </ul>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">4. Data Sharing</h2>
+                        <p className="leading-relaxed mb-3">
+                            We never sell your personal data. We may share your information with:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong className="text-white">Service Providers:</strong> For hosting, analysis, and email delivery</li>
+                            <li><strong className="text-white">Legal Obligations:</strong> If required by law or to protect our rights</li>
+                            <li><strong className="text-white">Social Networks:</strong> If you interact with our content on social networks</li>
+                        </ul>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">5. Your Rights</h2>
+                        <p className="leading-relaxed mb-3">
+                            In accordance with GDPR, you have the following rights:
+                        </p>
+                        <ul className="list-disc list-inside space-y-2 ml-4">
+                            <li><strong className="text-white">Right of Access:</strong> Obtain a copy of your personal data</li>
+                            <li><strong className="text-white">Right of Rectification:</strong> Correct your inaccurate data</li>
+                            <li><strong className="text-white">Right to Erasure:</strong> Request the deletion of your data</li>
+                            <li><strong className="text-white">Right to Object:</strong> Object to the processing of your data</li>
+                            <li><strong className="text-white">Right to Portability:</strong> Receive your data in a structured format</li>
+                        </ul>
+                        <p className="mt-4 leading-relaxed">
+                            To exercise these rights, contact us at: <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a>
+                        </p>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">6. Data Security</h2>
+                        <p className="leading-relaxed">
+                            We implement appropriate technical and organizational security measures to protect your data against
+                            unauthorized access, modification, disclosure, or destruction. However, no method of transmission over the Internet
+                            is completely secure.
+                        </p>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="bg-white/5 border border-white/10 rounded-2xl p-8"
+                    >
+                        <h2 className="text-2xl font-bold text-white mb-4">7. Data Retention</h2>
+                        <p className="leading-relaxed">
+                            We retain your personal data only for the period necessary for the purposes for which it was collected,
+                            unless a longer retention period is required or permitted by law.
+                        </p>
+                    </motion.section>
+
+                    <motion.section
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        className="bg-neon-red/10 border border-neon-red/20 rounded-2xl p-8"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <Mail className="w-6 h-6 text-neon-red" />
+                            <h2 className="text-2xl font-bold text-white">8. Contact Us</h2>
+                        </div>
+                        <p className="leading-relaxed">
+                            For any questions regarding this privacy policy or your personal data, contact us:
+                        </p>
+                        <div className="mt-4 space-y-2">
+                            <p><strong className="text-white">Email:</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
+                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                        </div>
+                    </motion.section>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <motion.div

@@ -264,7 +264,7 @@ export function ArticleDetail() {
                                                 >
                                                     <img
                                                         src={img}
-                                                        alt={`Gallery ${idx + 1}`}
+                                                        alt={`${t('common.gallery_alt')} ${idx + 1}`}
                                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                     />
                                                     <div className="absolute inset-0 bg-neon-red/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

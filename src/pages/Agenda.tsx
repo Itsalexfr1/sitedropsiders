@@ -201,7 +201,7 @@ export function Agenda() {
 
                         <div className="flex flex-col">
                             <h2 className="text-4xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter">
-                                {selectedMonth ? formatMonthName(selectedMonth) : 'Chargement...'}
+                                {selectedMonth ? formatMonthName(selectedMonth) : t('agenda.loading')}
                             </h2>
                         </div>
 
@@ -301,7 +301,7 @@ export function Agenda() {
                                                     onMouseEnter={(e) => e.stopPropagation()}
                                                     className={`px-6 py-2 rounded-lg bg-white/10 ${styles.bg} ${styles.hoverText} transition-all duration-300 text-sm font-bold whitespace-nowrap border ${styles.borderMedium} ${styles.hoverBorder} uppercase tracking-tight`}
                                                 >
-                                                    Infos / Tickets
+                                                    {t('agenda.infos_tickets')}
                                                 </a>
                                                 <ChevronDown
                                                     className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${expandedEvent === event.id ? 'rotate-180' : ''}`}
@@ -342,7 +342,7 @@ export function Agenda() {
                         })
                     ) : (
                         <div className="text-center py-20 bg-white/5 border border-white/10 rounded-xl">
-                            <p className="text-gray-400 text-lg">Aucun événement trouvé pour cette sélection</p>
+                            <p className="text-gray-400 text-lg">{t('agenda.no_events_selection')}</p>
                         </div>
                     )}
                 </AnimatePresence>
