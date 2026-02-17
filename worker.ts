@@ -32,6 +32,9 @@ export default {
             path.startsWith('/api/agenda/create') ||
             path.startsWith('/api/galerie/create') ||
             path.startsWith('/api/newsletter/send') ||
+            path.startsWith('/api/news/update') ||
+            path.startsWith('/api/recaps/update') ||
+            path.startsWith('/api/agenda/update') ||
             path.endsWith('/delete') ||
             path === '/api/subscribers'; // Direct list access is sensitive
 
@@ -543,6 +546,173 @@ export default {
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
+        }
+
+        // --- API: UPDATE CONTENT ---
+        // News/Interviews Update
+        if (path === '/api/news/update' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/news.json';
+            try {
+                const rawBody = await request.text();
+                const body = JSON.parse(rawBody);
+                const { id, title, summary, content, image, category, date } = body;
+                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' } });
+
+                if (!getResponse.ok) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                const fileData = await getResponse.json();
+                const fileContent = atob(fileData.content.replace(/\n/g, ''));
+                let currentData = JSON.parse(fileContent);
+
+                const index = currentData.findIndex(item => item.id === id);
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                const existing = currentData[index];
+                currentData[index] = {
+                    ...existing,
+                    title: title || existing.title,
+                    summary: summary || existing.summary,
+                    content: content || existing.content,
+                    image: image || existing.image,
+                    category: category || existing.category,
+                    date: date || existing.date
+                };
+
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(currentData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Update news: ${title || existing.title}`, content: updatedContent, sha: fileData.sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
+        // Recaps Update
+        if (path === '/api/recaps/update' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/recaps.json';
+            try {
+                const rawBody = await request.text();
+                const body = JSON.parse(rawBody);
+                const { id, title, summary, content, image, date, festival, location, youtubeId } = body;
+                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' } });
+
+                if (!getResponse.ok) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                const fileData = await getResponse.json();
+                const fileContent = atob(fileData.content.replace(/\n/g, ''));
+                let currentData = JSON.parse(fileContent);
+
+                const index = currentData.findIndex(item => item.id === id);
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                const existing = currentData[index];
+                currentData[index] = {
+                    ...existing,
+                    title: title || existing.title,
+                    summary: summary || existing.summary,
+                    content: content || existing.content,
+                    image: image || existing.image,
+                    date: date || existing.date,
+                    festival: festival !== undefined ? festival : existing.festival,
+                    location: location !== undefined ? location : existing.location,
+                    youtubeId: youtubeId !== undefined ? youtubeId : existing.youtubeId
+                };
+
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(currentData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Update recap: ${title || existing.title}`, content: updatedContent, sha: fileData.sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
+        // Agenda Update
+        if (path === '/api/agenda/update' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/agenda.json';
+            try {
+                const rawBody = await request.text();
+                const body = JSON.parse(rawBody);
+                const { id, title, date, location, type, image, description, url: eventUrl, genre } = body;
+                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' } });
+
+                if (!getResponse.ok) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                const fileData = await getResponse.json();
+                const fileContent = atob(fileData.content.replace(/\n/g, ''));
+                let currentData = JSON.parse(fileContent);
+
+                const index = currentData.findIndex(item => item.id === id);
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                const existing = currentData[index];
+                currentData[index] = {
+                    ...existing,
+                    title: title || existing.title,
+                    date: date || existing.date,
+                    location: location || existing.location,
+                    type: type || existing.type,
+                    image: image || existing.image,
+                    description: description || existing.description,
+                    url: eventUrl || existing.url,
+                    genre: genre || existing.genre
+                };
+
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(currentData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Update agenda: ${title || existing.title}`, content: updatedContent, sha: fileData.sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
+        // --- API: GET DATA ---
+        if (path === '/api/data' && request.method === 'GET') {
+            const type = url.searchParams.get('type');
+            if (!type || !['news', 'recaps', 'agenda'].includes(type)) {
+                return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+            }
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+
+            const FILE_PATH = `src/data/${type}.json`;
+            try {
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' } });
+
+                if (!getResponse.ok) {
+                    if (getResponse.status === 404) return new Response(JSON.stringify([]), { status: 200, headers });
+                    return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                }
+                const fileData = await getResponse.json();
+                const content = atob(fileData.content.replace(/\n/g, ''));
+                // Return raw json
+                return new Response(content, { status: 200, headers });
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
         // --- STATIC ASSETS ---
