@@ -48,7 +48,7 @@ export function AdminManage() {
 
         setDeleteStatus('loading');
         try {
-            const endpoint = `/api/${activeTab.toLowerCase()}/delete`;
+            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' : `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {

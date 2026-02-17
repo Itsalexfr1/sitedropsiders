@@ -5,10 +5,11 @@ export const onRequestPost = async (context: any) => {
 
     try {
         const body = await request.json();
-        const { password } = body;
+        const { username, password } = body;
 
-        // Verify password
-        if (password === env.ADMIN_PASSWORD) {
+        // Verify username and password
+        // User requested strict check for 'alex'
+        if (username === 'alex' && password === env.ADMIN_PASSWORD) {
             return jsonResponse({ success: true });
         }
 
