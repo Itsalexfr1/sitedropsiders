@@ -467,6 +467,54 @@ export default {
             }
         }
 
+        // --- API: DELETE CONTENT ---
+        if (path.endsWith('/delete') && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+
+            let FILE_PATH = '';
+            if (path.includes('/news/') || path.includes('/interviews/')) FILE_PATH = 'src/data/news.json';
+            else if (path.includes('/recaps/')) FILE_PATH = 'src/data/recaps.json';
+            else if (path.includes('/agenda/')) FILE_PATH = 'src/data/agenda.json';
+            else if (path.includes('/galerie/')) FILE_PATH = 'src/data/galerie.json';
+
+            if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid delete path' }), { status: 400, headers });
+
+            try {
+                const rawBody = await request.text();
+                const { id } = JSON.parse(rawBody);
+                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                if (!getResponse.ok) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+
+                const fileData = await getResponse.json();
+                const content = atob(fileData.content.replace(/\n/g, ''));
+                let currentData = JSON.parse(content);
+
+                const updatedData = currentData.filter(item => item.id !== id);
+                if (updatedData.length === currentData.length) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(updatedData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Delete from ${FILE_PATH}: ${id}`, content: updatedContent, sha: fileData.sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- STATIC ASSETS ---
         if (env.ASSETS) {
             const response = await env.ASSETS.fetch(request);

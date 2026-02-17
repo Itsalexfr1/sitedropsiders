@@ -4,17 +4,26 @@ import { Camera, Calendar, ArrowRight, Filter, ChevronLeft, ChevronRight } from 
 import { useState, useMemo } from 'react';
 import galerieData from '../data/galerie.json';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { useLanguage } from '../context/LanguageContext';
 
-const CATEGORIES = ['TOUT', 'FESTIVALS', 'CLUBS & EVENTS', 'CONCERTS', 'OTHERS'];
 const ALBUMS_PER_PAGE = 8;
 
 export function Galerie() {
-    const [activeCategory, setActiveCategory] = useState('TOUT');
+    const { t } = useLanguage();
+    const [activeCategory, setActiveCategory] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const playHoverSound = useHoverSound();
 
+    const CATEGORIES = [
+        { id: 'ALL', label: t('galerie.filter_all') },
+        { id: 'FESTIVALS', label: t('galerie.filter_festivals') },
+        { id: 'CLUBS & EVENTS', label: t('galerie.filter_clubs') },
+        { id: 'CONCERTS', label: t('galerie.filter_concerts') },
+        { id: 'OTHERS', label: t('galerie.filter_others') }
+    ];
+
     const filteredAlbums = useMemo(() => {
-        return activeCategory === 'TOUT'
+        return activeCategory === 'ALL'
             ? galerieData
             : galerieData.filter(album => album.category?.toUpperCase() === activeCategory);
     }, [activeCategory]);
@@ -45,10 +54,10 @@ export function Galerie() {
                     <div className="p-2 bg-neon-red/10 rounded-lg">
                         <Camera className="w-6 h-6 text-neon-red" />
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Photos & Albums</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    GALERIES <span className="text-neon-red">PHOTO</span>
+                    {t('galerie.title')} <span className="text-neon-red">{t('galerie.title_span')}</span>
                 </h1>
             </motion.div>
 
@@ -56,20 +65,20 @@ export function Galerie() {
             <div className="flex flex-wrap items-center gap-4 mb-12">
                 <div className="flex items-center gap-2 text-gray-400 mr-2">
                     <Filter className="w-4 h-4" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Filtrer par :</span>
+                    <span className="text-sm font-bold uppercase tracking-wider">{t('galerie.filter_by')}</span>
                 </div>
                 {CATEGORIES.map((cat) => (
                     <motion.button
-                        key={cat}
-                        onClick={() => setActiveCategory(cat)}
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id)}
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
-                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat
+                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
                             ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
                             : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
                             }`}
                     >
-                        {cat}
+                        {cat.label}
                     </motion.button>
                 ))}
             </div>
@@ -115,7 +124,7 @@ export function Galerie() {
                                                     {album.category}
                                                 </span>
                                                 <span className="text-xs font-bold text-white/60 tracking-widest uppercase">
-                                                    {album.images.length}+ Photos
+                                                    {album.images.length}+ {t('galerie.photos_suffix')}
                                                 </span>
                                             </div>
 
@@ -129,7 +138,7 @@ export function Galerie() {
                                                     <span className="text-sm">{album.date}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-neon-red font-bold text-sm opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
-                                                    VOIR L'ALBUM <ArrowRight className="w-4 h-4" />
+                                                    {t('galerie.view_album')} <ArrowRight className="w-4 h-4" />
                                                 </div>
                                             </div>
                                         </div>
@@ -139,7 +148,7 @@ export function Galerie() {
                         ))
                     ) : (
                         <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
-                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg">Aucun album trouvé</p>
+                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('galerie.no_albums')}</p>
                         </div>
                     )}
                 </AnimatePresence>

@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { Calendar, User, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { useLanguage } from '../context/LanguageContext';
 
 export function Interviews() {
+    const { t, language } = useLanguage();
     const [currentPage, setCurrentPage] = useState(1);
     const articlesPerPage = 8;
 
@@ -26,7 +28,7 @@ export function Interviews() {
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('fr-FR', {
+        return new Date(dateString).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
             day: 'numeric',
             month: 'long',
             year: 'numeric'
@@ -47,10 +49,10 @@ export function Interviews() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                         </svg>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Exclusivités</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('interviews.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    INTERVIEWS <span className="text-neon-red">ARTISTES</span>
+                    {t('interviews.title')} <span className="text-neon-red">{t('interviews.title_span')}</span>
                 </h1>
             </motion.div>
 
@@ -79,7 +81,7 @@ export function Interviews() {
                                         <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-60" />
                                         <div className="absolute top-4 left-4">
                                             <span className="px-3 py-1 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(255,0,51,0.5)]">
-                                                Interview
+                                                {t('home.interview_badge')}
                                             </span>
                                         </div>
                                     </div>
@@ -105,7 +107,7 @@ export function Interviews() {
                                         </p>
 
                                         <div className="mt-auto flex items-center gap-2 text-white font-black text-[10px] uppercase tracking-widest group-hover:text-neon-red transition-colors">
-                                            LIRE L'INTERVIEW
+                                            {t('interviews.read_more')}
                                             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                         </div>
                                     </div>
@@ -117,8 +119,8 @@ export function Interviews() {
                             <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
                                 <Calendar className="w-10 h-10 text-neon-red opacity-50" />
                             </div>
-                            <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">Aucune interview trouvée</h3>
-                            <p className="text-gray-500 font-medium">Revenez plus tard pour de nouveaux contenus exclusifs.</p>
+                            <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
+                            <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
                         </div>
                     )}
                 </AnimatePresence>

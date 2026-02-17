@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Calendar, MapPin, Camera, Play, X } from 'lucide-react';
 import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { useLanguage } from '../context/LanguageContext';
 
 export function RecapDetail() {
+    const { t, language } = useLanguage();
     const { id } = useParams();
     const playHoverSound = useHoverSound();
     const recap = (recapsData as any[]).find((item: any) => item.id === parseInt(id || '0'));
@@ -19,13 +21,13 @@ export function RecapDetail() {
         return (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
                 <div className="text-center py-20">
-                    <h1 className="text-4xl font-display font-black text-white mb-4">RÉCAP NON TROUVÉ</h1>
+                    <h1 className="text-4xl font-display font-black text-white mb-4">{t('recap_detail.not_found_title')}</h1>
                     <Link
                         to="/recap"
                         className="text-neon-red hover:underline font-bold"
                         onMouseEnter={playHoverSound}
                     >
-                        ← Retour aux récaps
+                        {t('recap_detail.not_found_btn')}
                     </Link>
                 </div>
             </div>
@@ -136,7 +138,7 @@ export function RecapDetail() {
                                 onMouseEnter={playHoverSound}
                             >
                                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                <span className="font-bold uppercase tracking-wider text-sm">Retour aux récaps</span>
+                                <span className="font-bold uppercase tracking-wider text-sm">{t('recap_detail.back_to_recaps')}</span>
                             </Link>
 
                             <div className="flex flex-wrap gap-3 mb-6">
@@ -153,7 +155,7 @@ export function RecapDetail() {
                                 )}
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-sm flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />
-                                    {new Date(recap.date).toLocaleDateString('fr-FR', {
+                                    {new Date(recap.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric'
@@ -169,12 +171,12 @@ export function RecapDetail() {
                                 <div className="flex items-center gap-4 text-white/80">
                                     <div className="flex items-center gap-2">
                                         <Camera className="w-5 h-5 text-neon-red" />
-                                        <span className="font-bold text-lg">{recap.images.length} photos</span>
+                                        <span className="font-bold text-lg">{recap.images.length} {t('galerie.photos_suffix')}</span>
                                     </div>
                                     {recap.youtubeId && (
                                         <div className="flex items-center gap-2">
                                             <Play className="w-5 h-5 text-neon-red" />
-                                            <span className="font-bold text-lg">Vidéo disponible</span>
+                                            <span className="font-bold text-lg">{t('recap_detail.video_available')}</span>
                                         </div>
                                     )}
                                 </div>
@@ -199,7 +201,7 @@ export function RecapDetail() {
                             >
                                 <h2 className="text-3xl font-display font-black text-white mb-6 uppercase italic flex items-center gap-3">
                                     <Play className="w-8 h-8 text-neon-red" />
-                                    Vidéo Récap
+                                    {t('recap_detail.video_title')}
                                 </h2>
                                 <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/5" style={{ paddingBottom: '56.25%' }}>
                                     <iframe
@@ -238,7 +240,7 @@ export function RecapDetail() {
                                         <span className="bg-neon-red p-2 rounded-lg">
                                             <Camera className="w-8 h-8 text-white" />
                                         </span>
-                                        Galerie Photos
+                                        {t('article_detail.gallery_title')}
                                         <span className="text-neon-red ml-2">[{recap.images.length}]</span>
                                     </h2>
                                     <div className="absolute -bottom-4 left-0 w-24 h-1 bg-neon-red" />
@@ -263,7 +265,7 @@ export function RecapDetail() {
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
                                                 <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                                    <p className="text-white font-black uppercase italic tracking-wider text-sm">Agrandir la photo</p>
+                                                    <p className="text-white font-black uppercase italic tracking-wider text-sm">{t('recap_detail.gallery_expand')}</p>
                                                     <p className="text-white/60 text-xs mt-1">Photo {index + 1}</p>
                                                 </div>
                                             </div>
@@ -284,7 +286,7 @@ export function RecapDetail() {
                             <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
                                 <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic flex items-center gap-2">
                                     <span className="w-1.5 h-6 bg-neon-red rounded-full" />
-                                    Autres Récapitulatifs
+                                    {t('recap_detail.related_title')}
                                 </h3>
                                 <div className="space-y-6">
                                     {relatedRecaps.map((rel: any) => (
@@ -317,7 +319,7 @@ export function RecapDetail() {
                                         to="/recap"
                                         className="text-xs font-black text-white/40 hover:text-neon-red uppercase tracking-widest transition-colors flex items-center gap-2"
                                     >
-                                        Voir tous les récaps
+                                        {t('recap_detail.view_all_recaps')}
                                         <ArrowLeft className="w-3 h-3 rotate-180" />
                                     </Link>
                                 </div>
@@ -333,20 +335,20 @@ export function RecapDetail() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">Rejoignez-nous</h4>
+                                        <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
                                         <p className="text-xs text-gray-400 uppercase tracking-wide leading-relaxed">
-                                            L'actu des festivals directement dans votre boite mail
+                                            {t('article_detail.newsletter_subtitle')}
                                         </p>
                                     </div>
 
                                     <div className="space-y-3">
                                         <input
                                             type="email"
-                                            placeholder="votre@email.com"
+                                            placeholder={t('article_detail.newsletter_placeholder')}
                                             className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-neon-red/50 transition-colors"
                                         />
                                         <button className="w-full py-3 bg-neon-red hover:bg-neon-red/80 text-white text-xs font-black uppercase rounded-xl transition-all duration-300 shadow-lg shadow-neon-red/20 hover:shadow-neon-red/40">
-                                            S'abonner
+                                            {t('article_detail.newsletter_btn')}
                                         </button>
                                     </div>
                                 </div>

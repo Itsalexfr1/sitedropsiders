@@ -3,8 +3,11 @@ import { Play, ArrowUpRight } from 'lucide-react';
 import recapsData from '../../data/recaps.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function RecapWidget() {
+    const { t } = useLanguage();
+
     const latestRecaps = (recapsData as any[])
         .slice(0, 6);
 
@@ -15,16 +18,16 @@ export function RecapWidget() {
             <div className="flex justify-between items-center">
                 <h3 className="text-xl font-display font-bold text-white flex items-center gap-3">
                     <span className="w-2 h-2 bg-neon-orange rounded-full animate-pulse shadow-[0_0_10px_#ff6600]" />
-                    DERNIERS RÉCAPS
+                    {t('home.latest_recaps').toUpperCase()}
                 </h3>
                 <Link to="/recap" className="text-sm text-neon-orange hover:underline transition-all flex items-center gap-1 font-bold tracking-tight">
-                    TOUT VOIR <ArrowUpRight className="w-4 h-4" />
+                    {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
                 </Link>
             </div>
 
             {latestRecaps.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center border border-white/10 rounded-lg bg-dark-bg/40 backdrop-blur-md">
-                    <p className="text-gray-400 font-display uppercase tracking-widest text-sm">Aucun récap pour le moment</p>
+                    <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('home.no_recap')}</p>
                 </div>
             ) : (
                 <div className="flex-1 grid grid-cols-2 gap-3">
@@ -50,7 +53,7 @@ export function RecapWidget() {
                                 </div>
                                 <div className="absolute top-2 left-2">
                                     <span className="px-1 py-0.5 bg-dark-bg/60 backdrop-blur-md border border-neon-orange text-neon-orange text-[6px] font-black rounded shadow-[0_0_10px_rgba(255,102,0,0.3)] uppercase tracking-tighter">
-                                        RECAP
+                                        {t('home.recap_badge')}
                                     </span>
                                 </div>
                                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent">

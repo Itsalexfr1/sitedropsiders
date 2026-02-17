@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { useLanguage } from '../context/LanguageContext';
 
 export function Recap() {
+    const { t, language } = useLanguage();
     const [currentPage, setCurrentPage] = useState(1);
     const articlesPerPage = 8; // 2 rows of 4 items per page
 
@@ -22,6 +24,8 @@ export function Recap() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <motion.div
@@ -35,13 +39,13 @@ export function Recap() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Couvertures Festivals</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('recaps.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 uppercase tracking-tight">
-                    RÉCAPS <span className="text-neon-red">EVENTS</span>
+                    {t('recaps.title')} <span className="text-neon-red">{t('recaps.title_span')}</span>
                 </h1>
                 <p className="text-gray-400 max-w-3xl text-lg leading-relaxed">
-                    Revivez les moments forts des plus grands festivals et événements électroniques à travers nos reportages photos et vidéos exclusifs.
+                    {t('recaps.subtitle')}
                 </p>
             </motion.div>
 
@@ -80,9 +84,9 @@ export function Recap() {
                                     </div>
                                     <div className="p-6">
                                         <div className="flex justify-between items-center mb-3">
-                                            <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">RECAP</span>
+                                            <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
                                             <span className="text-xs text-gray-500 font-medium">
-                                                {new Date(item.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' })}
+                                                {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
                                             </span>
                                         </div>
                                         <h2 className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-red transition-colors leading-tight uppercase italic line-clamp-2">
@@ -105,8 +109,8 @@ export function Recap() {
                             <svg className="w-16 h-16 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                             </svg>
-                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg mb-2">Aucun récap disponible</p>
-                            <p className="text-gray-600 text-sm">Les récaps seront bientôt disponibles après le scraping</p>
+                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg mb-2">{t('recaps.no_recaps')}</p>
+                            <p className="text-gray-600 text-sm">{t('recaps.no_recaps_subtitle')}</p>
                         </div>
                     )}
                 </AnimatePresence>

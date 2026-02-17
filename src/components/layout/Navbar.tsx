@@ -5,15 +5,7 @@ import { Menu, X, Search, Sun, Moon } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
-
-const navItems = [
-    { name: 'News', path: '/news' },
-    { name: 'Récaps', path: '/recap' },
-    { name: 'Galeries', path: '/galerie' },
-    { name: 'Interviews', path: '/interviews' },
-    { name: 'Agenda', path: '/agenda' },
-    { name: 'Team', path: '/team' },
-];
+import { useLanguage } from '../../context/LanguageContext';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,11 +15,25 @@ export function Navbar() {
     const location = useLocation();
     const navigate = useNavigate();
     const playHoverSound = useHoverSound();
+    const { language, setLanguage, t } = useLanguage();
+
+    const navItems = [
+        { name: t('nav.news'), path: '/news' },
+        { name: t('nav.recaps'), path: '/recap' },
+        { name: t('nav.galleries'), path: '/galerie' },
+        { name: t('nav.interviews'), path: '/interviews' },
+        { name: t('nav.agenda'), path: '/agenda' },
+        { name: t('nav.team'), path: '/team' },
+    ];
 
     const toggleTheme = () => {
         setIsDarkMode(!isDarkMode);
         // Toggle dark mode class on document
         document.documentElement.classList.toggle('light-mode');
+    };
+
+    const toggleLanguage = () => {
+        setLanguage(language === 'fr' ? 'en' : 'fr');
     };
 
     // Search functionality
@@ -97,6 +103,18 @@ export function Navbar() {
                             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </motion.button>
 
+                        {/* Language Toggle Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={toggleLanguage}
+                            className="p-2 text-lg hover:bg-white/5 rounded-lg transition-colors"
+                            title={language === 'fr' ? 'Switch to English' : 'Passer en Français'}
+                        >
+                            {language === 'fr' ? '🇬🇧' : '🇫🇷'}
+                        </motion.button>
+
                         {/* Mobile Menu Button */}
                         <div className="md:hidden">
                             <button
@@ -113,78 +131,104 @@ export function Navbar() {
                 {/* Search Bar */}
                 <AnimatePresence>
                     {isSearchOpen && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="overflow-hidden pb-4"
-                        >
-                            <div className="relative max-w-2xl mx-auto">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <input
-                                    type="text"
-                                    placeholder="Rechercher sur le site..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red/50 transition-colors"
-                                    autoFocus
-                                />
+                        <>
+                            {/* Backdrop to ensure results are visible and "take lead" */}
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsSearchOpen(false)}
+                                className="fixed inset-0 bg-dark-bg/60 backdrop-blur-sm z-[80]"
+                            />
 
-                                {/* Search Results Dropdown */}
-                                {searchQuery && searchResults.length > 0 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="absolute top-full left-0 right-0 mt-2 bg-dark-bg/95 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden shadow-2xl z-[100]"
-                                    >
-                                        {searchResults.map((item: any) => (
-                                            <motion.button
-                                                key={item.id}
-                                                whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
-                                                onClick={() => handleSearchResultClick(item)}
-                                                onMouseEnter={playHoverSound}
-                                                className="w-full text-left px-4 py-3 border-b border-white/5 last:border-0 transition-colors"
-                                            >
-                                                <div className="flex items-start gap-3">
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.title}
-                                                        className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
-                                                    />
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2 mb-1">
-                                                            <span className="text-[10px] font-bold text-neon-red uppercase tracking-wider">
-                                                                {item.category}
-                                                            </span>
-                                                            <span className="text-[10px] text-gray-500">
-                                                                {item.date}
-                                                            </span>
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="relative z-[90] pb-4"
+                            >
+                                <div className="relative max-w-2xl mx-auto">
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <input
+                                            type="text"
+                                            placeholder={t('common.search')}
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full pl-12 pr-4 py-3 bg-dark-bg/90 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red shadow-[0_0_30px_rgba(0,0,0,0.5)] transition-all"
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={() => setIsSearchOpen(false)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                                        >
+                                            <X className="w-4 h-4 text-gray-500" />
+                                        </button>
+                                    </div>
+
+                                    {/* Search Results Dropdown */}
+                                    {searchQuery && searchResults.length > 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="absolute top-full left-0 right-0 mt-2 bg-dark-bg/95 backdrop-blur-xl border border-white/20 rounded-xl overflow-hidden shadow-2xl z-[100] max-h-[60vh] overflow-y-auto custom-scrollbar"
+                                        >
+                                            {searchResults.map((item: any) => (
+                                                <motion.button
+                                                    key={item.id}
+                                                    whileHover={{ backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
+                                                    onClick={() => handleSearchResultClick(item)}
+                                                    onMouseEnter={playHoverSound}
+                                                    className="w-full text-left px-4 py-3 border-b border-white/5 last:border-0 transition-colors"
+                                                >
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="relative w-16 h-16 flex-shrink-0 group">
+                                                            <img
+                                                                src={item.image}
+                                                                alt={item.title}
+                                                                className="w-full h-full object-cover rounded-lg"
+                                                            />
+                                                            <div className="absolute inset-0 bg-neon-red/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
                                                         </div>
-                                                        <h4 className="text-sm font-bold text-white line-clamp-1 mb-1">
-                                                            {item.title}
-                                                        </h4>
-                                                        <p className="text-xs text-gray-400 line-clamp-2">
-                                                            {item.summary}
-                                                        </p>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest bg-neon-red/10 px-2 py-0.5 rounded">
+                                                                    {item.category}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-500 font-bold">
+                                                                    {item.date}
+                                                                </span>
+                                                            </div>
+                                                            <h4 className="text-sm font-bold text-white line-clamp-1 mb-1 group-hover:text-neon-red transition-colors">
+                                                                {item.title}
+                                                            </h4>
+                                                            <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed">
+                                                                {item.summary}
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </motion.button>
-                                        ))}
-                                    </motion.div>
-                                )}
+                                                </motion.button>
+                                            ))}
+                                        </motion.div>
+                                    )}
 
-                                {/* No Results Message */}
-                                {searchQuery && searchResults.length === 0 && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="absolute top-full left-0 right-0 mt-2 bg-dark-bg/95 backdrop-blur-md border border-white/10 rounded-xl p-4 text-center z-[100]"
-                                    >
-                                        <p className="text-gray-400 text-sm">Aucun résultat trouvé pour "{searchQuery}"</p>
-                                    </motion.div>
-                                )}
-                            </div>
-                        </motion.div>
+                                    {/* No Results Message */}
+                                    {searchQuery && searchResults.length === 0 && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="absolute top-full left-0 right-0 mt-2 bg-dark-bg/95 backdrop-blur-xl border border-white/20 rounded-xl p-8 text-center shadow-2xl z-[100]"
+                                        >
+                                            <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Search className="w-6 h-6 text-gray-600" />
+                                            </div>
+                                            <p className="text-white font-bold mb-1">{t('common.no_results')}</p>
+                                            <p className="text-gray-500 text-sm">"{searchQuery}"</p>
+                                        </motion.div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </>
                     )}
                 </AnimatePresence>
             </div>
@@ -231,7 +275,12 @@ export function Navbar() {
     );
 }
 
-function NavItem({ item, isActive }: { item: typeof navItems[0], isActive: boolean }) {
+interface NavItemProps {
+    item: { name: string; path: string };
+    isActive: boolean;
+}
+
+function NavItem({ item, isActive }: NavItemProps) {
     const [isHovered, setIsHovered] = useState(false);
     const playHoverSound = useHoverSound();
 

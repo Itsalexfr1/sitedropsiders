@@ -23,6 +23,7 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { NewsletterAdmin } from './pages/NewsletterAdmin';
 import { NewsletterCreate } from './pages/NewsletterCreate';
 import { NewsCreate } from './pages/NewsCreate';
+import { AdminManage } from './pages/AdminManage';
 
 function App() {
   useEffect(() => {
@@ -63,6 +64,7 @@ function App() {
 
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/manage" element={<AdminManage />} />
 
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/newsletter/admin" element={<NewsletterAdmin />} />

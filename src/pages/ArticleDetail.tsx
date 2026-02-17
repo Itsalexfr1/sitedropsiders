@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, ArrowLeft, Play, Camera, X } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { useLanguage } from '../context/LanguageContext';
 
 export function ArticleDetail() {
+    const { t, language } = useLanguage();
     const { id } = useParams();
     const playHoverSound = useHoverSound();
     const article = newsData.find(item => item.id === parseInt(id || ''));
@@ -19,15 +21,16 @@ export function ArticleDetail() {
         return (
             <div className="min-h-screen flex items-center justify-center bg-dark-bg">
                 <div className="text-center px-4">
-                    <h2 className="text-4xl font-display font-black text-white mb-8 tracking-tighter uppercase">Page Intraçable</h2>
+                    <h2 className="text-4xl font-display font-black text-white mb-8 tracking-tighter uppercase">{t('article_detail.not_found_title')}</h2>
                     <Link to="/" className="text-neon-red hover:text-white transition-colors font-black uppercase tracking-[0.3em] text-xs">
-                        Retourner à la home
+                        {t('article_detail.not_found_btn')}
                     </Link>
                 </div>
             </div>
         );
     }
 
+    const isInterview = article.category === 'Interview' || article.category === 'Interviews';
     const relatedArticles = newsData
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
@@ -111,9 +114,12 @@ export function ArticleDetail() {
         .trim();
 
     // 6. Support spécifique interviews
-    if (article.category === 'Interview' || article.category === 'Interviews') {
+    if (isInterview) {
         cleanedContent = cleanedContent.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
     }
+
+    const backLink = isInterview ? '/interviews' : '/news';
+    const backText = isInterview ? t('article_detail.back_to_interviews') : t('article_detail.back_to_news');
 
     return (
         <div className="bg-dark-bg min-h-screen">
@@ -164,12 +170,12 @@ export function ArticleDetail() {
                             transition={{ delay: 0.2 }}
                         >
                             <Link
-                                to="/"
+                                to={backLink}
                                 className="inline-flex items-center gap-2 text-white/80 hover:text-neon-red transition-colors mb-6 group"
                                 onMouseEnter={playHoverSound}
                             >
                                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                <span className="font-bold uppercase tracking-wider text-sm">Retour aux news</span>
+                                <span className="font-bold uppercase tracking-wider text-sm">{backText}</span>
                             </Link>
 
                             <div className="flex flex-wrap gap-3 mb-6">
@@ -178,11 +184,11 @@ export function ArticleDetail() {
                                 </span>
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-sm flex items-center gap-2">
                                     <Clock className="w-4 h-4" />
-                                    Lecture 5 min
+                                    {t('article_detail.read_time')}
                                 </span>
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-sm flex items-center gap-2">
                                     <Clock className="w-4 h-4 text-neon-red" />
-                                    {new Date(article.date).toLocaleDateString('fr-FR', {
+                                    {new Date(article.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                         year: 'numeric',
                                         month: 'long',
                                         day: 'numeric'
@@ -191,7 +197,7 @@ export function ArticleDetail() {
                                 {(article as any).images && (article as any).images.length > 1 && (
                                     <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-sm flex items-center gap-2">
                                         <Camera className="w-4 h-4 text-neon-pink" />
-                                        {(article as any).images.length} photos
+                                        {(article as any).images.length} {t('galerie.photos_suffix')}
                                     </span>
                                 )}
                             </div>
@@ -222,7 +228,7 @@ export function ArticleDetail() {
                                     <section className="mt-20 pt-20 border-t border-white/5">
                                         <h3 className="text-2xl font-display font-black text-white mb-10 tracking-tighter uppercase italic flex items-center gap-3">
                                             <Play className="w-8 h-8 text-neon-red" />
-                                            Vidéo de l'article
+                                            {t('article_detail.video_title')}
                                         </h3>
                                         <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-3xl shadow-neon-red/5 animate-glow">
                                             <iframe
@@ -237,12 +243,12 @@ export function ArticleDetail() {
                                 )}
 
                                 {/* SECTION GALLERY / IMAGES */}
-                                {article.category !== 'Interview' && article.category !== 'Interviews' && (article as any).images && (article as any).images.length > 1 && (
+                                {!isInterview && (article as any).images && (article as any).images.length > 1 && (
                                     <section className="mt-20 pt-20 border-t border-white/5">
                                         <div className="relative mb-12 text-center">
                                             <h3 className="text-3xl font-display font-black text-white tracking-tighter uppercase italic flex items-center justify-center gap-3">
                                                 <Camera className="w-8 h-8 text-neon-red" />
-                                                Galerie Photos
+                                                {t('article_detail.gallery_title')}
                                             </h3>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -277,7 +283,7 @@ export function ArticleDetail() {
                                         <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:border-white transition-all duration-300">
                                             <ArrowLeft className="w-6 h-6 text-white group-hover:text-black" />
                                         </div>
-                                        <span className="text-[10px] font-black tracking-widest text-gray-500 group-hover:text-white uppercase transition-colors">Retour accueil</span>
+                                        <span className="text-[10px] font-black tracking-widest text-gray-500 group-hover:text-white uppercase transition-colors">{t('article_detail.back_to_home')}</span>
                                     </Link>
                                 </div>
                             </div>
@@ -287,7 +293,7 @@ export function ArticleDetail() {
                                 <div className="sticky top-32 space-y-12">
                                     {/* À lire aussi */}
                                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-                                        <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">À lire aussi</h3>
+                                        <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">{t('article_detail.related_title')}</h3>
                                         <div className="space-y-6">
                                             {relatedArticles.map(rel => (
                                                 <Link key={rel.id} to={rel.category.toLowerCase().includes('interview') ? `/interviews/${rel.id}` : `/news/${rel.id}`}
@@ -321,25 +327,25 @@ export function ArticleDetail() {
                                             </div>
 
                                             <div className="space-y-2">
-                                                <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">Rejoignez-nous</h4>
+                                                <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
                                                 <p className="text-xs text-gray-400 uppercase tracking-wide leading-relaxed">
-                                                    Recevez l'actu des festivals en avant-première
+                                                    {t('article_detail.newsletter_subtitle')}
                                                 </p>
                                             </div>
 
                                             <div className="space-y-3">
                                                 <input
                                                     type="email"
-                                                    placeholder="votre@email.com"
+                                                    placeholder={t('article_detail.newsletter_placeholder')}
                                                     className="w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-neon-red/50 transition-colors"
                                                 />
                                                 <button className="w-full py-3 bg-neon-red hover:bg-neon-red/80 text-white text-xs font-black uppercase rounded-xl transition-all duration-300 shadow-lg shadow-neon-red/20 hover:shadow-neon-red/40">
-                                                    S'abonner
+                                                    {t('article_detail.newsletter_btn')}
                                                 </button>
                                             </div>
 
                                             <p className="text-[9px] text-gray-600 uppercase tracking-widest">
-                                                +60 000 passionnés nous suivent
+                                                {t('article_detail.newsletter_count')}
                                             </p>
                                         </div>
                                     </div>

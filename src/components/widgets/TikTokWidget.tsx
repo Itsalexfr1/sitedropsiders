@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
 import { Play } from 'lucide-react';
 import { useHoverSound } from '../../hooks/useHoverSound';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function TikTokWidget() {
+    const { t } = useLanguage();
     const playHoverSound = useHoverSound();
 
     // ------------------------------------------------------------------
@@ -53,7 +55,7 @@ export function TikTokWidget() {
                     rel="noopener noreferrer"
                     className="px-4 py-1.5 bg-dark-bg border border-neon-cyan text-neon-cyan text-[10px] font-bold rounded-full hover:bg-neon-cyan hover:text-dark-bg transition-all duration-300 shadow-[0_0_10px_rgba(0,240,255,0.2)]"
                 >
-                    Suivre
+                    {t('home.follow')}
                 </a>
             </div>
 

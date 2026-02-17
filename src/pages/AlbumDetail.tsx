@@ -3,8 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Calendar, Share2, Download, Maximize2, X } from 'lucide-react';
 import { useState } from 'react';
 import galerieData from '../data/galerie.json';
+import { useLanguage } from '../context/LanguageContext';
 
 export function AlbumDetail() {
+    const { t } = useLanguage();
     const { id } = useParams();
     const album = galerieData.find(a => a.id === id);
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
@@ -13,8 +15,8 @@ export function AlbumDetail() {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold mb-4">Album introuvable</h2>
-                    <Link to="/galerie" className="text-neon-red hover:underline">Retour à la galerie</Link>
+                    <h2 className="text-2xl font-bold mb-4">{t('album_detail.not_found_title')}</h2>
+                    <Link to="/galerie" className="text-neon-red hover:underline">{t('album_detail.back_to_galerie')}</Link>
                 </div>
             </div>
         );
@@ -41,14 +43,14 @@ export function AlbumDetail() {
                             className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors group"
                         >
                             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-                            Retour à la galerie
+                            {t('album_detail.back_to_galerie')}
                         </Link>
 
                         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                             <div>
                                 <div className="flex items-center gap-3 mb-4">
                                     <span className="px-3 py-1 bg-neon-red/10 border border-neon-red/30 rounded-full text-neon-red text-xs font-bold tracking-widest uppercase">
-                                        {album.category || 'Album Photo'}
+                                        {album.category || t('album_detail.default_category')}
                                     </span>
                                     <div className="flex items-center gap-2 text-gray-400 text-sm">
                                         <Calendar className="w-4 h-4" />
@@ -65,7 +67,7 @@ export function AlbumDetail() {
                                     <Share2 className="w-5 h-5 group-hover:text-neon-red" />
                                 </button>
                                 <div className="px-6 py-3 bg-neon-red rounded-2xl font-bold text-white shadow-[0_0_20px_#ff0033] hover:scale-105 transition-all cursor-pointer">
-                                    PARTAGER L'ALBUM
+                                    {t('album_detail.share_btn')}
                                 </div>
                             </div>
                         </div>

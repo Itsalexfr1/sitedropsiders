@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight } from 'lucide-react';
+import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function AdminDashboard() {
@@ -142,6 +142,14 @@ export function AdminDashboard() {
             link: "/newsletter/create",
             color: "border-green-400/20 hover:border-green-400",
             bg: "bg-green-400/5"
+        },
+        {
+            title: "Supprimer",
+            description: "Gérer et supprimer du contenu",
+            icon: <Trash2 className="w-8 h-8 text-red-500" />,
+            link: "/admin/manage",
+            color: "border-red-500/20 hover:border-red-500",
+            bg: "bg-red-500/5"
         },
     ];
 

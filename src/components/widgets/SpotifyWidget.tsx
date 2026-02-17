@@ -1,11 +1,14 @@
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function SpotifyWidget() {
+    const { t } = useLanguage();
+
     return (
         <div className="space-y-8">
             <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                 <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse shadow-[0_0_15px_#39ff14]" />
-                NOS PLAYLISTS
+                {t('home.playlists_title')}
             </h3>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">

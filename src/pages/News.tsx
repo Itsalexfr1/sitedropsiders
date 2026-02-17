@@ -4,8 +4,10 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { useLanguage } from '../context/LanguageContext';
 
 export function News() {
+    const { t } = useLanguage();
     const [currentPage, setCurrentPage] = useState(1);
     const articlesPerPage = 8;
 
@@ -35,13 +37,13 @@ export function News() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
                         </svg>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Actualités</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('news.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    NEWS
+                    {t('news.title')}
                 </h1>
                 <p className="text-gray-400 max-w-2xl text-lg">
-                    Restez informé des dernières nouvelles, des sorties d'albums et des événements majeurs de la scène électronique mondiale.
+                    {t('news.subtitle')}
                 </p>
             </motion.div>
 
@@ -80,7 +82,7 @@ export function News() {
                         ))
                     ) : (
                         <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
-                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg">Aucune actualité pour le moment</p>
+                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('news.no_news')}</p>
                         </div>
                     )}
                 </AnimatePresence>

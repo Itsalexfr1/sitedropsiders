@@ -4,14 +4,24 @@ import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import agendaData from '../data/agenda.json';
 import { useHoverSound } from '../hooks/useHoverSound';
-
-const CATEGORIES = ['TOUT', 'TECHNO', 'MELODIC TECHNO', 'TECH HOUSE', 'BIG ROOM', 'HOUSE', 'HARDMUSIC'];
+import { useLanguage } from '../context/LanguageContext';
 
 export function Agenda() {
+    const { t, language } = useLanguage();
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
-    const [activeCategory, setActiveCategory] = useState('TOUT');
+    const [activeCategory, setActiveCategory] = useState('ALL');
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const CATEGORIES = [
+        { id: 'ALL', label: t('agenda.filter_all') },
+        { id: 'TECHNO', label: 'TECHNO' },
+        { id: 'MELODIC TECHNO', label: 'MELODIC TECHNO' },
+        { id: 'TECH HOUSE', label: 'TECH HOUSE' },
+        { id: 'BIG ROOM', label: 'BIG ROOM' },
+        { id: 'HOUSE', label: 'HOUSE' },
+        { id: 'HARDMUSIC', label: 'HARDMUSIC' }
+    ];
 
     // Filter out past events and handle category filtering
     const filteredEvents = useMemo(() => {
@@ -32,7 +42,7 @@ export function Agenda() {
                 if (!isUpcoming) return false;
 
                 // Category filter
-                if (activeCategory === 'TOUT') return true;
+                if (activeCategory === 'ALL') return true;
 
                 const genre = (event.genre || '').toLowerCase();
                 if (activeCategory === 'TECHNO') return genre === 'techno';
@@ -107,6 +117,8 @@ export function Agenda() {
         };
     };
 
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <motion.div
@@ -118,13 +130,13 @@ export function Agenda() {
                     <div className="p-2 bg-white/5 rounded-lg">
                         <Filter className="w-6 h-6 text-gray-400" />
                     </div>
-                    <span className="text-gray-400 font-bold tracking-widest text-sm uppercase">Événements</span>
+                    <span className="text-gray-400 font-bold tracking-widest text-sm uppercase">{t('agenda.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    AGENDA <span className="text-gray-500">2026</span>
+                    {t('agenda.title')} <span className="text-gray-500">{t('agenda.title_span')}</span>
                 </h1>
                 <p className="text-gray-400 max-w-2xl">
-                    Découvrez les événements à venir. Des festivals massifs aux sets de clubs intimes.
+                    {t('agenda.subtitle')}
                 </p>
             </motion.div>
 
@@ -132,20 +144,20 @@ export function Agenda() {
             <div className="flex flex-wrap items-center gap-4 mb-12">
                 <div className="flex items-center gap-2 text-gray-400 mr-2">
                     <Filter className="w-4 h-4" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Filtrer par :</span>
+                    <span className="text-sm font-bold uppercase tracking-wider">{t('agenda.filter_by')}</span>
                 </div>
                 {CATEGORIES.map((cat) => (
                     <motion.button
-                        key={cat}
-                        onClick={() => setActiveCategory(cat)}
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id)}
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
-                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat
+                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
                             ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
                             : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
                             }`}
                     >
-                        {cat}
+                        {cat.label}
                     </motion.button>
                 ))}
             </div>
@@ -174,13 +186,13 @@ export function Agenda() {
                                             <div className="flex items-center gap-6">
                                                 <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-lg p-3 w-20">
                                                     <span className={`block text-xs ${styles.text} font-bold uppercase mb-1`}>
-                                                        {new Date(event.date).toLocaleString('fr-FR', { weekday: 'short' }).replace('.', '')}
+                                                        {new Date(event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}
                                                     </span>
                                                     <span className="block text-2xl font-bold text-white leading-none mb-1">
                                                         {new Date(event.date).getDate()}
                                                     </span>
                                                     <span className="block text-xs text-gray-400 uppercase">
-                                                        {new Date(event.date).toLocaleString('fr-FR', { month: 'short' }).replace('.', '')}
+                                                        {new Date(event.date).toLocaleString(locale, { month: 'short' }).replace('.', '')}
                                                     </span>
                                                 </div>
                                                 <div>
@@ -205,7 +217,7 @@ export function Agenda() {
                                                     onMouseEnter={(e) => e.stopPropagation()}
                                                     className={`px-6 py-2 rounded-lg bg-white/10 ${styles.bg} ${styles.hoverText} transition-all duration-300 text-sm font-medium whitespace-nowrap border ${styles.borderMedium} ${styles.hoverBorder}`}
                                                 >
-                                                    SITE OFFICIEL
+                                                    {t('agenda.official_site')}
                                                 </a>
                                                 <ChevronDown
                                                     className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${expandedEvent === event.id ? 'rotate-180' : ''}`}

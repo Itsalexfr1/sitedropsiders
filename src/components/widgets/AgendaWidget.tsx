@@ -3,8 +3,10 @@ import agendaData from '../../data/agenda.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { motion } from 'framer-motion';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function AgendaWidget() {
+    const { t, language } = useLanguage();
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -46,6 +48,8 @@ export function AgendaWidget() {
         };
     };
 
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+
     return (
         <motion.div
             whileHover={{ scale: 1.01 }}
@@ -55,10 +59,10 @@ export function AgendaWidget() {
             <div className="flex justify-between items-center mb-5">
                 <h3 className="text-xl font-display font-bold text-white flex items-center gap-2">
                     <span className="w-2 h-2 bg-neon-yellow rounded-full animate-pulse shadow-[0_0_10px_#ffcc00]" />
-                    AGENDA
+                    {t('agenda.title').toUpperCase()}
                 </h3>
                 <Link to="/agenda" className="text-sm text-gray-400 hover:text-neon-yellow transition-colors">
-                    TOUT VOIR
+                    {t('home.view_all_agenda')}
                 </Link>
             </div>
 
@@ -92,13 +96,13 @@ export function AgendaWidget() {
                                     </div>
                                     <div className="text-center bg-white/5 rounded p-1 min-w-[2.5rem]">
                                         <span className={`block text-[8px] ${styles.text} font-bold uppercase leading-none mb-0.5`}>
-                                            {new Date(event.date).toLocaleString('fr-FR', { weekday: 'short' }).replace('.', '')}
+                                            {new Date(event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}
                                         </span>
                                         <span className="block text-base font-bold text-white leading-none">
                                             {new Date(event.date).getDate()}
                                         </span>
                                         <span className="block text-[8px] text-gray-400 uppercase leading-none mt-0.5">
-                                            {new Date(event.date).toLocaleString('fr-FR', { month: 'short' }).replace('.', '')}
+                                            {new Date(event.date).toLocaleString(locale, { month: 'short' }).replace('.', '')}
                                         </span>
                                     </div>
                                 </div>

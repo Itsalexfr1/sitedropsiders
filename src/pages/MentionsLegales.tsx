@@ -1,6 +1,83 @@
 import { motion } from 'framer-motion';
+import { useLanguage } from '../context/LanguageContext';
 
 export function MentionsLegales() {
+    const { language } = useLanguage();
+
+    if (language === 'en') {
+        return (
+            <div className="max-w-4xl mx-auto px-6 py-20">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-12"
+                >
+                    <div>
+                        <h1 className="text-4xl md:text-5xl font-display font-black text-white italic tracking-tighter uppercase mb-8">
+                            LEGAL <span className="text-neon-red">NOTICE</span>
+                        </h1>
+                        <p className="text-gray-400 leading-relaxed italic">
+                            In force as of 02/16/2026
+                        </p>
+                    </div>
+
+                    <section className="space-y-6">
+                        <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight border-l-4 border-neon-red pl-4">
+                            1. SITE EDITION
+                        </h2>
+                        <p className="text-gray-400 leading-relaxed">
+                            Under Article 6 of Law No. 2004-575 of June 21, 2004 for confidence in the digital economy, users of the website <span className="text-white">https://dropsiders.eu</span> are informed of the identity of the various parties involved in its creation and monitoring:
+                        </p>
+                        <ul className="text-gray-400 space-y-2 list-disc pl-6">
+                            <li><strong className="text-white">Site Owner:</strong> DROPSIDERS: All festival news</li>
+                            <li><strong className="text-white">Contact:</strong> contact@dropsiders.fr</li>
+                            <li><strong className="text-white">Publication Director:</strong> Dropsiders Team</li>
+                        </ul>
+                    </section>
+
+                    <section className="space-y-6">
+                        <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight border-l-4 border-neon-red pl-4">
+                            2. HOSTING
+                        </h2>
+                        <p className="text-gray-400 leading-relaxed">
+                            The Site is hosted by <strong className="text-white">Vercel Inc.</strong>, located at 340 S Lemon Ave #4133 Walnut, CA 91789, USA.
+                        </p>
+                    </section>
+
+                    <section className="space-y-6">
+                        <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight border-l-4 border-neon-red pl-4">
+                            3. INTELLECTUAL PROPERTY AND COUNTERFEITING
+                        </h2>
+                        <p className="text-gray-400 leading-relaxed">
+                            DROPSIDERS: All festival news owns the intellectual property rights or holds the usage rights for all elements accessible on the website, including text, images, graphics, logos, videos, architecture, icons, and sounds.
+                        </p>
+                        <p className="text-gray-400 leading-relaxed">
+                            Any reproduction, representation, modification, publication, adaptation of all or part of the site's elements, regardless of the medium or process used, is prohibited without prior written authorization from DROPSIDERS: All festival news.
+                        </p>
+                    </section>
+
+                    <section className="space-y-6">
+                        <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight border-l-4 border-neon-red pl-4">
+                            4. LIMITATIONS OF LIABILITY
+                        </h2>
+                        <p className="text-gray-400 leading-relaxed">
+                            DROPSIDERS: All festival news shall not be held liable for direct or indirect damage caused to the user's equipment when accessing the site https://dropsiders.eu.
+                        </p>
+                    </section>
+
+                    <section className="space-y-6 pb-20">
+                        <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight border-l-4 border-neon-red pl-4">
+                            5. APPLICABLE LAW AND JURISDICTION
+                        </h2>
+                        <p className="text-gray-400 leading-relaxed">
+                            Any dispute relating to the use of the site https://dropsiders.eu is subject to French law. Except in cases where the law does not allow it, exclusive jurisdiction is granted to the competent courts.
+                        </p>
+                    </section>
+                </motion.div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-4xl mx-auto px-6 py-20">
             <motion.div

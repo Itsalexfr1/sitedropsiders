@@ -1,8 +1,11 @@
 import { motion } from 'framer-motion';
 import { Instagram } from 'lucide-react';
 import teamData from '../data/team.json';
+import { useLanguage } from '../context/LanguageContext';
 
 export function Team() {
+    const { t } = useLanguage();
+
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <motion.div
@@ -11,7 +14,7 @@ export function Team() {
                 className="mb-16 text-center"
             >
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    NOTRE ÉQUIPE
+                    {t('team.title')}
                 </h1>
             </motion.div>
 
@@ -59,16 +62,15 @@ export function Team() {
             >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/10 blur-[100px] pointer-events-none" />
                 <div className="relative z-10">
-                    <h2 className="text-3xl font-display font-black text-white mb-6 uppercase italic">REJOINDRE L'AVENTURE</h2>
+                    <h2 className="text-3xl font-display font-black text-white mb-6 uppercase italic">{t('team.join_title')}</h2>
                     <p className="text-gray-400 max-w-xl mx-auto mb-10 text-lg">
-                        Vous êtes passionné par la musique électronique et les festivals ? Vous aimez écrire, photographier ou filmer ?
-                        On recherche toujours de nouveaux talents pour agrandir l'équipe.
+                        {t('team.join_desc')}
                     </p>
                     <a
                         href="mailto:contact@dropsiders.fr"
                         className="inline-flex items-center px-8 py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-neon-red transition-all duration-300 transform hover:scale-105"
                     >
-                        Nous Contacter
+                        {t('team.contact_btn')}
                     </a>
                 </div>
             </motion.div>
