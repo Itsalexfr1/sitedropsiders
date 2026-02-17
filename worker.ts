@@ -397,6 +397,76 @@ export default {
             }
         }
 
+        // --- API: SEND NEWSLETTER (BREVO) ---
+        if (path === '/api/newsletter/send' && request.method === 'POST') {
+            const BREVO_KEY = env.BREVO_API_KEY;
+            if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
+
+            try {
+                const rawBody = await request.text();
+                let body;
+                try { body = JSON.parse(rawBody); } catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
+
+                const { subject, htmlContent, recipients } = body;
+
+                if (!subject || !htmlContent || !recipients || !Array.isArray(recipients)) {
+                    return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+                }
+
+                // Brevo API URL
+                const brevoUrl = 'https://api.brevo.com/v3/smtp/email';
+
+                // We send INDIVIDUAL emails to ensure better deliverability and personal feeling
+                // (or use BCC if list is small, but looping is safer for limits per header)
+                // Actually, for a newsletter, using BCC in a single transactional email is risky for spam scores.
+                // Better approach for "simple" newsletter: 1 email with everyone in BCC (limit 99) OR loop.
+                // Let's use BCC for now as it's faster for the worker, but warn about limits.
+                // IF list > 99, we should split chunks.
+
+                const CHUNK_SIZE = 99;
+                const chunks = [];
+                for (let i = 0; i < recipients.length; i += CHUNK_SIZE) {
+                    chunks.push(recipients.slice(i, i + CHUNK_SIZE));
+                }
+
+                const results = [];
+
+                for (const chunk of chunks) {
+                    const payload = {
+                        sender: { name: "Dropsiders", email: "contact@dropsiders.fr" },
+                        to: [{ email: "contact@dropsiders.fr", name: "Dropsiders Admin" }], // Main recipient (yourself)
+                        bcc: chunk.map(email => ({ email })), // Subscribers in BCC
+                        subject: subject,
+                        htmlContent: htmlContent,
+                        replyTo: { email: "contact@dropsiders.fr", name: "Dropsiders" }
+                    };
+
+                    const response = await fetch(brevoUrl, {
+                        method: 'POST',
+                        headers: {
+                            'accept': 'application/json',
+                            'api-key': BREVO_KEY,
+                            'content-type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        results.push({ success: true, chunk: chunk.length });
+                    } else {
+                        const err = await response.text();
+                        console.error('Brevo Error:', err);
+                        results.push({ success: false, error: err });
+                    }
+                }
+
+                return new Response(JSON.stringify({ success: true, details: results }), { status: 200, headers });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- STATIC ASSETS ---
         if (env.ASSETS) {
             const response = await env.ASSETS.fetch(request);

@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { Send, Copy, Eye, Layout, Type, Link, Image as ImageIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Send, Copy, Eye, Layout, Type, Link, Image as ImageIcon, Users } from 'lucide-react';
 
 export function NewsletterCreate() {
     const [subject, setSubject] = useState('');
@@ -11,6 +11,26 @@ export function NewsletterCreate() {
     const [ctaText, setCtaText] = useState('');
     const [ctaLink, setCtaLink] = useState('');
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+    const [subscribers, setSubscribers] = useState<string[]>([]);
+    const [sending, setSending] = useState(false);
+
+    useEffect(() => {
+        const fetchSubscribers = async () => {
+            try {
+                const response = await fetch('/api/subscribers');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        setSubscribers(data.map((sub: any) => sub.email));
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching subscribers:', error);
+            }
+        };
+
+        fetchSubscribers();
+    }, []);
 
     // Simple HTML Template generator
     const generateHTML = () => {
@@ -69,6 +89,58 @@ export function NewsletterCreate() {
         alert('Code HTML copié ! Vous pouvez le coller dans Brevo, Mailchimp ou Gmail.');
     };
 
+    const handleCopyEmails = () => {
+        navigator.clipboard.writeText(subscribers.join(', '));
+        alert(`${subscribers.length} emails copiés dans le presse-papier !`);
+    };
+
+    const handleSend = async () => {
+        if (!subject || !title || !content) {
+            alert('Veuillez remplir tous les champs obligatoires (Sujet, Titre, Contenu).');
+            return;
+        }
+
+        if (subscribers.length === 0) {
+            alert('Aucun abonné trouvé.');
+            return;
+        }
+
+        if (!confirm(`Confirmer l'envoi de la newsletter à ${subscribers.length} abonnés ?`)) {
+            return;
+        }
+
+        setSending(true);
+        try {
+            const response = await fetch('/api/newsletter/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subject,
+                    htmlContent: generateHTML(),
+                    recipients: subscribers
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                alert('Newsletter envoyée avec succès !');
+            } else {
+                console.error('Send error:', data);
+                if (data.error === 'Brevo API Key missing') {
+                    alert('Erreur : Clé API Brevo manquante. Ajoutez BREVO_API_KEY dans votre configuration.');
+                } else {
+                    alert(`Erreur lors de l'envoi : ${data.error || 'Erreur inconnue'}`);
+                }
+            }
+        } catch (error) {
+            console.error('Network error:', error);
+            alert('Erreur réseau lors de l\'envoi.');
+        } finally {
+            setSending(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-7xl mx-auto h-[800px] flex flex-col">
@@ -81,19 +153,28 @@ export function NewsletterCreate() {
                     </div>
                     <div className="flex gap-4">
                         <button
+                            onClick={handleCopyEmails}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white font-bold"
+                            title="Copier la liste des emails"
+                        >
+                            <Users className="w-5 h-5" />
+                            <span className="hidden md:inline">({subscribers.length})</span>
+                        </button>
+                        <button
                             onClick={handleCopyHTML}
                             className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white font-bold"
                         >
                             <Copy className="w-5 h-5" />
                             Copier HTML
                         </button>
-                        <a
-                            href="mailto:?bcc=&subject=Newsletter Preview"
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-red to-neon-pink rounded-xl hover:opacity-90 transition-opacity text-white font-bold uppercase"
+                        <button
+                            onClick={handleSend}
+                            disabled={sending}
+                            className={`flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-red to-neon-pink rounded-xl hover:opacity-90 transition-opacity text-white font-bold uppercase ${sending ? 'opacity-50 cursor-wait' : ''}`}
                         >
-                            <Send className="w-5 h-5" />
-                            Préparer l'envoi
-                        </a>
+                            <Send className={`w-5 h-5 ${sending ? 'animate-pulse' : ''}`} />
+                            {sending ? 'Envoi...' : 'Envoyer'}
+                        </button>
                     </div>
                 </div>
 

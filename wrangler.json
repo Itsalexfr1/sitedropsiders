@@ -13,6 +13,7 @@
         "GITHUB_TOKEN": "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",
         "GITHUB_OWNER": "Itsalexfr1",
         "GITHUB_REPO": "sitedropsiders",
-        "GITHUB_FILE_PATH": "src/data/subscribers.json"
+        "GITHUB_FILE_PATH": "src/data/subscribers.json",
+        "BREVO_API_KEY": "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"
     }
 }
