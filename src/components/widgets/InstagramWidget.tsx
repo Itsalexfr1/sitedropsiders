@@ -21,7 +21,7 @@ export function InstagramWidget() {
             </div>
 
             <div className="w-full flex-1 relative group rounded-xl overflow-hidden border border-neon-pink/20 p-[1px] bg-gradient-to-r from-neon-pink/50 via-transparent to-neon-purple/50">
-                <div className="h-full bg-dark-bg rounded-[11px] overflow-hidden">
+                <div className="h-full bg-black/80 rounded-[11px] overflow-hidden">
                     <div className="h-full w-full flex justify-center py-2 px-2">
                         <InstagramEmbed
                             url="https://www.instagram.com/dropsiders.eu/"

@@ -12,8 +12,9 @@ export function SpotifyWidget() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.02 }}
                     viewport={{ once: true }}
-                    className="w-full"
+                    className="w-full transition-all duration-300"
                 >
                     <iframe
                         style={{ borderRadius: '24px' }}
@@ -31,9 +32,10 @@ export function SpotifyWidget() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
+                    whileHover={{ scale: 1.02 }}
                     viewport={{ once: true }}
                     transition={{ delay: 0.1 }}
-                    className="w-full"
+                    className="w-full transition-all duration-300"
                 >
                     <iframe
                         style={{ borderRadius: '24px' }}
