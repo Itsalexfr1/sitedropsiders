@@ -45,7 +45,10 @@ export function NewsletterCreate() {
     }, []);
 
     // Simple HTML Template generator
-    const generateHTML = () => {
+    const generateHTML = (isPreview = false) => {
+        // Use relative path for local preview, full URL for export/send
+        const logoUrl = isPreview ? '/Logo.png' : 'https://www.dropsiders.eu/Logo.png';
+
         return `
 <!DOCTYPE html>
 <html>
@@ -56,11 +59,12 @@ export function NewsletterCreate() {
     <style>
         body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0c0014; color: #ffffff; padding: 0; margin: 0; }
         .container { max-width: 600px; margin: 0 auto; background-color: #1a0524; overflow: hidden; }
-        .header { background: linear-gradient(90deg, #ff0033 0%, #00f2ea 100%); padding: 2px; }
+        .header-bar { height: 4px; background: linear-gradient(90deg, #ff0033 0%, #00f2ea 100%); width: 100%; }
+        .header { text-align: center; padding: 30px 0; background-color: #0c0014; }
         .content { padding: 40px 20px; }
         .title { font-size: 28px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; color: #ffffff; }
         .text { font-size: 16px; line-height: 1.6; color: #d1d5db; margin-bottom: 30px; }
-        .button { display: inline-block; padding: 16px 32px; background: linear-gradient(45deg, #ff0033, #ff00ff); color: #ffffff; text-decoration: none; font-weight: bold; text-transform: uppercase; border-radius: 8px; }
+        .button { display: inline-block; padding: 16px 32px; background: linear-gradient(45deg, #ff0033, #ff00ff); color: #ffffff !important; text-decoration: none; font-weight: bold; text-transform: uppercase; border-radius: 8px; }
         .footer { padding: 20px; text-align: center; font-size: 12px; color: #6b7280; background-color: #0c0014; }
         .image { width: 100%; border-radius: 12px; margin-bottom: 30px; }
         @media only screen and (max-width: 600px) {
@@ -72,25 +76,27 @@ export function NewsletterCreate() {
     <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
         ${subject}
     </div>
-                            <div class="header" style="text-align: center; padding: 20px 0;">
-                                <img src="https://dropsiders.eu/Logo.png" alt="Dropsiders" width="150" style="display: block; margin: 0 auto; max-width: 150px;">
-                            </div>
-                            <div style="height: 2px; background: linear-gradient(90deg, #ff0033 0%, #00f2ea 100%); width: 100%;"></div>
-                            ${imageUrl ? `<img src="${imageUrl}" alt="Cover" class="image" style="display:block; width:100%; max-width:600px;">` : ''}
-                            <div class="content">
+    <div class="container">
+        <div class="header">
+            <img src="${logoUrl}" alt="Dropsiders" width="180" style="display: block; margin: 0 auto; max-width: 180px; height: auto;">
+        </div>
+        <div class="header-bar"></div>
+        ${imageUrl ? `<img src="${imageUrl}" alt="Cover" class="image" style="display:block; width:100%; max-width:600px;">` : ''}
+        <div class="content">
             <h1 class="title">${title}</h1>
             <div class="text">
                 ${content.replace(/\n/g, '<br>')}
             </div>
             ${ctaText && ctaLink ? `
-            <div style="text-align: center;">
+            <div style="text-align: center; margin-top: 20px;">
                 <a href="${ctaLink}" class="button">${ctaText}</a>
             </div>
             ` : ''}
         </div>
         <div class="footer">
             © 2026 Dropsiders. Tous droits réservés.<br>
-            <a href="#" style="color: #00f2ea;">Se désinscrire</a>
+            <br>
+            <a href="#" style="color: #00f2ea; text-decoration: none;">Se désinscrire</a>
         </div>
     </div>
 </body>
@@ -99,7 +105,7 @@ export function NewsletterCreate() {
     };
 
     const handleCopyHTML = () => {
-        navigator.clipboard.writeText(generateHTML());
+        navigator.clipboard.writeText(generateHTML(false));
         alert('Code HTML copié ! Vous pouvez le coller dans Brevo, Mailchimp ou Gmail.');
     };
 
@@ -133,7 +139,7 @@ export function NewsletterCreate() {
                 },
                 body: JSON.stringify({
                     subject,
-                    htmlContent: generateHTML(),
+                    htmlContent: generateHTML(false),
                     recipients: subscribers
                 })
             });
@@ -320,7 +326,7 @@ export function NewsletterCreate() {
                         <div className="flex-1 bg-gray-900 overflow-y-auto p-8 flex justify-center">
                             <div
                                 className={`bg-white transition-all duration-300 shadow-2xl ${previewMode === 'mobile' ? 'w-[375px]' : 'w-[600px]'} min-h-[600px]`}
-                                dangerouslySetInnerHTML={{ __html: generateHTML() }}
+                                dangerouslySetInnerHTML={{ __html: generateHTML(true) }}
                             />
                         </div>
                     </div>
