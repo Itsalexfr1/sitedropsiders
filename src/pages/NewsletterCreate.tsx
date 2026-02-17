@@ -138,17 +138,25 @@ export function NewsletterCreate() {
                 })
             });
 
-            const data = await response.json();
+            if (!response.ok) {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
+                }
 
-            if (response.ok && data.success) {
-                alert('Newsletter envoyée avec succès !');
-            } else {
-                console.error('Send error:', data);
-                if (data.error === 'Brevo API Key missing') {
+                if (errorData.error === 'Brevo API Key missing' || errorData.error === 'Clé API Brevo manquante') {
                     alert('Erreur : Clé API Brevo manquante. Ajoutez BREVO_API_KEY dans votre configuration.');
                 } else {
-                    alert(`Erreur lors de l'envoi : ${data.error || 'Erreur inconnue'}`);
+                    alert(`Erreur lors de l'envoi : ${errorData.error || 'Erreur inconnue'}`);
                 }
+                return;
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Newsletter envoyée avec succès !');
             }
         } catch (error) {
             console.error('Network error:', error);

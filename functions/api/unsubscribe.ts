@@ -12,12 +12,18 @@ export const onRequestPost = async (context) => {
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password',
         'Content-Type': 'application/json'
     };
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { headers });
+    }
+
+    // Authorization Check
+    const adminPassword = request.headers.get('X-Admin-Password');
+    if (adminPassword !== env.ADMIN_PASSWORD) {
+        return new Response(JSON.stringify({ error: 'Accès non autorisé' }), { status: 401, headers });
     }
 
     if (!TOKEN) {
