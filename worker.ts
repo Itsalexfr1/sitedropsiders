@@ -129,6 +129,91 @@ export default {
             }
         }
 
+        // --- API: CREATE NEWS ---
+        if (path === '/api/news/create' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+
+            const NEWS_PATH = 'src/data/news.json';
+
+            try {
+                const rawBody = await request.text();
+                let body;
+                try { body = JSON.parse(rawBody); } catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
+
+                const { title, date, summary, content, image, category } = body;
+                if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
+
+                // 1. Fetch current news.json
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${NEWS_PATH}`;
+                const getResponse = await fetch(getUrl, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                let currentNews = [];
+                let sha = null;
+
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    const fileContent = atob(fileData.content.replace(/\n/g, ''));
+                    try { currentNews = JSON.parse(fileContent); } catch (e) { currentNews = []; }
+                    sha = fileData.sha;
+                } else if (getResponse.status !== 404) {
+                    return new Response(JSON.stringify({ error: 'Error fetching news' }), { status: 502, headers });
+                }
+
+                // 2. Create new ID
+                const maxId = currentNews.reduce((max, item) => (item.id > max ? item.id : max), 0);
+                const newId = maxId + 1;
+
+                const newArticle = {
+                    id: newId,
+                    title,
+                    date: date || new Date().toISOString().split('T')[0],
+                    summary: summary || '',
+                    content, // Storing HTML content
+                    image: image || '',
+                    category: category || 'News',
+                    link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+                };
+
+                // Add to beginning of array
+                const updatedNews = [newArticle, ...currentNews];
+
+                // 3. Save back to GitHub
+                // Use UTF-8 encoding for content to handle special characters correctly in base64
+                const utf8Encode = (str) => {
+                    return btoa(unescape(encodeURIComponent(str)));
+                };
+
+                const updatedContent = utf8Encode(JSON.stringify(updatedNews, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'User-Agent': 'Cloudflare-Worker',
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message: `Add news: ${title}`,
+                        content: updatedContent,
+                        sha: sha
+                    })
+                });
+
+                if (!putResponse.ok) {
+                    const err = await putResponse.text();
+                    return new Response(JSON.stringify({ error: 'Error saving to GitHub', details: err }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, article: newArticle }), { status: 200, headers });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- STATIC ASSETS ---
         if (env.ASSETS) {
             const response = await env.ASSETS.fetch(request);

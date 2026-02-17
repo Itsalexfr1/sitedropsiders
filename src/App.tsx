@@ -18,6 +18,7 @@ import { MentionsLegales } from './pages/MentionsLegales';
 import { Newsletter } from './pages/Newsletter';
 import { NewsletterAdmin } from './pages/NewsletterAdmin';
 import { NewsletterCreate } from './pages/NewsletterCreate';
+import { NewsCreate } from './pages/NewsCreate';
 
 function App() {
   useEffect(() => {
@@ -57,6 +58,7 @@ function App() {
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/newsletter/admin" element={<NewsletterAdmin />} />
           <Route path="/newsletter/create" element={<NewsletterCreate />} />
+          <Route path="/news/create" element={<NewsCreate />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
           <Route path="/cookies" element={<CookiesPolicy />} />
