@@ -16,6 +16,7 @@ export function AgendaCreate() {
     const [description, setDescription] = useState('');
     const [url, setUrl] = useState('');
     const [genre, setGenre] = useState('Big Room'); // Default
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (isEditing && editingItem) {
@@ -32,6 +33,36 @@ export function AgendaCreate() {
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Client-ID 546c25a59c58ad7'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setImageUrl(data.data.link);
+            } else {
+                alert('Erreur lors de l\'upload');
+            }
+        } catch (error) {
+            alert('Erreur de connexion');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -196,17 +227,29 @@ export function AgendaCreate() {
 
                         {/* Image URL */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">URL de l'image</label>
-                            <div className="relative group">
-                                <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
-                                <input
-                                    type="text"
-                                    value={imageUrl}
-                                    onChange={(e) => setImageUrl(e.target.value)}
-                                    placeholder="https://..."
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
-                                    required
-                                />
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image</label>
+                            <div className="flex gap-2">
+                                <div className="relative group flex-1">
+                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={imageUrl}
+                                        onChange={(e) => setImageUrl(e.target.value)}
+                                        placeholder="https://... ou uploadez une image"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
+                                        required
+                                    />
+                                </div>
+                                <label className="px-6 py-4 bg-neon-yellow/20 border border-neon-yellow/50 text-neon-yellow rounded-xl font-bold uppercase tracking-wider hover:bg-neon-yellow/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                                    {uploading ? 'Upload...' : '📤 Upload'}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                        disabled={uploading}
+                                    />
+                                </label>
                             </div>
                         </div>
 
