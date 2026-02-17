@@ -30,6 +30,7 @@ export function RecapCreate() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
                 },
                 body: JSON.stringify({
                     title,

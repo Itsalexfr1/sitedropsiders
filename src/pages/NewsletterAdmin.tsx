@@ -33,7 +33,11 @@ export function NewsletterAdmin() {
 
     const loadSubscribers = async () => {
         try {
-            const response = await fetch('/api/subscribers');
+            const response = await fetch('/api/subscribers', {
+                headers: {
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                }
+            });
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -53,7 +57,10 @@ export function NewsletterAdmin() {
             try {
                 const response = await fetch('/api/unsubscribe', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    },
                     body: JSON.stringify({ email })
                 });
 

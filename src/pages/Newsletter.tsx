@@ -59,10 +59,10 @@ export function Newsletter() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] mb-6"
+                        className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-normal leading-tight mb-6 px-2"
                     >
                         {t('newsletter.hero.title')}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red via-neon-pink to-neon-purple">
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red via-neon-pink to-neon-purple pb-1 px-2">
                             {t('newsletter.hero.title_span')}
                         </span>
                     </motion.h1>
@@ -72,7 +72,7 @@ export function Newsletter() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-xl text-gray-400 font-light leading-relaxed max-w-2xl mx-auto mb-12"
+                        className="text-lg text-gray-400 font-light leading-relaxed max-w-2xl mx-auto mb-12"
                     >
                         {t('newsletter.hero.desc')}
                     </motion.p>
@@ -86,7 +86,7 @@ export function Newsletter() {
                     >
                         {stats.map((stat, index) => (
                             <div key={index} className="text-center">
-                                <div className="text-3xl md:text-4xl font-display font-black text-neon-red mb-2">
+                                <div className="text-2xl md:text-3xl font-display font-black text-neon-red mb-2">
                                     {stat.value}
                                 </div>
                                 <div className="text-sm text-gray-500 font-bold uppercase tracking-wide">
@@ -108,10 +108,10 @@ export function Newsletter() {
                 >
                     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
                         <div className="text-center mb-10">
-                            <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tight mb-4">
+                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tight mb-4">
                                 {t('newsletter.form.title')}
                             </h2>
-                            <p className="text-gray-400">
+                            <p className="text-gray-400 text-sm">
                                 {t('newsletter.form.subtitle')}
                             </p>
                         </div>
@@ -125,10 +125,10 @@ export function Newsletter() {
             <section className="py-20 px-6">
                 <div className="max-w-6xl mx-auto">
                     <div className="text-center mb-16">
-                        <h2 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
+                        <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
                             {t('newsletter.benefits.title')}
                         </h2>
-                        <p className="text-gray-400 text-lg">
+                        <p className="text-gray-400 text-base">
                             {t('newsletter.benefits.subtitle')}
                         </p>
                     </div>
@@ -149,10 +149,10 @@ export function Newsletter() {
                                 </div>
 
                                 {/* Content */}
-                                <h3 className="text-xl font-display font-black text-white uppercase tracking-tight mb-3">
+                                <h3 className="text-lg font-display font-black text-white uppercase tracking-tight mb-3">
                                     {benefit.title}
                                 </h3>
-                                <p className="text-gray-400 leading-relaxed">
+                                <p className="text-gray-400 text-sm leading-relaxed">
                                     {benefit.description}
                                 </p>
 
@@ -177,21 +177,21 @@ export function Newsletter() {
                         className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-12 md:p-16"
                     >
                         <Users className="w-16 h-16 text-neon-red mx-auto mb-6" />
-                        <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-6">
+                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tight mb-6">
                             {t('newsletter.community.title')}
                         </h2>
-                        <p className="text-gray-400 text-lg leading-relaxed mb-8">
+                        <p className="text-gray-400 text-base leading-relaxed mb-8">
                             {t('newsletter.community.desc')}
                         </p>
                         <div className="flex flex-wrap justify-center gap-4">
                             <div className="px-6 py-3 bg-neon-red/10 border border-neon-red/30 rounded-full">
-                                <span className="text-sm font-black text-neon-red uppercase tracking-widest">{t('newsletter.community.free')}</span>
+                                <span className="text-xs font-black text-neon-red uppercase tracking-widest">{t('newsletter.community.free')}</span>
                             </div>
                             <div className="px-6 py-3 bg-neon-cyan/10 border border-neon-cyan/30 rounded-full">
-                                <span className="text-sm font-black text-neon-cyan uppercase tracking-widest">{t('newsletter.community.no_spam')}</span>
+                                <span className="text-xs font-black text-neon-cyan uppercase tracking-widest">{t('newsletter.community.no_spam')}</span>
                             </div>
                             <div className="px-6 py-3 bg-neon-purple/10 border border-neon-purple/30 rounded-full">
-                                <span className="text-sm font-black text-neon-purple uppercase tracking-widest">{t('newsletter.community.easy_unsubscribe')}</span>
+                                <span className="text-xs font-black text-neon-purple uppercase tracking-widest">{t('newsletter.community.easy_unsubscribe')}</span>
                             </div>
                         </div>
                     </motion.div>

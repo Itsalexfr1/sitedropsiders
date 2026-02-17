@@ -1,7 +1,7 @@
 
 export type TranslationKey =
     | 'nav.news' | 'nav.recaps' | 'nav.galleries' | 'nav.interviews' | 'nav.agenda' | 'nav.team'
-    | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.admin' | 'footer.rights'
+    | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.legal' | 'footer.admin' | 'footer.rights'
     | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge'
     | 'news.badge' | 'news.title' | 'news.subtitle' | 'news.no_news'
     | 'recaps.badge' | 'recaps.title' | 'recaps.title_span' | 'recaps.subtitle' | 'recaps.no_recaps'
@@ -42,6 +42,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'footer.privacy': { fr: 'Politique de Confidentialité', en: 'Privacy Policy' },
     'footer.terms': { fr: "Conditions d'Utilisation", en: 'Terms of Service' },
     'footer.cookies': { fr: 'Cookies', en: 'Cookies' },
+    'footer.legal': { fr: 'Mentions Légales', en: 'Legal Notice' },
     'footer.admin': { fr: 'Admin', en: 'Admin' },
     'footer.rights': { fr: 'TOUS DROITS RÉSERVÉS', en: 'ALL RIGHTS RESERVED' },
 

@@ -128,16 +128,19 @@ export function Navbar() {
                             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </motion.button>
 
-                        {/* Language Toggle Button */}
                         <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onMouseEnter={playHoverSound}
                             onClick={toggleLanguage}
-                            className="p-2 text-lg hover:bg-white/5 rounded-lg transition-colors"
+                            className="p-1 px-2 hover:bg-white/5 rounded-lg transition-colors flex items-center justify-center"
                             title={language === 'fr' ? 'Switch to English' : 'Passer en Français'}
                         >
-                            {language === 'fr' ? '🇬🇧' : '🇫🇷'}
+                            <img
+                                src={language === 'fr' ? "https://flagcdn.com/w40/gb.png" : "https://flagcdn.com/w40/fr.png"}
+                                alt={language === 'fr' ? "English" : "Français"}
+                                className="w-6 h-auto rounded-sm shadow-sm"
+                            />
                         </motion.button>
 
                         {/* Mobile Menu Button */}

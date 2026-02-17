@@ -26,6 +26,7 @@ export function AgendaCreate() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
                 },
                 body: JSON.stringify({
                     title,
@@ -220,8 +221,8 @@ export function AgendaCreate() {
                             type="submit"
                             disabled={status === 'loading'}
                             className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed'
-                                    : 'bg-neon-yellow hover:bg-neon-yellow/80 text-black'
+                                ? 'bg-gray-600 cursor-not-allowed'
+                                : 'bg-neon-yellow hover:bg-neon-yellow/80 text-black'
                                 }`}
                         >
                             {status === 'loading' ? (
@@ -237,7 +238,7 @@ export function AgendaCreate() {
                         {/* Status Message */}
                         {status !== 'idle' && (
                             <div className={`p-4 rounded-xl flex items-center gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
-                                    status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
+                                status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
                                 }`}>
                                 <AlertCircle className="w-5 h-5" />
                                 <p>{message}</p>

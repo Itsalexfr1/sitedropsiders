@@ -195,7 +195,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                 {/* Privacy Notice */}
                 <p className="text-xs text-gray-500 text-center leading-relaxed">
                     {t('newsletter_form.privacy_notice')}
-                    <a href="/privacy-policy" className="text-neon-cyan hover:underline">
+                    <a href="#/politique-de-confidentialite" className="text-neon-cyan hover:underline">
                         {t('newsletter_form.privacy_link')}
                     </a>
                     .

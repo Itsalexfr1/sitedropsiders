@@ -16,7 +16,11 @@ export function NewsletterCreate() {
     useEffect(() => {
         const fetchSubscribers = async () => {
             try {
-                const response = await fetch('/api/subscribers');
+                const response = await fetch('/api/subscribers', {
+                    headers: {
+                        'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    }
+                });
                 if (response.ok) {
                     const data = await response.json();
                     if (Array.isArray(data)) {
@@ -114,7 +118,10 @@ export function NewsletterCreate() {
         try {
             const response = await fetch('/api/newsletter/send', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                },
                 body: JSON.stringify({
                     subject,
                     htmlContent: generateHTML(),

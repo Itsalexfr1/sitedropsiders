@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
@@ -16,20 +15,34 @@ export function AdminDashboard() {
         }
     }, []);
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (username === 'alex' && password === '1988') {
-            setIsAuthenticated(true);
-            localStorage.setItem('admin_auth', 'true');
-            setError('');
-        } else {
-            setError('Identifiants incorrects');
+        setError('');
+
+        try {
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password })
+            });
+
+            if (response.ok) {
+                setIsAuthenticated(true);
+                localStorage.setItem('admin_auth', 'true');
+                localStorage.setItem('admin_password', password); // Store for API headers
+            } else {
+                const data = await response.json();
+                setError(data.error || 'Identifiants incorrects');
+            }
+        } catch (err) {
+            setError('Erreur de connexion au serveur');
         }
     };
 
     const handleLogout = () => {
         setIsAuthenticated(false);
         localStorage.removeItem('admin_auth');
+        localStorage.removeItem('admin_password');
     };
 
     if (!isAuthenticated) {
@@ -57,20 +70,11 @@ export function AdminDashboard() {
                         <form onSubmit={handleLogin} className="space-y-4">
                             <div>
                                 <input
-                                    type="text"
-                                    placeholder="Identifiant"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
-                                />
-                            </div>
-                            <div>
-                                <input
                                     type="password"
                                     placeholder="Mot de passe"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all text-center"
                                 />
                             </div>
 

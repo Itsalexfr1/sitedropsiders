@@ -51,7 +51,10 @@ export function AdminManage() {
             const endpoint = `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                },
                 body: JSON.stringify({ id })
             });
 
@@ -115,8 +118,8 @@ export function AdminManage() {
                             key={tab.type}
                             onClick={() => setActiveTab(tab.type)}
                             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all border ${activeTab === tab.type
-                                    ? `bg-white/10 border-white/20 ${tab.color} transform -translate-y-1`
-                                    : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'
+                                ? `bg-white/10 border-white/20 ${tab.color} transform -translate-y-1`
+                                : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'
                                 }`}
                         >
                             {tab.icon}
@@ -133,8 +136,8 @@ export function AdminManage() {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
                             className={`mb-6 p-4 rounded-xl flex items-center gap-3 border ${deleteStatus === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' :
-                                    deleteStatus === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
-                                        'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                                deleteStatus === 'error' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                                    'bg-blue-500/10 border-blue-500/20 text-blue-400'
                                 }`}
                         >
                             {deleteStatus === 'loading' && <Loader2 className="w-5 h-5 animate-spin" />}

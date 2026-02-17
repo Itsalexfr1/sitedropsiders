@@ -60,7 +60,10 @@ export function NewsCreate() {
 
             const response = await fetch('/api/news/create', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                },
                 body: JSON.stringify(payload)
             });
 

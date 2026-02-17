@@ -16,7 +16,7 @@ export function Footer() {
 
     const navItems = [
         { label: t('nav.news'), path: '/news' },
-        { label: t('nav.recaps'), path: '/recap' },
+        { label: t('nav.recaps'), path: '/recaps' },
         { label: t('nav.interviews'), path: '/interviews' },
         { label: t('nav.galleries'), path: '/galerie' },
         { label: t('nav.team'), path: '/team' },
@@ -108,14 +108,21 @@ export function Footer() {
                     </div>
                     <div className="flex gap-8">
                         <Link
-                            to="/privacy-policy"
+                            to="/politique-de-confidentialite"
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                             className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
                         >
                             {t('footer.privacy')}
                         </Link>
                         <Link
-                            to="/terms-of-service"
+                            to="/mentions-legales"
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
+                        >
+                            {t('footer.legal')}
+                        </Link>
+                        <Link
+                            to="/cgu"
                             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
                             className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
                         >

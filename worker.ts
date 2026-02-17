@@ -22,6 +22,36 @@ export default {
             return new Response(null, { headers });
         }
 
+        // --- AUTH CHECK ---
+        const adminPassword = env.ADMIN_PASSWORD || '1988'; // Fallback for safety during transition
+        const requestPassword = request.headers.get('X-Admin-Password');
+
+        // Helper to check if route needs auth
+        const isAuthRoute = path.startsWith('/api/news/create') ||
+            path.startsWith('/api/recaps/create') ||
+            path.startsWith('/api/agenda/create') ||
+            path.startsWith('/api/galerie/create') ||
+            path.startsWith('/api/newsletter/send') ||
+            path.endsWith('/delete') ||
+            path === '/api/subscribers'; // Direct list access is sensitive
+
+        if (isAuthRoute && requestPassword !== adminPassword) {
+            return new Response(JSON.stringify({ error: 'Accès non autorisé' }), { status: 401, headers });
+        }
+
+        // --- API: LOGIN ---
+        if (path === '/api/login' && request.method === 'POST') {
+            try {
+                const { password } = await request.json();
+                if (password === adminPassword) {
+                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                }
+                return new Response(JSON.stringify({ error: 'Mot de passe incorrect' }), { status: 401, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: 'Invalid Request' }), { status: 400, headers });
+            }
+        }
+
         // --- API: SUBSCRIBE ---
         if (path === '/api/subscribe' && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });

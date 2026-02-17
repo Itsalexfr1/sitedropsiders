@@ -24,6 +24,7 @@ import { NewsletterAdmin } from './pages/NewsletterAdmin';
 import { NewsletterCreate } from './pages/NewsletterCreate';
 import { NewsCreate } from './pages/NewsCreate';
 import { AdminManage } from './pages/AdminManage';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
   useEffect(() => {
@@ -65,16 +66,16 @@ function App() {
 
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/manage" element={<AdminManage />} />
+          <Route path="/admin/manage" element={<ProtectedRoute><AdminManage /></ProtectedRoute>} />
 
           <Route path="/newsletter" element={<Newsletter />} />
-          <Route path="/newsletter/admin" element={<NewsletterAdmin />} />
-          <Route path="/newsletter/create" element={<NewsletterCreate />} />
+          <Route path="/newsletter/admin" element={<ProtectedRoute><NewsletterAdmin /></ProtectedRoute>} />
+          <Route path="/newsletter/create" element={<ProtectedRoute><NewsletterCreate /></ProtectedRoute>} />
 
-          <Route path="/news/create" element={<NewsCreate />} />
-          <Route path="/recaps/create" element={<RecapCreate />} />
-          <Route path="/agenda/create" element={<AgendaCreate />} />
-          <Route path="/galerie/create" element={<GalerieCreate />} />
+          <Route path="/news/create" element={<ProtectedRoute><NewsCreate /></ProtectedRoute>} />
+          <Route path="/recaps/create" element={<ProtectedRoute><RecapCreate /></ProtectedRoute>} />
+          <Route path="/agenda/create" element={<ProtectedRoute><AgendaCreate /></ProtectedRoute>} />
+          <Route path="/galerie/create" element={<ProtectedRoute><GalerieCreate /></ProtectedRoute>} />
         </Routes>
       </Layout>
     </Router>
