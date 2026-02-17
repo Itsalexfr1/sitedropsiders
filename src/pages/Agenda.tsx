@@ -96,7 +96,7 @@ export function Agenda() {
     const formatMonthName = (monthKey: string) => {
         const [year, month] = monthKey.split('-');
         const date = new Date(parseInt(year), parseInt(month) - 1);
-        const name = date.toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'long', year: 'numeric' });
+        const name = date.toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'long' });
         return name.charAt(0).toUpperCase() + name.slice(1);
     };
 
