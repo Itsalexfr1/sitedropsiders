@@ -1,17 +1,34 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Link as LinkIcon, Music, Tag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export function AgendaCreate() {
+    const location = useLocation() as any;
+    const isEditing = location.state?.isEditing;
+    const editingItem = location.state?.item;
+
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [location, setLocation] = useState('');
+    const [locationInput, setLocationInput] = useState('');
     const [type, setType] = useState('Festival'); // Default
     const [imageUrl, setImageUrl] = useState('');
     const [description, setDescription] = useState('');
     const [url, setUrl] = useState('');
     const [genre, setGenre] = useState('Big Room'); // Default
+
+    useEffect(() => {
+        if (isEditing && editingItem) {
+            setTitle(editingItem.title);
+            setDate(editingItem.date);
+            setLocationInput(editingItem.location);
+            setType(editingItem.type || 'Festival');
+            setImageUrl(editingItem.image);
+            setDescription(editingItem.description);
+            setUrl(editingItem.url);
+            setGenre(editingItem.genre || 'Big Room');
+        }
+    }, [isEditing, editingItem]);
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -22,21 +39,25 @@ export function AgendaCreate() {
         setMessage('Publication en cours...');
 
         try {
-            const response = await fetch('/api/agenda/create', {
+            const endpoint = isEditing ? '/api/agenda/update' : '/api/agenda/create';
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Admin-Password': localStorage.getItem('admin_password') || ''
                 },
                 body: JSON.stringify({
+                    id: isEditing ? editingItem.id : undefined,
                     title,
                     date,
-                    location,
+                    location: locationInput,
                     type,
                     image: imageUrl,
                     description,
                     url,
-                    genre
+                    genre,
+                    month: new Date(date).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
                 }),
             });
 
@@ -47,14 +68,16 @@ export function AgendaCreate() {
             }
 
             setStatus('success');
-            setMessage('Événement ajouté avec succès !');
+            setMessage(isEditing ? 'Événement mis à jour avec succès !' : 'Événement ajouté avec succès !');
             // Reset form
-            setTitle('');
-            setDate(new Date().toISOString().split('T')[0]);
-            setLocation('');
-            setImageUrl('');
-            setDescription('');
-            setUrl('');
+            if (!isEditing) {
+                setTitle('');
+                setDate(new Date().toISOString().split('T')[0]);
+                setLocationInput('');
+                setImageUrl('');
+                setDescription('');
+                setUrl('');
+            }
 
         } catch (error) {
             console.error('Error creating event:', error);
@@ -72,7 +95,7 @@ export function AgendaCreate() {
                             ← Retour Admin
                         </Link>
                         <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Nouvel Événement Agenda
+                            {isEditing ? 'Modifier Événement Agenda' : 'Nouvel Événement Agenda'}
                         </h1>
                     </div>
                 </div>
@@ -118,8 +141,8 @@ export function AgendaCreate() {
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                     <input
                                         type="text"
-                                        value={location}
-                                        onChange={(e) => setLocation(e.target.value)}
+                                        value={locationInput}
+                                        onChange={(e) => setLocationInput(e.target.value)}
                                         placeholder="Ex: Ibiza, Espagne"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
                                         required
@@ -230,7 +253,7 @@ export function AgendaCreate() {
                             ) : (
                                 <>
                                     <Send className="w-5 h-5" />
-                                    Ajouter à l'Agenda
+                                    {isEditing ? 'Mettre à jour' : 'Ajouter à l\'Agenda'}
                                 </>
                             )}
                         </button>

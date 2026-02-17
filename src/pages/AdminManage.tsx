@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
@@ -186,7 +186,20 @@ export function AdminManage() {
                                             <td className="px-6 py-4 text-sm text-gray-400">
                                                 {item.date}
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
+                                                <Link
+                                                    to={
+                                                        activeTab === 'News' ? '/news/create' :
+                                                            activeTab === 'Interviews' ? '/news/create?type=Interview' :
+                                                                activeTab === 'Recaps' ? '/recaps/create' :
+                                                                    '/agenda/create'
+                                                    }
+                                                    state={{ item, isEditing: true }}
+                                                    className="p-3 text-gray-500 hover:text-neon-blue hover:bg-neon-blue/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                                    title="Modifier"
+                                                >
+                                                    <Edit className="w-5 h-5" />
+                                                </Link>
                                                 <button
                                                     onClick={() => handleDelete(item.id, item.title)}
                                                     className="p-3 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"

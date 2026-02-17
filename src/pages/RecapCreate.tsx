@@ -1,18 +1,40 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 export function RecapCreate() {
+    const location = useLocation() as any;
+    const isEditing = location.state?.isEditing;
+    const editingItem = location.state?.item;
+
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
     const [content, setContent] = useState('**Écrivez votre récap ici...**');
     const [coverImage, setCoverImage] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [festival, setFestival] = useState('');
-    const [location, setLocation] = useState('');
+    const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
+
+    useEffect(() => {
+        if (isEditing && editingItem) {
+            setTitle(editingItem.title);
+            setSummary(editingItem.summary);
+            // Basic HTML cleanup if needed
+            let c = editingItem.content || '';
+            if (typeof c === 'string' && c.startsWith('<div class="markdown-content">')) {
+                c = c.replace('<div class="markdown-content">', '').replace(/<\/div>$/, '').replace(/<br>/g, '\n');
+            }
+            setContent(c);
+            setCoverImage(editingItem.image);
+            setDate(editingItem.date);
+            setFestival(editingItem.festival || ''); // Assume festival field exists or is derived
+            setLocationInput(editingItem.location || '');
+            setYoutubeId(editingItem.youtubeId || '');
+        }
+    }, [isEditing, editingItem]);
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -26,20 +48,23 @@ export function RecapCreate() {
             // In a real app, we send data to worker, worker handles GitHub logic
             // We'll mimic the NewsCreate pattern
 
-            const response = await fetch('/api/recaps/create', {
+            const endpoint = isEditing ? '/api/recaps/update' : '/api/recaps/create';
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Admin-Password': localStorage.getItem('admin_password') || ''
                 },
                 body: JSON.stringify({
+                    id: isEditing ? editingItem.id : undefined,
                     title,
                     summary,
                     content,
                     image: coverImage,
                     date,
                     festival,
-                    location,
+                    location: locationInput,
                     youtubeId,
                     category: 'Recaps'
                 }),
@@ -52,15 +77,17 @@ export function RecapCreate() {
             }
 
             setStatus('success');
-            setMessage('Récap publié avec succès !');
+            setMessage(isEditing ? 'Récap mis à jour avec succès !' : 'Récap publié avec succès !');
             // Reset form
-            setTitle('');
-            setSummary('');
-            setContent('');
-            setCoverImage('');
-            setFestival('');
-            setLocation('');
-            setYoutubeId('');
+            if (!isEditing) {
+                setTitle('');
+                setSummary('');
+                setContent('');
+                setCoverImage('');
+                setFestival('');
+                setLocationInput('');
+                setYoutubeId('');
+            }
 
         } catch (error) {
             console.error('Error creating recap:', error);
@@ -78,7 +105,7 @@ export function RecapCreate() {
                             ← Retour Admin
                         </Link>
                         <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Nouveau Récap
+                            {isEditing ? 'Modifier le Récap' : 'Nouveau Récap'}
                         </h1>
                     </div>
                 </div>
@@ -156,8 +183,8 @@ export function RecapCreate() {
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
                                         type="text"
-                                        value={location}
-                                        onChange={(e) => setLocation(e.target.value)}
+                                        value={locationInput}
+                                        onChange={(e) => setLocationInput(e.target.value)}
                                         placeholder="Ex: Boom, Belgique"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
@@ -221,7 +248,7 @@ export function RecapCreate() {
                             ) : (
                                 <>
                                     <Send className="w-5 h-5" />
-                                    Publier le Récap
+                                    {isEditing ? 'Mettre à jour le Récap' : 'Publier le Récap'}
                                 </>
                             )}
                         </button>

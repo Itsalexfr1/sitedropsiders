@@ -2,11 +2,14 @@
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useLocation } from 'react-router-dom';
 
 export function NewsCreate() {
     const [searchParams] = useSearchParams();
+    const location = useLocation() as any;
     const type = searchParams.get('type') || 'News'; // 'News' or 'Interview'
+    const isEditing = location.state?.isEditing;
+    const editingItem = location.state?.item;
 
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
@@ -16,8 +19,23 @@ export function NewsCreate() {
     const [category, setCategory] = useState(type); // Initial state from URL
 
     useEffect(() => {
-        setCategory(type);
-    }, [type]);
+        if (isEditing && editingItem) {
+            setTitle(editingItem.title);
+            setSummary(editingItem.summary);
+            // Basic HTML to Markdown/Text conversion if needed, or just load content
+            let c = editingItem.content || '';
+            if (typeof c === 'string' && c.startsWith('<div class="markdown-content">')) {
+                c = c.replace('<div class="markdown-content">', '').replace(/<\/div>$/, '');
+                c = c.replace(/<br>/g, '\n');
+            }
+            setContent(c);
+            setImageUrl(editingItem.image);
+            setDate(editingItem.date);
+            setCategory(editingItem.category);
+        } else {
+            setCategory(type);
+        }
+    }, [type, isEditing, editingItem]);
 
     const pageTitle = type === 'Interview' ? 'Ajouter une Interview' : 'Ajouter une News';
     // ...
@@ -50,6 +68,7 @@ export function NewsCreate() {
             // Let's wrap the markdown content in a simple div for now.
 
             const payload = {
+                id: isEditing ? editingItem.id : undefined,
                 title,
                 summary,
                 date,
@@ -58,7 +77,9 @@ export function NewsCreate() {
                 content: `<div class="markdown-content">${content.replace(/\n/g, '<br>')}</div>` // Very basic conversion for now
             };
 
-            const response = await fetch('/api/news/create', {
+            const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
+
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -71,12 +92,14 @@ export function NewsCreate() {
 
             if (response.ok) {
                 setStatus('success');
-                setMessage('Article publié avec succès ! Il sera visible dans quelques minutes.');
-                // Reset form
-                setTitle('');
-                setSummary('');
-                setContent('');
-                setImageUrl('');
+                setMessage(isEditing ? 'Article mis à jour avec succès !' : 'Article publié avec succès ! Il sera visible dans quelques minutes.');
+                // Reset form optionally or redirect
+                if (!isEditing) {
+                    setTitle('');
+                    setSummary('');
+                    setContent('');
+                    setImageUrl('');
+                }
             } else {
                 setStatus('error');
                 setMessage(data.error || 'Erreur lors de la publication');
@@ -193,7 +216,7 @@ export function NewsCreate() {
                             : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)]'
                             } text-white`}
                     >
-                        {status === 'loading' ? 'Publication...' : 'Publier l\'article'}
+                        {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : 'Publier l\'article')}
                     </button>
 
                 </div>
