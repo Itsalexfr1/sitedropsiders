@@ -6,7 +6,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 
 export function InterviewWidget() {
     const latestInterviews = (newsData as any[])
-        .filter((item: any) => item.category === 'Interviews')
+        .filter((item: any) => item.category === 'Interview' || item.category === 'Interviews')
         .slice(0, 4);
 
     const playHoverSound = useHoverSound();

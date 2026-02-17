@@ -29,14 +29,17 @@
     filter: invert(1) hue-rotate(180deg);
   }
 
-  /* Re-invert media to keep them looking normal */
+  /* Re-invert media to keep them looking normal (Original Colors) */
   html.light-mode img,
   html.light-mode video,
   html.light-mode iframe,
-  html.light-mode picture,
-  html.light-mode svg {
-    filter: invert(1) hue-rotate(180deg);
-    box-shadow: none !important;
+  html.light-mode [style*="background-image"] {
+    filter: invert(1) hue-rotate(180deg) !important;
+  }
+
+  /* Don't re-invert icons or specific decorative elements if needed */
+  html.light-mode .lucide {
+    filter: none !important;
   }
 
   /* Ensure background stays dark initially so it inverts to light */
@@ -93,9 +96,20 @@
 
   /* Paragraphes Centrés - Petit espace constant */
   .article-body-premium p {
-    @apply text-center text-gray-300 leading-[1.6] text-base md:text-lg font-light max-w-5xl mx-auto;
-    margin: 0.75rem auto !important;
+    @apply text-left text-gray-300 leading-[1.8] text-base md:text-lg font-light max-w-4xl mx-auto;
+    margin: 2rem auto !important;
     padding: 0 !important;
+  }
+
+  .article-body-premium .text-center {
+    text-align: center !important;
+  }
+
+  .article-body-premium strong {
+    @apply font-black text-white px-1 bg-white/5 rounded-sm;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 0, 51, 0.3);
   }
 
   /* Lettrine Élégante */

@@ -9,6 +9,7 @@ import { Team } from './pages/Team';
 import { Galerie } from './pages/Galerie';
 import { AlbumDetail } from './pages/AlbumDetail';
 import { ArticleDetail } from './pages/ArticleDetail';
+import { RecapDetail } from './pages/RecapDetail';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
 import { CookiesPolicy } from './pages/CookiesPolicy';
@@ -23,7 +24,7 @@ function App() {
           <Route path="/news" element={<News />} />
           <Route path="/news/:id" element={<ArticleDetail />} />
           <Route path="/recap" element={<Recap />} />
-          <Route path="/recap/:id" element={<ArticleDetail />} />
+          <Route path="/recap/:id" element={<RecapDetail />} />
           <Route path="/interviews" element={<Interviews />} />
           <Route path="/interviews/:id" element={<ArticleDetail />} />
           <Route path="/agenda" element={<Agenda />} />

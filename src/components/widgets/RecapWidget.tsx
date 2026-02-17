@@ -1,12 +1,11 @@
 import { motion } from 'framer-motion';
 import { Play, ArrowUpRight } from 'lucide-react';
-import newsData from '../../data/news.json';
+import recapsData from '../../data/recaps.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 
 export function RecapWidget() {
-    const latestRecaps = (newsData as any[])
-        .filter((item: any) => item.category === 'Recap')
+    const latestRecaps = (recapsData as any[])
         .slice(0, 6);
 
     const playHoverSound = useHoverSound();

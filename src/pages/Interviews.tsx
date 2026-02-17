@@ -10,7 +10,7 @@ export function Interviews() {
     const articlesPerPage = 8;
 
     const allInterviews = (newsData as any[])
-        .filter((item: any) => item.category === 'Interviews')
+        .filter((item: any) => item.category === 'Interview' || item.category === 'Interviews')
         .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const totalPages = Math.ceil(allInterviews.length / articlesPerPage);

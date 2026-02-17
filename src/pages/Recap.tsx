@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import newsData from '../data/news.json';
+import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 
 export function Recap() {
     const [currentPage, setCurrentPage] = useState(1);
-    const articlesPerPage = 8;
+    const articlesPerPage = 8; // 2 rows of 4 items per page
 
-    const recaps = (newsData as any[]).filter((item: any) => item.category === 'Recap');
+    const recaps = recapsData as any[];
     const totalPages = Math.ceil(recaps.length / articlesPerPage);
 
     const startIndex = (currentPage - 1) * articlesPerPage;
@@ -35,17 +35,17 @@ export function Recap() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Couvertures</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Couvertures Festivals</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 uppercase tracking-tight">
                     RÉCAPS <span className="text-neon-red">EVENTS</span>
                 </h1>
-                <p className="text-gray-400 max-w-2xl text-lg">
-                    Plongez dans nos couvertures détaillées des plus grands festivals et événements autour du globe.
+                <p className="text-gray-400 max-w-3xl text-lg leading-relaxed">
+                    Revivez les moments forts des plus grands festivals et événements électroniques à travers nos reportages photos et vidéos exclusifs.
                 </p>
             </motion.div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 min-h-[600px]">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 min-h-[600px]">
                 <AnimatePresence mode="wait">
                     {currentArticles.length > 0 ? (
                         currentArticles.map((item: any, index: number) => (
@@ -54,38 +54,59 @@ export function Recap() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                whileHover={{ scale: 1.05 }}
+                                whileHover={{ scale: 1.02 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.05 }}
-                                className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300 shadow-2xl"
+                                className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-all duration-300 shadow-2xl hover:shadow-neon-red/20"
                             >
                                 <Link to={`/recap/${item.id}`} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                                    <div className="h-64 overflow-hidden bg-black/40 relative">
+                                    <div className="h-72 overflow-hidden bg-black/40 relative">
                                         <img
-                                            src={item.image}
+                                            src={item.coverImage || item.image}
                                             alt={item.title}
-                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                         />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-60" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
+                                        {item.festival && (
+                                            <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full">
+                                                <span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span>
+                                            </div>
+                                        )}
+                                        {item.location && (
+                                            <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full">
+                                                <span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="p-6">
                                         <div className="flex justify-between items-center mb-3">
                                             <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">RECAP</span>
-                                            <span className="text-xs text-gray-500 font-medium">{item.date}</span>
+                                            <span className="text-xs text-gray-500 font-medium">
+                                                {new Date(item.date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' })}
+                                            </span>
                                         </div>
-                                        <h2 className="text-xl font-display font-bold text-white mb-3 group-hover:text-neon-red transition-colors leading-tight uppercase italic line-clamp-2">
+                                        <h2 className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-red transition-colors leading-tight uppercase italic line-clamp-2">
                                             {item.title}
                                         </h2>
-                                        <p className="text-gray-400 text-sm line-clamp-3">
-                                            {item.summary || "Découvrez notre compte-rendu complet de cet événement incontournable..."}
-                                        </p>
+                                        {item.images && item.images.length > 0 && (
+                                            <div className="flex items-center gap-2 text-gray-400 text-sm">
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <span className="font-bold">{item.images.length} photos</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </Link>
                             </motion.article>
                         ))
                     ) : (
-                        <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
-                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg">Aucun récap pour le moment</p>
+                        <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
+                            <svg className="w-16 h-16 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <p className="text-gray-400 font-display uppercase tracking-widest text-lg mb-2">Aucun récap disponible</p>
+                            <p className="text-gray-600 text-sm">Les récaps seront bientôt disponibles après le scraping</p>
                         </div>
                     )}
                 </AnimatePresence>
