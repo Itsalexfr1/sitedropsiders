@@ -48,7 +48,7 @@ export function RecapCreate() {
             // In a real app, we send data to worker, worker handles GitHub logic
             // We'll mimic the NewsCreate pattern
 
-            const endpoint = isEditing ? '/api/recaps/update' : '/api/recaps/create';
+            const endpoint = isEditing ? '/api/recaps/update' : '/api/recaps';
 
             const response = await fetch(endpoint, {
                 method: 'POST',
