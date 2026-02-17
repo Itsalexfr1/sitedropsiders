@@ -8,5 +8,11 @@
     },
     "observability": {
         "enabled": true
+    },
+    "vars": {
+        "GITHUB_TOKEN": "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",
+        "GITHUB_OWNER": "Itsalexfr1",
+        "GITHUB_REPO": "sitedropsiders",
+        "GITHUB_FILE_PATH": "src/data/subscribers.json"
     }
 }
