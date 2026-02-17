@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Mail, Users, Calendar, Trash2, Download, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 import localSubscribersData from '../data/subscribers.json';
@@ -211,13 +212,13 @@ export function NewsletterAdmin() {
 
                         {/* Actions */}
                         <div className="flex gap-4">
-                            <a
-                                href="/newsletter/create"
+                            <Link
+                                to="/newsletter/create"
                                 className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink border border-neon-purple/30 rounded-xl text-white font-bold uppercase tracking-wide hover:shadow-[0_0_20px_rgba(200,0,255,0.3)] transition-all"
                             >
                                 <Mail className="w-5 h-5" />
                                 Créer Newsletter
-                            </a>
+                            </Link>
                             <button
                                 onClick={exportToCSV}
                                 disabled={subscribers.length === 0}
