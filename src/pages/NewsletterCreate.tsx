@@ -47,7 +47,7 @@ export function NewsletterCreate() {
     // Simple HTML Template generator
     const generateHTML = (isPreview = false) => {
         // Use relative path for local preview, full URL for export/send
-        const logoUrl = isPreview ? '/Logo.png' : 'https://www.dropsiders.eu/Logo.png';
+        const logoUrl = isPreview ? '/Logo.png' : 'https://dropsiders.fr/Logo.png';
 
         return `
 <!DOCTYPE html>
