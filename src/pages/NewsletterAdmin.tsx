@@ -193,15 +193,24 @@ export function NewsletterAdmin() {
                             />
                         </div>
 
-                        {/* Export Button */}
-                        <button
-                            onClick={exportToCSV}
-                            disabled={subscribers.length === 0}
-                            className="flex items-center gap-2 px-6 py-3 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red font-bold uppercase tracking-wide hover:bg-neon-red/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Download className="w-5 h-5" />
-                            Exporter CSV
-                        </button>
+                        {/* Actions */}
+                        <div className="flex gap-4">
+                            <a
+                                href="/newsletter/create"
+                                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink border border-neon-purple/30 rounded-xl text-white font-bold uppercase tracking-wide hover:shadow-[0_0_20px_rgba(200,0,255,0.3)] transition-all"
+                            >
+                                <Mail className="w-5 h-5" />
+                                Créer Newsletter
+                            </a>
+                            <button
+                                onClick={exportToCSV}
+                                disabled={subscribers.length === 0}
+                                className="flex items-center gap-2 px-6 py-3 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red font-bold uppercase tracking-wide hover:bg-neon-red/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                <Download className="w-5 h-5" />
+                                Exporter CSV
+                            </button>
+                        </div>
                     </div>
                 </div>
 
