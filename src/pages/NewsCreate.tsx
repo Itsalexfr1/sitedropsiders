@@ -108,7 +108,7 @@ export function NewsCreate() {
                 content: `<div class="markdown-content">${content.replace(/\n/g, '<br>')}</div>` // Very basic conversion for now
             };
 
-            const endpoint = isEditing ? '/api/news/update' : '/api/news';
+            const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
 
             const response = await fetch(endpoint, {
                 method: 'POST',

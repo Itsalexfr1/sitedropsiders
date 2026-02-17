@@ -4,6 +4,8 @@ import newsData from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
+import { translateText } from '../../utils/translate';
+import { useState, useEffect } from 'react';
 
 export function FeaturedNews() {
     const { t, language } = useLanguage();
@@ -13,6 +15,15 @@ export function FeaturedNews() {
         .slice(0, 1);
 
     const heroNews = latestNews[0];
+    const [translatedTitle, setTranslatedTitle] = useState<string>('');
+
+    useEffect(() => {
+        if (heroNews && language === 'en') {
+            translateText(heroNews.title, 'en').then(setTranslatedTitle);
+        } else if (heroNews) {
+            setTranslatedTitle(heroNews.title);
+        }
+    }, [heroNews, language]);
 
     if (!heroNews) {
         return (
@@ -61,7 +72,7 @@ export function FeaturedNews() {
                             <span>{new Date(heroNews.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                         <h2 className="text-3xl md:text-4xl font-display font-bold text-white leading-tight group-hover:text-neon-red transition-colors">
-                            {heroNews.title}
+                            {translatedTitle || heroNews.title}
                         </h2>
                     </div>
 

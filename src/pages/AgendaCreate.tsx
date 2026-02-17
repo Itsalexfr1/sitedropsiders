@@ -70,7 +70,7 @@ export function AgendaCreate() {
         setMessage('Publication en cours...');
 
         try {
-            const endpoint = isEditing ? '/api/agenda/update' : '/api/agenda';
+            const endpoint = isEditing ? '/api/agenda/update' : '/api/agenda/create';
 
             const response = await fetch(endpoint, {
                 method: 'POST',

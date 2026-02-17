@@ -7,6 +7,7 @@ import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getRecapLink } from '../utils/slugify';
+import { translateText, translateHTML } from '../utils/translate';
 
 export function RecapDetail() {
     const { t, language } = useLanguage();
@@ -15,10 +16,24 @@ export function RecapDetail() {
     const recapId = extractIdFromSlug(id || '');
     const recap = (recapsData as any[]).find((item: any) => item.id === recapId);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [translatedTitle, setTranslatedTitle] = useState<string>('');
+    const [translatedContent, setTranslatedContent] = useState<string>('');
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [id]);
+
+    useEffect(() => {
+        if (recap && language === 'en') {
+            // Translate title
+            translateText(recap.title, 'en').then(setTranslatedTitle);
+            // Translate content (preserving HTML)
+            translateHTML(recap.content || '', 'en').then(setTranslatedContent);
+        } else if (recap) {
+            setTranslatedTitle(recap.title);
+            setTranslatedContent('');
+        }
+    }, [recap, language]);
 
     if (!recap) {
         return (
@@ -167,7 +182,7 @@ export function RecapDetail() {
                             </div>
 
                             <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-4 uppercase italic tracking-tighter leading-none">
-                                {recap.title}
+                                {translatedTitle || recap.title}
                             </h1>
 
                             {recap.images && recap.images.length > 0 && (
@@ -226,7 +241,7 @@ export function RecapDetail() {
                             >
                                 <div
                                     className="article-body-premium prose prose-invert max-w-none shadow-2xl shadow-white/5 p-8 md:p-12 rounded-2xl bg-white/[0.02] border border-white/[0.05]"
-                                    dangerouslySetInnerHTML={{ __html: cleanedContent }}
+                                    dangerouslySetInnerHTML={{ __html: language === 'en' && translatedContent ? translatedContent : cleanedContent }}
                                 />
                             </motion.div>
                         )}

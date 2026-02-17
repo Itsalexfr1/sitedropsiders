@@ -15,7 +15,7 @@ export const onRequestPost = async (context: any) => {
         }
 
         const body = await request.json();
-        const { title, date, location, type, genre, image, description, url } = body;
+        const { title, date, location, type, genre, image, description, url, month } = body;
 
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
@@ -54,7 +54,8 @@ export const onRequestPost = async (context: any) => {
             image,
             description,
             url,
-            genre
+            genre,
+            month: month || new Date(date).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
         };
 
         currentAgenda.push(newEvent);

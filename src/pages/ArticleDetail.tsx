@@ -7,7 +7,7 @@ import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getArticleLink } from '../utils/slugify';
-import { translateText } from '../utils/translate';
+import { translateText, translateHTML } from '../utils/translate';
 
 export function ArticleDetail() {
     const { t, language } = useLanguage();
@@ -27,11 +27,8 @@ export function ArticleDetail() {
         if (article && language === 'en') {
             // Translate title
             translateText(article.title, 'en').then(setTranslatedTitle);
-            // Translate content (strip HTML first for better translation)
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = article.content || '';
-            const textContent = tempDiv.textContent || '';
-            translateText(textContent, 'en').then(setTranslatedContent);
+            // Translate content (preserving HTML)
+            translateHTML(article.content || '', 'en').then(setTranslatedContent);
         } else if (article) {
             setTranslatedTitle(article.title);
             setTranslatedContent('');
@@ -241,7 +238,7 @@ export function ArticleDetail() {
                                 {/* CORPS DE L'ARTICLE */}
                                 <article
                                     className="article-body-premium w-full"
-                                    dangerouslySetInnerHTML={{ __html: language === 'en' && translatedContent ? `<div class="prose prose-invert max-w-none"><p>${translatedContent.split('\n').join('</p><p>')}</p></div>` : cleanedContent }}
+                                    dangerouslySetInnerHTML={{ __html: language === 'en' && translatedContent ? translatedContent : cleanedContent }}
                                 />
 
                                 {/* SECTION VIDÉO */}
