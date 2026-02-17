@@ -1,14 +1,15 @@
 [
   {
     "id": 1,
-    "title": "Tomorrowland Winter",
+    "title": "Tomorrowland Winter 2026",
     "date": "2026-03-21",
     "location": "Alpe d'Huez, France",
     "type": "Festival",
     "image": "/images/imported/0d5558faf9355e7a509ca024cc940d38.webp",
     "description": "L'édition hivernale magique de Tomorrowland dans les Alpes françaises.",
     "url": "https://winter.tomorrowland.com/fr/bienvenue",
-    "genre": "Big Room"
+    "genre": "Big Room",
+    "month": "MARS"
   },
   {
     "id": 2,
