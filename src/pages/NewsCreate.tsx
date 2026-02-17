@@ -17,6 +17,7 @@ export function NewsCreate() {
     const [imageUrl, setImageUrl] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState(type); // Initial state from URL
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         if (isEditing && editingItem) {
@@ -42,6 +43,36 @@ export function NewsCreate() {
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        const formData = new FormData();
+        formData.append('image', file);
+
+        try {
+            const response = await fetch('https://api.imgur.com/3/image', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Client-ID 546c25a59c58ad7'
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setImageUrl(data.data.link);
+            } else {
+                alert('Erreur lors de l\'upload');
+            }
+        } catch (error) {
+            alert('Erreur de connexion');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async () => {
         if (!title || !content || !imageUrl) {
@@ -178,15 +209,27 @@ export function NewsCreate() {
 
                     <div>
                         <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <ImageIcon className="w-4 h-4" /> Image URL
+                            <ImageIcon className="w-4 h-4" /> Image
                         </label>
-                        <input
-                            type="text"
-                            value={imageUrl}
-                            onChange={(e) => setImageUrl(e.target.value)}
-                            className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                            placeholder="https://..."
-                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={imageUrl}
+                                onChange={(e) => setImageUrl(e.target.value)}
+                                className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                placeholder="https://... ou uploadez une image"
+                            />
+                            <label className="px-6 py-3 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-lg font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                                {uploading ? 'Upload...' : '📤 Upload'}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                    disabled={uploading}
+                                />
+                            </label>
+                        </div>
                         {imageUrl && (
                             <div className="mt-2 h-40 rounded-lg overflow-hidden border border-white/10">
                                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
