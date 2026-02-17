@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Send, Copy, Eye, Layout, Type, Link, Image as ImageIcon, Users } from 'lucide-react';
+import localSubscribersData from '../data/subscribers.json';
 
 export function NewsletterCreate() {
     const [subject, setSubject] = useState('');
@@ -10,7 +11,9 @@ export function NewsletterCreate() {
     const [ctaText, setCtaText] = useState('');
     const [ctaLink, setCtaLink] = useState('');
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
-    const [subscribers, setSubscribers] = useState<string[]>([]);
+    const [subscribers, setSubscribers] = useState<string[]>(
+        Array.isArray(localSubscribersData) ? localSubscribersData.map((sub: any) => sub.email) : []
+    );
     const [sending, setSending] = useState(false);
 
     useEffect(() => {
@@ -23,12 +26,18 @@ export function NewsletterCreate() {
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    if (Array.isArray(data)) {
+                    if (Array.isArray(data) && data.length > 0) {
                         setSubscribers(data.map((sub: any) => sub.email));
+                        return;
                     }
                 }
             } catch (error) {
                 console.error('Error fetching subscribers:', error);
+            }
+
+            // Fallback to local data
+            if (Array.isArray(localSubscribersData)) {
+                setSubscribers((localSubscribersData as any[]).map(sub => sub.email));
             }
         };
 
@@ -165,8 +174,8 @@ export function NewsletterCreate() {
                             className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white font-bold"
                             title="Copier la liste des emails"
                         >
-                            <Users className="w-5 h-5" />
-                            <span className="hidden md:inline">({subscribers.length})</span>
+                            <Users className="w-5 h-5 text-neon-cyan" />
+                            <span className="font-bold">({subscribers.length})</span>
                         </button>
                         <button
                             onClick={handleCopyHTML}
