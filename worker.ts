@@ -322,7 +322,7 @@ export default {
                 let body;
                 try { body = JSON.parse(rawBody); } catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
 
-                const { title, date, location, type, image, description, url: eventUrl, genre } = body;
+                const { title, date, location, type, image, description, url: eventUrl, genre, month } = body;
 
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
@@ -352,7 +352,8 @@ export default {
                     image,
                     description,
                     url: eventUrl,
-                    genre
+                    genre,
+                    month: month || new Date(date).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
                 };
 
                 // Append to end
@@ -651,7 +652,7 @@ export default {
             try {
                 const rawBody = await request.text();
                 const body = JSON.parse(rawBody);
-                const { id, title, date, location, type, image, description, url: eventUrl, genre } = body;
+                const { id, title, date, location, type, image, description, url: eventUrl, genre, month } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
@@ -675,7 +676,8 @@ export default {
                     image: image || existing.image,
                     description: description || existing.description,
                     url: eventUrl || existing.url,
-                    genre: genre || existing.genre
+                    genre: genre || existing.genre,
+                    month: month || existing.month
                 };
 
                 const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));

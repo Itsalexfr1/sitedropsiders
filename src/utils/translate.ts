@@ -44,7 +44,7 @@ export async function translateHTML(html: string, targetLang: string): Promise<s
     );
 
     let node;
-    while (node = walker.nextNode()) {
+    while ((node = walker.nextNode())) {
         if (node.textContent && node.textContent.trim()) {
             textNodes.push({ node, originalText: node.textContent });
         }

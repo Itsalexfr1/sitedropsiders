@@ -8,7 +8,7 @@ import newsData from '../../data/news.json';
 import recapsData from '../../data/recaps.json';
 import agendaData from '../../data/agenda.json';
 import { useLanguage } from '../../context/LanguageContext';
-import { getArticleLink, getRecapLink } from '../../utils/slugify';
+import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../../utils/slugify';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -78,8 +78,8 @@ export function Navbar() {
             path = getArticleLink(item);
         }
         else if (searchType === 'recap') path = getRecapLink(item);
-        else if (searchType === 'agenda') path = `/agenda?event=${item.id}`;
-        else if (searchType === 'galerie') path = `/galerie/${item.id}`;
+        else if (searchType === 'agenda') path = getAgendaLink(item);
+        else if (searchType === 'galerie') path = getGalleryLink(item);
 
         if (path) navigate(path);
         setIsSearchOpen(false);
