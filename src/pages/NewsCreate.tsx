@@ -1,16 +1,26 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export function NewsCreate() {
+    const [searchParams] = useSearchParams();
+    const type = searchParams.get('type') || 'News'; // 'News' or 'Interview'
+
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
     const [content, setContent] = useState('**Écrivez votre article ici...**');
     const [imageUrl, setImageUrl] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-    const [category] = useState('News');
+    const [category, setCategory] = useState(type); // Initial state from URL
+
+    useEffect(() => {
+        setCategory(type);
+    }, [type]);
+
+    const pageTitle = type === 'Interview' ? 'Ajouter une Interview' : 'Ajouter une News';
+    // ...
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -79,11 +89,11 @@ export function NewsCreate() {
             <div className="max-w-4xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link to="/newsletter/admin" className="text-gray-400 hover:text-white mb-2 block text-sm">
+                        <Link to="/admin" className="text-gray-400 hover:text-white mb-2 block text-sm">
                             ← Retour Admin
                         </Link>
                         <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Ajouter une News
+                            {pageTitle}
                         </h1>
                     </div>
                 </div>

@@ -16,6 +16,10 @@ import { TermsOfService } from './pages/TermsOfService';
 import { CookiesPolicy } from './pages/CookiesPolicy';
 import { MentionsLegales } from './pages/MentionsLegales';
 import { Newsletter } from './pages/Newsletter';
+import { RecapCreate } from './pages/RecapCreate';
+import { AgendaCreate } from './pages/AgendaCreate';
+import { GalerieCreate } from './pages/GalerieCreate';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { NewsletterAdmin } from './pages/NewsletterAdmin';
 import { NewsletterCreate } from './pages/NewsletterCreate';
 import { NewsCreate } from './pages/NewsCreate';
@@ -29,9 +33,7 @@ function App() {
     const interval = setInterval(() => {
       document.title = scrollText.substring(position) + scrollText.substring(0, position);
       position++;
-      if (position >= scrollText.length) {
-        position = 0;
-      }
+      if (position >= scrollText.length) position = 0;
     }, 200);
 
     return () => {
@@ -46,23 +48,30 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/news" element={<News />} />
-          <Route path="/news/:id" element={<ArticleDetail />} />
-          <Route path="/recap" element={<Recap />} />
-          <Route path="/recap/:id" element={<RecapDetail />} />
-          <Route path="/interviews" element={<Interviews />} />
-          <Route path="/interviews/:id" element={<ArticleDetail />} />
           <Route path="/agenda" element={<Agenda />} />
+          <Route path="/recaps" element={<Recap />} />
+          <Route path="/interviews" element={<Interviews />} />
+          <Route path="/team" element={<Team />} />
           <Route path="/galerie" element={<Galerie />} />
           <Route path="/galerie/:id" element={<AlbumDetail />} />
-          <Route path="/team" element={<Team />} />
+          <Route path="/news/:id" element={<ArticleDetail />} />
+          <Route path="/recaps/:id" element={<RecapDetail />} />
+          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/politique-de-confidentialite" element={<PrivacyPolicy />} />
+          <Route path="/cgu" element={<TermsOfService />} />
+          <Route path="/cookies" element={<CookiesPolicy />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
+
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/newsletter/admin" element={<NewsletterAdmin />} />
           <Route path="/newsletter/create" element={<NewsletterCreate />} />
+
           <Route path="/news/create" element={<NewsCreate />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-of-service" element={<TermsOfService />} />
-          <Route path="/cookies" element={<CookiesPolicy />} />
-          <Route path="/mentions-legales" element={<MentionsLegales />} />
+          <Route path="/recaps/create" element={<RecapCreate />} />
+          <Route path="/agenda/create" element={<AgendaCreate />} />
+          <Route path="/galerie/create" element={<GalerieCreate />} />
         </Routes>
       </Layout>
     </Router>

@@ -214,6 +214,189 @@ export default {
             }
         }
 
+
+        // --- API: CREATE RECAP ---
+        if (path === '/api/recaps/create' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/recaps.json';
+
+            try {
+                const rawBody = await request.text();
+                const body = JSON.parse(rawBody);
+                const { title, date, summary, content, image, festival, location, youtubeId, category } = body;
+
+                if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                let currentData = [];
+                let sha = null;
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    const content = atob(fileData.content.replace(/\n/g, ''));
+                    try { currentData = JSON.parse(content); } catch (e) { currentData = []; }
+                    sha = fileData.sha;
+                }
+
+                const maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
+                const newId = maxId + 1;
+
+                const newItem = {
+                    id: newId,
+                    title,
+                    date: date || new Date().toISOString().split('T')[0],
+                    summary: summary || '',
+                    content,
+                    image: image || '',
+                    youtubeId: youtubeId || '',
+                    festival: festival || '',
+                    location: location || '',
+                    category: category || 'Recaps',
+                    link: `https://dropsiders.eu/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                    images: []
+                };
+
+                const updatedData = [newItem, ...currentData];
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(updatedData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Add recap: ${title}`, content: updatedContent, sha: sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: CREATE AGENDA ---
+        if (path === '/api/agenda/create' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/agenda.json';
+
+            try {
+                const rawBody = await request.text();
+
+                let body;
+                try { body = JSON.parse(rawBody); } catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
+
+                const { title, date, location, type, image, description, url: eventUrl, genre } = body;
+
+                if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                let currentData = [];
+                let sha = null;
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    const content = atob(fileData.content.replace(/\n/g, ''));
+                    try { currentData = JSON.parse(content); } catch (e) { currentData = []; }
+                    sha = fileData.sha;
+                }
+
+                const maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
+                const newId = maxId + 1;
+
+                const newItem = {
+                    id: newId,
+                    title,
+                    date: date,
+                    location,
+                    type,
+                    image,
+                    description,
+                    url: eventUrl,
+                    genre
+                };
+
+                // Append to end
+                const updatedData = [...currentData, newItem];
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(updatedData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Add agenda: ${title}`, content: updatedContent, sha: sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: CREATE GALERIE ---
+        if (path === '/api/galerie/create' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/galerie.json';
+
+            try {
+                const rawBody = await request.text();
+                let body;
+                try { body = JSON.parse(rawBody); } catch (e) { return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers }); }
+
+                const { title, date, category, cover, images } = body;
+
+                if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
+
+                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
+                const getResponse = await fetch(getUrl, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+                });
+
+                let currentData = [];
+                let sha = null;
+                if (getResponse.ok) {
+                    const fileData = await getResponse.json();
+                    const content = atob(fileData.content.replace(/\n/g, ''));
+                    try { currentData = JSON.parse(content); } catch (e) { currentData = []; }
+                    sha = fileData.sha;
+                }
+
+                const newId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+                const newItem = {
+                    id: newId,
+                    title,
+                    category,
+                    cover,
+                    images,
+                    date
+                };
+
+                const updatedData = [newItem, ...currentData];
+                const utf8Encode = (str) => btoa(unescape(encodeURIComponent(str)));
+                const updatedContent = utf8Encode(JSON.stringify(updatedData, null, 2));
+
+                const putResponse = await fetch(getUrl, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: `Add galerie: ${title}`, content: updatedContent, sha: sha })
+                });
+
+                if (!putResponse.ok) return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- STATIC ASSETS ---
         if (env.ASSETS) {
             const response = await env.ASSETS.fetch(request);
