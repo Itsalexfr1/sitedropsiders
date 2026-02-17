@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Edit } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import newsData from '../data/news.json';
+import recapsData from '../data/recaps.json';
+import agendaData from '../data/agenda.json';
 
 type ContentType = 'News' | 'Recaps' | 'Interviews' | 'Agenda';
 
@@ -22,36 +25,16 @@ export function AdminManage() {
         try {
             let data: any[] = [];
 
-            const fetchType = async (type: string) => {
-                const res = await fetch(`/api/data?type=${type}`, { cache: 'no-store' });
-                if (!res.ok) {
-                    const text = await res.text();
-                    console.error(`API Error (${type}):`, res.status, text);
-                    throw new Error(`API Error: ${res.status}`);
-                }
-                const text = await res.text();
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    console.error(`JSON Parse Error (${type}):`, text);
-                    return [];
-                }
-            };
-
             if (activeTab === 'News' || activeTab === 'Interviews') {
-                const json = await fetchType('news');
-                if (Array.isArray(json)) {
-                    data = activeTab === 'News'
-                        ? json.filter((item: any) => item.category === 'News')
-                        : json.filter((item: any) => item.category === 'Interview');
-                }
-            } else {
-                const type = activeTab === 'Recaps' ? 'recaps' : 'agenda';
-                const json = await fetchType(type);
-                if (Array.isArray(json)) {
-                    data = json;
-                }
+                data = activeTab === 'News'
+                    ? (newsData as any[]).filter((item: any) => item.category === 'News')
+                    : (newsData as any[]).filter((item: any) => item.category === 'Interview');
+            } else if (activeTab === 'Recaps') {
+                data = recapsData as any[];
+            } else if (activeTab === 'Agenda') {
+                data = agendaData as any[];
             }
+
             setItems(data);
         } catch (error) {
             console.error('Error fetching data:', error);
