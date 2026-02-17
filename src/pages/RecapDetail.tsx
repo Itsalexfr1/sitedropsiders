@@ -355,29 +355,6 @@ export function RecapDetail() {
                     </aside>
                 </div>
             </main>
-
-            {/* Pied de page de l'article */}
-            <section className="bg-black/20 py-24 border-t border-white/5">
-                <div className="max-w-7xl mx-auto px-6 text-center">
-                    <h2 className="text-2xl font-display font-black text-white mb-12 tracking-tighter uppercase italic">
-                        Continuer la lecture
-                    </h2>
-                    <div className="flex justify-center">
-                        <Link
-                            to="/recap"
-                            onMouseEnter={playHoverSound}
-                            className="group flex flex-col items-center gap-4"
-                        >
-                            <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all duration-300 shadow-xl group-hover:shadow-neon-red/20">
-                                <ArrowLeft className="w-6 h-6 text-white" />
-                            </div>
-                            <span className="text-xs font-black tracking-[0.3em] text-gray-500 group-hover:text-white uppercase transition-colors">
-                                Retour aux récaps
-                            </span>
-                        </Link>
-                    </div>
-                </div>
-            </section>
         </div>
     );
 }

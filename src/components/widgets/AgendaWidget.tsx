@@ -28,7 +28,7 @@ export function AgendaWidget() {
                 {upcomingEvents.map((event, index) => (
                     <Link
                         key={event.id}
-                        to="/agenda"
+                        to={`/agenda?event=${event.id}`}
                         className="block"
                     >
                         <motion.div

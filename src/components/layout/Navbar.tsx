@@ -9,7 +9,7 @@ import newsData from '../../data/news.json';
 const navItems = [
     { name: 'News', path: '/news' },
     { name: 'Récaps', path: '/recap' },
-    { name: 'Galerie', path: '/galerie' },
+    { name: 'Galeries', path: '/galerie' },
     { name: 'Interviews', path: '/interviews' },
     { name: 'Agenda', path: '/agenda' },
     { name: 'Team', path: '/team' },
@@ -58,7 +58,7 @@ export function Navbar() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link to="/" className="flex items-center group py-2">
+                    <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2">
                         <img
                             src="/Logo.png"
                             alt="DROPSIDERS"

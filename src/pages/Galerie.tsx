@@ -48,7 +48,7 @@ export function Galerie() {
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">Photos & Albums</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    GALERIE <span className="text-neon-red">PHOTO</span>
+                    GALERIES <span className="text-neon-red">PHOTO</span>
                 </h1>
             </motion.div>
 
@@ -132,11 +132,6 @@ export function Galerie() {
                                                     VOIR L'ALBUM <ArrowRight className="w-4 h-4" />
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        {/* Corner Badge */}
-                                        <div className="absolute top-6 right-6 px-3 py-1 bg-black/50 backdrop-blur-md rounded-lg border border-white/10">
-                                            <span className="text-[10px] font-black text-white tracking-[0.2em] uppercase">OFFICIAL</span>
                                         </div>
                                     </motion.div>
                                 </Link>

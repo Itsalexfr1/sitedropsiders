@@ -1,14 +1,14 @@
-import { Facebook, Instagram, Youtube, Twitter, Mail, ExternalLink, MessageCircle } from 'lucide-react';
+import { Mail, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 export function Footer() {
     const socialLinks = [
-        { name: 'Instagram', icon: <Instagram className="w-6 h-6" />, href: 'https://instagram.com/dropsiders.eu', color: 'hover:text-pink-500' },
-        { name: 'TikTok', icon: <MessageCircle className="w-6 h-6" />, href: 'https://tiktok.com/@dropsiders.eu', color: 'hover:text-cyan-400' },
-        { name: 'YouTube', icon: <Youtube className="w-6 h-6" />, href: 'https://www.youtube.com/@dropsiders', color: 'hover:text-red-600' },
-        { name: 'X', icon: <Twitter className="w-6 h-6" />, href: 'https://twitter.com/dropsiders', color: 'hover:text-white' },
-        { name: 'Facebook', icon: <Facebook className="w-6 h-6" />, href: 'https://www.facebook.com/dropsidersfr', color: 'hover:text-blue-600' }
+        { name: 'Instagram', icon: <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-6 h-6 object-contain" />, href: 'https://instagram.com/dropsiders.eu', color: 'hover:opacity-80' },
+        { name: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-6 h-6 object-contain" />, href: 'https://tiktok.com/@dropsiders.eu', color: 'hover:opacity-80' },
+        { name: 'YouTube', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" className="w-6 h-6 object-contain" />, href: 'https://www.youtube.com/@dropsiders', color: 'hover:opacity-80' },
+        { name: 'X', icon: <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-6 h-6 object-contain" />, href: 'https://twitter.com/dropsiders', color: 'hover:opacity-80' },
+        { name: 'Facebook', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-6 h-6 object-contain" />, href: 'https://www.facebook.com/dropsidersfr', color: 'hover:opacity-80' }
     ];
 
     return (
@@ -21,7 +21,9 @@ export function Footer() {
                     {/* Brand Section */}
                     <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
                         <div className="flex flex-col gap-6 items-center lg:items-start">
-                            <img src="/Logo.png" alt="DROPSIDERS" className="h-16 w-auto object-contain logo-footer" />
+                            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                                <img src="/Logo.png" alt="DROPSIDERS" className="h-16 w-auto object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
+                            </Link>
                             <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight">
                                 LE MÉDIA FRANÇAIS SPÉCIALISÉ DANS L'ACTUALITÉ DES <span className="text-neon-red">FESTIVALS</span>.
                             </h2>
@@ -57,10 +59,14 @@ export function Footer() {
                                     </motion.a>
                                 ))}
                             </div>
-                            <div className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-neon-red/10 transition-colors">
+                            <Link
+                                to="/newsletter"
+                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-neon-red/10 transition-colors"
+                            >
                                 <span className="text-[10px] font-black text-white uppercase tracking-widest">S'abonner à la Newsletter</span>
                                 <ExternalLink className="w-4 h-4 text-neon-red group-hover:translate-x-1 transition-transform" />
-                            </div>
+                            </Link>
                         </div>
                     </div>
 
@@ -74,8 +80,7 @@ export function Footer() {
                                 { label: 'Interviews', path: '/interviews' },
                                 { label: 'Galerie Photos', path: '/galerie' },
                                 { label: 'Team', path: '/team' },
-                                { label: 'Contact', path: 'mailto:contact@dropsiders.fr' },
-                                { label: 'Mentions Légales', path: '/mentions-legales' }
+                                { label: 'Contact', path: 'mailto:contact@dropsiders.fr' }
                             ].map((item) => (
                                 <li key={item.label}>
                                     <Link
@@ -98,9 +103,27 @@ export function Footer() {
                         &copy; 2026 - <span className="text-white">WWW.DROPSIDERS.EU</span> - TOUS DROITS RÉSERVÉS
                     </div>
                     <div className="flex gap-8">
-                        <Link to="/privacy-policy" className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors">Privacy Policy</Link>
-                        <Link to="/terms-of-service" className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors">Terms of Service</Link>
-                        <Link to="/cookies" className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors">Cookies</Link>
+                        <Link
+                            to="/privacy-policy"
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
+                        >
+                            Politique de Confidentialité
+                        </Link>
+                        <Link
+                            to="/terms-of-service"
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
+                        >
+                            Conditions d'Utilisation
+                        </Link>
+                        <Link
+                            to="/cookies"
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="text-[9px] font-black text-gray-600 hover:text-white uppercase tracking-widest transition-colors"
+                        >
+                            Cookies
+                        </Link>
                     </div>
                 </div>
             </div>

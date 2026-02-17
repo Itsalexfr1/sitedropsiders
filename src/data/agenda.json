@@ -2,7 +2,7 @@
   {
     "id": 1,
     "title": "Tomorrowland Winter",
-    "date": "2026-03-14",
+    "date": "2026-03-21",
     "location": "Alpe d'Huez, France",
     "type": "Festival",
     "image": "/images/imported/0d5558faf9355e7a509ca024cc940d38.webp",
@@ -35,7 +35,7 @@
     "date": "2026-04-10",
     "location": "Indio, USA",
     "type": "Festival",
-    "image": "/images/imported/26aa7dd0e145c3504471679d6bf70253.jpg",
+    "image": "/coachella 2026 line up.jpg",
     "description": "Le festival iconique mêlant musique et art dans le désert californien.",
     "url": "https://www.coachella.com"
   },
@@ -45,7 +45,7 @@
     "date": "2026-04-17",
     "location": "Indio, USA",
     "type": "Festival",
-    "image": "/images/imported/26aa7dd0e145c3504471679d6bf70253.jpg",
+    "image": "/coachella 2026 line up.jpg",
     "description": "Deuxième week-end de magie dans le désert d'Indio.",
     "url": "https://www.coachella.com"
   },
@@ -55,9 +55,9 @@
     "date": "2026-05-13",
     "location": "Las Vegas, USA",
     "type": "Events",
-    "image": "https://images.unsplash.com/photo-1514525253361-bee8a18744ad?q=80&w=2064",
+    "image": "/images/imported/7a293e51cf2a6aeb797e1668181d6a21.jpg",
     "description": "Une semaine de fêtes non-stop dans les meilleurs clubs de Vegas.",
-    "url": "https://lasvegas.electricdaisycarnival.com/edc-week/"
+    "url": "https://www.edcweek.com"
   },
   {
     "id": 7,
@@ -65,7 +65,7 @@
     "date": "2026-05-15",
     "location": "Las Vegas, USA",
     "type": "Festival",
-    "image": "/images/imported/7a293e51cf2a6aeb797e1668181d6a21.jpg",
+    "image": "/EDC 2026 LINE UP.png",
     "description": "Célébration des 30 ans sous le ciel électrique du Speedway.",
     "url": "https://lasvegas.electricdaisycarnival.com/"
   },
@@ -105,7 +105,7 @@
     "date": "2026-07-17",
     "location": "Boom, Belgium",
     "type": "Festival",
-    "image": "/images/imported/47dcfe033a95794a268d96fbb9d7d42b.jpg",
+    "image": "/images/imported/3594ca2b06edb9e3c8c0809573b218c7.png",
     "description": "Premier week-end du plus grand festival EDM au monde.",
     "url": "https://www.tomorrowland.com"
   },

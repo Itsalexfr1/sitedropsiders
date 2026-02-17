@@ -75,20 +75,20 @@ export function AlbumDetail() {
 
             {/* Photo Grid */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {album.images.map((img, index) => (
                         <motion.div
                             key={index}
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.05 }}
-                            className="break-inside-avoid relative rounded-2xl overflow-hidden group cursor-pointer bg-white/5 border border-white/5 hover:border-white/20 transition-all"
+                            className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer bg-white/5 border border-white/5 hover:border-white/20 transition-all"
                             onClick={() => setSelectedPhoto(img)}
                         >
                             <img
                                 src={img}
                                 alt={`${album.title} - ${index}`}
-                                className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 loading="lazy"
                             />
 

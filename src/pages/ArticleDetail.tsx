@@ -349,32 +349,6 @@ export function ArticleDetail() {
                     </div>
                 </div>
             </main >
-
-            {/* 3. ARTICLES LIÉS */}
-            < section className="bg-black/20 py-32 border-t border-white/5" >
-                <div className="max-w-7xl mx-auto px-6">
-                    <h2 className="text-3xl font-display font-black text-white mb-16 tracking-tighter uppercase italic text-center">À lire ensuite</h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                        {relatedArticles.map(rel => (
-                            <Link key={rel.id} to={rel.category.toLowerCase().includes('interview') ? `/interviews/${rel.id}` : `/news/${rel.id}`}
-                                className="group block space-y-6"
-                                onMouseEnter={playHoverSound}
-                            >
-                                <div className="aspect-[16/10] rounded-2xl overflow-hidden border border-white/5 relative shadow-xl">
-                                    <img src={rel.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80" alt={rel.title} />
-                                </div>
-                                <div className="space-y-3">
-                                    <span className="text-[9px] font-black text-neon-red tracking-widest uppercase">{rel.category}</span>
-                                    <h4 className="text-lg font-bold text-gray-300 group-hover:text-white transition-colors line-clamp-2 leading-tight uppercase font-display italic">
-                                        {rel.title}
-                                    </h4>
-                                </div>
-                            </Link>
-                        ))}
-                    </div>
-                </div>
-            </section >
         </div >
     );
 }
