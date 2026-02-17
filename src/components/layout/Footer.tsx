@@ -130,6 +130,11 @@ export function Footer() {
 
             {/* Corner Accent */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
+
+            {/* Secret Admin Link */}
+            <div className="absolute bottom-2 right-2 opacity-0 hover:opacity-100 transition-opacity z-50">
+                <Link to="/newsletter/admin" className="text-[10px] text-gray-800 hover:text-white">Admin</Link>
+            </div>
         </footer>
     );
 }
