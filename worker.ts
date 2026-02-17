@@ -131,7 +131,12 @@ export default {
 
         // --- STATIC ASSETS ---
         if (env.ASSETS) {
-            return env.ASSETS.fetch(request);
+            const response = await env.ASSETS.fetch(request);
+            if (response.status === 404 && !path.startsWith('/api/')) {
+                // SPA Fallback: serve index.html
+                return env.ASSETS.fetch(new URL('/index.html', request.url));
+            }
+            return response;
         }
 
         return new Response("Not Found", { status: 404 });
