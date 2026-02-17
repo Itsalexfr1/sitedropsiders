@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, ChevronDown, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import agendaData from '../data/agenda.json';
@@ -175,14 +175,8 @@ export function Agenda() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mb-12"
             >
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-white/5 rounded-lg">
-                        <Filter className="w-6 h-6 text-gray-400" />
-                    </div>
-                    <span className="text-gray-400 font-bold tracking-widest text-sm uppercase">{t('agenda.badge')}</span>
-                </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('agenda.title')} <span className="text-gray-500">{t('agenda.title_span')}</span>
+                    {t('agenda.title')}
                 </h1>
                 <p className="text-gray-400 max-w-2xl">
                     {t('agenda.subtitle')}
@@ -209,10 +203,6 @@ export function Agenda() {
                             <h2 className="text-4xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter">
                                 {selectedMonth ? formatMonthName(selectedMonth) : 'Chargement...'}
                             </h2>
-                            <div className="flex items-center gap-2 text-neon-red mt-2">
-                                <Calendar className="w-3 h-3" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('agenda.badge')}</span>
-                            </div>
                         </div>
 
                         <button
