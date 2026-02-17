@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, ChevronDown, Filter, Calendar } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import agendaData from '../data/agenda.json';
@@ -189,28 +189,60 @@ export function Agenda() {
                 </p>
             </motion.div>
 
-            {/* Month Tabs */}
+            {/* Month Selection */}
             <div className="mb-12">
-                <div className="flex items-center gap-2 text-gray-400 mb-6">
-                    <Calendar className="w-4 h-4 ml-1" />
-                    <span className="text-sm font-bold uppercase tracking-wider">Sélectionner un mois</span>
-                </div>
-                <div className="flex overflow-x-auto pb-4 gap-4 no-scrollbar">
-                    {months.map((monthKey) => (
-                        <motion.button
-                            key={monthKey}
-                            onClick={() => setSelectedMonth(monthKey)}
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="flex items-center gap-6">
+                        <button
+                            onClick={() => {
+                                const currentIndex = months.indexOf(selectedMonth || '');
+                                if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
+                            }}
+                            disabled={months.indexOf(selectedMonth || '') <= 0}
+                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 disabled:hover:border-white/10 disabled:hover:text-white transition-all group"
                             onMouseEnter={playHoverSound}
-                            className={`px-8 py-4 rounded-2xl text-sm font-black tracking-tighter uppercase italic transition-all duration-300 border flex-shrink-0 ${selectedMonth === monthKey
-                                ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.2)]'
-                                : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/30 hover:text-white'
-                                }`}
                         >
-                            {formatMonthName(monthKey)}
-                        </motion.button>
-                    ))}
+                            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        </button>
+
+                        <div className="flex flex-col">
+                            <h2 className="text-4xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter">
+                                {selectedMonth ? formatMonthName(selectedMonth) : 'Chargement...'}
+                            </h2>
+                            <div className="flex items-center gap-2 text-neon-red mt-2">
+                                <Calendar className="w-3 h-3" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('agenda.badge')}</span>
+                            </div>
+                        </div>
+
+                        <button
+                            onClick={() => {
+                                const currentIndex = months.indexOf(selectedMonth || '');
+                                if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
+                            }}
+                            disabled={selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true}
+                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 disabled:hover:border-white/10 disabled:hover:text-white transition-all group"
+                            onMouseEnter={playHoverSound}
+                        >
+                            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                        </button>
+                    </div>
+
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
+                        {months.map((monthKey) => (
+                            <button
+                                key={monthKey}
+                                onClick={() => setSelectedMonth(monthKey)}
+                                onMouseEnter={playHoverSound}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 border flex-shrink-0 ${selectedMonth === monthKey
+                                    ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]'
+                                    : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-white/20'
+                                    }`}
+                            >
+                                {monthKey.split('-')[1]}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
