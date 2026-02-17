@@ -43,11 +43,17 @@ export function GalerieCreate() {
                 }),
             });
 
-            const data = await response.json();
-
             if (!response.ok) {
-                throw new Error(data.error || 'Erreur lors de la publication');
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
+                }
+                throw new Error(errorData.error || 'Erreur lors de la publication');
             }
+
+            await response.json();
 
             setStatus('success');
             setMessage('Album créé avec succès !');

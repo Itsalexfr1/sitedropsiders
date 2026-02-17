@@ -31,6 +31,7 @@ export default {
         const isAuthRoute = path.startsWith('/api/news/create') ||
             path.startsWith('/api/recaps/create') ||
             path.startsWith('/api/agenda/create') ||
+            path === '/api/agenda' ||
             path.startsWith('/api/galerie/create') ||
             path.startsWith('/api/newsletter/send') ||
             path.startsWith('/api/news/update') ||
@@ -312,7 +313,7 @@ export default {
         }
 
         // --- API: CREATE AGENDA ---
-        if (path === '/api/agenda/create' && request.method === 'POST') {
+        if ((path === '/api/agenda/create' || path === '/api/agenda') && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             const FILE_PATH = 'src/data/agenda.json';
 

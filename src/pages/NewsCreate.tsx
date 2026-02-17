@@ -119,9 +119,8 @@ export function NewsCreate() {
                 body: JSON.stringify(payload)
             });
 
-            const data = await response.json();
-
             if (response.ok) {
+                await response.json();
                 setStatus('success');
                 setMessage(isEditing ? 'Article mis à jour avec succès !' : 'Article publié avec succès ! Il sera visible dans quelques minutes.');
                 // Reset form optionally or redirect
@@ -132,8 +131,14 @@ export function NewsCreate() {
                     setImageUrl('');
                 }
             } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
+                }
                 setStatus('error');
-                setMessage(data.error || 'Erreur lors de la publication');
+                setMessage(errorData.error || 'Erreur lors de la publication');
             }
         } catch (e) {
             setStatus('error');
