@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "email": "alexflex30@gmail.com",
+    "firstName": null,
+    "lastName": null,
+    "subscribedAt": "2026-02-17T12:16:28.938Z"
+  },
+  {
+    "email": "alex@dropsiders.fr",
+    "firstName": null,
+    "lastName": null,
+    "subscribedAt": "2026-02-17T12:26:35.561Z"
+  },
+  {
+    "email": "contact@dropsiders.fr",
+    "firstName": null,
+    "lastName": null,
+    "subscribedAt": "2026-02-17T12:45:51.040Z"
+  }
+]
