@@ -6,12 +6,14 @@ import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
+import { extractIdFromSlug } from '../utils/slugify';
 
 export function ArticleDetail() {
     const { t, language } = useLanguage();
     const { id } = useParams();
     const playHoverSound = useHoverSound();
-    const article = newsData.find(item => item.id === parseInt(id || ''));
+    const articleId = extractIdFromSlug(id || '');
+    const article = newsData.find(item => item.id === articleId);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
     useEffect(() => {

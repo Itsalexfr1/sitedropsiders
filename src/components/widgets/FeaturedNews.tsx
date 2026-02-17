@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import newsData from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
+import { getArticleLink } from '../../utils/slugify';
 
 export function FeaturedNews() {
     const { t, language } = useLanguage();
@@ -38,7 +39,7 @@ export function FeaturedNews() {
                 {t('home.featured')}
             </h3>
 
-            <Link to={`/news/${heroNews.id}`} className="flex-1 block group relative">
+            <Link to={getArticleLink(heroNews)} className="flex-1 block group relative">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
