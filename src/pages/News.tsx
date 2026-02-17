@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Mail } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
+import { getArticleLink } from '../utils/slugify';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 
 export function News() {
@@ -62,7 +63,7 @@ export function News() {
                                 transition={{ delay: index * 0.05 }}
                                 className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300"
                             >
-                                <Link to={`/news/${item.id}`}>
+                                <Link to={getArticleLink(item)}>
                                     <div className="h-72 overflow-hidden bg-black/40 flex items-center justify-center">
                                         <img
                                             src={item.image}

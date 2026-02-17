@@ -8,6 +8,7 @@ import newsData from '../../data/news.json';
 import recapsData from '../../data/recaps.json';
 import agendaData from '../../data/agenda.json';
 import { useLanguage } from '../../context/LanguageContext';
+import { getArticleLink } from '../../utils/slugify';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -73,9 +74,10 @@ export function Navbar() {
         let path = '';
         const searchType = item.searchType || item.category?.toLowerCase();
 
-        if (searchType === 'news') path = `/news/${item.id}`;
+        if (searchType === 'news' || searchType === 'interview') {
+            path = getArticleLink(item);
+        }
         else if (searchType === 'recap') path = `/recaps/${item.id}`;
-        else if (searchType === 'interview') path = `/interviews/${item.id}`; // Unified interview route
         else if (searchType === 'agenda') path = `/agenda?event=${item.id}`;
         else if (searchType === 'galerie') path = `/galerie/${item.id}`;
 

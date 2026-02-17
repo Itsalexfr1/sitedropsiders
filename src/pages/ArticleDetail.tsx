@@ -6,7 +6,7 @@ import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
-import { extractIdFromSlug } from '../utils/slugify';
+import { extractIdFromSlug, getArticleLink } from '../utils/slugify';
 
 export function ArticleDetail() {
     const { t, language } = useLanguage();
@@ -299,7 +299,7 @@ export function ArticleDetail() {
                                         <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">{t('article_detail.related_title')}</h3>
                                         <div className="space-y-6">
                                             {relatedArticles.map(rel => (
-                                                <Link key={rel.id} to={rel.category.toLowerCase().includes('interview') ? `/interviews/${rel.id}` : `/news/${rel.id}`}
+                                                <Link key={rel.id} to={getArticleLink(rel)}
                                                     className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0"
                                                     onMouseEnter={playHoverSound}
                                                 >

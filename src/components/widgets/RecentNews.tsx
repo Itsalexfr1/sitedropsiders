@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import newsData from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
+import { getArticleLink } from '../../utils/slugify';
 
 export function RecentNews() {
     const { t, language } = useLanguage();
@@ -38,7 +39,7 @@ export function RecentNews() {
             <div className="flex-1 bg-dark-bg/40 border border-white/10 rounded-3xl p-5 backdrop-blur-md shadow-xl flex flex-col justify-between overflow-hidden">
                 <div className="divide-y divide-white/5">
                     {recentNews.map((item, index) => (
-                        <Link to={`/news/${item.id}`} key={item.id} className="block group py-2.5 first:pt-0 last:pb-0">
+                        <Link to={getArticleLink(item)} key={item.id} className="block group py-2.5 first:pt-0 last:pb-0">
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
