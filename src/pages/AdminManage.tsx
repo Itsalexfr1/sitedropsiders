@@ -21,9 +21,25 @@ export function AdminManage() {
         setLoading(true);
         try {
             let data: any[] = [];
+
+            const fetchType = async (type: string) => {
+                const res = await fetch(`/api/data?type=${type}`, { cache: 'no-store' });
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error(`API Error (${type}):`, res.status, text);
+                    throw new Error(`API Error: ${res.status}`);
+                }
+                const text = await res.text();
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error(`JSON Parse Error (${type}):`, text);
+                    return [];
+                }
+            };
+
             if (activeTab === 'News' || activeTab === 'Interviews') {
-                const res = await fetch('/api/data?type=news');
-                const json = await res.json();
+                const json = await fetchType('news');
                 if (Array.isArray(json)) {
                     data = activeTab === 'News'
                         ? json.filter((item: any) => item.category === 'News')
@@ -31,8 +47,7 @@ export function AdminManage() {
                 }
             } else {
                 const type = activeTab === 'Recaps' ? 'recaps' : 'agenda';
-                const res = await fetch(`/api/data?type=${type}`);
-                const json = await res.json();
+                const json = await fetchType(type);
                 if (Array.isArray(json)) {
                     data = json;
                 }
