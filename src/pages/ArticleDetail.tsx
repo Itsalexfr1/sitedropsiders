@@ -7,6 +7,7 @@ import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getArticleLink } from '../utils/slugify';
+import { translateText } from '../utils/translate';
 
 export function ArticleDetail() {
     const { t, language } = useLanguage();
@@ -15,10 +16,27 @@ export function ArticleDetail() {
     const articleId = extractIdFromSlug(id || '');
     const article = newsData.find(item => item.id === articleId);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [translatedTitle, setTranslatedTitle] = useState<string>('');
+    const [translatedContent, setTranslatedContent] = useState<string>('');
 
     useEffect(() => {
         window.scrollTo(0, 0);
     }, [id]);
+
+    useEffect(() => {
+        if (article && language === 'en') {
+            // Translate title
+            translateText(article.title, 'en').then(setTranslatedTitle);
+            // Translate content (strip HTML first for better translation)
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = article.content || '';
+            const textContent = tempDiv.textContent || '';
+            translateText(textContent, 'en').then(setTranslatedContent);
+        } else if (article) {
+            setTranslatedTitle(article.title);
+            setTranslatedContent('');
+        }
+    }, [article, language]);
 
     if (!article) {
         return (
@@ -206,7 +224,7 @@ export function ArticleDetail() {
                             </div>
 
                             <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-4 uppercase italic tracking-tighter leading-none drop-shadow-2xl">
-                                {article.title}
+                                {translatedTitle || article.title}
                             </h1>
                         </motion.div>
                     </div>
@@ -223,7 +241,7 @@ export function ArticleDetail() {
                                 {/* CORPS DE L'ARTICLE */}
                                 <article
                                     className="article-body-premium w-full"
-                                    dangerouslySetInnerHTML={{ __html: cleanedContent }}
+                                    dangerouslySetInnerHTML={{ __html: language === 'en' && translatedContent ? `<div class="prose prose-invert max-w-none"><p>${translatedContent.split('\n').join('</p><p>')}</p></div>` : cleanedContent }}
                                 />
 
                                 {/* SECTION VIDÉO */}
