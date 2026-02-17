@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, ChevronDown, Filter } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, Calendar } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import agendaData from '../data/agenda.json';
@@ -11,7 +11,36 @@ export function Agenda() {
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
+    const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
+
+    // Available months based on upcoming events
+    const months = useMemo(() => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const upcoming = agendaData.filter((event: any) => {
+            const d = new Date(event.date);
+            d.setHours(0, 0, 0, 0);
+            return d >= today;
+        });
+
+        const monthKeys = new Set<string>();
+        upcoming.forEach((event: any) => {
+            const date = new Date(event.date);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            monthKeys.add(monthKey);
+        });
+
+        return Array.from(monthKeys).sort();
+    }, []);
+
+    // Set initial selected month
+    useEffect(() => {
+        if (!selectedMonth && months.length > 0) {
+            setSelectedMonth(months[0]);
+        }
+    }, [months]);
 
     const CATEGORIES = [
         { id: 'ALL', label: t('agenda.filter_all') },
@@ -23,7 +52,7 @@ export function Agenda() {
         { id: 'HARDMUSIC', label: 'HARDMUSIC' }
     ];
 
-    // Filter out past events and handle category filtering
+    // Filter events by category AND month
     const filteredEvents = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -33,13 +62,20 @@ export function Agenda() {
                 if (!event.date) return false;
 
                 const eventDate = new Date(event.date);
-                if (isNaN(eventDate.getTime())) return false; // Invalid date check
+                if (isNaN(eventDate.getTime())) return false;
 
                 eventDate.setHours(0, 0, 0, 0);
 
-                // Date filter
-                const isUpcoming = eventDate >= today;
-                if (!isUpcoming) return false;
+                // Date filter (upcoming only)
+                if (eventDate < today) return false;
+
+                // Month filter
+                if (selectedMonth) {
+                    const [year, month] = selectedMonth.split('-');
+                    if (eventDate.getFullYear() !== parseInt(year) || (eventDate.getMonth() + 1) !== parseInt(month)) {
+                        return false;
+                    }
+                }
 
                 // Category filter
                 if (activeCategory === 'ALL') return true;
@@ -55,13 +91,27 @@ export function Agenda() {
                 return true;
             })
             .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    }, [activeCategory]);
+    }, [activeCategory, selectedMonth]);
+
+    const formatMonthName = (monthKey: string) => {
+        const [year, month] = monthKey.split('-');
+        const date = new Date(parseInt(year), parseInt(month) - 1);
+        const name = date.toLocaleString(language === 'fr' ? 'fr-FR' : 'en-US', { month: 'long', year: 'numeric' });
+        return name.charAt(0).toUpperCase() + name.slice(1);
+    };
 
     // Auto-expand event from URL parameter
     useEffect(() => {
         const eventId = searchParams.get('event');
         if (eventId) {
             const id = parseInt(eventId);
+            // Find the event to select its month automatically
+            const event = agendaData.find((e: any) => e.id === id);
+            if (event) {
+                const date = new Date(event.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                setSelectedMonth(monthKey);
+            }
             setExpandedEvent(id);
             // Remove the parameter from URL after opening
             setSearchParams({});
@@ -79,20 +129,19 @@ export function Agenda() {
         const wasExpanded = expandedEvent === eventId;
         setExpandedEvent(wasExpanded ? null : eventId);
 
-        // Scroll to poster after opening
         if (!wasExpanded) {
             setTimeout(() => {
                 const posterElement = document.getElementById(`poster-${eventId}`);
                 if (posterElement) {
                     posterElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
                 }
-            }, 350); // Wait for animation to complete
+            }, 350);
         }
     };
 
     const getEventStyles = (genre: string) => {
         const g = (genre || '').toLowerCase().trim();
-        let color = 'cyan'; // Default
+        let color = 'cyan';
 
         if (g.includes('melodic')) color = 'yellow';
         else if (g.includes('techno')) color = 'red';
@@ -140,6 +189,31 @@ export function Agenda() {
                 </p>
             </motion.div>
 
+            {/* Month Tabs */}
+            <div className="mb-12">
+                <div className="flex items-center gap-2 text-gray-400 mb-6">
+                    <Calendar className="w-4 h-4 ml-1" />
+                    <span className="text-sm font-bold uppercase tracking-wider">Sélectionner un mois</span>
+                </div>
+                <div className="flex overflow-x-auto pb-4 gap-4 no-scrollbar">
+                    {months.map((monthKey) => (
+                        <motion.button
+                            key={monthKey}
+                            onClick={() => setSelectedMonth(monthKey)}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            className={`px-8 py-4 rounded-2xl text-sm font-black tracking-tighter uppercase italic transition-all duration-300 border flex-shrink-0 ${selectedMonth === monthKey
+                                ? 'bg-white text-black border-white shadow-[0_0_30px_rgba(255,255,255,0.2)]'
+                                : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/30 hover:text-white'
+                                }`}
+                        >
+                            {formatMonthName(monthKey)}
+                        </motion.button>
+                    ))}
+                </div>
+            </div>
+
             {/* Category Filter */}
             <div className="flex flex-wrap items-center gap-4 mb-12">
                 <div className="flex items-center gap-2 text-gray-400 mr-2">
@@ -162,6 +236,7 @@ export function Agenda() {
                 ))}
             </div>
 
+            {/* Event List */}
             <div className="space-y-4">
                 <AnimatePresence mode='popLayout'>
                     {filteredEvents.length > 0 ? (
@@ -173,8 +248,8 @@ export function Agenda() {
                                     key={event.id}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    whileHover={{ scale: 1.02 }}
-                                    transition={{ delay: index * 0.1 }}
+                                    whileHover={{ scale: 1.01 }}
+                                    transition={{ delay: index * 0.05 }}
                                     className={`group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 ${styles.hoverBorder} ${styles.shadow}`}
                                 >
                                     <div
@@ -215,9 +290,9 @@ export function Agenda() {
                                                     rel="noopener noreferrer"
                                                     onClick={(e) => e.stopPropagation()}
                                                     onMouseEnter={(e) => e.stopPropagation()}
-                                                    className={`px-6 py-2 rounded-lg bg-white/10 ${styles.bg} ${styles.hoverText} transition-all duration-300 text-sm font-medium whitespace-nowrap border ${styles.borderMedium} ${styles.hoverBorder}`}
+                                                    className={`px-6 py-2 rounded-lg bg-white/10 ${styles.bg} ${styles.hoverText} transition-all duration-300 text-sm font-bold whitespace-nowrap border ${styles.borderMedium} ${styles.hoverBorder} uppercase tracking-tight`}
                                                 >
-                                                    {t('agenda.official_site')}
+                                                    Infos / Tickets
                                                 </a>
                                                 <ChevronDown
                                                     className={`w-5 h-5 text-gray-400 transition-transform duration-300 ${expandedEvent === event.id ? 'rotate-180' : ''}`}
@@ -258,7 +333,7 @@ export function Agenda() {
                         })
                     ) : (
                         <div className="text-center py-20 bg-white/5 border border-white/10 rounded-xl">
-                            <p className="text-gray-400 text-lg">Aucun événement à venir pour le moment</p>
+                            <p className="text-gray-400 text-lg">Aucun événement trouvé pour cette sélection</p>
                         </div>
                     )}
                 </AnimatePresence>
