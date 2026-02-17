@@ -693,27 +693,28 @@ export default {
         }
 
         // --- API: GET DATA ---
+        // Serve static JSON files directly instead of fetching from GitHub
         if (path === '/api/data' && request.method === 'GET') {
             const type = url.searchParams.get('type');
             if (!type || !['news', 'recaps', 'agenda'].includes(type)) {
                 return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
             }
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
 
-            const FILE_PATH = `src/data/${type}.json`;
             try {
-                const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE_PATH}`;
-                const getResponse = await fetch(getUrl, { headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' } });
+                // Fetch the static JSON file from the deployed assets
+                const assetPath = `/src/data/${type}.json`;
+                const assetResponse = await env.ASSETS.fetch(new Request(`${url.origin}${assetPath}`));
 
-                if (!getResponse.ok) {
-                    if (getResponse.status === 404) return new Response(JSON.stringify([]), { status: 200, headers });
-                    return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                if (assetResponse.ok) {
+                    const content = await assetResponse.text();
+                    return new Response(content, { status: 200, headers });
                 }
-                const fileData = await getResponse.json();
-                const content = atob(fileData.content.replace(/\n/g, ''));
-                // Return raw json
-                return new Response(content, { status: 200, headers });
-            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+
+                // If asset not found, return empty array
+                return new Response(JSON.stringify([]), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
         // --- STATIC ASSETS ---
