@@ -228,21 +228,6 @@ export function Agenda() {
                         </button>
                     </div>
 
-                    <div className="flex gap-2 overflow-x-auto no-scrollbar pb-2 md:pb-0">
-                        {months.map((monthKey) => (
-                            <button
-                                key={monthKey}
-                                onClick={() => setSelectedMonth(monthKey)}
-                                onMouseEnter={playHoverSound}
-                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all duration-300 border flex-shrink-0 ${selectedMonth === monthKey
-                                    ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]'
-                                    : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-white/20'
-                                    }`}
-                            >
-                                {monthKey.split('-')[1]}
-                            </button>
-                        ))}
-                    </div>
                 </div>
             </div>
 
