@@ -31,20 +31,43 @@ export function NewsletterAdmin() {
         }
     }, [searchTerm, subscribers]);
 
-    const loadSubscribers = () => {
-        const data = localStorage.getItem('newsletter_subscribers');
-        if (data) {
-            const parsed = JSON.parse(data);
-            setSubscribers(parsed);
-            setFilteredSubscribers(parsed);
+    const loadSubscribers = async () => {
+        try {
+            const response = await fetch('/api/subscribers');
+            if (response.ok) {
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    setSubscribers(data);
+                    setFilteredSubscribers(data);
+                }
+            } else {
+                console.error('Failed to load subscribers');
+            }
+        } catch (error) {
+            console.error('Error loading subscribers:', error);
         }
     };
 
-    const deleteSubscriber = (email: string) => {
+    const deleteSubscriber = async (email: string) => {
         if (confirm(`Êtes-vous sûr de vouloir supprimer ${email} ?`)) {
-            const updated = subscribers.filter(sub => sub.email !== email);
-            localStorage.setItem('newsletter_subscribers', JSON.stringify(updated));
-            setSubscribers(updated);
+            try {
+                const response = await fetch('/api/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                if (response.ok) {
+                    const updated = subscribers.filter(sub => sub.email !== email);
+                    setSubscribers(updated);
+                    setFilteredSubscribers(updated); // Also update filtered view
+                } else {
+                    alert('Erreur lors de la désinscription');
+                }
+            } catch (error) {
+                console.error('Error unsubscribing:', error);
+                alert('Erreur réseau');
+            }
         }
     };
 
@@ -240,9 +263,9 @@ export function NewsletterAdmin() {
                         <div>
                             <h3 className="text-white font-bold mb-2">💡 Informations</h3>
                             <ul className="text-gray-400 text-sm space-y-1">
-                                <li>• Les données sont stockées dans le localStorage de votre navigateur</li>
+                                <li>• Les données sont stockées sécurisées sur GitHub</li>
                                 <li>• Utilisez le bouton "Exporter CSV" pour sauvegarder vos abonnés</li>
-                                <li>• Pour une solution professionnelle, migrez vers Mailchimp, Brevo ou EmailJS</li>
+                                <li>• Le système utilise Cloudflare Workers pour gérer les inscriptions</li>
                             </ul>
                         </div>
                     </div>

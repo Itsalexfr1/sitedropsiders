@@ -37,30 +37,27 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
         setIsSubmitting(true);
         setStatus('idle');
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
+        // Send to Cloudflare Function API
         try {
-            // Save to localStorage
-            const subscribers = JSON.parse(localStorage.getItem('newsletter_subscribers') || '[]');
+            const response = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email,
+                    firstName: firstName || null,
+                    lastName: lastName || null,
+                }),
+            });
 
-            // Check if already subscribed
-            if (subscribers.some((sub: any) => sub.email === email)) {
+            const data = await response.json();
+
+            if (!response.ok) {
                 setStatus('error');
-                setErrorMessage('Cet email est déjà inscrit à la newsletter');
-                setIsSubmitting(false);
+                setErrorMessage(data.error || 'Une erreur est survenue.');
                 return;
             }
-
-            const newSubscriber = {
-                email,
-                firstName: firstName || null,
-                lastName: lastName || null,
-                subscribedAt: new Date().toISOString(),
-            };
-
-            subscribers.push(newSubscriber);
-            localStorage.setItem('newsletter_subscribers', JSON.stringify(subscribers));
 
             setStatus('success');
             setEmail('');
@@ -70,8 +67,9 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
             // Reset success message after 5 seconds
             setTimeout(() => setStatus('idle'), 5000);
         } catch (error) {
+            console.error('Newsletter Error:', error);
             setStatus('error');
-            setErrorMessage('Une erreur est survenue. Veuillez réessayer.');
+            setErrorMessage('Erreur de connexion serveur.');
         } finally {
             setIsSubmitting(false);
         }
