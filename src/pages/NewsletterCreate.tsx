@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
 import { Send, Copy, Eye, Layout, Type, Link, Image as ImageIcon } from 'lucide-react';
 
 export function NewsletterCreate() {
