@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 export function SpotifyWidget() {
     return (
         <div className="space-y-8">
-            <h3 className="text-2xl font-display font-bold text-neon-green flex items-center gap-3">
+            <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                 <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse shadow-[0_0_15px_#39ff14]" />
                 NOS PLAYLISTS
             </h3>

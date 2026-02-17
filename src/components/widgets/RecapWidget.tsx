@@ -13,7 +13,7 @@ export function RecapWidget() {
     return (
         <div className="h-full flex flex-col space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-xl font-display font-bold text-neon-orange flex items-center gap-3">
+                <h3 className="text-xl font-display font-bold text-white flex items-center gap-3">
                     <span className="w-2 h-2 bg-neon-orange rounded-full animate-pulse shadow-[0_0_10px_#ff6600]" />
                     DERNIERS RÉCAPS
                 </h3>
