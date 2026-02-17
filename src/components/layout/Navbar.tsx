@@ -75,7 +75,7 @@ export function Navbar() {
 
         if (searchType === 'news') path = `/news/${item.id}`;
         else if (searchType === 'recap') path = `/recaps/${item.id}`;
-        else if (searchType === 'interview') path = `/news/${item.id}`; // Interviews are in news table
+        else if (searchType === 'interview') path = `/interviews/${item.id}`; // Unified interview route
         else if (searchType === 'agenda') path = `/agenda?event=${item.id}`;
         else if (searchType === 'galerie') path = `/galerie/${item.id}`;
 

@@ -56,6 +56,7 @@ function App() {
           <Route path="/galerie" element={<Galerie />} />
           <Route path="/galerie/:id" element={<AlbumDetail />} />
           <Route path="/news/:id" element={<ArticleDetail />} />
+          <Route path="/interviews/:id" element={<ArticleDetail />} />
           <Route path="/recaps/:id" element={<RecapDetail />} />
           <Route path="/mentions-legales" element={<MentionsLegales />} />
           <Route path="/politique-de-confidentialite" element={<PrivacyPolicy />} />
