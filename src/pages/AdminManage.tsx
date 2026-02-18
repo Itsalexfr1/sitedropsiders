@@ -65,8 +65,14 @@ export function AdminManage() {
                 setItems(items.filter(item => item.id !== id));
                 setTimeout(() => setDeleteStatus('idle'), 3000);
             } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { error: `Erreur ${response.status}` };
+                }
                 setDeleteStatus('error');
-                setMessage('Erreur lors de la suppression');
+                setMessage(errorData.error || 'Erreur lors de la suppression');
             }
         } catch (error) {
             setDeleteStatus('error');

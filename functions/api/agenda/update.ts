@@ -21,20 +21,24 @@ export const onRequestPost = async (context: any) => {
     try {
         const adminPassword = request.headers.get('X-Admin-Password');
         if (adminPassword !== env.ADMIN_PASSWORD) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            return jsonResponse({ error: 'Accès non autorisé' }, 401);
         }
 
         const body = await request.json();
         const { id, title, date, image, description, location, url, genre, month } = body;
 
         if (!id) {
-            return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+            return jsonResponse({ error: 'ID manquant' }, 400);
         }
 
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
         const PATH = 'src/data/agenda.json';
         const TOKEN = env.GITHUB_TOKEN;
+
+        if (!TOKEN) {
+            return jsonResponse({ error: 'Configuration GITHUB_TOKEN manquante' }, 500);
+        }
 
         const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
         const getResponse = await fetch(getUrl, {
@@ -47,7 +51,7 @@ export const onRequestPost = async (context: any) => {
 
         if (!getResponse.ok) {
             const errorText = await getResponse.text();
-            return new Response(JSON.stringify({ error: 'Failed to fetch existing data', details: errorText }), { status: 502, headers });
+            return jsonResponse({ error: 'Impossible de récupérer les données', details: errorText }, 502);
         }
 
         const fileData: any = await getResponse.json();
@@ -62,29 +66,34 @@ export const onRequestPost = async (context: any) => {
 
         const index = items.findIndex((item: any) => String(item.id) === String(id));
         if (index === -1) {
-            return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+            return jsonResponse({ error: 'Élément non trouvé' }, 404);
         }
 
         const existing = items[index];
+
+        // Robust month generation if date changed
+        let updatedMonth = month || existing.month;
+        if (date && date !== existing.date && !month) {
+            try {
+                updatedMonth = new Date(date).toLocaleString('fr-FR', { month: 'long' }).toUpperCase();
+            } catch (e) {
+                // keep existing or use fallback
+            }
+        }
+
         items[index] = {
             ...existing,
             title: title || existing.title,
             date: date || existing.date,
-            description: description || existing.description,
+            description: description !== undefined ? description : existing.description,
             image: image || existing.image,
             location: location || existing.location,
             url: url || existing.url,
             genre: genre || existing.genre,
-            month: month || existing.month // Update month if provided, else keep existing
+            month: updatedMonth
         };
 
         const updatedContent = utf8_to_b64(JSON.stringify(items, null, 2));
-
-        const putBody: any = {
-            message: `Update agenda item: ${id}`,
-            content: updatedContent,
-            sha: fileData.sha
-        };
 
         const putResponse = await fetch(getUrl, {
             method: 'PUT',
@@ -94,17 +103,21 @@ export const onRequestPost = async (context: any) => {
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(putBody)
+            body: JSON.stringify({
+                message: `Update agenda item: ${id}`,
+                content: updatedContent,
+                sha: fileData.sha
+            })
         });
 
         if (!putResponse.ok) {
             const errorText = await putResponse.text();
-            return new Response(JSON.stringify({ error: 'Failed to save update', details: errorText }), { status: 502, headers });
+            return jsonResponse({ error: 'Erreur lors de la mise à jour sur GitHub', details: errorText }, 502);
         }
 
-        return new Response(JSON.stringify({ success: true, item: items[index] }), { status: 200, headers });
+        return jsonResponse({ success: true, item: items[index] });
 
     } catch (err: any) {
-        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), { status: 500, headers });
+        return jsonResponse({ error: err.message || 'Erreur inconnue' }, 500);
     }
 };

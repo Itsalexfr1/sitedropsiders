@@ -20,26 +20,27 @@ export const onRequestPost = async (context: any) => {
     const headers = { ...CORSH, 'Content-Type': 'application/json' };
 
     try {
-        // Authenticate Admin
         const adminPassword = request.headers.get('X-Admin-Password');
         if (adminPassword !== env.ADMIN_PASSWORD) {
-            return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            return jsonResponse({ error: 'Accès non autorisé' }, 401);
         }
 
         const body = await request.json();
         const { title, summary, content, image, category, date } = body;
 
         if (!title || !content || !image || !category) {
-            return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
+            return jsonResponse({ error: 'Champs obligatoires manquants' }, 400);
         }
 
-        // Configuration GitHub
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
         const PATH = 'src/data/news.json';
         const TOKEN = env.GITHUB_TOKEN;
 
-        // 1. Fetch current news file
+        if (!TOKEN) {
+            return jsonResponse({ error: 'Configuration GITHUB_TOKEN manquante' }, 500);
+        }
+
         const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
         const getResponse = await fetch(getUrl, {
             headers: {
@@ -51,7 +52,7 @@ export const onRequestPost = async (context: any) => {
 
         if (!getResponse.ok) {
             const errorText = await getResponse.text();
-            return new Response(JSON.stringify({ error: 'Failed to fetch existing news', details: errorText }), { status: 502, headers });
+            return jsonResponse({ error: 'Impossible de récupérer les données', details: errorText }, 502);
         }
 
         const fileData: any = await getResponse.json();
@@ -64,13 +65,11 @@ export const onRequestPost = async (context: any) => {
             currentNews = [];
         }
 
-        // 2. Add new article
-        const newId = currentNews.length > 0 ? Math.max(...currentNews.map((n: any) => n.id)) + 1 : 1;
+        const newId = currentNews.length > 0 ? Math.max(...currentNews.map((n: any) => n.id || 0)) + 1 : 1;
 
-        // Generate a simple link/slug
         const slug = title.toLowerCase()
-            .replace(/[^\w\s-]/g, '') // Remove non-word chars
-            .replace(/\s+/g, '-') // Replace spaces with -
+            .replace(/[^\w\s-]/g, '')
+            .replace(/\s+/g, '-')
             .substring(0, 50);
 
         const link = `https://www.dropsiders.eu/news/${newId}_${slug}`;
@@ -80,25 +79,17 @@ export const onRequestPost = async (context: any) => {
             title,
             date: date || new Date().toISOString().split('T')[0],
             summary,
-            content, // Assumes HTML or handled by frontend
+            content,
             image,
-            images: [image], // Default to single image array
-            youtubeId: "", // Optional, not in form yet
+            images: [image],
+            youtubeId: "",
             link,
             category
         };
 
-        // Add to beginning of array
         currentNews.unshift(newArticle);
 
-        // 3. Update file on GitHub
         const updatedContent = utf8_to_b64(JSON.stringify(currentNews, null, 2));
-
-        const putBody: any = {
-            message: `Add news article: ${title}`,
-            content: updatedContent,
-            sha: fileData.sha
-        };
 
         const putResponse = await fetch(getUrl, {
             method: 'PUT',
@@ -108,17 +99,21 @@ export const onRequestPost = async (context: any) => {
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(putBody)
+            body: JSON.stringify({
+                message: `Add news article: ${title}`,
+                content: updatedContent,
+                sha: fileData.sha
+            })
         });
 
         if (!putResponse.ok) {
             const errorText = await putResponse.text();
-            return new Response(JSON.stringify({ error: 'Failed to save news', details: errorText }), { status: 502, headers });
+            return jsonResponse({ error: 'Erreur lors de la sauvegarde sur GitHub', details: errorText }, 502);
         }
 
-        return new Response(JSON.stringify({ success: true, article: newArticle }), { status: 200, headers });
+        return jsonResponse({ success: true, article: newArticle });
 
     } catch (err: any) {
-        return new Response(JSON.stringify({ error: err.message || 'Unknown error' }), { status: 500, headers });
+        return jsonResponse({ error: err.message || 'Erreur inconnue' }, 500);
     }
 };

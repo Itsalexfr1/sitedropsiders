@@ -10,17 +10,16 @@ export const onRequestPost = async (context: any) => {
     }
 
     try {
-        // Authenticate Admin
         const adminPassword = request.headers.get('X-Admin-Password');
         if (adminPassword !== env.ADMIN_PASSWORD) {
-            return jsonResponse({ error: 'Unauthorized' }, 401);
+            return jsonResponse({ error: 'Accès non autorisé' }, 401);
         }
 
         const body = await request.json();
         const { title, summary, content, image, date, festival, location, youtubeId, category } = body;
 
         if (!title || !content || !image) {
-            return jsonResponse({ error: 'Missing required fields' }, 400);
+            return jsonResponse({ error: 'Champs obligatoires manquants' }, 400);
         }
 
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
@@ -28,7 +27,10 @@ export const onRequestPost = async (context: any) => {
         const PATH = 'src/data/recaps.json';
         const TOKEN = env.GITHUB_TOKEN;
 
-        // 1. Fetch current recaps
+        if (!TOKEN) {
+            return jsonResponse({ error: 'Configuration GITHUB_TOKEN manquante' }, 500);
+        }
+
         const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
         const getResponse = await fetch(getUrl, {
             headers: {
@@ -40,7 +42,7 @@ export const onRequestPost = async (context: any) => {
 
         if (!getResponse.ok) {
             const errorText = await getResponse.text();
-            return jsonResponse({ error: 'Failed to fetch existing recaps', details: errorText }, 502);
+            return jsonResponse({ error: 'Impossible de récupérer les données', details: errorText }, 502);
         }
 
         const fileData: any = await getResponse.json();
@@ -54,7 +56,7 @@ export const onRequestPost = async (context: any) => {
         }
 
         // 2. Add new recap
-        const newId = currentRecaps.length > 0 ? Math.max(...currentRecaps.map((n: any) => n.id)) + 1 : 1;
+        const newId = currentRecaps.length > 0 ? Math.max(...currentRecaps.map((n: any) => n.id || 0)) + 1 : 1;
         const slug = title.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').substring(0, 50);
         const link = `https://www.dropsiders.eu/recaps/${newId}_${slug}`;
 
@@ -75,14 +77,7 @@ export const onRequestPost = async (context: any) => {
 
         currentRecaps.unshift(newRecap);
 
-        // 3. Update file on GitHub
         const updatedContent = utf8_to_b64(JSON.stringify(currentRecaps, null, 2));
-
-        const putBody: any = {
-            message: `Add recap: ${title}`,
-            content: updatedContent,
-            sha: fileData.sha
-        };
 
         const putResponse = await fetch(getUrl, {
             method: 'PUT',
@@ -92,17 +87,21 @@ export const onRequestPost = async (context: any) => {
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(putBody)
+            body: JSON.stringify({
+                message: `Add recap: ${title}`,
+                content: updatedContent,
+                sha: fileData.sha
+            })
         });
 
         if (!putResponse.ok) {
             const errorText = await putResponse.text();
-            return jsonResponse({ error: 'Failed to save recap', details: errorText }, 502);
+            return jsonResponse({ error: 'Erreur lors de la sauvegarde sur GitHub', details: errorText }, 502);
         }
 
         return jsonResponse({ success: true, recap: newRecap });
 
     } catch (err: any) {
-        return jsonResponse({ error: err.message || 'Unknown error' }, 500);
+        return jsonResponse({ error: err.message || 'Erreur inconnue' }, 500);
     }
 };
