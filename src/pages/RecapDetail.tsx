@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { useParams, Link } from 'react-router-dom';
 import recapsData from '../data/recaps.json';
 import { useLanguage } from '../context/LanguageContext';
