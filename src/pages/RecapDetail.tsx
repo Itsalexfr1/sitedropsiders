@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Calendar, MapPin, Camera, Play, X } from 'lucide-react';
+import { ArrowLeft, Calendar, MapPin, Camera, Play, X, Share2, Check } from 'lucide-react';
 import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -18,6 +18,7 @@ export function RecapDetail() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [translatedTitle, setTranslatedTitle] = useState<string>('');
     const [translatedContent, setTranslatedContent] = useState<string>('');
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -34,6 +35,27 @@ export function RecapDetail() {
             setTranslatedContent('');
         }
     }, [recap, language]);
+
+    const handleShare = async () => {
+        const url = window.location.href;
+        const shareData = {
+            title: translatedTitle || recap?.title || 'Dropsiders Recap',
+            text: `Découvrez ce récap sur Dropsiders : ${translatedTitle || recap?.title}`,
+            url: url
+        };
+
+        try {
+            if (navigator.share && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(url);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    };
 
     if (!recap) {
         return (
@@ -56,50 +78,50 @@ export function RecapDetail() {
         .filter((item: any) => item.id !== recap.id)
         .slice(0, 3);
 
-    let cleanedContent = (recap as any).content || '';
+    let rawContent = (recap as any).content || '';
 
-    // 1. Nettoyage initial (CSS Webador et structures inutiles)
-    cleanedContent = cleanedContent
-        .replace(/style="text-align:\s*center;"/gi, 'class="text-center"') // On remplace le centrage forcé par une classe
-        .replace(/<div[^>]*class="[^"]*jw-news-page__meta[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Meta-data
-        .replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '') // Titres H1 doublons
-        .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '') // Vidéos (déjà gérées au-dessus)
-        .replace(/<picture[^>]*>[\s\S]*?<\/picture>|<img[^>]*>/gi, '') // Images (déjà en galerie)
-        .replace(/<div[^>]*class="[^"]*jw-comment-module[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<div[^>]*class="[^"]*jw-news-comments[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<div[^>]*id="[^"]*jw-comments[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<div[^>]*class="[^"]*jw-widget-newsletter[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
+    // Nettoyage robuste via DOMParser pour supprimer les éléments indésirables (boutons partage, pubs, etc.)
+    const cleanHTML = (html: string) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
 
-    // 2. Nettoyage des wrappers Webador pour ne garder que le contenu utile
-    cleanedContent = cleanedContent
-        .replace(/<div[^>]*class="[^"]*jw-element-imagetext-text[^"]*"[^>]*>/gi, '<div class="content-block">')
-        .replace(/<div[^>]*class="[^"]*jw-strip[^"]*"[^>]*>/gi, '<div>')
-        .replace(/<div[^>]*class="[^"]*jw-block-element[^"]*"[^>]*>/gi, '<div>')
-        .replace(/<div[^>]*class="[^"]*jw-tree-node[^"]*"[^>]*>/gi, '<div>')
-        .replace(/<div[^>]*class="[^"]*jw-social-share[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Sharing buttons
-        .replace(/<div[^>]*class="[^"]*jw-news-page-pagination[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Prev/Next
-        .replace(/<div[^>]*class="[^"]*jw-block-footer-content[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Footer residue
-        .replace(/<div[^>]*class="[^"]*jw-footer-text[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Footer text
-        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '') // Footer tag
-        .replace(/Précédent\s*\|\s*Liste\s*\|\s*Suivant/gi, '') // Text navigation
-        .replace(/Précédent/gi, '') // Text residue
-        .replace(/Suivant/gi, ''); // Text residue
+        // Sélecteurs des éléments à supprimer
+        const selectorsToRemove = [
+            '.jw-social-share', // Boutons de partage Webador
+            '.jw-news-page__meta', // Métadonnées
+            '.jw-news-page-pagination', // Pagination
+            '.jw-block-footer-content', // Footer
+            'footer', // Footer standard
+            '.jw-comment-module', // Commentaires
+            '.jw-widget-newsletter', // Widget Newsletter ancien
+            'iframe' // On supprime les iframes (vidéos gérées à part)
+        ];
 
-    // 3. Traitement des paragraphes et des noms d'artistes
-    // Si le contenu n'a pas de balises <p>, on en crée à partir des retours à la ligne
-    if (!cleanedContent.includes('<p') && !cleanedContent.includes('<div')) {
-        cleanedContent = cleanedContent
-            .split('\n\n')
-            .filter((p: string) => p.trim().length > 0)
-            .map((p: string) => `<p>${p.trim()}</p>`)
-            .join('');
-    }
+        selectorsToRemove.forEach(selector => {
+            const elements = doc.querySelectorAll(selector);
+            elements.forEach(el => el.remove());
+        });
 
-    // Nettoyage final des espaces et résidus
-    cleanedContent = cleanedContent
-        .replace(/&nbsp;/g, ' ')
-        .replace(/<p>\s*<\/p>/gi, '') // Supprimer paragraphes vides
-        .trim();
+        // Nettoyage spécifique des images (car gérées dans la galerie)
+        const images = doc.querySelectorAll('img, picture');
+        images.forEach(img => img.remove());
+
+        // Nettoyage des titres H1 doublons (car affiché dans le Hero)
+        const h1s = doc.querySelectorAll('h1');
+        h1s.forEach(h1 => h1.remove());
+
+        // Nettoyage du style inline gênant
+        const centeredElements = doc.querySelectorAll('[style*="text-align: center"]');
+        centeredElements.forEach(el => el.classList.add('text-center'));
+
+        // Transformation des liens vides ou inutiles
+        const emptyLinks = doc.querySelectorAll('a:empty');
+        emptyLinks.forEach(link => link.remove());
+
+        // Retourne le HTML nettoyé
+        return doc.body.innerHTML;
+    };
+
+    const cleanedContent = cleanHTML(rawContent);
 
     return (
         <div className="min-h-screen">
@@ -150,14 +172,34 @@ export function RecapDetail() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Link
-                                to="/recap"
-                                className="inline-flex items-center gap-2 text-white/80 hover:text-neon-red transition-colors mb-6 group"
-                                onMouseEnter={playHoverSound}
-                            >
-                                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                <span className="font-bold uppercase tracking-wider text-sm">{t('recap_detail.back_to_recaps')}</span>
-                            </Link>
+                            <div className="flex justify-between items-end mb-6">
+                                <Link
+                                    to="/recap"
+                                    className="inline-flex items-center gap-2 text-white/80 hover:text-neon-red transition-colors group"
+                                    onMouseEnter={playHoverSound}
+                                >
+                                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                    <span className="font-bold uppercase tracking-wider text-sm">{t('recap_detail.back_to_recaps')}</span>
+                                </Link>
+
+                                {/* Bouton Partager (NOUVEAU) */}
+                                <button
+                                    onClick={handleShare}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white font-bold text-sm transition-all hover:border-neon-red/50 group"
+                                >
+                                    {copied ? (
+                                        <>
+                                            <Check className="w-4 h-4 text-green-400" />
+                                            <span className="text-green-400">Lien copié !</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Share2 className="w-4 h-4 group-hover:text-neon-red transition-colors" />
+                                            <span>Partager</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
 
                             <div className="flex flex-wrap gap-3 mb-6">
                                 {recap.festival && (

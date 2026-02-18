@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, Play, Camera, X } from 'lucide-react';
+import { Clock, ArrowLeft, Play, Camera, X, Share2, Check } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -18,6 +18,7 @@ export function ArticleDetail() {
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [translatedTitle, setTranslatedTitle] = useState<string>('');
     const [translatedContent, setTranslatedContent] = useState<string>('');
+    const [copied, setCopied] = useState(false);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -34,6 +35,27 @@ export function ArticleDetail() {
             setTranslatedContent('');
         }
     }, [article, language]);
+
+    const handleShare = async () => {
+        const url = window.location.href;
+        const shareData = {
+            title: translatedTitle || article?.title || 'Dropsiders News',
+            text: `Découvrez cet article sur Dropsiders : ${translatedTitle || article?.title}`,
+            url: url
+        };
+
+        try {
+            if (navigator.share && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(url);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    };
 
     if (!article) {
         return (
@@ -53,89 +75,68 @@ export function ArticleDetail() {
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
 
-    let cleanedContent = (article as any).content || '';
+    let rawContent = (article as any).content || '';
 
-    // 1. Nettoyage initial (CSS Webador et structures inutiles)
-    cleanedContent = cleanedContent
-        .replace(/style="text-align:\s*center;"/gi, 'class="text-center"') // On remplace le centrage forcé par une classe
-        .replace(/<div[^>]*class="[^"]*jw-news-page__meta[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<h1[^>]*>[\s\S]*?<\/h1>/gi, '')
-        .replace(/<iframe[^>]*>[\s\S]*?<\/iframe>/gi, '')
-        .replace(/<div[^>]*class="[^"]*jw-comment-module[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<div[^>]*class="[^"]*jw-news-comments[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<div[^>]*id="[^"]*jw-comments[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '')
-        .replace(/<div[^>]*class="[^"]*jw-widget-newsletter[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '');
+    // Nettoyage robuste via DOMParser (identique à RecapDetail)
+    const cleanHTML = (html: string) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
 
-    // 2. Suppression de l'image de couverture si elle est présente dans le corps (pour éviter le doublon avec le Hero)
-    // On ne retire que la toute première image/picture trouvée
-    cleanedContent = cleanedContent.replace(/<picture[^>]*>[\s\S]*?<\/picture>|<img[^>]*>/i, '');
+        const selectorsToRemove = [
+            '.jw-social-share',
+            '.jw-news-page__meta',
+            '.jw-news-page-pagination',
+            '.jw-block-footer-content',
+            'footer',
+            '.jw-comment-module',
+            '.jw-widget-newsletter',
+            'iframe', // Vidéos gérées séparément
+            '.jw-news-comments',
+            '#jw-comments'
+        ];
 
-    // 3. Nettoyage global (News & Interviews) pour retirer les résidus Webador
-    cleanedContent = cleanedContent
-        .replace(/<div[^>]*class="[^"]*jw-element-imagetext-text[^"]*"[^>]*>/gi, '<div class="content-block">')
-        .replace(/<div[^>]*class="[^"]*jw-strip[^"]*"[^>]*>/gi, '<div>')
-        .replace(/<div[^>]*class="[^"]*jw-block-element[^"]*"[^>]*>/gi, '<div>')
-        .replace(/<div[^>]*class="[^"]*jw-tree-node[^"]*"[^>]*>/gi, '<div>')
-        .replace(/<div[^>]*class="[^"]*jw-social-share[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Sharing buttons
-        .replace(/<div[^>]*class="[^"]*jw-news-page-pagination[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Prev/Next
-        .replace(/<div[^>]*class="[^"]*jw-block-footer-content[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Footer residue
-        .replace(/<div[^>]*class="[^"]*jw-footer-text[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Footer text
-        .replace(/<footer[^>]*>[\s\S]*?<\/footer>/gi, '') // Footer tag
-        .replace(/Précédent\s*\|\s*Liste\s*\|\s*Suivant/gi, '') // Text navigation
-        .replace(/Précédent/gi, '') // Text residue
-        .replace(/Suivant/gi, '') // Text residue
-        .replace(/Retour/gi, '') // Text residue
-        .replace(/Partager/gi, '')
-        .replace(/Nom\s*\*/gi, '')
-        .replace(/Adresse\s*e-mail\s*\*/gi, '')
-        .replace(/Message\s*\*/gi, '')
-        .replace(/Laisser\s*ce\s*champ\s*vide\s*\*/gi, '')
-        .replace(/Envoyer\s*un\s*commentaire/gi, '')
-        .replace(/Commentaires/gi, '')
-        .replace(/Il\s*n'y\s+a\s+pas\s+encore\s+de\s+commentaire\./gi, '')
-        .replace(/HAUT/g, '')
-        .replace(/&copy;\s*2026/gi, '')
-        .replace(/Tous\s+droits\s+r\u00E9serv\u00E9s/gi, '')
-        .replace(/<div[^>]*class="[^"]*jw-comments-container[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Comments container
-        .replace(/<div[^>]*class="[^"]*jw-comment-module[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Comment module
-        .replace(/<div[^>]*class="[^"]*scroll-top[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // Scroll top
-        .replace(/<div[^>]*class="[^"]*jw-news-comments[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // News comments
-        .replace(/<div[^>]*id="[^"]*jw-comments[^"]*"[^>]*>[\s\S]*?<\/div>/gi, '') // ID comments
-        .replace(/Propuls\u00E9\s+par\s+Webador/gi, '')
-        .replace(/Modifier\s+cette\s+page/gi, '')
-        // Métadonnées parasites
-        .replace(/Posté par[\s\S]*?(?=<\/p>|<\/div>|$)/gi, '')
-        .replace(/Catégorie\s*:[\s\S]*?(?=<\/p>|<\/div>|$)/gi, '')
-        .replace(/Tags\s*:[\s\S]*?(?=<\/p>|<\/div>|$)/gi, '')
-        // Numéros de pages (ex: 1 2 3)
-        .replace(/\b\d+\s+\d+\s+\d+\b/g, '');
+        selectorsToRemove.forEach(selector => {
+            const elements = doc.querySelectorAll(selector);
+            elements.forEach(el => el.remove());
+        });
 
-    // 4. Traitement des paragraphes
-    // Si le contenu n'a pas de balises <p>, on en crée à partir des retours à la ligne
-    if (!cleanedContent.includes('<p') && !cleanedContent.includes('<div')) {
-        cleanedContent = cleanedContent
-            .split('\n\n')
-            .filter((p: string) => p.trim().length > 0)
-            .map((p: string) => `<p>${p.trim()}</p>`)
-            .join('');
-    }
+        // Nettoyage spécifique images
+        const images = doc.querySelectorAll('img, picture');
+        images.forEach(img => img.remove());
 
-    // 5. Nettoyage final des tags vides et espaces
-    cleanedContent = cleanedContent
-        .replace(/<p[^>]*>\s*<\/p>/gi, '')
-        .replace(/<div[^>]*>\s*<\/div>/gi, '')
-        .replace(/<br[^>]*>\s*$/gi, '')
-        .trim();
-    cleanedContent = cleanedContent
-        .replace(/&nbsp;/g, ' ')
-        .replace(/<p>\s*<\/p>/gi, '') // Supprimer paragraphes vides
-        .trim();
+        // Nettoyage H1 doublons
+        const h1s = doc.querySelectorAll('h1');
+        h1s.forEach(h1 => h1.remove());
 
-    // 6. Support spécifique interviews
-    if (isInterview) {
-        cleanedContent = cleanedContent.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
-    }
+        // Nettoyage style inline
+        const centeredElements = doc.querySelectorAll('[style*="text-align: center"]');
+        centeredElements.forEach(el => el.classList.add('text-center'));
 
+        // Transformation des liens vides
+        const emptyLinks = doc.querySelectorAll('a:empty');
+        emptyLinks.forEach(link => link.remove());
+
+        // Nettoyage texte spécifique résiduel
+        // On récupère le body et on fait un replace sur le string global si nécessaire, mais DOMParser est mieux
+        // Cependant pour des mots spécifiques comme "Partager" qui traînent hors de balises, c'est plus dur.
+        // On va faire un nettoyage post-string pour les textes parasites connus non encapsulés
+        let finalHtml = doc.body.innerHTML;
+
+        // Nettoyages regex résiduels (plus sûrs maintenant que la structure est propre)
+        finalHtml = finalHtml
+            .replace(/&nbsp;/g, ' ')
+            .replace(/<p>\s*<\/p>/gi, '')
+            .replace(/Propulsé par Webador/gi, '')
+            .replace(/Modifier cette page/gi, '');
+
+        // Support Interviews
+        if (isInterview) {
+            finalHtml = finalHtml.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
+        }
+
+        return finalHtml;
+    };
+
+    const cleanedContent = cleanHTML(rawContent);
     const backLink = isInterview ? '/interviews' : '/news';
     const backText = isInterview ? t('article_detail.back_to_interviews') : t('article_detail.back_to_news');
 
@@ -170,7 +171,8 @@ export function ArticleDetail() {
                     </motion.div>
                 )}
             </AnimatePresence>
-            {/* Hero Section Style "Recap" Premium */}
+
+            {/* Hero Section */}
             <div className="relative h-[70vh] overflow-hidden">
                 <img
                     src={article.image}
@@ -187,14 +189,34 @@ export function ArticleDetail() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2 }}
                         >
-                            <Link
-                                to={backLink}
-                                className="inline-flex items-center gap-2 text-white/80 hover:text-neon-red transition-colors mb-6 group"
-                                onMouseEnter={playHoverSound}
-                            >
-                                <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                <span className="font-bold uppercase tracking-wider text-sm">{backText}</span>
-                            </Link>
+                            <div className="flex justify-between items-end mb-6">
+                                <Link
+                                    to={backLink}
+                                    className="inline-flex items-center gap-2 text-white/80 hover:text-neon-red transition-colors group"
+                                    onMouseEnter={playHoverSound}
+                                >
+                                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                    <span className="font-bold uppercase tracking-wider text-sm">{backText}</span>
+                                </Link>
+
+                                {/* Bouton Partager (Ajouté) */}
+                                <button
+                                    onClick={handleShare}
+                                    className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white font-bold text-sm transition-all hover:border-neon-red/50 group"
+                                >
+                                    {copied ? (
+                                        <>
+                                            <Check className="w-4 h-4 text-green-400" />
+                                            <span className="text-green-400">Lien copié !</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Share2 className="w-4 h-4 group-hover:text-neon-red transition-colors" />
+                                            <span>Partager</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
 
                             <div className="flex flex-wrap gap-3 mb-6">
                                 <span className="px-4 py-2 bg-neon-red rounded-full text-white font-black text-sm uppercase tracking-wider">

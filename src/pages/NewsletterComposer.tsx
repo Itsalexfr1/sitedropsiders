@@ -87,170 +87,177 @@ export function NewsletterComposer() {
     <html>
         <head>
             <meta charset="utf-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>${subject}</title>
-                    <style>
-                        body {font - family: ${fontStack}; background-color: ${C.bg}; color: ${C.text}; padding: 0; margin: 0; width: 100%; -webkit-font-smoothing: antialiased; }
-                        .wrapper {width: 100%; background-color: ${C.bg}; padding: 40px 0; }
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>${subject}</title>
+            <style>
+                body { font-family: ${fontStack}; background-color: ${C.bg}; color: ${C.text}; padding: 0; margin: 0; width: 100%; -webkit-font-smoothing: antialiased; }
+                .wrapper { width: 100%; background-color: ${C.bg}; padding: 40px 0; }
+                
+                /* Conteneur Principal centré */
+                .container { 
+                    max-width: 600px; 
+                    margin: 0 auto; 
+                    background-color: ${C.card}; 
+                    border: 1px solid ${C.border}; 
+                    border-radius: 16px; 
+                    overflow: hidden; 
+                    box-shadow: 0 0 40px rgba(255, 0, 51, 0.15); /* GLOW ROUGE CONTENEUR */
+                }
+                
+                /* En-tête avec Logo */
+                .header { text-align: center; padding: 40px 0 30px 0; background-color: ${C.bg}; border-bottom: 1px solid ${C.border}; }
+                .newsletter-title { font-family: 'Impact', sans-serif; font-size: 32px; color: #ffffff; text-transform: uppercase; letter-spacing: 4px; margin-top: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
 
-                        /* Conteneur Principal centré */
-                        .container {
-                            max - width: 600px;
-                        margin: 0 auto;
-                        background-color: ${C.card};
-                        border: 1px solid ${C.border};
-                        border-radius: 16px;
-                        overflow: hidden;
-                        box-shadow: 0 4px 30px rgba(0,0,0,0.5);
-        }
-
-                        /* En-tête avec Logo */
-                        .header {text - align: center; padding: 40px 0; background-color: ${C.bg}; border-bottom: 1px solid ${C.border}; }
-
-                        /* Article Principal */
-                        .main-article {padding: 40px 30px; border-bottom: 1px solid ${C.border}; }
-                        .main-title {font - size: 28px; font-weight: 900; text-transform: uppercase; margin: 25px 0 15px 0; color: ${C.text}; line-height: 1.1; letter-spacing: -1px; font-style: italic; }
-                        .main-text {font - size: 16px; line-height: 1.6; color: ${C.textMuted}; margin-bottom: 30px; }
-                        .main-image {width: 100%; border-radius: 12px; border: 1px solid ${C.border}; display: block; object-fit: cover; }
-
-                        /* Bouton CTA */
-                        .button {
-                            display: inline-block;
-                        padding: 16px 32px;
-                        background: linear-gradient(90deg, ${C.accent} 0%, #ff0066 100%);
-                        color: #ffffff !important;
-                        text-decoration: none;
-                        font-weight: 800;
-                        text-transform: uppercase;
-                        border-radius: 8px;
-                        font-size: 14px;
-                        letter-spacing: 1px;
-                        box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
-        }
-
-                        /* Grille News Secondaires (Table Layout pour compatibilité Email) */
-                        .news-grid {padding: 30px; display: table; width: 100%; box-sizing: border-box; border-bottom: 1px solid ${C.border}; }
-                        .news-row {display: table-row; }
-                        .news-col {display: table-cell; width: 48%; vertical-align: top; padding-bottom: 10px; }
-                        .news-spacer {display: table-cell; width: 4%; }
-
-                        .news-image {width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid ${C.border}; margin-bottom: 15px; display: block; background-color: #222; }
-                        .news-title {font - size: 16px; font-weight: 800; color: ${C.text}; margin-bottom: 8px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.5px; }
-                        .news-link {color: ${C.accent}; text-decoration: none; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-
-                        /* Section Média */
-                        .media-section {padding: 40px 30px; text-align: center; background-color: #080808; }
-                        .media-title {font - size: 14px; font-weight: 900; color: ${C.textMuted}; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px; }
-                        .media-box {
-                            background - color: #000;
-                        border: 1px solid ${C.border};
-                        border-radius: 16px;
-                        padding: 25px;
-                        display: inline-block;
-                        width: 100%;
-                        box-sizing: border-box;
-                        text-align: left;
-        }
-
-                        /* Footer */
-                        .footer {padding: 40px 20px; text-align: center; font-size: 12px; color: #444; background-color: ${C.bg}; font-weight: 500; }
-                        .footer a {color: #666; text-decoration: none; }
-
-                        /* Mobile Responsive */
-                        @media only screen and (max-width: 600px) {
-            .container {width: 100% !important; border-radius: 0; border: none; }
-                        .news-col {display: block; width: 100%; margin-bottom: 40px; }
-                        .news-spacer {display: none; }
-                        .header img {width: 140px !important; }
-                        .main-title {font - size: 24px; }
-        }
-                    </style>
-                </head>
-                <body style="margin: 0; padding: 0; background-color: ${C.bg};">
-                    <div class="wrapper">
-                        <!-- Preheader caché (Texte d'aperçu dans Gmail) -->
-                        <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
-                            ${subject || 'Découvrez les dernières news Dropsiders...'}
+                /* Article Principal */
+                .main-article { padding: 40px 30px; border-bottom: 1px solid ${C.border}; }
+                .main-title { font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 25px 0 15px 0; color: ${C.text}; line-height: 1.1; letter-spacing: -1px; font-style: italic; }
+                .main-text { font-size: 16px; line-height: 1.6; color: ${C.textMuted}; margin-bottom: 30px; }
+                .main-image { width: 100%; border-radius: 12px; border: 1px solid ${C.border}; display: block; object-fit: cover; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+                
+                /* Bouton CTA */
+                .button { 
+                    display: inline-block; 
+                    padding: 16px 32px; 
+                    background: linear-gradient(90deg, ${C.accent} 0%, #ff0066 100%); 
+                    color: #ffffff !important; 
+                    text-decoration: none; 
+                    font-weight: 800; 
+                    text-transform: uppercase; 
+                    border-radius: 8px; 
+                    font-size: 14px; 
+                    letter-spacing: 1px;
+                    box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
+                }
+                
+                /* Grille News Secondaires (Table Layout pour compatibilité Email) */
+                .news-grid { padding: 30px; display: table; width: 100%; box-sizing: border-box; border-bottom: 1px solid ${C.border}; }
+                .news-row { display: table-row; }
+                .news-col { display: table-cell; width: 48%; vertical-align: top; padding-bottom: 10px; }
+                .news-spacer { display: table-cell; width: 4%; }
+                
+                .news-image { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid ${C.border}; margin-bottom: 15px; display: block; background-color: #222; box-shadow: 0 4px 15px rgba(255, 0, 51, 0.15); /* GLOW ROUGE WIDGETS */ }
+                .news-title { font-size: 16px; font-weight: 800; color: ${C.text}; margin-bottom: 8px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.5px; }
+                .news-desc { font-size: 13px; line-height: 1.5; color: ${C.textMuted}; margin-bottom: 12px; }
+                .news-link { color: ${C.accent}; text-decoration: none; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+                
+                /* Section Média */
+                .media-section { padding: 40px 30px; text-align: center; background-color: #080808; }
+                .media-title { font-size: 14px; font-weight: 900; color: ${C.textMuted}; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px; }
+                .media-box { 
+                    background-color: #000; 
+                    border: 1px solid ${C.border}; 
+                    border-radius: 16px; 
+                    padding: 25px; 
+                    display: inline-block; 
+                    width: 100%; 
+                    box-sizing: border-box; 
+                    text-align: left;
+                    box-shadow: 0 0 25px rgba(255, 0, 51, 0.1); /* GLOW ROUGE MEDIA */
+                }
+                
+                /* Footer */
+                .footer { padding: 40px 20px; text-align: center; font-size: 12px; color: #444; background-color: ${C.bg}; font-weight: 500; }
+                .footer a { color: #666; text-decoration: none; }
+                
+                /* Mobile Responsive */
+                @media only screen and (max-width: 600px) {
+                    .container { width: 100% !important; border-radius: 0; border: none; }
+                    .news-col { display: block; width: 100%; margin-bottom: 40px; }
+                    .news-spacer { display: none; }
+                    .header img { width: 180px !important; }
+                    .main-title { font-size: 24px; }
+                    .newsletter-title { font-size: 24px; letter-spacing: 2px; }
+                }
+            </style>
+        </head>
+        <body style="margin: 0; padding: 0; background-color: ${C.bg};">
+            <div class="wrapper">
+                <!-- Preheader caché (Texte d'aperçu dans Gmail) -->
+                <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+                    ${subject || 'Découvrez les dernières news Dropsiders...'}
+                </div>
+                
+                <div class="container">
+                    <!-- HEADER LOGO -->
+                    <div class="header">
+                        <img src="${logoUrl}" alt="Dropsiders" width="220" style="display: block; margin: 0 auto; max-width: 220px; height: auto;">
+                        <div class="newsletter-title">NEWSLETTER</div>
+                    </div>
+                    
+                    <!-- ARTICLE PRINCIPAL -->
+                    <div class="main-article">
+                        ${mainArticle.image ? `<img src="${mainArticle.image}" alt="Cover" class="main-image">` : ''}
+                        <h1 class="main-title">${mainArticle.title}</h1>
+                        <div class="main-text">
+                            ${mainArticle.content ? mainArticle.content.replace(/\n/g, '<br>') : ''}
                         </div>
-
-                        <div class="container">
-                            <!-- HEADER LOGO -->
-                            <div class="header">
-                                <img src="${logoUrl}" alt="Dropsiders" width="180" style="display: block; margin: 0 auto; max-width: 180px; height: auto;">
-                            </div>
-
-                            <!-- ARTICLE PRINCIPAL -->
-                            <div class="main-article">
-                                ${mainArticle.image ? `<img src="${mainArticle.image}" alt="Cover" class="main-image">` : ''}
-                                <h1 class="main-title">${mainArticle.title}</h1>
-                                <div class="main-text">
-                                    ${mainArticle.content ? mainArticle.content.replace(/\n/g, '<br>') : ''}
-                                </div>
-                                ${mainArticle.ctaLink ? `
-                <div style="margin-top: 30px;">
-                    <a href="${mainArticle.ctaLink}" class="button">${mainArticle.ctaText}</a>
-                </div>
-                ` : ''}
-                            </div>
-
-                            <!-- NEWS SECONDAIRES (GRID) -->
-                            ${(news1.title || news2.title) ? `
-            <div class="news-grid">
-                <div class="news-row">
-                    <div class="news-col">
-                        ${news1.image ? `<img src="${news1.image}" class="news-image" alt="News 1">` : ''}
-                        <div class="news-title">${news1.title}</div>
-                        ${news1.link ? `<a href="${news1.link}" class="news-link">Lire la news &rarr;</a>` : ''}
+                        ${mainArticle.ctaLink ? `
+                        <div style="margin-top: 30px;">
+                            <a href="${mainArticle.ctaLink}" class="button">${mainArticle.ctaText}</a>
+                        </div>
+                        ` : ''}
                     </div>
-                    <div class="news-spacer"></div>
-                    <div class="news-col">
-                        ${news2.image ? `<img src="${news2.image}" class="news-image" alt="News 2">` : ''}
-                        <div class="news-title">${news2.title}</div>
-                        ${news2.link ? `<a href="${news2.link}" class="news-link">Lire la news &rarr;</a>` : ''}
+                    
+                    <!-- NEWS SECONDAIRES (GRID) -->
+                    ${(news1.title || news2.title) ? `
+                    <div class="news-grid">
+                        <div class="news-row">
+                            <div class="news-col">
+                                ${news1.image ? `<img src="${news1.image}" class="news-image" alt="News 1">` : ''}
+                                <div class="news-title">${news1.title}</div>
+                                ${news1.content ? `<div class="news-desc">${news1.content}</div>` : ''}
+                                ${news1.link ? `<a href="${news1.link}" class="news-link">Lire la news &rarr;</a>` : ''}
+                            </div>
+                            <div class="news-spacer"></div>
+                            <div class="news-col">
+                                ${news2.image ? `<img src="${news2.image}" class="news-image" alt="News 2">` : ''}
+                                <div class="news-title">${news2.title}</div>
+                                ${news2.content ? `<div class="news-desc">${news2.content}</div>` : ''}
+                                ${news2.link ? `<a href="${news2.link}" class="news-link">Lire la news &rarr;</a>` : ''}
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            ` : ''}
-
-                            <!-- SECTION MEDIA -->
-                            ${media.link ? `
-            <div class="media-section">
-                <div class="media-title">${media.title}</div>
-                <div class="media-box">
-                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
-                        <tr>
-                            <td width="60" valign="middle">
-                                <!-- Icône simple simulée par image ou caractère unicode si pas d'image -->
-                                <div style="width: 50px; height: 50px; background-color: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 50px; font-size: 24px;">
-                                    ${media.platform === 'spotify' ? '🎵' : '📺'}
-                                </div>
-                            </td>
-                            <td valign="middle" style="padding-left: 15px;">
-                                <div style="color: #666; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">
-                                    ${media.platform === 'spotify' ? 'Écouter sur Spotify' : 'Regarder sur YouTube'}
-                                </div>
-                                <a href="${media.link}" target="_blank" style="color: #fff; font-weight: bold; font-size: 16px; text-decoration: none; border-bottom: 1px solid #333;">
-                                    Accéder au média &rarr;
-                                </a>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            </div>
-            ` : ''}
-
-                            <!-- FOOTER -->
-                            <div class="footer">
-                                &copy; 2026 DROPSIDERS. Tous droits réservés.<br>
-                                    <br>
-                                        Vous recevez cet email car vous êtes inscrit à la newsletter Dropsiders.<br>
-                                            <a href="#" style="text-decoration: underline;">Se désinscrire</a>
+                    ` : ''}
+                    
+                    <!-- SECTION MEDIA -->
+                    ${media.link ? `
+                    <div class="media-section">
+                        <div class="media-title">${media.title}</div>
+                        <div class="media-box">
+                            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                                <tr>
+                                    <td width="60" valign="middle">
+                                        <!-- Icône simple simulée par image ou caractère unicode si pas d'image -->
+                                        <div style="width: 50px; height: 50px; background-color: #222; border-radius: 50%; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 50px; font-size: 24px;">
+                                            ${media.platform === 'spotify' ? '🎵' : '📺'}
                                         </div>
-                                    </div>
-                            </div>
-                        </body>
-                    </html>
-                    `;
+                                    </td>
+                                    <td valign="middle" style="padding-left: 15px;">
+                                        <div style="color: #666; font-size: 12px; font-weight: bold; text-transform: uppercase; margin-bottom: 4px;">
+                                            ${media.platform === 'spotify' ? 'Écouter sur Spotify' : 'Regarder sur YouTube'}
+                                        </div>
+                                        <a href="${media.link}" target="_blank" style="color: #fff; font-weight: bold; font-size: 16px; text-decoration: none; border-bottom: 1px solid #333;">
+                                            Accéder au média &rarr;
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- FOOTER -->
+                    <div class="footer">
+                        &copy; 2026 DROPSIDERS. Tous droits réservés.<br>
+                        <br>
+                        Vous recevez cet email car vous êtes inscrit à la newsletter Dropsiders.<br>
+                        <a href="#" style="text-decoration: underline;">Se désinscrire</a>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </html>
+    `;
     };
 
     // SECTION 5 : HANDLERS (Actions utilisateur)

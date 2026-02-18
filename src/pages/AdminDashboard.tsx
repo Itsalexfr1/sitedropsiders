@@ -117,41 +117,41 @@ export function AdminDashboard() {
     const actions = [
         {
             title: "News",
-            description: "Publier une actualité",
+            description: "Gérer les actualités",
             icon: <FileText className="w-8 h-8 text-neon-blue" />,
-            link: "/news/create",
+            link: "/admin/manage?tab=News",
             color: "border-neon-blue/20 hover:border-neon-blue",
             bg: "bg-neon-blue/5"
         },
         {
             title: "Interviews",
-            description: "Ajouter une interview",
+            description: "Gérer les interviews",
             icon: <Mic className="w-8 h-8 text-neon-purple" />,
-            link: "/news/create?type=Interview",
+            link: "/admin/manage?tab=Interviews",
             color: "border-neon-purple/20 hover:border-neon-purple",
             bg: "bg-neon-purple/5"
         },
         {
             title: "Récaps",
-            description: "Nouveau reportage",
+            description: "Gérer les reportages",
             icon: <Video className="w-8 h-8 text-neon-red" />,
-            link: "/recaps/create",
+            link: "/admin/manage?tab=Recaps",
             color: "border-neon-red/20 hover:border-neon-red",
             bg: "bg-neon-red/5"
         },
         {
             title: "Agenda",
-            description: "Ajouter une date",
+            description: "Gérer les dates",
             icon: <Calendar className="w-8 h-8 text-neon-yellow" />,
-            link: "/agenda/create",
+            link: "/admin/manage?tab=Agenda",
             color: "border-neon-yellow/20 hover:border-neon-yellow",
             bg: "bg-neon-yellow/5"
         },
         {
             title: "Galeries",
-            description: "Ajouter un album",
+            description: "Gérer les albums",
             icon: <ImageIcon className="w-8 h-8 text-neon-pink" />,
-            link: "/galerie/create",
+            link: "/admin/manage?tab=Galeries",
             color: "border-neon-pink/20 hover:border-neon-pink",
             bg: "bg-neon-pink/5"
         },
@@ -162,15 +162,7 @@ export function AdminDashboard() {
             link: "/newsletter/create",
             color: "border-green-400/20 hover:border-green-400",
             bg: "bg-green-400/5"
-        },
-        {
-            title: "Supprimer",
-            description: "Gérer et supprimer du contenu",
-            icon: <Trash2 className="w-8 h-8 text-red-500" />,
-            link: "/admin/manage",
-            color: "border-red-500/20 hover:border-red-500",
-            bg: "bg-red-500/5"
-        },
+        }
     ];
 
     return (

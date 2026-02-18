@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import newsData from '../data/news.json';
 import recapsData from '../data/recaps.json';
 import agendaData from '../data/agenda.json';
+import galerieData from '../data/galerie.json';
 
-type ContentType = 'News' | 'Recaps' | 'Interviews' | 'Agenda';
+type ContentType = 'News' | 'Recaps' | 'Interviews' | 'Agenda' | 'Galeries';
 
 export function AdminManage() {
-    const [activeTab, setActiveTab] = useState<ContentType>('News');
+    const [searchParams] = useSearchParams();
+    const initialTab = (searchParams.get('tab') as ContentType) || 'News';
+    const [activeTab, setActiveTab] = useState<ContentType>(initialTab);
     const [items, setItems] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,6 +36,8 @@ export function AdminManage() {
                 data = recapsData as any[];
             } else if (activeTab === 'Agenda') {
                 data = agendaData as any[];
+            } else if (activeTab === 'Galeries') {
+                data = galerieData as any[];
             }
 
             setItems(data);
@@ -49,7 +54,9 @@ export function AdminManage() {
 
         setDeleteStatus('loading');
         try {
-            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' : `/api/${activeTab.toLowerCase()}/delete`;
+            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
+                activeTab === 'Galeries' ? '/api/galerie/delete' :
+                    `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: {
@@ -90,25 +97,43 @@ export function AdminManage() {
         { type: 'Recaps', icon: <Video className="w-4 h-4" />, color: 'text-neon-red' },
         { type: 'Interviews', icon: <Mic className="w-4 h-4" />, color: 'text-neon-purple' },
         { type: 'Agenda', icon: <Calendar className="w-4 h-4" />, color: 'text-neon-yellow' },
+        { type: 'Galeries', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-pink' },
     ];
 
     return (
         <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-6 mb-12">
-                    <Link
-                        to="/admin"
-                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
-                        title="Retour au tableau de bord"
-                    >
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                    </Link>
-                    <div>
-                        <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Gestion du <span className="text-neon-red">Contenu</span>
-                        </h1>
+                <div className="flex items-center gap-6 mb-12 justify-between">
+                    <div className="flex items-center gap-6">
+                        <Link
+                            to="/admin"
+                            className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
+                            title="Retour au tableau de bord"
+                        >
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        </Link>
+                        <div>
+                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                Gestion du <span className="text-neon-red">Contenu</span>
+                            </h1>
+                        </div>
                     </div>
+
+                    <Link
+                        to={
+                            activeTab === 'News' ? '/news/create' :
+                                activeTab === 'Recaps' ? '/recaps/create' :
+                                    activeTab === 'Interviews' ? '/news/create?type=Interview' :
+                                        activeTab === 'Agenda' ? '/agenda/create' :
+                                            activeTab === 'Galeries' ? '/galerie/create' :
+                                                '#'
+                        }
+                        className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group"
+                        title={`Ajouter ${activeTab}`}
+                    >
+                        <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                    </Link>
                 </div>
 
                 <div className="relative w-full md:w-96">
