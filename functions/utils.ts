@@ -61,10 +61,20 @@ export async function updateGitHubFile(env: any, path: string, updateFn: (conten
                 }
             });
 
-            if (!getRes.ok) throw new Error(`Failed to fetch file: ${getRes.statusText}`);
+            let fileData: any;
 
-            const fileData: any = await getRes.json();
-            const content = b64_to_utf8(fileData.content.replace(/\n/g, ''));
+            if (!getRes.ok) {
+                if (getRes.status === 404) {
+                    // File doesn't exist yet, start with empty content
+                    fileData = { content: '', sha: null };
+                } else {
+                    throw new Error(`Failed to fetch file: ${getRes.statusText}`);
+                }
+            } else {
+                fileData = await getRes.json();
+            }
+
+            const content = fileData.content ? b64_to_utf8(fileData.content.replace(/\n/g, '')) : '[]';
             let jsonContent;
             try {
                 jsonContent = JSON.parse(content);
@@ -89,7 +99,7 @@ export async function updateGitHubFile(env: any, path: string, updateFn: (conten
                 body: JSON.stringify({
                     message: message,
                     content: contentBase64,
-                    sha: fileData.sha
+                    sha: fileData.sha // sha is null for new files
                 })
             });
 

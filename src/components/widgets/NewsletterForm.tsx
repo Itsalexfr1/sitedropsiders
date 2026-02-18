@@ -85,7 +85,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                 {/* Email Field */}
                 <div className="relative group">
                     <label htmlFor="email" className="block text-xs font-black text-neon-red uppercase tracking-widest mb-3">
-                        {t('newsletter_form.email_label')}
+                        {t('newsletter_form.email_label') || 'EMAIL ADDRESS'}
                     </label>
                     <div className="relative">
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
@@ -94,7 +94,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            placeholder={t('newsletter_form.email_placeholder')}
+                            placeholder={t('newsletter_form.email_placeholder') || 'Enter your email'}
                             className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all duration-300"
                             required
                         />
