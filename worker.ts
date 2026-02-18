@@ -530,7 +530,25 @@ export default {
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
+        // --- API: SUBSCRIBERS --- (GET)
+        if (path === '/api/subscribers' && request.method === 'GET') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+
+            try {
+                const file = await fetchGitHubFile(PATH);
+                if (!file) {
+                    // Empty file or error -> Return empty list to prevent frontend crash
+                    return new Response(JSON.stringify([]), { status: 200, headers });
+                }
+
+                return new Response(JSON.stringify(file.content), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- STATIC ASSETS & FALLBACK ---
+
         if (path.startsWith('/api/')) return new Response("Not Found", { status: 404 });
 
         if (env.ASSETS) {
