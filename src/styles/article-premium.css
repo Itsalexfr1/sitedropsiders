@@ -138,8 +138,8 @@
 }
 
 /* Automatic Drop Cap for the FIRST paragraph of each section */
-.article-body-premium .article-section>p:first-of-type::first-letter,
-.article-body-premium .article-section>div>p:first-of-type::first-letter {
+/* Automatic Drop Cap for EVERY paragraph in the body */
+.article-body-premium p::first-letter {
     float: left !important;
     font-family: var(--font-display, 'Orbitron', monospace) !important;
     font-size: 100px !important;
@@ -150,12 +150,6 @@
     font-weight: bold !important;
     text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
     margin-right: 4px !important;
-}
-
-/* Ensuring the final "Retrouvez..." block works if it's a paragraph */
-.article-body-premium p:last-of-type::first-letter {
-    color: #ff0033 !important;
-    /* Optional: if they specifically want the R of Retrouvez to be red even if not a widget */
 }
 
 
