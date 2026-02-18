@@ -56,23 +56,36 @@ export function standardizeContent(html: string): string {
         let hasMatches = false;
         let resultHtml = text;
 
-        // 1. Process explicit keywords
+        // 1. Process URLs/Domains (Bold & Red)
+        const urlRegex = /\b(?:https?:\/\/)?(?:www\.)?([a-z0-9-]+\.(?:com|org|net|fr|eu|be|info|me|tv|io|live))\b/gi;
+        if (urlRegex.test(resultHtml)) {
+            hasMatches = true;
+            resultHtml = resultHtml.replace(urlRegex, (match) => {
+                return `<span class="premium-link">${match}</span>`;
+            });
+        }
+
+        // 2. Process explicit keywords
         RED_KEYWORDS.forEach(keyword => {
             const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
             if (regex.test(resultHtml)) {
-                hasMatches = true;
-                resultHtml = resultHtml.replace(regex, `<span class="premium-text-bold">${keyword}</span>`);
+                // Avoid double wrapping if it was already caught by URL regex (rare but possible)
+                if (!resultHtml.includes(`>${keyword}<`)) {
+                    hasMatches = true;
+                    resultHtml = resultHtml.replace(regex, `<span class="premium-text-bold">${keyword}</span>`);
+                }
             }
         });
 
-        // 2. Process other words in ALL CAPS (at least 3 letters)
+        // 3. Process other words in ALL CAPS (at least 3 letters)
         const exclusions = ['LES', 'DES', 'POUR', 'UNE', 'AUX', 'DANS', 'AVEC', 'SANS', 'SOUS'];
         const uppercaseRegex = /\b([A-ZÀ-Ÿ]{3,})\b/g;
 
         if (uppercaseRegex.test(resultHtml)) {
             resultHtml = resultHtml.replace(uppercaseRegex, (match) => {
+                // Skip if already wrapped in a span (check for both classes)
                 if (RED_KEYWORDS.includes(match.toUpperCase()) || exclusions.includes(match.toUpperCase())) {
-                    return match; // Already handled or excluded
+                    return match;
                 }
                 hasMatches = true;
                 return `<span class="premium-text-bold">${match}</span>`;
@@ -84,6 +97,12 @@ export function standardizeContent(html: string): string {
             span.innerHTML = resultHtml;
             node.parentNode?.replaceChild(span, node);
         }
+    });
+
+    // 4. Style existing <a> tags
+    const links = tempDiv.querySelectorAll('a');
+    links.forEach(link => {
+        link.classList.add('premium-link');
     });
 
     return tempDiv.innerHTML;
