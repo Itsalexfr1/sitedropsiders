@@ -392,17 +392,14 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                     <Link
                                                         key={rel.id}
                                                         to={type === 'recap' ? getRecapLink(rel) : getArticleLink(rel)}
-                                                        className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0 snap-start"
+                                                        className="group block space-y-2 pb-4 border-b border-white/5 last:border-0 last:pb-0 snap-start"
                                                         onMouseEnter={playHoverSound}
                                                     >
-                                                        <div className="aspect-video rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
-                                                            <img src={rel.image} alt={rel.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                        </div>
-                                                        <div className="space-y-2">
+                                                        <div className="space-y-1">
                                                             <span className="text-[9px] font-black text-neon-red tracking-widest uppercase">
                                                                 {rel.category || (type === 'recap' ? 'Recap' : 'News')}
                                                             </span>
-                                                            <h4 className="text-sm font-bold text-gray-400 group-hover:text-white transition-colors leading-snug uppercase tracking-tight line-clamp-2">
+                                                            <h4 className="text-sm font-bold text-gray-400 group-hover:text-white transition-colors leading-snug uppercase tracking-tight line-clamp-2 italic">
                                                                 {rel.title}
                                                             </h4>
                                                         </div>
