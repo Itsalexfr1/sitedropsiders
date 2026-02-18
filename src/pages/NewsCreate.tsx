@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft, Youtube } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -18,6 +18,7 @@ export function NewsCreate() {
     const [imageUrl, setImageUrl] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState(type); // Initial state from URL
+    const [youtubeId, setYoutubeId] = useState('');
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
@@ -34,6 +35,7 @@ export function NewsCreate() {
             setImageUrl(editingItem.image);
             setDate(editingItem.date);
             setCategory(editingItem.category);
+            setYoutubeId(editingItem.youtubeId || '');
         } else {
             setCategory(type);
         }
@@ -105,7 +107,8 @@ export function NewsCreate() {
                 date,
                 image: imageUrl,
                 category,
-                content: `<div class="markdown-content">${content.replace(/\n/g, '<br>')}</div>` // Very basic conversion for now
+                content: `<div class="markdown-content">${content.replace(/\n/g, '<br>')}</div>`, // Very basic conversion for now
+                youtubeId
             };
 
             const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
@@ -126,6 +129,7 @@ export function NewsCreate() {
                     setSummary('');
                     setContent('');
                     setImageUrl('');
+                    setYoutubeId('');
                 }
             } else {
                 let errorData;
@@ -241,6 +245,28 @@ export function NewsCreate() {
                                 <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
                             </div>
                         )}
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <Youtube className="w-4 h-4" /> Vidéo de l'article (Youtube)
+                        </label>
+                        <input
+                            type="text"
+                            value={youtubeId}
+                            onChange={(e) => {
+                                const val = e.target.value;
+                                let id = val;
+                                if (val.includes('youtube.com/watch?v=')) {
+                                    id = val.split('v=')[1].split('&')[0];
+                                } else if (val.includes('youtu.be/')) {
+                                    id = val.split('youtu.be/')[1];
+                                }
+                                setYoutubeId(id);
+                            }}
+                            className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                            placeholder="URL Youtube ou ID (ex: dQw4w9WgXcQ)"
+                        />
                     </div>
 
                     <div data-color-mode="dark">

@@ -152,13 +152,32 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 )}
             </AnimatePresence>
 
-            {/* --- HEADER STRIP (Anyma Style) --- */}
-            <div className="jw-strip jw-strip--default jw-strip--style-color jw-strip--primary jw-strip--color-default jw-strip--padding-start">
-                <div className="jw-strip__content-container">
+            {/* --- HERO HEADER (Premium Style) --- */}
+            <div className="relative h-[80vh] min-h-[600px] flex items-end justify-center overflow-hidden">
+                {/* Background Image */}
+                {article.image && (
+                    <motion.div
+                        initial={{ scale: 1.1, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ duration: 1.5, ease: "easeOut" }}
+                        className="absolute inset-0 z-0"
+                    >
+                        <img
+                            src={article.image}
+                            alt={article.title}
+                            className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-dark-bg/40" /> {/* Dimming base */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-90" /> {/* Fade to black at bottom */}
+                    </motion.div>
+                )}
+
+                {/* Content Overlay */}
+                <div className="relative z-10 max-w-5xl mx-auto px-6 pb-20 text-center">
                     {/* Navigation Back */}
                     <Link
                         to={backLink}
-                        className="absolute top-8 left-8 flex items-center gap-2 text-white/60 hover:text-neon-red transition-colors group uppercase font-bold text-xs tracking-widest"
+                        className="absolute top-[-60vh] left-6 flex items-center gap-2 text-white/60 hover:text-neon-red transition-colors group uppercase font-bold text-xs tracking-widest"
                         onMouseEnter={playHoverSound}
                     >
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -168,7 +187,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     {/* Share Button */}
                     <button
                         onClick={handleShare}
-                        className="absolute top-8 right-8 flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full border border-white/10 text-white/80 font-bold text-xs transition-all hover:border-neon-red/50 hover:text-white group"
+                        className="absolute top-[-60vh] right-6 flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full border border-white/10 text-white/80 font-bold text-xs transition-all hover:border-neon-red/50 hover:text-white group"
                     >
                         {copied ? (
                             <>
@@ -183,21 +202,27 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         )}
                     </button>
 
-                    <div className="jw-strip__content jw-responsive pt-20">
+                    <div className="space-y-6">
+                        {/* Meta Badges */}
+                        <div className="flex flex-wrap justify-center gap-3">
+                            <span className="px-3 py-1 bg-neon-red/80 backdrop-blur-md text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-neon-red/20 rounded-sm">
+                                {article.category || (type === 'recap' ? 'Recap' : 'News')}
+                            </span>
+                            {type === 'recap' && article.festival && (
+                                <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-xs uppercase tracking-widest rounded-sm">
+                                    {article.festival}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Title */}
                         <h1
-                            className="jw-heading-130 heading__no-margin jw-news-page__heading-without-margin js-editor-open-settings"
+                            className="text-4xl md:text-6xl lg:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-2xl"
                             dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
                         />
 
-                        <div className="jw-news-page__meta js-editor-open-settings">
-                            {/* Badges */}
-                            <span className="meta-badge">{article.category || (type === 'recap' ? 'Recap' : 'News')}</span>
-
-                            {type === 'recap' && article.festival && (
-                                <span className="meta-badge">{article.festival}</span>
-                            )}
-
-                            {/* Date */}
+                        {/* Date & Loc */}
+                        <div className="flex items-center justify-center gap-6 text-sm text-gray-300 font-medium uppercase tracking-widest">
                             <span className="flex items-center gap-2">
                                 <Clock className="w-4 h-4 text-neon-red" />
                                 {new Date(article.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
@@ -206,10 +231,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     day: 'numeric'
                                 })}
                             </span>
-
-                            {/* Location (for Recaps) */}
                             {type === 'recap' && article.location && (
-                                <span className="flex items-center gap-2">
+                                <span className="flex items-center gap-2 border-l border-white/20 pl-6">
                                     <MapPin className="w-4 h-4 text-neon-red" />
                                     {article.location}
                                 </span>
@@ -220,21 +243,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             </div>
 
             {/* --- MAIN CONTENT CONTAINER --- */}
-            <div className="news-page-content-container">
+            <div className="news-page-content-container relative z-20 -mt-10">
                 <div className="jw-block-element">
-
-                    {/* Hero Image (if available) - Rendered as first image block */}
-                    {article.image && (
-                        <div className="jw-element-image jw-element-content jw-element-image-is-center pb-12">
-                            <motion.img
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                src={article.image}
-                                alt={article.title}
-                                className="jw-element-image__image"
-                            />
-                        </div>
-                    )}
+                    {/* (Image is now in Hero) */}
 
                     {/* Content Body */}
                     <div

@@ -184,14 +184,23 @@ export function RecapCreate() {
 
                             {/* Youtube ID */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">ID Youtube (Optionnel)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Vidéo de l'article (Youtube)</label>
                                 <div className="relative group">
                                     <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
                                         type="text"
                                         value={youtubeId}
-                                        onChange={(e) => setYoutubeId(e.target.value)}
-                                        placeholder="Ex: dQw4w9WgXcQ"
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            let id = val;
+                                            if (val.includes('youtube.com/watch?v=')) {
+                                                id = val.split('v=')[1].split('&')[0];
+                                            } else if (val.includes('youtu.be/')) {
+                                                id = val.split('youtu.be/')[1];
+                                            }
+                                            setYoutubeId(id);
+                                        }}
+                                        placeholder="URL Youtube ou ID (ex: dQw4w9WgXcQ)"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
                                 </div>

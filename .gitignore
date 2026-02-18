@@ -36,3 +36,7 @@ dist-ssr
 check_token.cjs
 check_token_write.cjs
 .env.script
+
+# Backups
+backups/
+site_backup.zip
