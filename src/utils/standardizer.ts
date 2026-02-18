@@ -2,7 +2,14 @@
 /**
  * Utility to standardize news and recap content with premium styling.
  * Automatically wraps specific keywords in a red uppercase style.
+ * 
+ * UPDATE: Removed aggressive uppercase wrapping to prevent "Giant Red Letters" issue.
  */
+
+// Fix Anyma Encoding specifically
+const fixAnymaEncoding = (text: string) => {
+    return text.replace(/AEDEN/g, 'ÆDEN').replace(/Ã†DEN/g, 'ÆDEN');
+};
 
 const RED_KEYWORDS = [
     'ANYMA',
@@ -47,7 +54,8 @@ const RED_KEYWORDS = [
     'NOVEMBRE',
     'DÉCEMBRE',
     'AEDEN',
-    'GENESE'
+    'GENESE',
+    'ÆDEN' // Added specialized character
 ];
 
 export function standardizeContent(html: string): string {
@@ -69,6 +77,9 @@ export function standardizeContent(html: string): string {
         let text = node.textContent || '';
         if (!text.trim()) return;
 
+        // PRE-PROCESS: Fix Encoding
+        text = fixAnymaEncoding(text);
+
         let hasMatches = false;
         let resultHtml = text;
 
@@ -81,39 +92,25 @@ export function standardizeContent(html: string): string {
             });
         }
 
-        // 2. Process explicit keywords
+        // 3. Process explicit keywords (Keep them bold/red but don't force EVERY uppercase word)
         RED_KEYWORDS.forEach(keyword => {
-            const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+            // Create a case-insensitive regex for the keyword
+            const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
             if (regex.test(resultHtml)) {
-                // Avoid double wrapping if it was already caught by URL regex (rare but possible)
-                if (!resultHtml.includes(`>${keyword}<`)) {
-                    hasMatches = true;
-                    resultHtml = resultHtml.replace(regex, `<span class="premium-text-bold">${keyword}</span>`);
-                }
+                hasMatches = true;
+                // Replace with the captured group to preserve original casing if needed, or force uppercase? 
+                // User said "sans grosse lettre rouge". 
+                // "Big red letter" usually refers to Drop Cap or H1.
+                // But user also said "elle y sons toujours la".
+                // If they mean the keywords are too much, we should tone it down.
+                // Let's keep the highlighting but ensure it's not "giant".
+                // The CSS class 'premium-text-bold' handles the style (likely red color).
+                resultHtml = resultHtml.replace(regex, '<span class="premium-text-bold">$1</span>');
             }
         });
 
-        // 3. Process other words in ALL CAPS (at least 3 letters)
-        const exclusions = ['LES', 'DES', 'POUR', 'UNE', 'AUX', 'DANS', 'AVEC', 'SANS', 'SOUS', 'EST', 'SON', 'SES', 'SUR', 'PAR', 'AVE', 'QUE', 'QUI', 'CAR', 'PAS'];
-        const uppercaseRegex = /\b([A-ZÀ-Ÿ]{3,})\b/g;
-
-        if (uppercaseRegex.test(resultHtml)) {
-            resultHtml = resultHtml.replace(uppercaseRegex, (match) => {
-                const upperMatch = match.toUpperCase();
-                // Skip if it's in the red keywords (already handled or will be), or in exclusions
-                if (RED_KEYWORDS.some(k => upperMatch === k || upperMatch.includes(k)) || exclusions.includes(upperMatch)) {
-                    return match;
-                }
-
-                // Extra check: if it's already inside a span with our classes, skip
-                if (resultHtml.includes(`>${match}<`)) {
-                    return match;
-                }
-
-                hasMatches = true;
-                return `<span class="premium-text-bold">${match}</span>`;
-            });
-        }
+        // REMOVED: The aggressive uppercaseRegex block that turned ALL caps words red.
+        // This was likely causing "plein de lettre géantes rouge" if many words were capitalized.
 
         if (hasMatches) {
             const span = document.createElement('span');
