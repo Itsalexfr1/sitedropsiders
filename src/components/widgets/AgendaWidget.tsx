@@ -95,7 +95,7 @@ export function AgendaWidget() {
                                             {event.type !== 'Events' && event.genre && <span className="opacity-70 ml-1">• </span>}
                                             {event.genre}
                                         </span>
-                                        <h4 className={`font-bold text-white ${styles.groupHoverText} transition-all duration-300 line-clamp-1 uppercase italic tracking-tight text-sm`}>{event.title}</h4>
+                                        <h4 className={`font-display font-bold text-white ${styles.groupHoverText} transition-all duration-300 line-clamp-1 uppercase italic tracking-tight text-sm`}>{event.title}</h4>
                                     </div>
                                     <div className="text-center bg-white/5 rounded p-1 min-w-[2.5rem]">
                                         <span className={`block text-[8px] ${styles.text} font-bold uppercase leading-none mb-0.5`}>

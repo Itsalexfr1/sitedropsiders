@@ -6,7 +6,7 @@ import { InstagramWidget } from '../components/widgets/InstagramWidget';
 import { TikTokWidget } from '../components/widgets/TikTokWidget';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { RecapWidget } from '../components/widgets/RecapWidget';
-import { InterviewWidget } from '../components/widgets/InterviewWidget';
+
 
 export function Home() {
     return (
@@ -29,10 +29,7 @@ export function Home() {
                 </div>
             </section>
 
-            {/* Row 2: Featured Interviews */}
-            <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <InterviewWidget />
-            </section>
+
 
             {/* Row 3: Instagram & TikTok */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

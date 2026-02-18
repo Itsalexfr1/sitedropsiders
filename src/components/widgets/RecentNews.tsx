@@ -64,7 +64,7 @@ export function RecentNews() {
                                     <span className="text-[9px] text-neon-red font-bold tracking-[0.2em] uppercase mb-1 block leading-none">
                                         {new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </span>
-                                    <h4 className="text-white font-bold text-sm leading-tight group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic tracking-tight">
+                                    <h4 className="text-white font-display font-bold text-sm leading-tight group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic tracking-tight">
                                         {item.title}
                                     </h4>
                                 </div>
