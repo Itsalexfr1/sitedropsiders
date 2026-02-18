@@ -46,7 +46,7 @@ export function Footer() {
 
                         <div className="flex items-center gap-4 text-sm text-gray-500 font-bold uppercase tracking-widest">
                             <Mail className="w-5 h-5 text-neon-red" />
-                            <a href="mailto:contact@dropsiders.fr" className="hover:text-white transition-colors">contact@dropsiders.fr</a>
+                            <a href="mailto:contact@dropsiders.fr" className="hover:text-neon-red transition-colors">contact@dropsiders.fr</a>
                         </div>
                     </div>
 
@@ -54,7 +54,7 @@ export function Footer() {
                     <div className="lg:col-span-4 space-y-8">
                         <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]" dangerouslySetInnerHTML={{ __html: t('footer.community') }}></h4>
                         <div className="space-y-6">
-                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">{t('footer.join')}</h3>
+                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight" dangerouslySetInnerHTML={{ __html: t('footer.join') }}></h3>
                             <div className="grid grid-cols-5 gap-3">
                                 {socialLinks.map((social) => (
                                     <motion.a
@@ -105,7 +105,7 @@ export function Footer() {
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 relative">
                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                         <span>© {new Date().getFullYear()} DROPSIDERS. {t('footer.rights')}</span>
-                        <Link to="/admin" className="text-gray-800 hover:text-gray-600 transition-colors ml-2" title="Admin">
+                        <Link to="/admin" className="text-gray-800 hover:text-neon-red transition-colors ml-2" title="Admin">
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -113,10 +113,10 @@ export function Footer() {
                         </Link>
                     </p>
                     <div className="flex flex-wrap justify-center gap-8 text-center">
-                        <Link to="/politique-de-confidentialite" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.privacy')}</Link>
-                        <Link to="/cgu" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.terms')}</Link>
-                        <Link to="/mentions-legales" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.legal')}</Link>
-                        <Link to="/cookies" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.cookies')}</Link>
+                        <Link to="/politique-de-confidentialite" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">{t('footer.privacy')}</Link>
+                        <Link to="/cgu" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">{t('footer.terms')}</Link>
+                        <Link to="/mentions-legales" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">{t('footer.legal')}</Link>
+                        <Link to="/cookies" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">{t('footer.cookies')}</Link>
                     </div>
                 </div>
             </div>

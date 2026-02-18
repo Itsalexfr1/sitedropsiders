@@ -34,7 +34,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
         en: "Dropsiders is the French media specialized in festival news and the electronic scene. Join a community of over 60,000 enthusiasts."
     },
     'footer.community': { fr: '<span class="text-neon-red">Communauté</span>', en: '<span class="text-neon-red">Community</span>' },
-    'footer.join': { fr: 'Rejoignez-nous sur nos réseaux', en: 'Join us on our social networks' },
+    'footer.join': { fr: 'Rejoignez-nous sur <span class="text-neon-red">nos réseaux</span>', en: 'Join us on <span class="text-neon-red">our networks</span>' },
     'footer.subscribe': { fr: "S'abonner à la Newsletter", en: "Subscribe to Newsletter" },
     'footer.subscribe_btn': { fr: "S'abonner", en: "Subscribe" },
     'footer.nav': { fr: 'Navigation', en: 'Navigation' },

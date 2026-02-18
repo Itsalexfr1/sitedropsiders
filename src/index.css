@@ -24,6 +24,14 @@
     overflow-x: hidden;
   }
 
+  a {
+    @apply transition-colors duration-300;
+  }
+
+  a:hover {
+    color: var(--color-neon-red) !important;
+  }
+
   /* Light Mode */
   /* Light Mode - Negative Filter Approach */
   html.light-mode {
