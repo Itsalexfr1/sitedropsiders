@@ -42,12 +42,19 @@ export function RecapWidget() {
                                 transition={{ delay: index * 0.1 }}
                                 className="h-full group relative aspect-square rounded-lg overflow-hidden cursor-pointer border border-white/10 hover:border-neon-orange/50 transition-all duration-300 shadow-md"
                             >
+                                <div className="absolute inset-0 bg-black">
+                                    <img
+                                        src={item.image}
+                                        alt=""
+                                        className="w-full h-full object-cover opacity-30 blur-md scale-110"
+                                    />
+                                </div>
                                 <img
                                     src={item.image}
                                     alt={item.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                    className="relative z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                                 />
-                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                <div className="absolute inset-0 z-20 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
                                     <div className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 group-hover:bg-neon-orange/20 transition-all duration-300">
                                         <Play className="w-4 h-4 text-white fill-white" />
                                     </div>

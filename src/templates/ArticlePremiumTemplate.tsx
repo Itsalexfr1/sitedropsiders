@@ -8,6 +8,7 @@ import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
+import MDEditor from '@uiw/react-md-editor';
 import '../styles/article-premium.css';
 
 interface ArticlePremiumTemplateProps {
@@ -148,7 +149,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
 
     return (
-        <div className="article-premium-wrapper min-h-screen">
+        <div className="article-premium-wrapper">
             {/* Lightbox */}
             <AnimatePresence>
                 {selectedImage && (
@@ -291,10 +292,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                             {/* LEFT COLUMN: Main Content (8 spans) */}
                             <div className="lg:col-span-8">
-                                <article
-                                    className="article-body-premium w-full"
-                                    dangerouslySetInnerHTML={{ __html: displayContent }}
-                                />
+                                <div className="article-body-premium w-full">
+                                    <MDEditor.Markdown
+                                        source={displayContent}
+                                        style={{ backgroundColor: 'transparent', color: 'inherit' }}
+                                    />
+                                </div>
 
                                 {/* Video Section */}
                                 {article.youtubeId && (
@@ -323,8 +326,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                         </h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             {article.images.map((img: string, idx: number) => (
-                                                <div key={idx} className="aspect-video cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl" onClick={() => setSelectedImage(img)}>
-                                                    <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                <div key={idx} className="aspect-video cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl relative" onClick={() => setSelectedImage(img)}>
+                                                    <div className="absolute inset-0 bg-black">
+                                                        <img src={img} alt="" className="w-full h-full object-cover opacity-30 blur-md scale-110" />
+                                                    </div>
+                                                    <img src={img} alt="" className="relative z-10 w-full h-full object-contain group-hover:scale-105 transition-transform duration-700" />
                                                 </div>
                                             ))}
                                         </div>

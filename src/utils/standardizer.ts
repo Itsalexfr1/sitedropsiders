@@ -156,16 +156,15 @@ export function standardizeContent(html: string): string {
         link.classList.add('premium-link');
     });
 
-    // 3. APPLY DROP-CAP
-    // Standard Premium Look: Apply to the first substantive paragraph
+    // 3. APPLY DROP-CAP (REMOVED - Back to Manual as requested)
+    /*
     const paras = tempDiv.querySelectorAll('p');
     for (const p of Array.from(paras)) {
-        // Skip short meta-paragraphs (like "Published on...") if possible, 
-        // but cleaner to just apply to the first one that has enough text.
         if (p.textContent && p.textContent.trim().length > 50) {
-            if (applyDropCap(p as HTMLElement)) break; // Only apply to the first one
+            if (applyDropCap(p as HTMLElement)) break;
         }
     }
+    */
 
     return tempDiv.innerHTML;
 }

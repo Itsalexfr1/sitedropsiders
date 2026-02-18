@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft } from 'lucide-react';
+import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -280,29 +280,61 @@ export function RecapCreate() {
 
 
                         {/* Content Editor */}
-                        <div className="space-y-2">
+                        <div className="space-y-4 admin-editor-container" data-color-mode="dark">
                             <div className="flex justify-between items-end">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Contenu (Markdown)</label>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
-                                        setContent(prev => prev + dropCapTemplate);
-                                    }}
-                                    className="text-[10px] font-black bg-neon-cyan/10 border border-neon-cyan/30 px-3 py-1 rounded text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all uppercase tracking-widest"
-                                >
-                                    + Ajouter une partie (Lettrine)
-                                </button>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                    <FileText className="w-4 h-4" /> CONTENU
+                                    <button
+                                        type="button"
+                                        onClick={() => setContent(prev => prev + '\n\n')}
+                                        className="ml-2 p-1 bg-white/5 border border-white/10 rounded hover:bg-neon-cyan/20 hover:border-neon-cyan/50 hover:text-neon-cyan transition-all"
+                                        title="Ajouter un nouveau paragraphe"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </label>
                             </div>
                             <div className="rounded-xl overflow-hidden border border-white/10">
+                                <style>{`
+                                    .admin-editor-container .w-md-editor {
+                                        border: none !important;
+                                        background: #000 !important;
+                                    }
+                                    .admin-editor-container .w-md-editor-content {
+                                        flex-direction: column !important;
+                                    }
+                                    .admin-editor-container .w-md-editor-input {
+                                        width: 100% !important;
+                                        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+                                    }
+                                    .admin-editor-container .w-md-editor-preview {
+                                        width: 100% !important;
+                                        padding: 40px !important;
+                                        background: #0a0a0a !important;
+                                    }
+                                `}</style>
                                 <MDEditor
                                     value={content}
                                     onChange={(val) => setContent(val || '')}
                                     preview="live"
-                                    height={400}
-                                    className="!bg-dark-bg !text-white"
+                                    height={800}
+                                    previewOptions={{
+                                        className: "article-body-premium"
+                                    }}
                                 />
                             </div>
+                        </div>
+                        <div className="flex justify-start items-center gap-4">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
+                                    setContent(prev => prev + dropCapTemplate);
+                                }}
+                                className="text-[10px] font-black bg-neon-cyan/20 border border-neon-cyan/30 px-3 py-1 rounded text-neon-cyan hover:bg-neon-cyan hover:text-white transition-all uppercase tracking-widest"
+                            >
+                                + Ajouter une partie (Lettrine)
+                            </button>
                         </div>
 
                         {/* Submit Button */}

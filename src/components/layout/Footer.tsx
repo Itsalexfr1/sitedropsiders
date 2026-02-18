@@ -101,7 +101,18 @@ export function Footer() {
                     </div>
                 </div>
 
-                {/* Bottom Bar Removed as requested */}
+                {/* Bottom Bar: Copyright & Legal */}
+                <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6">
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">
+                        © {new Date().getFullYear()} DROPSIDERS. {t('footer.rights')}
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-8 text-center">
+                        <Link to="/politique-de-confidentialite" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.privacy')}</Link>
+                        <Link to="/cgu" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.terms')}</Link>
+                        <Link to="/mentions-legales" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.legal')}</Link>
+                        <Link to="/cookies" className="text-[10px] font-black text-gray-500 hover:text-white transition-colors uppercase tracking-widest">{t('footer.cookies')}</Link>
+                    </div>
+                </div>
             </div>
             {/* Corner Accent */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />

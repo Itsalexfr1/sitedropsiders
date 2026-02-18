@@ -113,8 +113,8 @@
     border-bottom: 1px solid rgba(255, 0, 51, 0.3);
   }
 
-  /* Lettrine Élégante */
-  .article-body-premium p:first-of-type::first-letter {
+  /* Lettrine Manuelle - Style par Span .drop-cap */
+  .drop-cap {
     font-family: var(--font-display);
     @apply float-left text-7xl md:text-8xl leading-[0.7] pr-4 pt-2 font-black text-neon-red uppercase;
     text-shadow: 0 0 30px rgba(255, 0, 51, 0.4);

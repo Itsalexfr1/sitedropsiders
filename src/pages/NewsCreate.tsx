@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft, Youtube } from 'lucide-react';
+import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft, Youtube, Plus } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -107,7 +107,7 @@ export function NewsCreate() {
                 date,
                 image: imageUrl,
                 category,
-                content: `<div class="markdown-content">${content.replace(/\n/g, '<br>')}</div>`, // Very basic conversion for now
+                content: content, // Now storing raw markdown for proper paragraph handling
                 youtubeId
             };
 
@@ -269,30 +269,59 @@ export function NewsCreate() {
                         />
                     </div>
 
-                    <div data-color-mode="dark">
-                        <div className="flex justify-between items-end mb-2">
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <FileText className="w-4 h-4" /> Contenu de l'article
+                    <div data-color-mode="dark" className="admin-editor-container">
+                        <div className="flex justify-between items-end mb-4">
+                            <label className="block text-xs font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                <FileText className="w-4 h-4" /> CONTENU
+                                <button
+                                    onClick={() => setContent(prev => prev + '\n\n')}
+                                    className="ml-2 p-1 bg-white/5 border border-white/10 rounded hover:bg-neon-cyan/20 hover:border-neon-cyan/50 hover:text-neon-cyan transition-all"
+                                    title="Ajouter un nouveau paragraphe"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                </button>
                             </label>
-                            <button
-                                onClick={() => {
-                                    const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
-                                    setContent(prev => prev + dropCapTemplate);
-                                }}
-                                className="text-[10px] font-black bg-neon-red/20 border border-neon-red/30 px-3 py-1 rounded text-neon-red hover:bg-neon-red hover:text-white transition-all uppercase tracking-widest"
-                            >
-                                + Ajouter une partie (Lettrine)
-                            </button>
                         </div>
                         <div className="wmde-markdown-var">
+                            <style>{`
+                                .admin-editor-container .w-md-editor {
+                                    border: 1px solid rgba(255,255,255,0.1) !important;
+                                    background: #000 !important;
+                                }
+                                .admin-editor-container .w-md-editor-content {
+                                    flex-direction: column !important;
+                                }
+                                .admin-editor-container .w-md-editor-input {
+                                    width: 100% !important;
+                                    border-bottom: 1px solid rgba(255,255,255,0.1) !important;
+                                }
+                                .admin-editor-container .w-md-editor-preview {
+                                    width: 100% !important;
+                                    padding: 40px !important;
+                                    background: #000 !important;
+                                }
+                            `}</style>
                             <MDEditor
                                 value={content}
                                 onChange={(val) => setContent(val || '')}
-                                height={400}
-                                style={{ backgroundColor: '#000', color: '#fff', borderColor: '#333' }}
+                                height={800}
                                 preview="live"
+                                previewOptions={{
+                                    className: "article-body-premium"
+                                }}
                             />
                         </div>
+                    </div>
+                    <div className="flex justify-start items-center gap-4 py-4">
+                        <button
+                            onClick={() => {
+                                const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
+                                setContent(prev => prev + dropCapTemplate);
+                            }}
+                            className="text-[10px] font-black bg-neon-red/20 border border-neon-red/30 px-3 py-1 rounded text-neon-red hover:bg-neon-red hover:text-white transition-all uppercase tracking-widest"
+                        >
+                            + Ajouter une partie (Lettrine)
+                        </button>
                     </div>
 
                     <button
