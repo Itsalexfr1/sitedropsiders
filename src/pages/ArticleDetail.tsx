@@ -139,6 +139,12 @@ export function ArticleDetail() {
             finalHtml = finalHtml.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
         }
 
+        // Si le contenu n'a pas de balises P (cas des résumés simples), on l'enveloppe
+        // pour que la lettrine puisse s'appliquer via le CSS (p:first-of-type)
+        if (!finalHtml.includes('<p') && finalHtml.trim()) {
+            finalHtml = `<p>${finalHtml}</p>`;
+        }
+
         // Standardisation automatique (Premium tags)
         finalHtml = standardizeContent(finalHtml);
 
