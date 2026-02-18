@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Send, Copy, Eye, Type, Image as ImageIcon, Users, ArrowLeft, Music, Youtube } from 'lucide-react';
 
-// Type pour les abonnés (plus de dépendance JSON foireuse)
-type Subscriber = { email: string };
 
 export function NewsletterComposer() {
     // SECTION 1 : ÉTATS (DATA)
@@ -85,118 +83,118 @@ export function NewsletterComposer() {
         };
 
         return `
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${subject}</title>
-    <style>
-        body { font-family: ${fontStack}; background-color: ${C.bg}; color: ${C.text}; padding: 0; margin: 0; width: 100%; -webkit-font-smoothing: antialiased; }
-        .wrapper { width: 100%; background-color: ${C.bg}; padding: 40px 0; }
-        
-        /* Conteneur Principal centré */
-        .container { 
-            max-width: 600px; 
-            margin: 0 auto; 
-            background-color: ${C.card}; 
-            border: 1px solid ${C.border}; 
-            border-radius: 16px; 
-            overflow: hidden; 
-            box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${subject}</title>
+                    <style>
+                        body {font - family: ${fontStack}; background-color: ${C.bg}; color: ${C.text}; padding: 0; margin: 0; width: 100%; -webkit-font-smoothing: antialiased; }
+                        .wrapper {width: 100%; background-color: ${C.bg}; padding: 40px 0; }
+
+                        /* Conteneur Principal centré */
+                        .container {
+                            max - width: 600px;
+                        margin: 0 auto;
+                        background-color: ${C.card};
+                        border: 1px solid ${C.border};
+                        border-radius: 16px;
+                        overflow: hidden;
+                        box-shadow: 0 4px 30px rgba(0,0,0,0.5);
         }
-        
-        /* En-tête avec Logo */
-        .header { text-align: center; padding: 40px 0; background-color: ${C.bg}; border-bottom: 1px solid ${C.border}; }
-        
-        /* Article Principal */
-        .main-article { padding: 40px 30px; border-bottom: 1px solid ${C.border}; }
-        .main-title { font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 25px 0 15px 0; color: ${C.text}; line-height: 1.1; letter-spacing: -1px; font-style: italic; }
-        .main-text { font-size: 16px; line-height: 1.6; color: ${C.textMuted}; margin-bottom: 30px; }
-        .main-image { width: 100%; border-radius: 12px; border: 1px solid ${C.border}; display: block; object-fit: cover; }
-        
-        /* Bouton CTA */
-        .button { 
-            display: inline-block; 
-            padding: 16px 32px; 
-            background: linear-gradient(90deg, ${C.accent} 0%, #ff0066 100%); 
-            color: #ffffff !important; 
-            text-decoration: none; 
-            font-weight: 800; 
-            text-transform: uppercase; 
-            border-radius: 8px; 
-            font-size: 14px; 
-            letter-spacing: 1px;
-            box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
+
+                        /* En-tête avec Logo */
+                        .header {text - align: center; padding: 40px 0; background-color: ${C.bg}; border-bottom: 1px solid ${C.border}; }
+
+                        /* Article Principal */
+                        .main-article {padding: 40px 30px; border-bottom: 1px solid ${C.border}; }
+                        .main-title {font - size: 28px; font-weight: 900; text-transform: uppercase; margin: 25px 0 15px 0; color: ${C.text}; line-height: 1.1; letter-spacing: -1px; font-style: italic; }
+                        .main-text {font - size: 16px; line-height: 1.6; color: ${C.textMuted}; margin-bottom: 30px; }
+                        .main-image {width: 100%; border-radius: 12px; border: 1px solid ${C.border}; display: block; object-fit: cover; }
+
+                        /* Bouton CTA */
+                        .button {
+                            display: inline-block;
+                        padding: 16px 32px;
+                        background: linear-gradient(90deg, ${C.accent} 0%, #ff0066 100%);
+                        color: #ffffff !important;
+                        text-decoration: none;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        border-radius: 8px;
+                        font-size: 14px;
+                        letter-spacing: 1px;
+                        box-shadow: 0 4px 15px rgba(255, 0, 51, 0.3);
         }
-        
-        /* Grille News Secondaires (Table Layout pour compatibilité Email) */
-        .news-grid { padding: 30px; display: table; width: 100%; box-sizing: border-box; border-bottom: 1px solid ${C.border}; }
-        .news-row { display: table-row; }
-        .news-col { display: table-cell; width: 48%; vertical-align: top; padding-bottom: 10px; }
-        .news-spacer { display: table-cell; width: 4%; }
-        
-        .news-image { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid ${C.border}; margin-bottom: 15px; display: block; background-color: #222; }
-        .news-title { font-size: 16px; font-weight: 800; color: ${C.text}; margin-bottom: 8px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.5px; }
-        .news-link { color: ${C.accent}; text-decoration: none; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
-        
-        /* Section Média */
-        .media-section { padding: 40px 30px; text-align: center; background-color: #080808; }
-        .media-title { font-size: 14px; font-weight: 900; color: ${C.textMuted}; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px; }
-        .media-box { 
-            background-color: #000; 
-            border: 1px solid ${C.border}; 
-            border-radius: 16px; 
-            padding: 25px; 
-            display: inline-block; 
-            width: 100%; 
-            box-sizing: border-box; 
-            text-align: left;
+
+                        /* Grille News Secondaires (Table Layout pour compatibilité Email) */
+                        .news-grid {padding: 30px; display: table; width: 100%; box-sizing: border-box; border-bottom: 1px solid ${C.border}; }
+                        .news-row {display: table-row; }
+                        .news-col {display: table-cell; width: 48%; vertical-align: top; padding-bottom: 10px; }
+                        .news-spacer {display: table-cell; width: 4%; }
+
+                        .news-image {width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid ${C.border}; margin-bottom: 15px; display: block; background-color: #222; }
+                        .news-title {font - size: 16px; font-weight: 800; color: ${C.text}; margin-bottom: 8px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.5px; }
+                        .news-link {color: ${C.accent}; text-decoration: none; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+
+                        /* Section Média */
+                        .media-section {padding: 40px 30px; text-align: center; background-color: #080808; }
+                        .media-title {font - size: 14px; font-weight: 900; color: ${C.textMuted}; text-transform: uppercase; margin-bottom: 20px; letter-spacing: 2px; }
+                        .media-box {
+                            background - color: #000;
+                        border: 1px solid ${C.border};
+                        border-radius: 16px;
+                        padding: 25px;
+                        display: inline-block;
+                        width: 100%;
+                        box-sizing: border-box;
+                        text-align: left;
         }
-        
-        /* Footer */
-        .footer { padding: 40px 20px; text-align: center; font-size: 12px; color: #444; background-color: ${C.bg}; font-weight: 500; }
-        .footer a { color: #666; text-decoration: none; }
-        
-        /* Mobile Responsive */
-        @media only screen and (max-width: 600px) {
-            .container { width: 100% !important; border-radius: 0; border: none; }
-            .news-col { display: block; width: 100%; margin-bottom: 40px; }
-            .news-spacer { display: none; }
-            .header img { width: 140px !important; }
-            .main-title { font-size: 24px; }
+
+                        /* Footer */
+                        .footer {padding: 40px 20px; text-align: center; font-size: 12px; color: #444; background-color: ${C.bg}; font-weight: 500; }
+                        .footer a {color: #666; text-decoration: none; }
+
+                        /* Mobile Responsive */
+                        @media only screen and (max-width: 600px) {
+            .container {width: 100% !important; border-radius: 0; border: none; }
+                        .news-col {display: block; width: 100%; margin-bottom: 40px; }
+                        .news-spacer {display: none; }
+                        .header img {width: 140px !important; }
+                        .main-title {font - size: 24px; }
         }
-    </style>
-</head>
-<body style="margin: 0; padding: 0; background-color: ${C.bg};">
-    <div class="wrapper">
-        <!-- Preheader caché (Texte d'aperçu dans Gmail) -->
-        <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
-            ${subject || 'Découvrez les dernières news Dropsiders...'}
-        </div>
-        
-        <div class="container">
-            <!-- HEADER LOGO -->
-            <div class="header">
-                <img src="${logoUrl}" alt="Dropsiders" width="180" style="display: block; margin: 0 auto; max-width: 180px; height: auto;">
-            </div>
-            
-            <!-- ARTICLE PRINCIPAL -->
-            <div class="main-article">
-                ${mainArticle.image ? `<img src="${mainArticle.image}" alt="Cover" class="main-image">` : ''}
-                <h1 class="main-title">${mainArticle.title}</h1>
-                <div class="main-text">
-                    ${mainArticle.content ? mainArticle.content.replace(/\n/g, '<br>') : ''}
-                </div>
-                ${mainArticle.ctaLink ? `
+                    </style>
+                </head>
+                <body style="margin: 0; padding: 0; background-color: ${C.bg};">
+                    <div class="wrapper">
+                        <!-- Preheader caché (Texte d'aperçu dans Gmail) -->
+                        <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+                            ${subject || 'Découvrez les dernières news Dropsiders...'}
+                        </div>
+
+                        <div class="container">
+                            <!-- HEADER LOGO -->
+                            <div class="header">
+                                <img src="${logoUrl}" alt="Dropsiders" width="180" style="display: block; margin: 0 auto; max-width: 180px; height: auto;">
+                            </div>
+
+                            <!-- ARTICLE PRINCIPAL -->
+                            <div class="main-article">
+                                ${mainArticle.image ? `<img src="${mainArticle.image}" alt="Cover" class="main-image">` : ''}
+                                <h1 class="main-title">${mainArticle.title}</h1>
+                                <div class="main-text">
+                                    ${mainArticle.content ? mainArticle.content.replace(/\n/g, '<br>') : ''}
+                                </div>
+                                ${mainArticle.ctaLink ? `
                 <div style="margin-top: 30px;">
                     <a href="${mainArticle.ctaLink}" class="button">${mainArticle.ctaText}</a>
                 </div>
                 ` : ''}
-            </div>
-            
-            <!-- NEWS SECONDAIRES (GRID) -->
-            ${(news1.title || news2.title) ? `
+                            </div>
+
+                            <!-- NEWS SECONDAIRES (GRID) -->
+                            ${(news1.title || news2.title) ? `
             <div class="news-grid">
                 <div class="news-row">
                     <div class="news-col">
@@ -213,9 +211,9 @@ export function NewsletterComposer() {
                 </div>
             </div>
             ` : ''}
-            
-            <!-- SECTION MEDIA -->
-            ${media.link ? `
+
+                            <!-- SECTION MEDIA -->
+                            ${media.link ? `
             <div class="media-section">
                 <div class="media-title">${media.title}</div>
                 <div class="media-box">
@@ -240,19 +238,19 @@ export function NewsletterComposer() {
                 </div>
             </div>
             ` : ''}
-            
-            <!-- FOOTER -->
-            <div class="footer">
-                &copy; 2026 DROPSIDERS. Tous droits réservés.<br>
-                <br>
-                Vous recevez cet email car vous êtes inscrit à la newsletter Dropsiders.<br>
-                <a href="#" style="text-decoration: underline;">Se désinscrire</a>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-        `;
+
+                            <!-- FOOTER -->
+                            <div class="footer">
+                                &copy; 2026 DROPSIDERS. Tous droits réservés.<br>
+                                    <br>
+                                        Vous recevez cet email car vous êtes inscrit à la newsletter Dropsiders.<br>
+                                            <a href="#" style="text-decoration: underline;">Se désinscrire</a>
+                                        </div>
+                                    </div>
+                            </div>
+                        </body>
+                    </html>
+                    `;
     };
 
     // SECTION 5 : HANDLERS (Actions utilisateur)
@@ -330,10 +328,14 @@ export function NewsletterComposer() {
                 </div>
 
                 <div className="flex flex-wrap gap-3 justify-center">
-                    <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2 text-sm font-bold text-gray-300 cursor-default">
+                    <button
+                        onClick={handleCopyEmails}
+                        className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                        title="Copier les emails"
+                    >
                         <Users size={16} className="text-neon-cyan" />
                         <span>{subscribers.length} Abonnés</span>
-                    </div>
+                    </button>
 
                     <button onClick={handleCopyHTML} className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2 text-sm font-bold hover:bg-white/10 transition-colors hover:border-white/30">
                         <Copy size={16} /> Copier HTML
@@ -564,14 +566,19 @@ export function NewsletterComposer() {
 
             {/* Styles injectés pour ce composant spécifique (plus propre que CSS global) */}
             <style>{`
-                .label-field { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-                .input-field { width: 100%; background: #000; border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 12px; color: white; font-size: 14px; outline: none; transition: all 0.2s; }
-                .input-field:focus { border-color: #ff0033; background: rgba(255,255,255,0.02); }
+                .label-field { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 900; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+                .label-field svg { color: #ff0033; }
+                .input-field { width: 100%; background: #080808; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 12px; color: white; font-size: 14px; outline: none; transition: all 0.3s ease; }
+                .input-field:focus { border-color: #ff0033; background: rgba(255,0,51,0.05); box-shadow: 0 0 15px rgba(255, 0, 51, 0.15); }
                 .custom-scrollbar::-webkit-scrollbar { width: 6px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: #111; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #555; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #ff0033; }
                 .bg-dots-pattern { background-image: radial-gradient(#222 1px, transparent 1px); background-size: 20px 20px; }
+                
+                /* Animations */
+                @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                .animate-fadeIn { animation: fadeIn 0.3s ease-out forwards; }
             `}</style>
         </div>
     );
