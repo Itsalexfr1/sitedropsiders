@@ -62,43 +62,7 @@ const RED_KEYWORDS = [
     'OSHEAGA'
 ];
 
-/**
- * Helper to apply drop-cap to the first letter of an element's text.
- */
-function applyDropCap(element: HTMLElement) {
-    if (element.querySelector('.drop-cap')) return;
 
-    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
-    let node = walker.nextNode();
-
-    while (node) {
-        const text = node.textContent || '';
-        const trimmed = text.trimStart();
-        if (trimmed.length > 0) {
-            // Found the first text node with content
-            const firstChar = trimmed[0];
-            const leadingWhitespace = text.substring(0, text.indexOf(firstChar));
-            const remaining = text.substring(text.indexOf(firstChar) + 1);
-
-            const span = document.createElement('span');
-            span.className = 'drop-cap';
-            span.textContent = firstChar;
-
-            const parent = node.parentNode;
-            if (parent) {
-                // If there's leading whitespace, keep it as a text node before the span
-                if (leadingWhitespace) {
-                    parent.insertBefore(document.createTextNode(leadingWhitespace), node);
-                }
-                parent.insertBefore(span, node);
-                node.textContent = remaining;
-            }
-            return true; // Success
-        }
-        node = walker.nextNode();
-    }
-    return false;
-}
 
 export function standardizeContent(html: string): string {
     if (!html) return html;
