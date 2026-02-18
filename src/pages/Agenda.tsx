@@ -180,9 +180,6 @@ export function Agenda() {
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
                     {t('agenda.title')}
                 </h1>
-                <p className="text-gray-400 max-w-2xl">
-                    {t('agenda.subtitle')}
-                </p>
             </motion.div>
 
             {/* Month Selection */}
