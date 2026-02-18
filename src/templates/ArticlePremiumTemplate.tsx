@@ -242,81 +242,95 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 </div>
             </div>
 
-            {/* --- MAIN CONTENT CONTAINER --- */}
-            <div className="news-page-content-container relative z-20 -mt-10">
-                <div className="jw-block-element">
-                    {/* (Image is now in Hero) */}
+            {/* --- MAIN CONTENT CONTAINER (GRID) --- */}
+            <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20 pb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-                    {/* Content Body */}
-                    <div
-                        className="article-body-premium"
-                        dangerouslySetInnerHTML={{ __html: displayContent }}
-                    />
+                    {/* LEFT COLUMN: Main Content */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-dark-bg/80 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-2xl">
+                            {/* Content Body */}
+                            <div
+                                className="article-body-premium"
+                                dangerouslySetInnerHTML={{ __html: displayContent }}
+                            />
 
-                    {/* --- EXTRA SECTIONS --- */}
-
-                    {/* Video */}
-                    {article.youtubeId && (
-                        <div className="mt-16 mb-16">
-                            <h3 className="text-2xl font-display font-black text-white mb-8 uppercase italic flex items-center justify-center gap-3">
-                                <Play className="w-6 h-6 text-neon-red" />
-                                {t('article_detail.video_title')}
-                            </h3>
-                            <div className="video-wrapper">
-                                <iframe
-                                    src={`https://www.youtube.com/embed/${article.youtubeId}`}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Gallery */}
-                    {(article.images && article.images.length > 1) && (
-                        <div className="mt-20">
-                            <h3 className="text-3xl text-center mb-8 flex items-center justify-center gap-3">
-                                <Camera className="w-8 h-8 text-neon-red" />
-                                {t('article_detail.gallery_title')}
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {article.images.map((img: string, idx: number) => (
-                                    <div key={idx} className="cursor-pointer overflow-hidden rounded-xl shadow-lg border border-white/5 hover:border-neon-red/50 transition-all" onClick={() => setSelectedImage(img)}>
-                                        <img src={img} alt="" className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                            {/* Video (Inside Main Content) */}
+                            {article.youtubeId && (
+                                <div className="mt-12 mb-8">
+                                    <h3 className="text-xl font-display font-black text-white mb-6 uppercase italic flex items-center gap-3">
+                                        <Play className="w-5 h-5 text-neon-red" />
+                                        {t('article_detail.video_title')}
+                                    </h3>
+                                    <div className="video-wrapper">
+                                        <iframe
+                                            src={`https://www.youtube.com/embed/${article.youtubeId}`}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            )}
+
+                            {/* Gallery */}
+                            {(article.images && article.images.length > 1) && (
+                                <div className="mt-16 border-t border-white/10 pt-12">
+                                    <h3 className="text-2xl font-display font-black text-white mb-8 flex items-center gap-3 uppercase italic">
+                                        <Camera className="w-6 h-6 text-neon-red" />
+                                        {t('article_detail.gallery_title')}
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {article.images.map((img: string, idx: number) => (
+                                            <div key={idx} className="cursor-pointer overflow-hidden rounded-xl shadow-lg border border-white/5 hover:border-neon-red/50 transition-all aspect-video group" onClick={() => setSelectedImage(img)}>
+                                                <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
+
+                    {/* RIGHT COLUMN: Sidebar (Related + Newsletter) */}
+                    <div className="lg:col-span-1 space-y-8">
+
+                        {/* Newsltter Widget (Moved to sidebar top/middle) */}
+                        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center relative overflow-hidden sticky top-24">
+                            <h3 className="text-xl font-display font-black uppercase mb-2">{t('article_detail.newsletter_title')}</h3>
+                            <p className="text-gray-400 text-sm mb-4">{t('article_detail.newsletter_subtitle')}</p>
+                            <NewsletterForm variant="compact" />
+                        </div>
+
+                        {/* Related Articles (Now in Sidebar) */}
+                        {relatedArticles.length > 0 && (
+                            <div>
+                                <h3 className="text-lg font-display uppercase text-white/50 mb-6 border-b border-white/10 pb-2">{t('article_detail.related_title')}</h3>
+                                <div className="space-y-6">
+                                    {relatedArticles.map(rel => (
+                                        <Link key={rel.id} to={type === 'recap' ? `/recaps/${rel.slug}` : `/news/${rel.slug}`} className="group flex gap-4 items-start">
+                                            <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-white/10 bg-black">
+                                                <img src={rel.image} alt={rel.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
+                                            </div>
+                                            <div>
+                                                <span className="text-[10px] font-bold text-neon-red uppercase tracking-widest block mb-1">
+                                                    {type === 'recap' ? 'Recap' : 'News'}
+                                                </span>
+                                                <h4 className="text-sm font-bold uppercase leading-tight text-white group-hover:text-neon-red transition-colors line-clamp-3">
+                                                    {rel.title}
+                                                </h4>
+                                            </div>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 
-            {/* --- FOOTER / NEWSLETTER --- */}
-            <div className="max-w-4xl mx-auto px-6 mt-20 border-t border-white/10 pt-16">
-                {/* Newsletter */}
-                <div className="bg-white/5 rounded-3xl p-8 md:p-12 border border-white/10 text-center relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[80px] rounded-full pointer-events-none" />
-                    <h3 className="text-2xl font-display font-black uppercase mb-4">{t('article_detail.newsletter_title')}</h3>
-                    <p className="text-gray-400 mb-8 max-w-lg mx-auto">{t('article_detail.newsletter_subtitle')}</p>
-                    <NewsletterForm variant="compact" />
-                </div>
-
-                {/* Related Articles */}
-                {relatedArticles.length > 0 && (
-                    <div className="mt-20">
-                        <h3 className="text-xl font-display uppercase text-center mb-8 text-white/50">{t('article_detail.related_title')}</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {relatedArticles.map(rel => (
-                                <Link key={rel.id} to={type === 'recap' ? `/recaps/${rel.slug}` : `/news/${rel.slug}`} className="group block">
-                                    <div className="aspect-video rounded-lg overflow-hidden mb-4 border border-white/10">
-                                        <img src={rel.image} alt={rel.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-                                    </div>
-                                    <h4 className="text-sm font-bold uppercase transition-colors group-hover:text-neon-red">{rel.title}</h4>
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
-                )}
+            {/* --- FOOTER (Just spacing now) --- */}
+            <div className="max-w-7xl mx-auto px-6 mt-20 border-t border-white/10 pt-16 text-center text-white/20 text-xs uppercase tracking-widest">
+                DROPSIDERS • {new Date().getFullYear()}
             </div>
         </div>
     );
