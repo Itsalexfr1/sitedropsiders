@@ -292,14 +292,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     </div>
 
                     {/* RIGHT COLUMN: Sidebar (Related + Newsletter) */}
-                    <div className="lg:col-span-1 space-y-8">
-
-                        {/* Newsltter Widget (Moved to sidebar top/middle) */}
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center relative overflow-hidden sticky top-24">
-                            <h3 className="text-xl font-display font-black uppercase mb-2">{t('article_detail.newsletter_title')}</h3>
-                            <p className="text-gray-400 text-sm mb-4">{t('article_detail.newsletter_subtitle')}</p>
-                            <NewsletterForm variant="compact" />
-                        </div>
+                    <div className="lg:col-span-1 space-y-12">
 
                         {/* Related Articles (Now in Sidebar) */}
                         {relatedArticles.length > 0 && (
@@ -324,6 +317,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 </div>
                             </div>
                         )}
+
+                        {/* Newsletter Widget (Moved below related) */}
+                        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center relative overflow-hidden">
+                            <h3 className="text-xl font-display font-black uppercase mb-2">{t('article_detail.newsletter_title')}</h3>
+                            <p className="text-gray-400 text-sm mb-4">{t('article_detail.newsletter_subtitle')}</p>
+                            <NewsletterForm variant="compact" />
+                        </div>
                     </div>
                 </div>
             </div>

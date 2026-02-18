@@ -20,9 +20,7 @@
     align-items: center;
 }
 
-.article-premium-wrapper .jw-strip--primary {
-    /* Mimic the primary color strip if needed */
-}
+
 
 .article-premium-wrapper .jw-strip__content-container {
     width: 100%;
@@ -123,19 +121,20 @@
     /* Standard alignment */
 }
 
-/* DROP CAP (WHITE, SIMPLE) */
+/* DROP CAP (ONLY FIRST LETTER OF FIRST PARAGRAPH) */
 .article-premium-wrapper .article-body-premium>p:first-of-type::first-letter {
     float: left;
     font-family: var(--font-display, 'Orbitron', monospace);
     font-weight: 900;
-    font-size: 4rem;
-    /* Big */
+    font-size: 5rem;
+    /* Slightly bigger */
     line-height: 0.8;
     padding-right: 1rem;
     padding-top: 0.5rem;
-    color: white;
-    /* WHITE only, no red */
-    /* No text shadow */
+    color: var(--color-neon-red, #ff0033);
+    /* BACK TO RED */
+    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+    /* Neon glow */
     margin-right: 0.5rem;
 }
 
