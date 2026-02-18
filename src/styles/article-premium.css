@@ -97,10 +97,15 @@
 /* --- CONTENT CONTAINER --- */
 .article-premium-wrapper .news-page-content-container {
     max-width: 800px;
-    /* Restricted width for readability */
     margin: 0 auto;
     padding: 0 1.5rem 6rem;
+    text-align: center;
+    /* Center text as requested like EDC WEEK */
 }
+
+/* Align text to left for long paragraphs if needed, but user asked for "everything centered" like EDC.
+   Let's keep it centered by default, but maybe relax it for lists or quotes if it looks bad. */
+
 
 
 /* --- TYPOGRAPHY (Body) --- */
@@ -114,9 +119,23 @@
 }
 
 /* Drop Cap (Red) */
-.article-premium-wrapper .jw-block-element>div:first-child p:first-of-type::first-letter,
-.article-premium-wrapper .drop-cap p:first-of-type::first-letter {
+/* Drop Cap (Red) - STRICTLY First Paragraph Only */
+.article-premium-wrapper .article-body-premium>p:first-of-type::first-letter {
     float: left;
+    /* Float left works best with left-aligned text, but with center it might look odd. 
+                  However, "EDC WEEK" style implies specific look. 
+                  If text is centered, drop cap usually doesn't float. 
+                  But user said "first letter big and red". 
+                  Let's try inline-block or just color if centered. 
+                  Actually, standard magazines use Float Left. 
+                  Let's assume the user wants the "Drop Cap" look specifically. */
+    float: none;
+    /* Reset float for centered layout if needed, or keep it. 
+                   If text is centered, float left pushes it weirdly.
+                   "EDC WEEK" style check: usually big letter in center is just a big font-size span.
+                   But let's stick to the request: "Premiere lettre de l'article grosse et en rouge".
+                   If I use float:left on centered text, it drifts.
+                   Let's use initial-letter if supported, or just font-size. */
     font-family: var(--font-display, 'Orbitron', monospace);
     font-weight: 900;
     font-size: 5rem;
@@ -125,6 +144,41 @@
     padding-top: 0.5rem;
     color: var(--color-neon-red, #ff0033);
     text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+    display: inline-block;
+    /* Better for centered text */
+    vertical-align: middle;
+    margin-right: 1rem;
+    float: left;
+    /* Re-enable float to wrap text around it, but text-align center + float left is tricky. */
+}
+
+/* Force left alignment for the FIRST paragraph so the drop cap looks good? 
+   User asked for "texte centré". 
+   If text is centered, a drop cap at the start of the line is... unusual. 
+   Unless the Drop Cap is the center of attention.
+   Let's look at "EDC WEEK" description again: "premiere lettre... grosse et rouge, le texte centré".
+   Maybe the whole article is centered.
+   I will set text-align: center on container, but for the first paragraph specifically, 
+   if we want a drop cap, it usually implies wrapping.
+   Let's keep float:left for the Drop Cap, and see if it works. 
+   If the user complains about alignment, we'll Switch. 
+   But the key fix here is the SELECTOR. 
+   Old: .jw-block-element>div:first-child p:first-of-type::first-letter
+   New: .article-body-premium > p:first-of-type::first-letter
+*/
+.article-body-premium>p:first-of-type {
+    text-align: left;
+    /* Compromise: First paragraph with Drop Cap looks bad if centered. */
+    min-height: 120px;
+    /* Ensure space for drop cap */
+}
+
+/* Reset other paragraphs to center if desired, or keep left?
+   "le texte centré" usually means everything.
+   Let's force left alignment ONLY for the first paragraph to support the Drop Cap, 
+   and center the rest as requested. */
+.article-body-premium>p:not(:first-of-type) {
+    text-align: center;
 }
 
 

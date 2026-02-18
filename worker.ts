@@ -130,7 +130,7 @@ export default {
                 const email = payload.email;
 
                 // 1. Check Admin
-                if (email === 'contact@dropsiders.fr') {
+                if (email === 'contact@dropsiders.fr' || email === 'alexflex30@gmail.com') {
                     return new Response(JSON.stringify({ success: true, user: email, role: 'admin' }), { status: 200, headers });
                 }
 
@@ -174,9 +174,9 @@ export default {
             else if (requestGoogleToken) {
                 const payload = await verifyGoogleToken(requestGoogleToken);
                 if (payload && payload.email) {
-                    if (payload.email === 'contact@dropsiders.fr') {
+                    if (payload.email === 'contact@dropsiders.fr' || payload.email === 'alexflex30@gmail.com') {
                         authenticated = true;
-                        requestUsername = 'contact@dropsiders.fr';
+                        requestUsername = payload.email;
                     } else {
                         // Check Editor
                         const editorsFile = await fetchGitHubFile(EDITORS_PATH);
@@ -204,7 +204,11 @@ export default {
             }
 
             // Specific check for editors management: only Alex
-            if (path.startsWith('/api/editors') && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alex') {
+            if (path.startsWith('/api/editors') &&
+                requestUsername !== 'contact@dropsiders.fr' &&
+                requestUsername !== 'alex' &&
+                requestUsername !== 'alexflex30@gmail.com'
+            ) {
                 return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
             }
         }
