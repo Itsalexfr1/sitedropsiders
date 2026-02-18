@@ -68,7 +68,7 @@ export function Recap() {
                                 className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-all duration-300 shadow-2xl hover:shadow-neon-red/20"
                             >
                                 <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                                    <div className="h-72 overflow-hidden bg-black/40 relative">
+                                    <div className="aspect-square overflow-hidden bg-black/40 relative">
                                         <img
                                             src={item.coverImage || item.image}
                                             alt={item.title}

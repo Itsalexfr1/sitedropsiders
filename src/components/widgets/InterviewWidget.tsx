@@ -42,7 +42,7 @@ export function InterviewWidget() {
                                 whileHover={{ scale: 1.05 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className="h-full group relative aspect-video rounded-2xl overflow-hidden cursor-pointer border border-white/10 hover:border-neon-red/50 transition-all duration-300 shadow-xl"
+                                className="h-full group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 hover:border-neon-red/50 transition-all duration-300 shadow-xl"
                             >
                                 <img
                                     src={item.image}

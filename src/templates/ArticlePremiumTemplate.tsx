@@ -211,23 +211,42 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             {backText}
                         </Link>
 
-                        {/* Share Button (Match Interview Style) */}
-                        <button
-                            onClick={handleShare}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white font-bold text-xs transition-all hover:border-neon-red/50 group"
-                        >
-                            {copied ? (
-                                <>
-                                    <Check className="w-3 h-3 text-green-400" />
-                                    <span className="text-green-400">Lien copié !</span>
-                                </>
-                            ) : (
-                                <>
-                                    <Share2 className="w-3 h-3 group-hover:text-neon-red transition-colors" />
-                                    <span>Partager</span>
-                                </>
-                            )}
-                        </button>
+                        {/* Sharing Actions */}
+                        <div className="flex items-center gap-3">
+                            {/* Twitter / X Share */}
+                            <button
+                                onClick={() => {
+                                    const url = window.location.href;
+                                    const text = `${translatedTitle || article.title} via @dropsiders`;
+                                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
+                                }}
+                                className="p-2 bg-white/10 hover:bg-[#1DA1F2]/20 backdrop-blur-md rounded-full border border-white/20 text-white transition-all hover:border-[#1DA1F2]/50 group"
+                                title="Partager sur X"
+                            >
+                                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current group-hover:text-[#1DA1F2] transition-colors">
+                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                                </svg>
+                            </button>
+
+                            {/* Main Share Button */}
+                            <button
+                                onClick={handleShare}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white font-bold text-xs transition-all hover:border-neon-red/50 group"
+                            >
+                                {copied ? (
+                                    <>
+                                        <Check className="w-3 h-3 text-green-400" />
+                                        <span className="text-green-400">Lien copié !</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Share2 className="w-3 h-3 group-hover:text-neon-red transition-colors" />
+                                        <span>Partager</span>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+
                     </div>
 
                     <div className="space-y-6">
@@ -344,7 +363,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0"
                                                         onMouseEnter={playHoverSound}
                                                     >
-                                                        <div className="aspect-video rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
+                                                        <div className="aspect-square rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
                                                             <img src={rel.image} alt={rel.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                         </div>
                                                         <div className="space-y-2">

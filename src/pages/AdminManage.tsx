@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
@@ -104,10 +104,29 @@ export function AdminManage() {
         }
     };
 
-    const filteredItems = items.filter(item =>
-        item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.location?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
+
+    useEffect(() => {
+        setSelectedCategory('ALL');
+        fetchData();
+    }, [activeTab]);
+
+    const categories = useMemo(() => {
+        if (activeTab !== 'Galeries') return [];
+        const cats = new Set(items.map(item => item.category).filter(Boolean));
+        return ['ALL', ...Array.from(cats)];
+    }, [items, activeTab]);
+
+    const filteredItems = items.filter(item => {
+        const matchesSearch =
+            item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.category?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        const matchesCategory = selectedCategory === 'ALL' || item.category === selectedCategory;
+
+        return matchesSearch && matchesCategory;
+    });
 
     const tabs: { type: ContentType; icon: any; color: string }[] = [
         { type: 'News', icon: <FileText className="w-4 h-4" />, color: 'text-neon-blue' },
@@ -121,7 +140,7 @@ export function AdminManage() {
         <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex items-center gap-6 mb-12 justify-between">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
                     <div className="flex items-center gap-6">
                         <Link
                             to="/admin"
@@ -137,49 +156,71 @@ export function AdminManage() {
                         </div>
                     </div>
 
-                    <Link
-                        to={
-                            activeTab === 'News' ? '/news/create' :
-                                activeTab === 'Recaps' ? '/recaps/create' :
-                                    activeTab === 'Interviews' ? '/news/create?type=Interview' :
-                                        activeTab === 'Agenda' ? '/agenda/create' :
-                                            activeTab === 'Galeries' ? '/galerie/create' :
-                                                '#'
-                        }
-                        className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group"
-                        title={`Ajouter ${activeTab}`}
-                    >
-                        <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-                    </Link>
-                </div>
-
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input
-                        type="text"
-                        placeholder="Rechercher..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-neon-red transition-colors"
-                    />
-                </div>
-
-                {/* Tabs */}
-                <div className="flex flex-wrap gap-4 mb-8">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.type}
-                            onClick={() => setActiveTab(tab.type)}
-                            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all border ${activeTab === tab.type
-                                ? `bg-white/10 border-white/20 ${tab.color} transform -translate-y-1`
-                                : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'
-                                }`}
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-full md:w-80">
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                            <input
+                                type="text"
+                                placeholder="Rechercher..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-neon-red transition-colors"
+                            />
+                        </div>
+                        <Link
+                            to={
+                                activeTab === 'News' ? '/news/create' :
+                                    activeTab === 'Recaps' ? '/recaps/create' :
+                                        activeTab === 'Interviews' ? '/news/create?type=Interview' :
+                                            activeTab === 'Agenda' ? '/agenda/create' :
+                                                activeTab === 'Galeries' ? '/galerie/create' :
+                                                    '#'
+                            }
+                            className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
+                            title={`Ajouter ${activeTab}`}
                         >
-                            {tab.icon}
-                            {tab.type}
-                        </button>
-                    ))}
+                            <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                        </Link>
+                    </div>
                 </div>
+
+                {/* Tabs & Quick Filters */}
+                <div className="flex flex-col gap-6 mb-8">
+                    <div className="flex flex-wrap gap-3">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.type}
+                                onClick={() => setActiveTab(tab.type)}
+                                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all border ${activeTab === tab.type
+                                    ? `bg-white/10 border-white/20 ${tab.color} transform -translate-y-1`
+                                    : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'
+                                    }`}
+                            >
+                                {tab.icon}
+                                {tab.type}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Sub-categories for Galeries */}
+                    {activeTab === 'Galeries' && categories.length > 2 && (
+                        <div className="flex flex-wrap gap-2 p-2 bg-white/5 rounded-2xl border border-white/10">
+                            {categories.map((cat: string) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${selectedCategory === cat
+                                        ? 'bg-neon-pink text-white shadow-lg shadow-neon-pink/20'
+                                        : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                        }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
 
                 {/* Status Messages */}
                 <AnimatePresence>

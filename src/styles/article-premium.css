@@ -121,40 +121,27 @@
     /* Standard alignment */
 }
 
-/* DROP CAP (ONLY FIRST LETTER OF FIRST PARAGRAPH) */
-.article-premium-wrapper .article-body-premium>p:first-of-type::first-letter {
-    float: left;
-    font-family: var(--font-display, 'Orbitron', monospace);
-    font-weight: 900;
-    font-size: 5rem;
-    /* Slightly bigger */
-    line-height: 0.8;
-    padding-right: 1rem;
-    padding-top: 0.5rem;
-    color: var(--color-neon-red, #ff0033);
-    /* BACK TO RED */
-    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
-    /* Neon glow */
-    margin-right: 0.5rem;
-}
-
-/* Ensure first paragraph wraps nicely around drop cap */
-.article-premium-wrapper .article-body-premium>p:first-of-type {
-    min-height: 100px;
-}
+/* Automatic Drop Cap Removed - Use .drop-cap class manually */
 
 /* MANUAL DROP-CAP CLASS */
 .article-premium-wrapper .drop-cap {
     float: left;
     font-family: var(--font-display, 'Orbitron', monospace);
     font-weight: 900;
-    font-size: 5rem;
-    line-height: 0.8;
-    padding-right: 1.2rem;
-    padding-top: 0.5rem;
+    font-size: 3.5rem;
+    line-height: 0.85;
+    padding-right: 1rem;
+    padding-top: 0.4rem;
     color: var(--color-neon-red, #ff0033);
     text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
     margin-right: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .article-premium-wrapper .drop-cap {
+        font-size: 2.5rem;
+        padding-right: 0.8rem;
+    }
 }
 
 /* Remove .article-body-premium specific overrides */

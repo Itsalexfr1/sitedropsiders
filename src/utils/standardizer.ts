@@ -55,8 +55,50 @@ const RED_KEYWORDS = [
     'DÉCEMBRE',
     'AEDEN',
     'GENESE',
-    'ÆDEN' // Added specialized character
+    'ÆDEN',
+    'SONUS FESTIVAL',
+    'SONUS',
+    'IGLOOFEST',
+    'OSHEAGA'
 ];
+
+/**
+ * Helper to apply drop-cap to the first letter of an element's text.
+ */
+function applyDropCap(element: HTMLElement) {
+    if (element.querySelector('.drop-cap')) return;
+
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+    let node = walker.nextNode();
+
+    while (node) {
+        const text = node.textContent || '';
+        const trimmed = text.trimStart();
+        if (trimmed.length > 0) {
+            // Found the first text node with content
+            const firstChar = trimmed[0];
+            const leadingWhitespace = text.substring(0, text.indexOf(firstChar));
+            const remaining = text.substring(text.indexOf(firstChar) + 1);
+
+            const span = document.createElement('span');
+            span.className = 'drop-cap';
+            span.textContent = firstChar;
+
+            const parent = node.parentNode;
+            if (parent) {
+                // If there's leading whitespace, keep it as a text node before the span
+                if (leadingWhitespace) {
+                    parent.insertBefore(document.createTextNode(leadingWhitespace), node);
+                }
+                parent.insertBefore(span, node);
+                node.textContent = remaining;
+            }
+            return true; // Success
+        }
+        node = walker.nextNode();
+    }
+    return false;
+}
 
 export function standardizeContent(html: string): string {
     if (!html) return html;
@@ -64,7 +106,7 @@ export function standardizeContent(html: string): string {
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
 
-    // Process text nodes only to avoid breaking HTML tags/attributes
+    // 1. Process text nodes for keywords and links
     const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null);
     const nodesToProcess: Text[] = [];
 
@@ -83,7 +125,7 @@ export function standardizeContent(html: string): string {
         let hasMatches = false;
         let resultHtml = text;
 
-        // 1. Process URLs/Domains (Bold & Red)
+        // 1.1 Process URLs/Domains (Bold & Red)
         const urlRegex = /\b(?:https?:\/\/)?(?:www\.)?([a-z0-9-]+\.(?:com|org|net|fr|eu|be|info|me|tv|io|live))\b/gi;
         if (urlRegex.test(resultHtml)) {
             hasMatches = true;
@@ -92,25 +134,14 @@ export function standardizeContent(html: string): string {
             });
         }
 
-        // 3. Process explicit keywords (Keep them bold/red but don't force EVERY uppercase word)
+        // 1.2 Process explicit keywords
         RED_KEYWORDS.forEach(keyword => {
-            // Create a case-insensitive regex for the keyword
             const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
             if (regex.test(resultHtml)) {
                 hasMatches = true;
-                // Replace with the captured group to preserve original casing if needed, or force uppercase? 
-                // User said "sans grosse lettre rouge". 
-                // "Big red letter" usually refers to Drop Cap or H1.
-                // But user also said "elle y sons toujours la".
-                // If they mean the keywords are too much, we should tone it down.
-                // Let's keep the highlighting but ensure it's not "giant".
-                // The CSS class 'premium-text-bold' handles the style (likely red color).
                 resultHtml = resultHtml.replace(regex, '<span class="premium-text-bold">$1</span>');
             }
         });
-
-        // REMOVED: The aggressive uppercaseRegex block that turned ALL caps words red.
-        // This was likely causing "plein de lettre géantes rouge" if many words were capitalized.
 
         if (hasMatches) {
             const span = document.createElement('span');
@@ -119,11 +150,22 @@ export function standardizeContent(html: string): string {
         }
     });
 
-    // 4. Style existing <a> tags
+    // 2. Style existing <a> tags
     const links = tempDiv.querySelectorAll('a');
     links.forEach(link => {
         link.classList.add('premium-link');
     });
+
+    // 3. APPLY DROP-CAP
+    // Standard Premium Look: Apply to the first substantive paragraph
+    const paras = tempDiv.querySelectorAll('p');
+    for (const p of Array.from(paras)) {
+        // Skip short meta-paragraphs (like "Published on...") if possible, 
+        // but cleaner to just apply to the first one that has enough text.
+        if (p.textContent && p.textContent.trim().length > 50) {
+            if (applyDropCap(p as HTMLElement)) break; // Only apply to the first one
+        }
+    }
 
     return tempDiv.innerHTML;
 }
