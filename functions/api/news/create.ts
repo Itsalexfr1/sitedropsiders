@@ -4,7 +4,8 @@ import {
     hashPassword,
     CORSH,
     utf8_to_b64,
-    b64_to_utf8
+    b64_to_utf8,
+    updateGitHubFile
 } from '../../utils';
 
 export const onRequestPost = async (context: any) => {
@@ -16,8 +17,6 @@ export const onRequestPost = async (context: any) => {
             headers: { ...CORSH }
         });
     }
-
-    const headers = { ...CORSH, 'Content-Type': 'application/json' };
 
     try {
         const adminPassword = request.headers.get('X-Admin-Password');
@@ -32,84 +31,37 @@ export const onRequestPost = async (context: any) => {
             return jsonResponse({ error: 'Champs obligatoires manquants' }, 400);
         }
 
-        const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
-        const REPO = env.GITHUB_REPO || 'sitedropsiders';
-        const PATH = 'src/data/news.json';
-        const TOKEN = env.GITHUB_TOKEN;
-
-        if (!TOKEN) {
-            return jsonResponse({ error: 'Configuration GITHUB_TOKEN manquante' }, 500);
-        }
-
-        const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
-        const getResponse = await fetch(getUrl, {
-            headers: {
-                'Authorization': `Bearer ${TOKEN}`,
-                'User-Agent': 'Cloudflare-Worker',
-                'Accept': 'application/vnd.github.v3+json'
-            }
-        });
-
-        if (!getResponse.ok) {
-            const errorText = await getResponse.text();
-            return jsonResponse({ error: 'Impossible de récupérer les données', details: errorText }, 502);
-        }
-
-        const fileData: any = await getResponse.json();
-        let currentNews: any[] = [];
-        try {
-            const content = b64_to_utf8(fileData.content.replace(/\n/g, ''));
-            currentNews = JSON.parse(content);
-        } catch (e) {
-            console.error("Error parsing news data:", e);
-            currentNews = [];
-        }
-
-        const newId = currentNews.length > 0 ? Math.max(...currentNews.map((n: any) => n.id || 0)) + 1 : 1;
-
         const slug = title.toLowerCase()
             .replace(/[^\w\s-]/g, '')
             .replace(/\s+/g, '-')
             .substring(0, 50);
 
-        const link = `https://www.dropsiders.eu/news/${newId}_${slug}`;
+        let newArticle: any = null;
 
-        const newArticle = {
-            id: newId,
-            title,
-            date: date || new Date().toISOString().split('T')[0],
-            summary,
-            content,
-            image,
-            images: [image],
-            youtubeId: "",
-            link,
-            category
-        };
+        await updateGitHubFile(
+            env,
+            'src/data/news.json',
+            (currentNews: any[]) => {
+                const newId = currentNews.length > 0 ? Math.max(...currentNews.map((n: any) => n.id || 0)) + 1 : 1;
+                const link = `https://www.dropsiders.eu/news/${newId}_${slug}`;
 
-        currentNews.unshift(newArticle);
+                newArticle = {
+                    id: newId,
+                    title,
+                    date: date || new Date().toISOString().split('T')[0],
+                    summary,
+                    content,
+                    image,
+                    images: [image],
+                    youtubeId: "",
+                    link,
+                    category
+                };
 
-        const updatedContent = utf8_to_b64(JSON.stringify(currentNews, null, 2));
-
-        const putResponse = await fetch(getUrl, {
-            method: 'PUT',
-            headers: {
-                'Authorization': `Bearer ${TOKEN}`,
-                'User-Agent': 'Cloudflare-Worker',
-                'Accept': 'application/vnd.github.v3+json',
-                'Content-Type': 'application/json'
+                return [newArticle, ...currentNews];
             },
-            body: JSON.stringify({
-                message: `Add news article: ${title}`,
-                content: updatedContent,
-                sha: fileData.sha
-            })
-        });
-
-        if (!putResponse.ok) {
-            const errorText = await putResponse.text();
-            return jsonResponse({ error: 'Erreur lors de la sauvegarde sur GitHub', details: errorText }, 502);
-        }
+            `Add news article: ${title}`
+        );
 
         return jsonResponse({ success: true, article: newArticle });
 

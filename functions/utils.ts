@@ -74,13 +74,27 @@ export async function updateGitHubFile(env: any, path: string, updateFn: (conten
                 fileData = await getRes.json();
             }
 
-            const content = fileData.content ? b64_to_utf8(fileData.content.replace(/\n/g, '')) : '[]';
+            let content = '[]';
+            if (fileData.content) {
+                content = b64_to_utf8(fileData.content.replace(/\n/g, ''));
+            } else if (fileData.download_url) {
+                const rawRes = await fetch(fileData.download_url, {
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'User-Agent': 'Cloudflare-Worker'
+                    }
+                });
+                if (rawRes.ok) {
+                    content = await rawRes.text();
+                }
+            }
+
             let jsonContent;
             try {
-                jsonContent = JSON.parse(content);
+                jsonContent = content && content.trim() ? JSON.parse(content) : [];
             } catch (e) {
                 console.error("JSON Parse Error:", e);
-                jsonContent = []; // Fallback to empty array if corrupted/empty
+                jsonContent = [];
             }
 
             // Apply update function
