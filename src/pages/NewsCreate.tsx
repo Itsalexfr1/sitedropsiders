@@ -270,15 +270,27 @@ export function NewsCreate() {
                     </div>
 
                     <div data-color-mode="dark">
-                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                            <FileText className="w-4 h-4" /> Contenu de l'article
-                        </label>
+                        <div className="flex justify-between items-end mb-2">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <FileText className="w-4 h-4" /> Contenu de l'article
+                            </label>
+                            <button
+                                onClick={() => {
+                                    const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
+                                    setContent(prev => prev + dropCapTemplate);
+                                }}
+                                className="text-[10px] font-black bg-neon-red/20 border border-neon-red/30 px-3 py-1 rounded text-neon-red hover:bg-neon-red hover:text-white transition-all uppercase tracking-widest"
+                            >
+                                + Ajouter une partie (Lettrine)
+                            </button>
+                        </div>
                         <div className="wmde-markdown-var">
                             <MDEditor
                                 value={content}
                                 onChange={(val) => setContent(val || '')}
                                 height={400}
                                 style={{ backgroundColor: '#000', color: '#fff', borderColor: '#333' }}
+                                preview="live"
                             />
                         </div>
                     </div>

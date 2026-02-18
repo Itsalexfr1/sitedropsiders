@@ -281,7 +281,19 @@ export function RecapCreate() {
 
                         {/* Content Editor */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Contenu (Markdown)</label>
+                            <div className="flex justify-between items-end">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Contenu (Markdown)</label>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
+                                        setContent(prev => prev + dropCapTemplate);
+                                    }}
+                                    className="text-[10px] font-black bg-neon-cyan/10 border border-neon-cyan/30 px-3 py-1 rounded text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all uppercase tracking-widest"
+                                >
+                                    + Ajouter une partie (Lettrine)
+                                </button>
+                            </div>
                             <div className="rounded-xl overflow-hidden border border-white/10">
                                 <MDEditor
                                     value={content}
