@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { GoogleLogin } from '@react-oauth/google';
-import type { CredentialResponse } from '@react-oauth/google';
 import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -60,47 +58,13 @@ export function AdminDashboard() {
                 setIsAuthenticated(true);
                 localStorage.setItem('admin_auth', 'true');
                 localStorage.setItem('admin_password', password);
-                localStorage.setItem('admin_user', 'contact@dropsiders.fr');
+                localStorage.setItem('admin_user', 'alex');
             } else {
                 setError('Identifiants incorrects (Mode Local)');
             }
         }
     };
 
-    const handleGoogleLoginSuccess = async (response: CredentialResponse) => {
-        if (!response.credential) {
-            setError('Pas de Token Google reçu.');
-            return;
-        }
-
-        try {
-            const res = await fetch('/api/login/google', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token: response.credential })
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                if (data.success) {
-                    setIsAuthenticated(true);
-                    localStorage.setItem('admin_auth', 'true');
-                    localStorage.setItem('admin_user', data.user);
-                    // Store token for future API calls if needed instead of password
-                    // The backend will need to accept this token in X-Admin-Token header
-                    localStorage.setItem('admin_google_token', response.credential);
-                    return;
-                }
-            }
-            if (res.status === 401 || res.status === 403) {
-                setError('Compte Google non autorisé.');
-                return;
-            }
-            setError('Erreur lors de la vérification Google.');
-        } catch (err) {
-            setError('Erreur de connexion serveur.');
-        }
-    };
 
     const handleLogout = () => {
         setIsAuthenticated(false);
@@ -137,8 +101,8 @@ export function AdminDashboard() {
                                     <User className="h-5 w-5 text-gray-400" />
                                 </div>
                                 <input
-                                    type="email"
-                                    placeholder="Email"
+                                    type="text"
+                                    placeholder="Identifiant"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
@@ -170,25 +134,6 @@ export function AdminDashboard() {
                                 Se connecter
                                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                             </button>
-
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-white/10"></div>
-                                </div>
-                                <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-dark-bg text-gray-500">Ou</span>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-center">
-                                <GoogleLogin
-                                    onSuccess={handleGoogleLoginSuccess}
-                                    onError={() => setError('Échec de la connexion Google')}
-                                    theme="filled_black"
-                                    shape="circle"
-                                    text="signin_with"
-                                />
-                            </div>
                         </form>
                     </motion.div>
                 </div>
@@ -337,7 +282,7 @@ export function AdminDashboard() {
                     </div>
 
                     {/* Editors Admin - ONLY for Alex */}
-                    {(localStorage.getItem('admin_user') === 'contact@dropsiders.fr' || localStorage.getItem('admin_user') === 'alex') && (
+                    {localStorage.getItem('admin_user') === 'alex' && (
                         <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-neon-red/5 rounded-3xl p-8 border border-neon-red/20 shadow-lg shadow-neon-red/5">
                             <div className="flex items-center gap-6">
                                 <div className="p-4 bg-neon-red/10 rounded-2xl">

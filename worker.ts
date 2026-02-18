@@ -54,13 +54,6 @@ export default {
             return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
         }
 
-        async function verifyGoogleToken(token) {
-            try {
-                const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${token}`);
-                if (!res.ok) return null;
-                return await res.json();
-            } catch (e) { return null; }
-        }
 
         async function saveGitHubFile(filePath, content, message, sha) {
             const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
@@ -115,40 +108,6 @@ export default {
         const adminPassword = env.ADMIN_PASSWORD || 'alex2026';
         const requestPassword = request.headers.get('X-Admin-Password');
         let requestUsername = request.headers.get('X-Admin-Username') || '';
-        const requestGoogleToken = request.headers.get('X-Google-Token');
-
-        // --- API: GOOGLE LOGIN ---
-        if (path === '/api/login/google' && request.method === 'POST') {
-            try {
-                const { token } = await request.json();
-                const payload = await verifyGoogleToken(token);
-
-                if (!payload || !payload.email) {
-                    return new Response(JSON.stringify({ error: 'Token invalide' }), { status: 401, headers });
-                }
-
-                const email = payload.email;
-
-                // 1. Check Admin
-                if (email === 'contact@dropsiders.fr' || email === 'alexflex30@gmail.com') {
-                    return new Response(JSON.stringify({ success: true, user: email, role: 'admin' }), { status: 200, headers });
-                }
-
-                // 2. Check Editor
-                const editorsFile = await fetchGitHubFile(EDITORS_PATH);
-                if (editorsFile && editorsFile.content) {
-                    const editor = editorsFile.content.find(e => e.username === email); // Assume username is email
-                    if (editor) {
-                        return new Response(JSON.stringify({ success: true, user: email, role: 'editor' }), { status: 200, headers });
-                    }
-                }
-
-                return new Response(JSON.stringify({ error: 'Utilisateur non autorisé' }), { status: 403, headers });
-
-            } catch (e) {
-                return new Response(JSON.stringify({ error: 'Erreur serveur' }), { status: 500, headers });
-            }
-        }
 
         const isAuthRoute = path.startsWith('/api/news/create') ||
             path.startsWith('/api/recaps/create') ||
@@ -167,30 +126,11 @@ export default {
             let authenticated = false;
 
             // 1. Check Password Auth
-            if (requestPassword === adminPassword && (requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alex' || !requestUsername)) {
+            // 1. Check Password Auth
+            if (requestPassword === adminPassword && (requestUsername === 'alex' || !requestUsername)) {
                 authenticated = true;
             }
-            // 2. Check Google Token Auth
-            else if (requestGoogleToken) {
-                const payload = await verifyGoogleToken(requestGoogleToken);
-                if (payload && payload.email) {
-                    if (payload.email === 'contact@dropsiders.fr' || payload.email === 'alexflex30@gmail.com') {
-                        authenticated = true;
-                        requestUsername = payload.email;
-                    } else {
-                        // Check Editor
-                        const editorsFile = await fetchGitHubFile(EDITORS_PATH);
-                        if (editorsFile && editorsFile.content) {
-                            const editor = editorsFile.content.find(e => e.username === payload.email);
-                            if (editor) {
-                                authenticated = true;
-                                requestUsername = payload.email;
-                            }
-                        }
-                    }
-                }
-            }
-            // 3. Check Editor Password Auth
+            // 2. Check Editor Password Auth
             else if (requestUsername) {
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH);
                 if (editorsFile && editorsFile.content) {
@@ -205,9 +145,7 @@ export default {
 
             // Specific check for editors management: only Alex
             if (path.startsWith('/api/editors') &&
-                requestUsername !== 'contact@dropsiders.fr' &&
-                requestUsername !== 'alex' &&
-                requestUsername !== 'alexflex30@gmail.com'
+                requestUsername !== 'alex'
             ) {
                 return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
             }
@@ -217,8 +155,8 @@ export default {
         if (path === '/api/login' && request.method === 'POST') {
             try {
                 const { username, password } = await request.json();
-                if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === adminPassword) {
-                    return new Response(JSON.stringify({ success: true, user: username }), { status: 200, headers });
+                if (username === 'alex' && password === adminPassword) {
+                    return new Response(JSON.stringify({ success: true, user: 'alex' }), { status: 200, headers });
                 }
 
                 // Check editors

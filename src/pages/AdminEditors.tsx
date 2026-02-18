@@ -28,7 +28,7 @@ export function AdminEditors() {
 
     useEffect(() => {
         const user = localStorage.getItem('admin_user');
-        if (user !== 'contact@dropsiders.fr' && user !== 'alex') {
+        if (user !== 'alex') {
             navigate('/admin');
             return;
         }
