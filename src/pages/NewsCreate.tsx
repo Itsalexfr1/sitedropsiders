@@ -313,14 +313,36 @@ export function NewsCreate() {
                                     </div>
 
                                     {/* Linker / Add Button between or after */}
-                                    <div className="flex justify-center mt-4">
+                                    <div className="flex justify-center gap-4 mt-4">
                                         {index === widgets.length - 1 && (
-                                            <button
-                                                onClick={addWidget}
-                                                className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-xs"
-                                            >
-                                                <Plus className="w-4 h-4" /> Ajouter un bloc de texte
-                                            </button>
+                                            <>
+                                                <button
+                                                    onClick={addWidget}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-xs"
+                                                >
+                                                    <Plus className="w-4 h-4" /> Ajouter un bloc de texte
+                                                </button>
+                                                <label className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-xs cursor-pointer">
+                                                    <ImageIcon className="w-4 h-4" /> Ajouter une image
+                                                    <input type="file" accept="image/*" onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            const formData = new FormData();
+                                                            formData.append('image', file);
+                                                            formData.append('path', 'news');
+                                                            fetch('/api/upload', {
+                                                                method: 'POST',
+                                                                headers: getAuthHeaders(null),
+                                                                body: formData
+                                                            }).then(res => res.json()).then(data => {
+                                                                if (data.success) {
+                                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `![image](${data.url})` }]);
+                                                                }
+                                                            });
+                                                        }
+                                                    }} className="hidden" />
+                                                </label>
+                                            </>
                                         )}
                                     </div>
                                 </div>

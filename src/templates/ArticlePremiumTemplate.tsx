@@ -330,15 +330,15 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             {previousArticle && (
                                                 <Link
                                                     to={type === 'recap' ? getRecapLink(previousArticle) : getArticleLink(previousArticle)}
-                                                    className="group flex flex-col items-start gap-3 max-w-[200px]"
+                                                    className="group flex flex-col items-start gap-3 max-w-[150px]"
                                                     onMouseEnter={playHoverSound}
                                                 >
                                                     <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase">Précédent</span>
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
-                                                            <ArrowLeft className="w-4 h-4 text-white" />
+                                                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
+                                                            <ArrowLeft className="w-3 h-3 text-white" />
                                                         </div>
-                                                        <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase">{previousArticle.title}</span>
+                                                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase">{previousArticle.title}</span>
                                                     </div>
                                                 </Link>
                                             )}
@@ -347,14 +347,14 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             {nextArticle && (
                                                 <Link
                                                     to={type === 'recap' ? getRecapLink(nextArticle) : getArticleLink(nextArticle)}
-                                                    className="group flex flex-col items-end gap-3 max-w-[200px]"
+                                                    className="group flex flex-col items-end gap-3 max-w-[150px]"
                                                     onMouseEnter={playHoverSound}
                                                 >
                                                     <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase">Suivant</span>
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase text-right">{nextArticle.title}</span>
-                                                        <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
-                                                            <ArrowRight className="w-4 h-4 text-white" />
+                                                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase text-right">{nextArticle.title}</span>
+                                                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
+                                                            <ArrowRight className="w-3 h-3 text-white" />
                                                         </div>
                                                     </div>
                                                 </Link>
@@ -395,7 +395,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0 snap-start"
                                                         onMouseEnter={playHoverSound}
                                                     >
-                                                        <div className="aspect-square rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
+                                                        <div className="aspect-video rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
                                                             <img src={rel.image} alt={rel.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                         </div>
                                                         <div className="space-y-2">
@@ -414,7 +414,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                     {/* Newsletter Widget (Interview Style) */}
                                     {/* Newsletter Widget (Interview Style) */}
-                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-4 text-center space-y-2 relative overflow-hidden scale-90 origin-top newsletter-sidebar-compact">
+                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-4 text-center space-y-2 relative overflow-hidden origin-top newsletter-sidebar-compact">
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full" />
                                         <div className="relative z-10 space-y-2">
                                             <div className="w-10 h-10 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">

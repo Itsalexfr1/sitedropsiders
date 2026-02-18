@@ -350,15 +350,73 @@ export function RecapCreate() {
                                             />
                                         </div>
 
-                                        <div className="flex justify-center mt-4">
+                                        <div className="flex justify-center gap-4 mt-4">
                                             {index === widgets.length - 1 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={addWidget}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-xs"
-                                                >
-                                                    <Plus className="w-4 h-4" /> Ajouter un bloc de texte
-                                                </button>
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={addWidget}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-xs"
+                                                    >
+                                                        <Plus className="w-4 h-4" /> Ajouter un bloc de texte
+                                                    </button>
+                                                    <label className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-xs cursor-pointer">
+                                                        <ImageIcon className="w-4 h-4" /> Ajouter une image
+                                                        <input type="file" accept="image/*" onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const formData = new FormData();
+                                                                formData.append('image', file);
+                                                                formData.append('path', 'recaps');
+                                                                fetch('/api/upload', {
+                                                                    method: 'POST',
+                                                                    headers: getAuthHeaders(null),
+                                                                    body: formData
+                                                                }).then(res => res.json()).then(data => {
+                                                                    if (data.success) {
+                                                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `![image](${data.url})` }]);
+                                                                    }
+                                                                });
+                                                            }
+                                                        }} className="hidden" />
+                                                    </label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const input = document.createElement('input');
+                                                            input.type = 'file';
+                                                            input.multiple = true;
+                                                            input.accept = 'image/*';
+                                                            input.onchange = async (e: any) => {
+                                                                const files = e.target.files;
+                                                                if (!files || files.length === 0) return;
+
+                                                                const uploadedUrls = [];
+                                                                for (let i = 0; i < files.length; i++) {
+                                                                    const formData = new FormData();
+                                                                    formData.append('image', files[i]);
+                                                                    formData.append('path', 'recaps');
+                                                                    const res = await fetch('/api/upload', {
+                                                                        method: 'POST',
+                                                                        headers: getAuthHeaders(null),
+                                                                        body: formData
+                                                                    });
+                                                                    const data = await res.json();
+                                                                    if (data.success) uploadedUrls.push(data.url);
+                                                                }
+
+                                                                if (uploadedUrls.length > 0) {
+                                                                    const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover rounded-xl" />`).join('\n')}\n</div>`;
+                                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
+                                                                }
+                                                            };
+                                                            input.click();
+                                                        }}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-xs"
+                                                    >
+                                                        <Plus className="w-4 h-4" /> Ajouter une galerie
+                                                    </button>
+                                                </>
                                             )}
                                         </div>
                                     </div>

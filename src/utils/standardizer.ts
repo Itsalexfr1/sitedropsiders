@@ -17,7 +17,8 @@ const fixEncoding = (text: string) => {
         .replace(/ƒôà/g, '📅')
         .replace(/­ƒÄƒ´©Å/g, '🎟️')
         .replace(/ƒÄƒ´©Å/g, '🎟️')
-        .replace(/à([a-zA-Z])/g, 'à $1'); // Fix missing spaces after 'à' (e.g. àIbiza -> à Ibiza)
+        .replace(/à([a-zA-Z0-9])/g, 'à $1') // Fix missing spaces after 'à'
+        .replace(/Ushuaa/gi, 'Ushuaïa');
 };
 
 const RED_KEYWORDS = [
