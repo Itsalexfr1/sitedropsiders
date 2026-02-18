@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 
 export function RecapCreate() {
     const location = useLocation() as any;
@@ -52,10 +53,7 @@ export function RecapCreate() {
         try {
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: {
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(null),
                 body: formData
             });
 
@@ -85,11 +83,7 @@ export function RecapCreate() {
 
             const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     id: isEditing ? editingItem.id : undefined,
                     title,

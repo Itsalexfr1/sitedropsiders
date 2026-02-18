@@ -9,12 +9,16 @@ const RED_KEYWORDS = [
     'COACHELLA',
     'TOMORROWLAND',
     'EDC',
+    'EDC WEEK',
     'LAS VEGAS',
     'UNVRS',
     'IBIZA',
     'SWEDISH HOUSE MAFIA',
     'CERCLE FESTIVAL',
     'CERCLE',
+    'ULTRA MIAMI',
+    'ULTRA',
+    'RESISTANCE',
     'MARTIN GARRIX',
     'DAVID GUETTA',
     'ARMIN VAN BUUREN',
@@ -31,7 +35,19 @@ const RED_KEYWORDS = [
     'USHUAÏA',
     'AMNESIA',
     'PACHA',
-    'DC-10'
+    'DC-10',
+    'MARS',
+    'AVRIL',
+    'MAI',
+    'JUIN',
+    'JUILLET',
+    'AOÛT',
+    'SEPTEMBRE',
+    'OCTOBRE',
+    'NOVEMBRE',
+    'DÉCEMBRE',
+    'AEDEN',
+    'GENESE'
 ];
 
 export function standardizeContent(html: string): string {
@@ -78,15 +94,22 @@ export function standardizeContent(html: string): string {
         });
 
         // 3. Process other words in ALL CAPS (at least 3 letters)
-        const exclusions = ['LES', 'DES', 'POUR', 'UNE', 'AUX', 'DANS', 'AVEC', 'SANS', 'SOUS'];
+        const exclusions = ['LES', 'DES', 'POUR', 'UNE', 'AUX', 'DANS', 'AVEC', 'SANS', 'SOUS', 'EST', 'SON', 'SES', 'SUR', 'PAR', 'AVE', 'QUE', 'QUI', 'CAR', 'PAS'];
         const uppercaseRegex = /\b([A-ZÀ-Ÿ]{3,})\b/g;
 
         if (uppercaseRegex.test(resultHtml)) {
             resultHtml = resultHtml.replace(uppercaseRegex, (match) => {
-                // Skip if already wrapped in a span (check for both classes)
-                if (RED_KEYWORDS.includes(match.toUpperCase()) || exclusions.includes(match.toUpperCase())) {
+                const upperMatch = match.toUpperCase();
+                // Skip if it's in the red keywords (already handled or will be), or in exclusions
+                if (RED_KEYWORDS.some(k => upperMatch === k || upperMatch.includes(k)) || exclusions.includes(upperMatch)) {
                     return match;
                 }
+
+                // Extra check: if it's already inside a span with our classes, skip
+                if (resultHtml.includes(`>${match}<`)) {
+                    return match;
+                }
+
                 hasMatches = true;
                 return `<span class="premium-text-bold">${match}</span>`;
             });

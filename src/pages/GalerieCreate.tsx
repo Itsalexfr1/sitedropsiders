@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 
 export function GalerieCreate() {
     const [title, setTitle] = useState('');
@@ -28,10 +29,7 @@ export function GalerieCreate() {
 
                 const response = await fetch('/api/upload', {
                     method: 'POST',
-                    headers: {
-                        'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                        'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                    },
+                    headers: getAuthHeaders(null),
                     body: formData
                 });
 
@@ -70,11 +68,7 @@ export function GalerieCreate() {
 
             const response = await fetch('/api/galerie/create', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     title,
                     date,

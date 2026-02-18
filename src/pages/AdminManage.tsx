@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 
 // Import des données locales (fallback si GitHub inaccessible)
 import newsDataLocal from '../data/news.json';
@@ -75,11 +76,7 @@ export function AdminManage() {
                     `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ id })
             });
 

@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 
 interface Editor {
     username: string;
@@ -27,7 +28,7 @@ export function AdminEditors() {
 
     useEffect(() => {
         const user = localStorage.getItem('admin_user');
-        if (user !== 'alex') {
+        if (user !== 'contact@dropsiders.fr' && user !== 'alex') {
             navigate('/admin');
             return;
         }
@@ -36,13 +37,8 @@ export function AdminEditors() {
 
     const fetchEditors = async () => {
         try {
-            const password = localStorage.getItem('admin_password');
-            const username = localStorage.getItem('admin_user');
             const response = await fetch('/api/editors', {
-                headers: {
-                    'X-Admin-Password': password || '',
-                    'X-Admin-Username': username || ''
-                }
+                headers: getAuthHeaders(null)
             });
             if (response.ok) {
                 const data = await response.json();
@@ -61,15 +57,9 @@ export function AdminEditors() {
         setError('');
 
         try {
-            const password = localStorage.getItem('admin_password');
-            const username = localStorage.getItem('admin_user');
             const response = await fetch('/api/editors/create', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': password || '',
-                    'X-Admin-Username': username || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(newEditor)
             });
 
@@ -92,15 +82,9 @@ export function AdminEditors() {
         if (!confirm(`Supprimer l'éditeur ${targetUsername} ?`)) return;
 
         try {
-            const password = localStorage.getItem('admin_password');
-            const username = localStorage.getItem('admin_user');
             const response = await fetch('/api/editors/delete', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': password || '',
-                    'X-Admin-Username': username || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({ username: targetUsername })
             });
 

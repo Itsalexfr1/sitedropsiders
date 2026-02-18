@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Link as LinkIcon, Music, Tag, ArrowLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 
 export function AgendaCreate() {
     const location = useLocation() as any;
@@ -46,10 +47,7 @@ export function AgendaCreate() {
         try {
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: {
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(null),
                 body: formData
             });
 
@@ -76,11 +74,7 @@ export function AgendaCreate() {
 
             const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     id: isEditing ? editingItem.id : undefined,
                     title,

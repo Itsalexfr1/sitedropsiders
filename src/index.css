@@ -98,7 +98,7 @@
   /* Paragraphes Centrés - Petit espace constant */
   .article-body-premium p {
     @apply text-left text-gray-300 leading-[1.8] text-base md:text-lg font-light max-w-4xl mx-auto;
-    margin: 2rem auto !important;
+    margin: 3rem auto !important;
     padding: 0 !important;
   }
 
@@ -116,8 +116,8 @@
   /* Lettrine Élégante */
   .article-body-premium p:first-of-type::first-letter {
     font-family: var(--font-display);
-    @apply float-left text-6xl md:text-7xl leading-[0.8] pr-4 pt-1 font-black text-neon-red uppercase;
-    text-shadow: 0 0 30px rgba(255, 0, 51, 0.3);
+    @apply float-left text-7xl md:text-8xl leading-[0.7] pr-4 pt-2 font-black text-neon-red uppercase;
+    text-shadow: 0 0 30px rgba(255, 0, 51, 0.4);
   }
 
   /* Titres Internes - Force compacité */
@@ -130,7 +130,7 @@
   .article-body-premium h3,
   .article-body-premium h4 {
     @apply font-display font-black text-white uppercase text-center tracking-tight italic;
-    margin: 1rem 0 !important;
+    margin: 2rem 0 !important;
     padding: 0 !important;
   }
 
@@ -139,7 +139,7 @@
   }
 
   .article-body-premium h3 {
-    @apply text-xl md:text-3xl;
+    @apply text-xl md:text-3xl uppercase font-black;
   }
 
   .premium-text-bold {

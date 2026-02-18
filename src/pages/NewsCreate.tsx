@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 
 export function NewsCreate() {
     const [searchParams] = useSearchParams();
@@ -56,10 +57,7 @@ export function NewsCreate() {
         try {
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: {
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(null),
                 body: formData
             });
 
@@ -114,11 +112,7 @@ export function NewsCreate() {
 
             const response = await fetch(endpoint, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify(payload)
             });
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 import { Send, Copy, Eye, Type, Image as ImageIcon, Users, ArrowLeft, Music, Youtube } from 'lucide-react';
 
 
@@ -46,10 +47,7 @@ export function NewsletterComposer() {
             try {
                 // On tente de charger depuis l'API uniquement
                 const response = await fetch('/api/subscribers', {
-                    headers: {
-                        'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                        'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                    }
+                    headers: getAuthHeaders(null)
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -293,11 +291,7 @@ export function NewsletterComposer() {
         try {
             const response = await fetch('/api/newsletter/send', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                },
+                headers: getAuthHeaders(),
                 body: JSON.stringify({
                     subject,
                     htmlContent: generateHTML(false),

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Mail, Users, Calendar, Trash2, Download, Search, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
 import { motion } from 'framer-motion';
 
 import localSubscribersData from '../data/subscribers.json';
@@ -37,10 +38,7 @@ export function NewsletterAdmin() {
     const loadSubscribers = async () => {
         try {
             const response = await fetch('/api/subscribers', {
-                headers: {
-                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                }
+                headers: getAuthHeaders(null)
             });
             if (response.ok) {
                 const data = await response.json();
@@ -68,11 +66,7 @@ export function NewsletterAdmin() {
             try {
                 const response = await fetch('/api/unsubscribe', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Admin-Password': localStorage.getItem('admin_password') || '',
-                        'X-Admin-Username': localStorage.getItem('admin_user') || ''
-                    },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify({ email })
                 });
 

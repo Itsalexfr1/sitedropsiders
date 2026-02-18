@@ -10,6 +10,7 @@ import { extractIdFromSlug, getArticleLink } from '../utils/slugify';
 import { translateText, translateHTML } from '../utils/translate';
 import { getNewsContent } from '../utils/contentLoader';
 import { standardizeContent } from '../utils/standardizer';
+import ArticlePremiumTemplate from '../templates/ArticlePremiumTemplate';
 
 
 export function ArticleDetail() {
@@ -122,17 +123,25 @@ export function ArticleDetail() {
         emptyLinks.forEach(link => link.remove());
 
         // Nettoyage texte spécifique résiduel
-        // On récupère le body et on fait un replace sur le string global si nécessaire, mais DOMParser est mieux
-        // Cependant pour des mots spécifiques comme "Partager" qui traînent hors de balises, c'est plus dur.
-        // On va faire un nettoyage post-string pour les textes parasites connus non encapsulés
         let finalHtml = doc.body.innerHTML;
 
-        // Nettoyages regex résiduels (plus sûrs maintenant que la structure est propre)
+        // 1. Suppression des Emojis (Regex robuste)
+        finalHtml = finalHtml.replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E6}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F3FB}-\u{1F3FF}\u{1F170}-\u{1F251}\u{1F004}\u{1F0CF}\u{1F18E}\u{1F191}-\u{1F19A}\u{2B1B}\u{2B1C}\u{2B50}\u{2B55}\u{3030}\u{303D}\u{3297}\u{3299}]/gu, '');
+
+        // 2. Nettoyage des artefacts Webador et espaces
         finalHtml = finalHtml
             .replace(/&nbsp;/g, ' ')
             .replace(/<p>\s*<\/p>/gi, '')
             .replace(/Propulsé par Webador/gi, '')
-            .replace(/Modifier cette page/gi, '');
+            .replace(/Modifier cette page/gi, '')
+            .replace(/Parts d'en Bossa/gi, "Playa d'en Bossa") // Correction commune
+            .replace(/Æ/g, 'AE')
+            .replace(/æ/g, 'ae')
+            .replace(/ÔåÆ/g, '→') // Correction encodage flèches
+            .replace(/┬▓/g, '²') // Correction encodage m²
+            .replace(/├é/g, 'Â') // Correction encodage noms
+            .replace(/├ä/g, 'Ä')
+            .replace(/ÔÇô/g, '–');
 
         // Support Interviews
         if (isInterview) {
@@ -152,6 +161,19 @@ export function ArticleDetail() {
     };
 
     const cleanedContent = cleanHTML(rawContent);
+
+    // --- PREMIUM TEMPLATE (Anyma Style) ---
+    if (article.category === 'News') {
+        return (
+            <ArticlePremiumTemplate
+                article={article}
+                content={cleanedContent}
+                type="news"
+                relatedArticles={relatedArticles}
+            />
+        );
+    }
+
     const backLink = isInterview ? '/interviews' : '/news';
     const backText = isInterview ? t('article_detail.back_to_interviews') : t('article_detail.back_to_news');
 
