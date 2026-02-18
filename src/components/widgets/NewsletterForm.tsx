@@ -82,9 +82,8 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
     return (
         <div className={`w-full ${isCompact ? 'max-w-md' : 'max-w-2xl'} mx-auto`}>
             <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Field */}
                 <div className="relative group">
-                    <label htmlFor="email" className="block text-xs font-black text-neon-red uppercase tracking-widest mb-3">
+                    <label htmlFor="email" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3 transition-colors group-focus-within:text-white">
                         {t('newsletter_form.email_label') || 'EMAIL ADDRESS'}
                     </label>
                     <div className="relative">
@@ -106,7 +105,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* First Name */}
                         <div className="relative group">
-                            <label htmlFor="firstName" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3">
+                            <label htmlFor="firstName" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3 transition-colors group-focus-within:text-white">
                                 {t('newsletter_form.first_name_label')}
                             </label>
                             <div className="relative">
@@ -124,7 +123,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
 
                         {/* Last Name */}
                         <div className="relative group">
-                            <label htmlFor="lastName" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3">
+                            <label htmlFor="lastName" className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-3 transition-colors group-focus-within:text-white">
                                 {t('newsletter_form.last_name_label')}
                             </label>
                             <div className="relative">
