@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus } from 'lucide-react';
+import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -12,7 +12,6 @@ export function RecapCreate() {
 
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
-    const [content, setContent] = useState('**Écrivez votre récap ici...**');
     const [coverImage, setCoverImage] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [festival, setFestival] = useState('');
@@ -20,21 +19,42 @@ export function RecapCreate() {
     const [youtubeId, setYoutubeId] = useState('');
     const [uploading, setUploading] = useState(false);
 
+    // Widget System State
+    const [widgets, setWidgets] = useState<{ id: string, content: string }[]>([
+        { id: 'initial-1', content: '**Écrivez votre récap ici...**' }
+    ]);
+
     useEffect(() => {
         if (isEditing && editingItem) {
             setTitle(editingItem.title);
             setSummary(editingItem.summary);
-            // Basic HTML cleanup if needed
+            setCoverImage(editingItem.image);
+            setDate(editingItem.date);
+            setFestival(editingItem.festival || '');
+            setLocationInput(editingItem.location || '');
+            setYoutubeId(editingItem.youtubeId || '');
+
+            // Parse Content into Widgets
             let c = editingItem.content || '';
             if (typeof c === 'string' && c.startsWith('<div class="markdown-content">')) {
                 c = c.replace('<div class="markdown-content">', '').replace(/<\/div>$/, '').replace(/<br>/g, '\n');
             }
-            setContent(c);
-            setCoverImage(editingItem.image);
-            setDate(editingItem.date);
-            setFestival(editingItem.festival || ''); // Assume festival field exists or is derived
-            setLocationInput(editingItem.location || '');
-            setYoutubeId(editingItem.youtubeId || '');
+
+            const sectionRegex = /<div class="article-section">\s*([\s\S]*?)\s*<\/div>/g;
+            const foundWidgets = [];
+            let match;
+            while ((match = sectionRegex.exec(c)) !== null) {
+                foundWidgets.push({
+                    id: Math.random().toString(36).substr(2, 9),
+                    content: match[1].trim()
+                });
+            }
+
+            if (foundWidgets.length > 0) {
+                setWidgets(foundWidgets);
+            } else {
+                setWidgets([{ id: 'legacy-1', content: c }]);
+            }
         }
     }, [isEditing, editingItem]);
 
@@ -70,14 +90,29 @@ export function RecapCreate() {
         }
     };
 
+    const addWidget = () => {
+        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: '' }]);
+    };
+
+    const updateWidget = (id: string, newContent: string) => {
+        setWidgets(widgets.map(w => w.id === id ? { ...w, content: newContent } : w));
+    };
+
+    const removeWidget = (id: string) => {
+        if (widgets.length > 1) {
+            setWidgets(widgets.filter(w => w.id !== id));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('loading');
         setMessage('Publication en cours...');
 
         try {
-            // In a real app, we send data to worker, worker handles GitHub logic
-            // We'll mimic the NewsCreate pattern
+            const finalContent = widgets.map(w =>
+                `<div class="article-section">\n\n${w.content}\n\n</div>`
+            ).join('\n\n');
 
             const endpoint = isEditing ? '/api/recaps/update' : '/api/recaps/create';
 
@@ -88,7 +123,7 @@ export function RecapCreate() {
                     id: isEditing ? editingItem.id : undefined,
                     title,
                     summary,
-                    content,
+                    content: finalContent,
                     image: coverImage,
                     date,
                     festival,
@@ -112,11 +147,10 @@ export function RecapCreate() {
 
             setStatus('success');
             setMessage(isEditing ? 'Récap mis à jour avec succès !' : 'Récap publié avec succès !');
-            // Reset form
             if (!isEditing) {
                 setTitle('');
                 setSummary('');
-                setContent('');
+                setWidgets([{ id: 'new-1', content: '' }]);
                 setCoverImage('');
                 setFestival('');
                 setLocationInput('');
@@ -132,7 +166,7 @@ export function RecapCreate() {
 
     return (
         <div className="min-h-screen bg-dark-bg text-white py-32 px-6">
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-5xl mx-auto">
                 <div className="flex items-center gap-6 mb-8">
                     <Link
                         to="/admin"
@@ -150,6 +184,17 @@ export function RecapCreate() {
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
+
+                        {/* Status Message */}
+                        {status !== 'idle' && (
+                            <div className={`p-4 rounded-xl flex items-center gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
+                                status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
+                                }`}>
+                                <AlertCircle className="w-5 h-5" />
+                                <p>{message}</p>
+                            </div>
+                        )}
+
                         {/* Title */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre du Récap</label>
@@ -166,8 +211,8 @@ export function RecapCreate() {
                             </div>
                         </div>
 
+                        {/* Date & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Date */}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date</label>
                                 <div className="relative group">
@@ -181,10 +226,8 @@ export function RecapCreate() {
                                     />
                                 </div>
                             </div>
-
-                            {/* Youtube ID */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Vidéo de l'article (Youtube)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Vidéo Youtube</label>
                                 <div className="relative group">
                                     <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
@@ -200,17 +243,17 @@ export function RecapCreate() {
                                             }
                                             setYoutubeId(id);
                                         }}
-                                        placeholder="URL Youtube ou ID (ex: dQw4w9WgXcQ)"
+                                        placeholder="URL Youtube ou ID"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
                                 </div>
                             </div>
                         </div>
 
+                        {/* Festival & Location */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Festival Name */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Festival (Optionnel)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Festival (Opt)</label>
                                 <div className="relative group">
                                     <PartyPopper className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
@@ -222,24 +265,22 @@ export function RecapCreate() {
                                     />
                                 </div>
                             </div>
-
-                            {/* Location */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu (Optionnel)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu (Opt)</label>
                                 <div className="relative group">
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
                                         type="text"
                                         value={locationInput}
                                         onChange={(e) => setLocationInput(e.target.value)}
-                                        placeholder="Ex: Boom, Belgique"
+                                        placeholder="Ex: Boom"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* Image URL */}
+                        {/* Cover Image */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture</label>
                             <div className="flex gap-2">
@@ -249,20 +290,14 @@ export function RecapCreate() {
                                         type="text"
                                         value={coverImage}
                                         onChange={(e) => setCoverImage(e.target.value)}
-                                        placeholder="https://... ou uploadez une image"
+                                        placeholder="https://..."
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                         required
                                     />
                                 </div>
                                 <label className="px-6 py-4 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-xl font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                    {uploading ? 'Upload...' : '📤 Upload'}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleImageUpload}
-                                        className="hidden"
-                                        disabled={uploading}
-                                    />
+                                    {uploading ? '...' : 'Upload'}
+                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
                                 </label>
                             </div>
                         </div>
@@ -273,100 +308,128 @@ export function RecapCreate() {
                             <textarea
                                 value={summary}
                                 onChange={(e) => setSummary(e.target.value)}
-                                placeholder="Un bref résumé pour l'aperçu..."
+                                placeholder="Un bref résumé..."
                                 className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all h-24"
                             />
                         </div>
 
 
-                        {/* Content Editor */}
-                        <div className="space-y-4 admin-editor-container" data-color-mode="dark">
-                            <div className="flex justify-between items-end">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                    <FileText className="w-4 h-4" /> CONTENU
-                                    <button
-                                        type="button"
-                                        onClick={() => setContent(prev => prev + '\n\n')}
-                                        className="ml-2 p-1 bg-white/5 border border-white/10 rounded hover:bg-neon-cyan/20 hover:border-neon-cyan/50 hover:text-neon-cyan transition-all"
-                                        title="Ajouter un nouveau paragraphe"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                    </button>
+                        {/* WIDGET EDITOR SECTION */}
+                        <div className="pt-8 border-t border-white/10">
+                            <div className="flex justify-between items-center mb-6">
+                                <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-neon-cyan" /> WIDGETS DE CONTENU
                                 </label>
                             </div>
-                            <div className="rounded-xl overflow-hidden border border-white/10">
-                                <style>{`
-                                    .admin-editor-container .w-md-editor {
-                                        border: none !important;
-                                        background: #000 !important;
-                                    }
-                                    .admin-editor-container .w-md-editor-content {
-                                        flex-direction: column !important;
-                                    }
-                                    .admin-editor-container .w-md-editor-input {
-                                        width: 100% !important;
-                                        border-bottom: 1px solid rgba(255,255,255,0.1) !important;
-                                    }
-                                    .admin-editor-container .w-md-editor-preview {
-                                        width: 100% !important;
-                                        padding: 40px !important;
-                                        background: #0a0a0a !important;
-                                    }
-                                `}</style>
-                                <MDEditor
-                                    value={content}
-                                    onChange={(val) => setContent(val || '')}
-                                    preview="edit"
-                                    height={600}
-                                    hideToolbar={false}
-                                    visibleDragbar={false}
-                                />
+
+                            <div className="space-y-8">
+                                {widgets.map((widget, index) => (
+                                    <div key={widget.id} className="relative group">
+                                        <div className="flex justify-between items-center mb-2">
+                                            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-widest">Bloc {index + 1}</span>
+                                            {widgets.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeWidget(widget.id)}
+                                                    className="p-1.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="admin-editor-container" data-color-mode="dark">
+                                            <MDEditor
+                                                value={widget.content}
+                                                onChange={(val) => updateWidget(widget.id, val || '')}
+                                                height={300}
+                                                preview="edit"
+                                                hideToolbar={false}
+                                                visibleDragbar={false}
+                                                extraCommands={[]}
+                                            />
+                                        </div>
+
+                                        <div className="flex justify-center mt-4">
+                                            {index === widgets.length - 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={addWidget}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-xs"
+                                                >
+                                                    <Plus className="w-4 h-4" /> Ajouter un bloc de texte
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                        <div className="flex justify-start items-center gap-4">
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    const dropCapTemplate = '\n\n<span class="drop-cap">L</span>e ';
-                                    setContent(prev => prev + dropCapTemplate);
-                                }}
-                                className="text-[10px] font-black bg-neon-cyan/20 border border-neon-cyan/30 px-3 py-1 rounded text-neon-cyan hover:bg-neon-cyan hover:text-white transition-all uppercase tracking-widest"
-                            >
-                                + Ajouter une partie (Lettrine)
-                            </button>
+
+                        {/* LIVE PREVIEW SECTION */}
+                        <div className="pt-8 border-t border-white/10">
+                            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">Prévisualisation du rendu</h3>
+                            <div className="bg-black border border-white/10 rounded-2xl p-8 article-body-premium">
+                                {widgets.map(w => (
+                                    <div key={w.id} className="article-section">
+                                        <MDEditor.Markdown source={w.content} />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={status === 'loading'}
-                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
-                                ? 'bg-gray-600 cursor-not-allowed'
-                                : 'bg-neon-cyan hover:bg-neon-cyan/80 text-black'
-                                }`}
-                        >
-                            {status === 'loading' ? (
-                                'Publication en cours...'
-                            ) : (
-                                <>
-                                    <Send className="w-5 h-5" />
-                                    {isEditing ? 'Mettre à jour le Récap' : 'Publier le Récap'}
-                                </>
-                            )}
-                        </button>
-
-                        {/* Status Message */}
-                        {status !== 'idle' && (
-                            <div className={`p-4 rounded-xl flex items-center gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
-                                status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
-                                }`}>
-                                <AlertCircle className="w-5 h-5" />
-                                <p>{message}</p>
-                            </div>
-                        )}
+                        <div className="pt-6">
+                            <button
+                                type="submit"
+                                disabled={status === 'loading'}
+                                className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-neon-cyan hover:bg-neon-cyan/80 text-black'
+                                    }`}
+                            >
+                                {status === 'loading' ? (
+                                    'Publication en cours...'
+                                ) : (
+                                    <>
+                                        <Send className="w-5 h-5" />
+                                        {isEditing ? 'Mettre à jour le Récap' : 'Publier le Récap'}
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
+            <style>{`
+                .admin-editor-container .w-md-editor {
+                    border: 1px solid rgba(255,255,255,0.1) !important;
+                    background: #000 !important;
+                    border-radius: 8px;
+                }
+                .admin-editor-container .w-md-editor-toolbar {
+                    background: #000 !important;
+                    border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+                }
+                .admin-editor-container .w-md-editor-content {
+                    background: #000 !important;
+                }
+                .article-body-premium .article-section {
+                    margin-bottom: 40px;
+                }
+                .article-body-premium .article-section > p:first-of-type::first-letter {
+                    float: left;
+                    font-family: 'Orbitron', monospace;
+                    font-weight: 900;
+                    font-size: 80px;
+                    line-height: 0.8;
+                    padding-right: 12px;
+                    padding-top: 8px;
+                    color: #ff0033;
+                    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+                    margin-right: 4px;
+                }
+            `}</style>
         </div>
     );
 }

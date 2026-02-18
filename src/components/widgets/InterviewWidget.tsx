@@ -60,7 +60,7 @@ export function InterviewWidget() {
                                     </span>
                                 </div>
                                 <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black via-black/40 to-transparent">
-                                    <h4 className="text-sm font-display font-black text-white leading-tight group-hover:text-neon-red transition-colors line-clamp-1 italic uppercase tracking-tighter">{item.title}</h4>
+                                    <h4 className="text-white font-bold text-sm leading-tight group-hover:text-neon-red transition-colors line-clamp-1 uppercase italic tracking-tight">{item.title}</h4>
                                     <p className="text-[10px] text-gray-400 mt-1 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</p>
                                 </div>
                             </motion.div>

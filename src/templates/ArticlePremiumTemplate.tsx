@@ -371,22 +371,22 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     )}
 
                                     {/* Newsletter Widget (Interview Style) */}
-                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-8 text-center space-y-6 relative overflow-hidden">
+                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-6 text-center space-y-4 relative overflow-hidden">
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-neon-red/20 blur-3xl rounded-full" />
-                                        <div className="relative z-10 space-y-4">
-                                            <div className="w-16 h-16 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">
-                                                <Mail className="w-8 h-8 text-neon-red" />
+                                        <div className="relative z-10 space-y-3">
+                                            <div className="w-12 h-12 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">
+                                                <Mail className="w-6 h-6 text-neon-red" />
                                             </div>
-                                            <div className="space-y-2">
-                                                <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
-                                                <p className="text-xs text-gray-400 uppercase tracking-wide leading-relaxed">
+                                            <div className="space-y-1">
+                                                <h4 className="text-base font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
+                                                <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-relaxed">
                                                     {t('article_detail.newsletter_subtitle')}
                                                 </p>
                                             </div>
-                                            <div className="space-y-3">
+                                            <div className="space-y-2">
                                                 <NewsletterForm variant="compact" />
                                             </div>
-                                            <p className="text-[9px] text-gray-600 uppercase tracking-widest mt-4">
+                                            <p className="text-[9px] text-gray-600 uppercase tracking-widest mt-2">
                                                 {t('article_detail.newsletter_count')}
                                             </p>
                                         </div>

@@ -1,3 +1,4 @@
+
 import { Mail, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -7,11 +8,11 @@ export function Footer() {
     const { t } = useLanguage();
 
     const socialLinks = [
-        { name: 'Instagram', icon: <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-6 h-6 object-contain" />, href: 'https://instagram.com/dropsiders.eu', color: 'hover:opacity-80' },
-        { name: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-6 h-6 object-contain" />, href: 'https://tiktok.com/@dropsiders.eu', color: 'hover:opacity-80' },
-        { name: 'YouTube', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" className="w-6 h-6 object-contain" />, href: 'https://www.youtube.com/@dropsiders', color: 'hover:opacity-80' },
-        { name: 'X', icon: <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-6 h-6 object-contain" />, href: 'https://twitter.com/dropsiders', color: 'hover:opacity-80' },
-        { name: 'Facebook', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-6 h-6 object-contain" />, href: 'https://www.facebook.com/dropsidersfr', color: 'hover:opacity-80' }
+        { name: 'Instagram', icon: <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://instagram.com/dropsiders.eu', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://tiktok.com/@dropsiders.eu', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'YouTube', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://www.youtube.com/@dropsiders', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'X', icon: <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://twitter.com/dropsiders', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'Facebook', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://www.facebook.com/dropsidersfr', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' }
     ];
 
     const navItems = [
@@ -36,8 +37,7 @@ export function Footer() {
                             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                                 <img src="/Logo.png" alt="DROPSIDERS" className="h-16 w-auto object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
                             </Link>
-                            <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight">
-                                {t('footer.slogan')}
+                            <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight" dangerouslySetInnerHTML={{ __html: t('footer.slogan') }}>
                             </h2>
                         </div>
                         <p className="text-gray-400 text-lg font-light leading-relaxed max-w-md">
@@ -63,7 +63,7 @@ export function Footer() {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         whileHover={{ y: -5, scale: 1.1 }}
-                                        className={`flex items-center justify-center aspect-square bg-white/5 border border-white/10 rounded-xl transition-all duration-300 ${social.color} hover:bg-white/10 hover:border-white/20`}
+                                        className={`group flex items-center justify-center aspect-square bg-white/5 border border-white/10 rounded-xl transition-all duration-300 ${social.color}`}
                                         title={social.name}
                                     >
                                         {social.icon}
@@ -90,7 +90,7 @@ export function Footer() {
                                     <Link
                                         to={item.path}
                                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                        className="text-gray-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-tight flex items-center gap-2 group"
+                                        className="text-gray-400 hover:text-neon-red transition-colors text-sm font-bold uppercase tracking-tight flex items-center gap-2 group"
                                     >
                                         <div className="w-1 h-1 bg-neon-red rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                                         {item.label}

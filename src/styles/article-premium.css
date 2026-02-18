@@ -106,11 +106,6 @@
 
 
 /* --- TYPOGRAPHY (Body) --- */
-/* Drop Cap Removed as per user request */
-
-/* Default alignment back to justified or left for readability, or keeping center if that's what was preferred for the rest.
-   User said "le texte centré" in previous message, but "ENLEVE MOI LES LETTRES ROUGES".
-   I will keep the text align center but remove the drop cap. */
 /* Manual Drop Cap Style - The "Avant" style */
 .article-premium-wrapper .drop-cap,
 .article-body-premium .drop-cap {
@@ -135,7 +130,33 @@
     text-align: left;
 }
 
-/* Remove .article-body-premium specific overrides */
+/* --- AUTOMATIC WIDGET STYLING --- */
+.article-section {
+    margin-bottom: 40px;
+    /* Automatic spacing */
+    clear: both;
+}
+
+/* Automatic Drop Cap for the FIRST paragraph of each section */
+.article-body-premium .article-section>p:first-of-type::first-letter,
+.article-body-premium .article-section>div>p:first-of-type::first-letter {
+    float: left !important;
+    font-family: var(--font-display, 'Orbitron', monospace) !important;
+    font-size: 80px !important;
+    line-height: 60px !important;
+    padding-top: 4px !important;
+    padding-right: 12px !important;
+    color: #ff0033 !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+    margin-right: 4px !important;
+}
+
+/* Ensuring the final "Retrouvez..." block works if it's a paragraph */
+.article-body-premium p:last-of-type::first-letter {
+    color: #ff0033 !important;
+    /* Optional: if they specifically want the R of Retrouvez to be red even if not a widget */
+}
 
 
 /* --- IMAGES --- */

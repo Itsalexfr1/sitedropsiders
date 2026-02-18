@@ -26,8 +26,8 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'nav.team': { fr: 'Team', en: 'Team' },
 
     'footer.slogan': {
-        fr: "LE MÉDIA FRANÇAIS SPÉCIALISÉ DANS L'ACTUALITÉ DES FESTIVALS.",
-        en: "THE FRENCH MEDIA SPECIALIZED IN FESTIVAL NEWS."
+        fr: "LE MÉDIA FRANÇAIS SPÉCIALISÉ DANS L'ACTUALITÉ DES <span class='text-neon-red'>FESTIVALS.</span>",
+        en: "THE FRENCH MEDIA SPECIALIZED IN <span class='text-neon-red'>FESTIVAL NEWS.</span>"
     },
     'footer.desc': {
         fr: "Dropsiders est le média français spécialisé dans l'actualité des festivals et de la scène électronique. Rejoignez une communauté de plus de 60 000 passionnés.",
