@@ -229,7 +229,7 @@ export function NewsletterCreate() {
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 overflow-y-auto custom-scrollbar">
                         <h2 className="flex items-center gap-2 text-xl font-bold text-white mb-6">
                             <Layout className="w-5 h-5 text-neon-cyan" />
-                            Éditeur
+                            Studio de Création
                         </h2>
 
                         <div className="space-y-6">
