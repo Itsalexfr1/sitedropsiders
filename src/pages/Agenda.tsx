@@ -205,40 +205,37 @@ export function Agenda() {
             </div>
 
             {/* Month Selection */}
-            <div className="mb-12">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={() => {
-                                const currentIndex = months.indexOf(selectedMonth || '');
-                                if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
-                            }}
-                            disabled={months.indexOf(selectedMonth || '') <= 0}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 disabled:hover:border-white/10 disabled:hover:text-white transition-all group"
-                            onMouseEnter={playHoverSound}
-                        >
-                            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                        </button>
+            <div className="mb-12 flex justify-center">
+                <div className="flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl gap-4 md:gap-8">
+                    <button
+                        onClick={() => {
+                            const currentIndex = months.indexOf(selectedMonth || '');
+                            if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
+                        }}
+                        disabled={months.indexOf(selectedMonth || '') <= 0}
+                        className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 disabled:hover:border-white/10 disabled:hover:text-white transition-all group"
+                        onMouseEnter={playHoverSound}
+                    >
+                        <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </button>
 
-                        <div className="flex flex-col">
-                            <h2 className="text-4xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter">
-                                {selectedMonth ? formatMonthName(selectedMonth) : t('agenda.loading')}
-                            </h2>
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                const currentIndex = months.indexOf(selectedMonth || '');
-                                if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
-                            }}
-                            disabled={selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 disabled:hover:border-white/10 disabled:hover:text-white transition-all group"
-                            onMouseEnter={playHoverSound}
-                        >
-                            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                    <div className="w-48 md:w-80 text-center">
+                        <h2 className="text-3xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter truncate">
+                            {selectedMonth ? formatMonthName(selectedMonth) : t('agenda.loading')}
+                        </h2>
                     </div>
 
+                    <button
+                        onClick={() => {
+                            const currentIndex = months.indexOf(selectedMonth || '');
+                            if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
+                        }}
+                        disabled={selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true}
+                        className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 disabled:hover:border-white/10 disabled:hover:text-white transition-all group"
+                        onMouseEnter={playHoverSound}
+                    >
+                        <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                    </button>
                 </div>
             </div>
 
