@@ -240,13 +240,15 @@ export function AdminManage() {
                                                 {item.date}
                                             </td>
                                             <td className="px-6 py-4 text-right flex items-center justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleDelete(item.id, item.title)}
-                                                    className="p-3 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
-                                                    title="Supprimer"
-                                                >
-                                                    <Trash2 className="w-5 h-5" />
-                                                </button>
+                                                {localStorage.getItem('admin_user') === 'alex' && (
+                                                    <button
+                                                        onClick={() => handleDelete(item.id, item.title)}
+                                                        className="p-3 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                                        title="Supprimer"
+                                                    >
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}

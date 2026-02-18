@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
+import { generateSlug, getArticleLink, getRecapLink } from '../utils/slugify';
 import '../styles/article-premium.css';
 
 interface ArticlePremiumTemplateProps {
@@ -300,13 +301,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 <h3 className="text-lg font-display uppercase text-white/50 mb-6 border-b border-white/10 pb-2">{t('article_detail.related_title')}</h3>
                                 <div className="space-y-6">
                                     {relatedArticles.map(rel => (
-                                        <Link key={rel.id} to={type === 'recap' ? `/recaps/${rel.slug}` : `/news/${rel.slug}`} className="group flex gap-4 items-start">
+                                        <Link
+                                            key={rel.id}
+                                            to={type === 'recap' ? getRecapLink(rel) : getArticleLink(rel)}
+                                            className="group flex gap-4 items-start"
+                                            onMouseEnter={playHoverSound}
+                                        >
                                             <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-white/10 bg-black">
                                                 <img src={rel.image} alt={rel.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
                                             </div>
                                             <div>
                                                 <span className="text-[10px] font-bold text-neon-red uppercase tracking-widest block mb-1">
-                                                    {type === 'recap' ? 'Recap' : 'News'}
+                                                    {rel.category || (type === 'recap' ? 'Recap' : 'News')}
                                                 </span>
                                                 <h4 className="text-sm font-bold uppercase leading-tight text-white group-hover:text-neon-red transition-colors line-clamp-3">
                                                     {rel.title}

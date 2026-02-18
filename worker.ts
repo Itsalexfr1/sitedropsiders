@@ -621,26 +621,50 @@ export default {
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 let FILE_PATH = '';
-                if (path.includes('/news/') || path.includes('/interviews/')) FILE_PATH = 'src/data/news.json';
-                else if (path.includes('/recaps/')) FILE_PATH = 'src/data/recaps.json';
-                else if (path.includes('/agenda/')) FILE_PATH = 'src/data/agenda.json';
-                else if (path.includes('/galerie/')) FILE_PATH = 'src/data/galerie.json';
+                let CONTENT_FILES = [];
+
+                if (path.includes('/news')) {
+                    FILE_PATH = 'src/data/news.json';
+                    CONTENT_FILES = NEWS_CONTENT_FILES;
+                } else if (path.includes('/recaps')) {
+                    FILE_PATH = 'src/data/recaps.json';
+                    CONTENT_FILES = RECAPS_CONTENT_FILES;
+                } else if (path.includes('/agenda')) {
+                    FILE_PATH = 'src/data/agenda.json';
+                } else if (path.includes('/galerie')) {
+                    FILE_PATH = 'src/data/galerie.json';
+                }
 
                 if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid path' }), { status: 400, headers });
 
+                // 1. Delete Metadata
                 const file = await fetchGitHubFile(FILE_PATH);
-                if (!file) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
 
-                const updatedData = file.content.filter(item => item.id !== id);
-                if (updatedData.length === file.content.length) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+                const updatedData = file.content.filter(item => String(item.id) !== String(id));
+                if (updatedData.length === file.content.length) {
+                    return new Response(JSON.stringify({ error: 'Item not found in metadata' }), { status: 404, headers });
+                }
 
-                await saveGitHubFile(FILE_PATH, updatedData, `Delete: ${id}`, file.sha);
+                await saveGitHubFile(FILE_PATH, updatedData, `Delete content: ${id}`, file.sha);
 
-                // Optionnel: Supprimer aussi le contenu du fichier _content
-                // Mais c'est moins grave de laisser du contenu orphelin que risquer des bugs pour l'instant
+                // 2. Delete Content (News/Recaps)
+                if (CONTENT_FILES.length > 0) {
+                    for (const cp of CONTENT_FILES) {
+                        const cf = await fetchGitHubFile(cp);
+                        if (cf) {
+                            const newCfContent = cf.content.filter(item => String(item.id) !== String(id));
+                            if (newCfContent.length !== cf.content.length) {
+                                await saveGitHubFile(cp, newCfContent, `Delete content body: ${id}`, cf.sha);
+                            }
+                        }
+                    }
+                }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
         // --- API: SUBSCRIBERS --- (GET)
@@ -662,7 +686,9 @@ export default {
 
         // --- STATIC ASSETS & FALLBACK ---
 
-        if (path.startsWith('/api/')) return new Response("Not Found", { status: 404 });
+        if (path.startsWith('/api/')) {
+            return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers });
+        }
 
         if (env.ASSETS) {
             const response = await env.ASSETS.fetch(request);
