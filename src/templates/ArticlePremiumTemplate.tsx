@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, Play, Camera, Share2, Check, MapPin, X } from 'lucide-react';
+import { Clock, ArrowLeft, Play, Camera, Share2, Check, MapPin, X, Mail } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
@@ -122,8 +122,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const backLink = type === 'recap' ? '/recaps' : '/news';
     const backText = type === 'recap' ? t('recap_detail.back_to_recaps') : t('article_detail.back_to_news');
 
+    // Calculate reading time
+    const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
+
     return (
-        <div className="article-premium-wrapper min-h-screen pb-20">
+        <div className="article-premium-wrapper min-h-screen">
             {/* Lightbox */}
             <AnimatePresence>
                 {selectedImage && (
@@ -153,8 +156,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 )}
             </AnimatePresence>
 
-            {/* --- HERO HEADER (Premium Style) --- */}
-            <div className="relative h-[80vh] min-h-[600px] flex items-end justify-center overflow-hidden">
+            {/* --- HERO HEADER (Interview Style) --- */}
+            <div className="relative h-[70vh] flex items-end justify-center overflow-hidden">
                 {/* Background Image */}
                 {article.image && (
                     <motion.div
@@ -168,64 +171,54 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             alt={article.title}
                             className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-dark-bg/40" /> {/* Dimming base */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-90" /> {/* Fade to black at bottom */}
+                        <div className="absolute inset-0 bg-dark-bg/40" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-90" />
                     </motion.div>
                 )}
 
                 {/* Content Overlay */}
-                <div className="relative z-10 max-w-5xl mx-auto px-6 pb-20 text-center">
-                    {/* Navigation Back */}
-                    <Link
-                        to={backLink}
-                        className="absolute top-[-60vh] left-6 flex items-center gap-2 text-white/60 hover:text-neon-red transition-colors group uppercase font-bold text-xs tracking-widest"
-                        onMouseEnter={playHoverSound}
-                    >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        {backText}
-                    </Link>
+                <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 w-full">
+                    <div className="flex justify-between items-end mb-8">
+                        {/* Navigation Back */}
+                        <Link
+                            to={backLink}
+                            className="flex items-center gap-2 text-white/80 hover:text-neon-red transition-colors group uppercase font-bold text-xs tracking-widest"
+                            onMouseEnter={playHoverSound}
+                        >
+                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            {backText}
+                        </Link>
 
-                    {/* Share Button */}
-                    <button
-                        onClick={handleShare}
-                        className="absolute top-[-60vh] right-6 flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full border border-white/10 text-white/80 font-bold text-xs transition-all hover:border-neon-red/50 hover:text-white group"
-                    >
-                        {copied ? (
-                            <>
-                                <Check className="w-3 h-3 text-green-400" />
-                                <span className="text-green-400">Copié !</span>
-                            </>
-                        ) : (
-                            <>
-                                <Share2 className="w-3 h-3 group-hover:text-neon-red transition-colors" />
-                                <span>Partager</span>
-                            </>
-                        )}
-                    </button>
+                        {/* Share Button (Match Interview Style) */}
+                        <button
+                            onClick={handleShare}
+                            className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white font-bold text-xs transition-all hover:border-neon-red/50 group"
+                        >
+                            {copied ? (
+                                <>
+                                    <Check className="w-3 h-3 text-green-400" />
+                                    <span className="text-green-400">Lien copié !</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Share2 className="w-3 h-3 group-hover:text-neon-red transition-colors" />
+                                    <span>Partager</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
 
                     <div className="space-y-6">
                         {/* Meta Badges */}
-                        <div className="flex flex-wrap justify-center gap-3">
-                            <span className="px-3 py-1 bg-neon-red/80 backdrop-blur-md text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-neon-red/20 rounded-sm">
+                        <div className="flex flex-wrap gap-3">
+                            <span className="px-4 py-2 bg-neon-red rounded-full text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-neon-red/20">
                                 {article.category || (type === 'recap' ? 'Recap' : 'News')}
                             </span>
-                            {type === 'recap' && article.festival && (
-                                <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 text-white font-bold text-xs uppercase tracking-widest rounded-sm">
-                                    {article.festival}
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Title */}
-                        <h1
-                            className="text-4xl md:text-6xl lg:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-2xl"
-                            dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
-                        />
-
-                        {/* Date & Loc */}
-                        <div className="flex items-center justify-center gap-6 text-sm text-gray-300 font-medium uppercase tracking-widest">
-                            <span className="flex items-center gap-2">
+                            <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
                                 <Clock className="w-4 h-4 text-neon-red" />
+                                {readingTime} MIN READ
+                            </span>
+                            <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
                                 {new Date(article.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                     year: 'numeric',
                                     month: 'long',
@@ -233,111 +226,144 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 })}
                             </span>
                             {type === 'recap' && article.location && (
-                                <span className="flex items-center gap-2 border-l border-white/20 pl-6">
+                                <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
                                     <MapPin className="w-4 h-4 text-neon-red" />
                                     {article.location}
                                 </span>
                             )}
                         </div>
+
+                        {/* Title */}
+                        <h1
+                            className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-2xl"
+                            dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
+                        />
                     </div>
                 </div>
             </div>
 
-            {/* --- MAIN CONTENT CONTAINER (GRID) --- */}
-            <div className="max-w-7xl mx-auto px-6 -mt-20 relative z-20 pb-20">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* --- MAIN CONTENT CONTAINER (8/4 GRID) --- */}
+            <main className="relative z-20 pb-16 -mt-10">
+                <div className="max-w-[1400px] mx-auto px-6">
+                    <div className="bg-dark-card border border-white/5 rounded-[2rem] p-8 md:p-12 lg:p-16 shadow-2xl backdrop-blur-md">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
-                    {/* LEFT COLUMN: Main Content */}
-                    <div className="lg:col-span-2">
-                        <div className="bg-dark-bg/80 backdrop-blur-md rounded-3xl p-8 border border-white/5 shadow-2xl">
-                            {/* Content Body */}
-                            <div
-                                className="article-body-premium"
-                                dangerouslySetInnerHTML={{ __html: displayContent }}
-                            />
+                            {/* LEFT COLUMN: Main Content (8 spans) */}
+                            <div className="lg:col-span-8">
+                                <article
+                                    className="article-body-premium w-full"
+                                    dangerouslySetInnerHTML={{ __html: displayContent }}
+                                />
 
-                            {/* Video (Inside Main Content) */}
-                            {article.youtubeId && (
-                                <div className="mt-12 mb-8">
-                                    <h3 className="text-xl font-display font-black text-white mb-6 uppercase italic flex items-center gap-3">
-                                        <Play className="w-5 h-5 text-neon-red" />
-                                        {t('article_detail.video_title')}
-                                    </h3>
-                                    <div className="video-wrapper">
-                                        <iframe
-                                            src={`https://www.youtube.com/embed/${article.youtubeId}`}
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        />
+                                {/* Video Section */}
+                                {article.youtubeId && (
+                                    <div className="mt-20 pt-20 border-t border-white/5">
+                                        <h3 className="text-2xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-3">
+                                            <Play className="w-6 h-6 text-neon-red" />
+                                            {t('article_detail.video_title')}
+                                        </h3>
+                                        <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-3xl shadow-neon-red/5">
+                                            <iframe
+                                                src={`https://www.youtube.com/embed/${article.youtubeId}`}
+                                                className="absolute top-0 left-0 w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
 
-                            {/* Gallery */}
-                            {(article.images && article.images.length > 1) && (
-                                <div className="mt-16 border-t border-white/10 pt-12">
-                                    <h3 className="text-2xl font-display font-black text-white mb-8 flex items-center gap-3 uppercase italic">
-                                        <Camera className="w-6 h-6 text-neon-red" />
-                                        {t('article_detail.gallery_title')}
-                                    </h3>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {article.images.map((img: string, idx: number) => (
-                                            <div key={idx} className="cursor-pointer overflow-hidden rounded-xl shadow-lg border border-white/5 hover:border-neon-red/50 transition-all aspect-video group" onClick={() => setSelectedImage(img)}>
-                                                <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                            </div>
-                                        ))}
+                                {/* Gallery */}
+                                {(article.images && article.images.length > 1) && (
+                                    <div className="mt-20 pt-20 border-t border-white/5">
+                                        <h3 className="text-2xl font-display font-black text-white mb-10 flex items-center gap-3 uppercase italic">
+                                            <Camera className="w-8 h-8 text-neon-red" />
+                                            {t('article_detail.gallery_title')}
+                                        </h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            {article.images.map((img: string, idx: number) => (
+                                                <div key={idx} className="aspect-video cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl" onClick={() => setSelectedImage(img)}>
+                                                    <img src={img} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                                )}
 
-                    {/* RIGHT COLUMN: Sidebar (Related + Newsletter) */}
-                    <div className="lg:col-span-1 space-y-12">
-
-                        {/* Related Articles (Now in Sidebar) */}
-                        {relatedArticles.length > 0 && (
-                            <div>
-                                <h3 className="text-lg font-display uppercase text-white/50 mb-6 border-b border-white/10 pb-2">{t('article_detail.related_title')}</h3>
-                                <div className="space-y-6">
-                                    {relatedArticles.map(rel => (
-                                        <Link
-                                            key={rel.id}
-                                            to={type === 'recap' ? getRecapLink(rel) : getArticleLink(rel)}
-                                            className="group flex gap-4 items-start"
-                                            onMouseEnter={playHoverSound}
-                                        >
-                                            <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden border border-white/10 bg-black">
-                                                <img src={rel.image} alt={rel.title} className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" />
-                                            </div>
-                                            <div>
-                                                <span className="text-[10px] font-bold text-neon-red uppercase tracking-widest block mb-1">
-                                                    {rel.category || (type === 'recap' ? 'Recap' : 'News')}
-                                                </span>
-                                                <h4 className="text-sm font-bold uppercase leading-tight text-white group-hover:text-neon-red transition-colors line-clamp-3">
-                                                    {rel.title}
-                                                </h4>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                {/* Back Link Center */}
+                                <div className="mt-16 pt-8 border-t border-white/5 flex justify-center">
+                                    <Link
+                                        to="/"
+                                        className="group flex flex-col items-center gap-4 py-4"
+                                        onMouseEnter={playHoverSound}
+                                    >
+                                        <div className="w-14 h-14 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-white transition-all duration-300">
+                                            <ArrowLeft className="w-6 h-6 text-white group-hover:text-black" />
+                                        </div>
+                                        <span className="text-[10px] font-black tracking-widest text-gray-500 group-hover:text-white uppercase transition-colors">{t('article_detail.back_to_home')}</span>
+                                    </Link>
                                 </div>
                             </div>
-                        )}
 
-                        {/* Newsletter Widget (Moved below related) */}
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/10 text-center relative overflow-hidden">
-                            <h3 className="text-xl font-display font-black uppercase mb-2">{t('article_detail.newsletter_title')}</h3>
-                            <p className="text-gray-400 text-sm mb-4">{t('article_detail.newsletter_subtitle')}</p>
-                            <NewsletterForm variant="compact" />
+                            {/* RIGHT COLUMN: Sidebar (4 spans, Sticky) */}
+                            <aside className="lg:col-span-4 space-y-12">
+                                <div className="sticky top-32 space-y-12">
+                                    {/* Related Articles */}
+                                    {relatedArticles.length > 0 && (
+                                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+                                            <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">{t('article_detail.related_title')}</h3>
+                                            <div className="space-y-6">
+                                                {relatedArticles.map(rel => (
+                                                    <Link
+                                                        key={rel.id}
+                                                        to={type === 'recap' ? getRecapLink(rel) : getArticleLink(rel)}
+                                                        className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0"
+                                                        onMouseEnter={playHoverSound}
+                                                    >
+                                                        <div className="aspect-video rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
+                                                            <img src={rel.image} alt={rel.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <span className="text-[9px] font-black text-neon-red tracking-widest uppercase">
+                                                                {rel.category || (type === 'recap' ? 'Recap' : 'News')}
+                                                            </span>
+                                                            <h4 className="text-sm font-bold text-gray-400 group-hover:text-white transition-colors leading-snug uppercase tracking-tight line-clamp-2">
+                                                                {rel.title}
+                                                            </h4>
+                                                        </div>
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Newsletter Widget (Interview Style) */}
+                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-8 text-center space-y-6 relative overflow-hidden">
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-neon-red/20 blur-3xl rounded-full" />
+                                        <div className="relative z-10 space-y-4">
+                                            <div className="w-16 h-16 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">
+                                                <Mail className="w-8 h-8 text-neon-red" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h4 className="text-lg font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
+                                                <p className="text-xs text-gray-400 uppercase tracking-wide leading-relaxed">
+                                                    {t('article_detail.newsletter_subtitle')}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <NewsletterForm variant="compact" />
+                                            </div>
+                                            <p className="text-[9px] text-gray-600 uppercase tracking-widest mt-4">
+                                                {t('article_detail.newsletter_count')}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </aside>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* --- FOOTER (Just spacing now) --- */}
-            <div className="max-w-7xl mx-auto px-6 mt-20 border-t border-white/10 pt-16 text-center text-white/20 text-xs uppercase tracking-widest">
-                DROPSIDERS • {new Date().getFullYear()}
-            </div>
+            </main>
         </div>
     );
 };

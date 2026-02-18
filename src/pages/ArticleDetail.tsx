@@ -261,7 +261,7 @@ export function ArticleDetail() {
                                 </span>
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-sm flex items-center gap-2">
                                     <Clock className="w-4 h-4" />
-                                    {t('article_detail.read_time')}
+                                    {Math.ceil(cleanedContent.split(/\s+/).length / 200)} MIN READ
                                 </span>
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-sm flex items-center gap-2">
                                     <Clock className="w-4 h-4 text-neon-red" />
@@ -290,7 +290,7 @@ export function ArticleDetail() {
             </div>
 
             {/* 2. COLONNE ÉDITORIALE */}
-            <main className="relative z-30 pb-32 -mt-10">
+            <main className="relative z-30 pb-16 -mt-10">
                 <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="bg-dark-card border border-white/5 rounded-[2rem] p-8 md:p-12 lg:p-20 shadow-2xl backdrop-blur-sm">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
@@ -353,7 +353,7 @@ export function ArticleDetail() {
                                 )}
 
                                 {/* Retour Home */}
-                                <div className="mt-24 pt-16 border-t border-white/5 flex justify-center">
+                                <div className="mt-16 pt-8 border-t border-white/5 flex justify-center">
                                     <Link
                                         to="/"
                                         className="group flex flex-col items-center gap-4 py-4"
@@ -370,9 +370,10 @@ export function ArticleDetail() {
                             {/* SIDEBAR - À LIRE AUSSI & NEWSLETTER */}
                             <aside className="lg:col-span-4 space-y-12">
                                 <div className="sticky top-32 space-y-12">
-                                    {/* À lire aussi */}
                                     <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-                                        <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">{t('article_detail.related_title')}</h3>
+                                        <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">
+                                            {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
+                                        </h3>
                                         <div className="space-y-6">
                                             {relatedArticles.map(rel => (
                                                 <Link key={rel.id} to={getArticleLink(rel)}

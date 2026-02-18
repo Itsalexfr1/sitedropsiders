@@ -10,7 +10,7 @@ export type TranslationKey =
     | 'galerie.badge' | 'galerie.title' | 'galerie.title_span' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_others'
     | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results' | 'common.photo' | 'common.gallery_alt'
     | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results' | 'agenda.infos_tickets' | 'agenda.no_events_selection' | 'agenda.loading'
-    | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
+    | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.other_interviews' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
     | 'recap_detail.not_found_title' | 'recap_detail.not_found_btn' | 'recap_detail.back_to_recaps' | 'recap_detail.video_available' | 'recap_detail.video_title' | 'recap_detail.gallery_expand' | 'recap_detail.related_title' | 'recap_detail.view_all_recaps'
     | 'album_detail.not_found_title' | 'album_detail.back_to_galerie' | 'album_detail.share_btn' | 'album_detail.default_category'
     | 'home.playlists_title' | 'home.follow' | 'recaps.no_recaps_subtitle'
@@ -132,6 +132,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'article_detail.video_title': { fr: 'Vidéo de l\'article', en: 'Article Video' },
     'article_detail.gallery_title': { fr: 'Galerie Photos', en: 'Photo Gallery' },
     'article_detail.related_title': { fr: 'À lire aussi', en: 'Related articles' },
+    'article_detail.other_interviews': { fr: 'Nos autres interviews', en: 'Our other interviews' },
     'article_detail.not_found_title': { fr: 'Page Intraçable', en: 'Page Not Found' },
     'article_detail.not_found_btn': { fr: 'Retourner à la home', en: 'Back to home' },
     'article_detail.newsletter_title': { fr: 'Rejoignez-nous', en: 'Join us' },
