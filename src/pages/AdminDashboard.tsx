@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, Trash2, User } from 'lucide-react';
+import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export function AdminDashboard() {
