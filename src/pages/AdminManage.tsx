@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
-import newsData from '../data/news.json';
-import recapsData from '../data/recaps.json';
-import agendaData from '../data/agenda.json';
-import galerieData from '../data/galerie.json';
+
+const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/src/data';
+
+async function fetchJson(file: string): Promise<any[]> {
+    const res = await fetch(`${GITHUB_RAW_BASE}/${file}?t=${Date.now()}`);
+    if (!res.ok) throw new Error(`Failed to fetch ${file}`);
+    return res.json();
+}
 
 type ContentType = 'News' | 'Recaps' | 'Interviews' | 'Agenda' | 'Galeries';
 
@@ -29,15 +33,16 @@ export function AdminManage() {
             let data: any[] = [];
 
             if (activeTab === 'News' || activeTab === 'Interviews') {
+                const allNews = await fetchJson('news.json');
                 data = activeTab === 'News'
-                    ? (newsData as any[]).filter((item: any) => item.category === 'News')
-                    : (newsData as any[]).filter((item: any) => item.category === 'Interview');
+                    ? allNews.filter((item: any) => item.category === 'News')
+                    : allNews.filter((item: any) => item.category === 'Interview');
             } else if (activeTab === 'Recaps') {
-                data = recapsData as any[];
+                data = await fetchJson('recaps.json');
             } else if (activeTab === 'Agenda') {
-                data = agendaData as any[];
+                data = await fetchJson('agenda.json');
             } else if (activeTab === 'Galeries') {
-                data = galerieData as any[];
+                data = await fetchJson('galerie.json');
             }
 
             setItems(data);
@@ -69,8 +74,11 @@ export function AdminManage() {
             if (response.ok) {
                 setDeleteStatus('success');
                 setMessage('Supprimé avec succès !');
-                setItems(items.filter(item => item.id !== id));
-                setTimeout(() => setDeleteStatus('idle'), 3000);
+                // Attendre 1.5s que GitHub propage le changement, puis recharger
+                setTimeout(async () => {
+                    await fetchData();
+                    setDeleteStatus('idle');
+                }, 1500);
             } else {
                 let errorData;
                 try {
