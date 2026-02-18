@@ -316,11 +316,10 @@ export function RecapCreate() {
                                 <MDEditor
                                     value={content}
                                     onChange={(val) => setContent(val || '')}
-                                    preview="live"
-                                    height={800}
-                                    previewOptions={{
-                                        className: "article-body-premium"
-                                    }}
+                                    preview="edit"
+                                    height={600}
+                                    hideToolbar={false}
+                                    visibleDragbar={false}
                                 />
                             </div>
                         </div>

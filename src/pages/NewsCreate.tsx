@@ -304,11 +304,10 @@ export function NewsCreate() {
                             <MDEditor
                                 value={content}
                                 onChange={(val) => setContent(val || '')}
-                                height={800}
-                                preview="live"
-                                previewOptions={{
-                                    className: "article-body-premium"
-                                }}
+                                height={600}
+                                preview="edit"
+                                hideToolbar={false}
+                                visibleDragbar={false}
                             />
                         </div>
                     </div>
