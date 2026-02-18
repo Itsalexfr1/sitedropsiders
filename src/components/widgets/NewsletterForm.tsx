@@ -87,14 +87,14 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                         {t('newsletter_form.email_label') || 'EMAIL ADDRESS'}
                     </label>
                     <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                        <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-neon-red transition-colors ${isCompact ? 'w-4 h-4' : 'w-5 h-5'}`} />
                         <input
                             type="email"
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder={t('newsletter_form.email_placeholder') || 'Enter your email'}
-                            className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all duration-300"
+                            className={`w-full pl-12 pr-4 ${isCompact ? 'py-3 text-sm' : 'py-4'} bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all duration-300`}
                             required
                         />
                     </div>
@@ -147,16 +147,16 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                     disabled={isSubmitting}
                     whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                     whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                    className="w-full py-5 bg-gradient-to-r from-neon-red to-neon-pink text-white font-display font-black text-lg uppercase tracking-tight rounded-xl hover:shadow-[0_0_30px_rgba(255,0,51,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3"
+                    className={`w-full ${isCompact ? 'py-3 text-sm' : 'py-5 text-lg'} bg-gradient-to-r from-neon-red to-neon-pink text-white font-display font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_30px_rgba(255,0,51,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-3`}
                 >
                     {isSubmitting ? (
                         <>
-                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <Loader2 className={`${isCompact ? 'w-4 h-4' : 'w-5 h-5'} animate-spin`} />
                             {t('newsletter_form.submitting_btn')}
                         </>
                     ) : (
                         <>
-                            <Mail className="w-5 h-5" />
+                            <Mail className={isCompact ? 'w-4 h-4' : 'w-5 h-5'} />
                             {t('newsletter_form.submit_btn')}
                         </>
                     )}

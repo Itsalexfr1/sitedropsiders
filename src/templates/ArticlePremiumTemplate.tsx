@@ -345,12 +345,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">
                                                 {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
                                             </h3>
-                                            <div className="space-y-6">
+                                            <div className="space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar scroll-smooth snap-y snap-mandatory pr-2">
                                                 {relatedArticles.map(rel => (
                                                     <Link
                                                         key={rel.id}
                                                         to={type === 'recap' ? getRecapLink(rel) : getArticleLink(rel)}
-                                                        className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0"
+                                                        className="group block space-y-4 pb-6 border-b border-white/5 last:border-0 last:pb-0 snap-start"
                                                         onMouseEnter={playHoverSound}
                                                     >
                                                         <div className="aspect-square rounded-xl overflow-hidden grayscale hover:grayscale-0 transition-all duration-500 border border-white/5">
@@ -371,22 +371,23 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     )}
 
                                     {/* Newsletter Widget (Interview Style) */}
-                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-6 text-center space-y-4 relative overflow-hidden">
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-neon-red/20 blur-3xl rounded-full" />
-                                        <div className="relative z-10 space-y-3">
-                                            <div className="w-12 h-12 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">
-                                                <Mail className="w-6 h-6 text-neon-red" />
+                                    {/* Newsletter Widget (Interview Style) */}
+                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-4 text-center space-y-2 relative overflow-hidden scale-90 origin-top">
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full" />
+                                        <div className="relative z-10 space-y-2">
+                                            <div className="w-10 h-10 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">
+                                                <Mail className="w-5 h-5 text-neon-red" />
                                             </div>
-                                            <div className="space-y-1">
-                                                <h4 className="text-base font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
-                                                <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-relaxed">
+                                            <div className="space-y-0.5">
+                                                <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
+                                                <p className="text-[9px] text-gray-400 uppercase tracking-wide leading-relaxed">
                                                     {t('article_detail.newsletter_subtitle')}
                                                 </p>
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className="space-y-1">
                                                 <NewsletterForm variant="compact" />
                                             </div>
-                                            <p className="text-[9px] text-gray-600 uppercase tracking-widest mt-2">
+                                            <p className="text-[8px] text-gray-600 uppercase tracking-widest mt-1">
                                                 {t('article_detail.newsletter_count')}
                                             </p>
                                         </div>
