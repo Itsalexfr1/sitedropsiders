@@ -17,12 +17,15 @@ export const onRequestPost = async (context: any) => {
         });
     }
 
-    const headers = { ...CORSH, 'Content-Type': 'application/json' };
-
     try {
         const adminPassword = request.headers.get('X-Admin-Password');
         if (adminPassword !== env.ADMIN_PASSWORD) {
             return jsonResponse({ error: 'Accès non autorisé' }, 401);
+        }
+
+        // Vérification explicite du token GitHub
+        if (!env.GITHUB_TOKEN) {
+            return jsonResponse({ error: 'Token GitHub manquant — vérifiez les secrets Cloudflare (GITHUB_TOKEN)' }, 500);
         }
 
         const body = await request.json();
@@ -40,7 +43,7 @@ export const onRequestPost = async (context: any) => {
                 const initialLength = items.length;
                 const newItems = items.filter((item: any) => String(item.id) !== String(id));
                 if (newItems.length === initialLength) {
-                    throw new Error('Élément non trouvé');
+                    throw new Error(`Recap avec l'ID "${id}" non trouvé dans recaps.json`);
                 }
                 return newItems;
             },
@@ -50,6 +53,7 @@ export const onRequestPost = async (context: any) => {
         return jsonResponse({ success: true });
 
     } catch (err: any) {
-        return jsonResponse({ error: err.message || 'Erreur inconnue' }, 500);
+        console.error('[recaps/delete] Error:', err);
+        return jsonResponse({ error: err.message || 'Erreur inconnue lors de la suppression' }, 500);
     }
 };

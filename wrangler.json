@@ -10,11 +10,9 @@
         "enabled": true
     },
     "vars": {
-        "GITHUB_TOKEN": "YOUR_GITHUB_TOKEN",
         "GITHUB_OWNER": "Itsalexfr1",
         "GITHUB_REPO": "sitedropsiders",
         "GITHUB_FILE_PATH": "src/data/subscribers.json",
-        "BREVO_API_KEY": "YOUR_BREVO_API_KEY",
         "ADMIN_PASSWORD": "1988"
     }
 }
