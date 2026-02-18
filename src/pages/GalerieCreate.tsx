@@ -10,8 +10,47 @@ export function GalerieCreate() {
     const [coverUrl, setCoverUrl] = useState('');
     const [imageUrls, setImageUrls] = useState(''); // Textarea content
 
+    const [uploading, setUploading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover: boolean) => {
+        const files = e.target.files;
+        if (!files || files.length === 0) return;
+
+        setUploading(true);
+        try {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const formData = new FormData();
+                formData.append('image', file);
+                formData.append('path', 'galerie');
+
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    if (isCover) {
+                        setCoverUrl(data.url);
+                    } else {
+                        setImageUrls(prev => prev ? prev + '\n' + data.url : data.url);
+                    }
+                } else {
+                    alert(data.error || 'Erreur lors de l\'upload');
+                }
+            }
+        } catch (error) {
+            alert('Erreur de connexion au serveur d\'upload');
+        } finally {
+            setUploading(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -143,22 +182,47 @@ export function GalerieCreate() {
 
                         {/* Cover Image URL */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">URL de la couverture (Optionnel)</label>
-                            <div className="relative group">
-                                <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
-                                <input
-                                    type="text"
-                                    value={coverUrl}
-                                    onChange={(e) => setCoverUrl(e.target.value)}
-                                    placeholder="Laisser vide pour utiliser la première image"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
-                                />
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture (Optionnel)</label>
+                            <div className="flex gap-2">
+                                <div className="relative group flex-1">
+                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={coverUrl}
+                                        onChange={(e) => setCoverUrl(e.target.value)}
+                                        placeholder="Laisser vide pour la 1ère image ou uploadez"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
+                                    />
+                                </div>
+                                <label className="px-6 py-4 bg-neon-pink/20 border border-neon-pink/50 text-neon-pink rounded-xl font-bold uppercase tracking-wider hover:bg-neon-pink/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap">
+                                    {uploading ? 'Upload...' : '📤 Upload'}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={(e) => handleImageUpload(e, true)}
+                                        className="hidden"
+                                        disabled={uploading}
+                                    />
+                                </label>
                             </div>
                         </div>
 
                         {/* Images URLs */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">URLs des images (Une par ligne)</label>
+                            <div className="flex justify-between items-center">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Images de la Galerie (Une par ligne)</label>
+                                <label className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer flex items-center gap-2">
+                                    {uploading ? 'Upload en cours...' : '📥 Ajouter des photos'}
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        multiple
+                                        onChange={(e) => handleImageUpload(e, false)}
+                                        className="hidden"
+                                        disabled={uploading}
+                                    />
+                                </label>
+                            </div>
                             <textarea
                                 value={imageUrls}
                                 onChange={(e) => setImageUrls(e.target.value)}
