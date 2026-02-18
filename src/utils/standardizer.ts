@@ -61,7 +61,7 @@ export function standardizeContent(html: string): string {
             const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
             if (regex.test(resultHtml)) {
                 hasMatches = true;
-                resultHtml = resultHtml.replace(regex, `<span class="premium-text-red">${keyword}</span>`);
+                resultHtml = resultHtml.replace(regex, `<span class="premium-text-bold">${keyword}</span>`);
             }
         });
 
@@ -75,7 +75,7 @@ export function standardizeContent(html: string): string {
                     return match; // Already handled or excluded
                 }
                 hasMatches = true;
-                return `<span class="premium-text-red">${match}</span>`;
+                return `<span class="premium-text-bold">${match}</span>`;
             });
         }
 
