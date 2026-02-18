@@ -18,7 +18,7 @@ export function AgendaWidget() {
             return eventDate >= today;
         })
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, 6);
+        .slice(0, 10);
 
     const playHoverSound = useHoverSound();
 

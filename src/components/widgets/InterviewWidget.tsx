@@ -10,7 +10,7 @@ export function InterviewWidget() {
 
     const latestInterviews = (newsData as any[])
         .filter((item: any) => item.category === 'Interview' || item.category === 'Interviews')
-        .slice(0, 4);
+        .slice(0, 8);
 
     const playHoverSound = useHoverSound();
 
@@ -33,7 +33,7 @@ export function InterviewWidget() {
                     <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('home.no_interview')}</p>
                 </div>
             ) : (
-                <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {latestInterviews.map((item: any, index: number) => (
                         <Link to={`/interviews/${item.id}`} key={item.id} className="block group">
                             <motion.div
