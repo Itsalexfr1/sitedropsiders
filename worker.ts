@@ -64,6 +64,44 @@ export default {
             return response.ok;
         }
 
+        const extractMetadata = (content) => {
+            if (!content) return { images: [], youtubeId: '' };
+            const images = [];
+            const imgRegex = /<img[^>]+src=["']([^"']+)["']/g;
+            let match;
+            while ((match = imgRegex.exec(content)) !== null) {
+                images.push(match[1]);
+            }
+            const mdImgRegex = /!\[.*?\]\((.*?)\)/g;
+            while ((match = mdImgRegex.exec(content)) !== null) {
+                images.push(match[1]);
+            }
+
+            const youtubeIdMatch = content.match(/(?:v=|v\/|embed\/|youtu.be\/|watch\?v=)([a-zA-Z0-9_-]{11})/);
+            const youtubeId = youtubeIdMatch ? youtubeIdMatch[1] : '';
+
+            return { images: [...new Set(images)], youtubeId: youtubeId || '' };
+        };
+
+        const generateSummary = (content, existingSummary) => {
+            if (existingSummary && existingSummary.trim() !== '') return existingSummary;
+            if (!content) return '';
+            const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            return text.substring(0, 200) + (text.length > 200 ? '...' : '');
+        };
+
+        const cleanStr = (str) => {
+            if (!str) return str;
+            const replacements = [
+                [/Ã /g, 'à'], [/Ã©/g, 'é'], [/Ã¨/g, 'è'], [/Ãª/g, 'ê'], [/Ã»/g, 'û'], [/Ã´/g, 'ô'],
+                [/Ã®/g, 'î'], [/Ã§/g, 'ç'], [/Ã¹/g, 'ù'], [/Ã«/g, 'ë'], [/Ã¯/g, 'ï'], [/Â /g, ' '],
+                [/â€™/g, "'"], [/â€¦/g, '...']
+            ];
+            let s = str;
+            for (const [p, r] of replacements) s = s.replace(p, r);
+            return s;
+        };
+
         // --- AUTH CHECK ---
         const adminPassword = env.ADMIN_PASSWORD || 'alex2026';
         const requestPassword = request.headers.get('X-Admin-Password');
@@ -160,13 +198,17 @@ export default {
                 const maxId = currentNews.reduce((max, item) => (item.id > max ? item.id : max), 0);
                 const newId = maxId + 1;
 
+                const { images, youtubeId } = extractMetadata(content);
+
                 const newArticle = {
                     id: newId,
-                    title,
+                    title: cleanStr(title),
                     date: date || new Date().toISOString().split('T')[0],
-                    summary: summary || '',
+                    summary: cleanStr(generateSummary(content, summary)),
                     content: '', // Empty in main file to save space
-                    image: image || '',
+                    image: image || (images.length > 0 ? images[0] : ''),
+                    images: images,
+                    youtubeId: youtubeId,
                     category: category || 'News',
                     link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
                 };
@@ -206,19 +248,21 @@ export default {
                 const maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
                 const newId = maxId + 1;
 
+                const { images: extractedImages, youtubeId: extractedYoutubeId } = extractMetadata(content);
+
                 const newItem = {
                     id: newId,
-                    title,
+                    title: cleanStr(title),
                     date: date || new Date().toISOString().split('T')[0],
-                    summary: summary || '',
+                    summary: cleanStr(generateSummary(content, summary)),
                     content: '', // Empty in main file
-                    image: image || '',
-                    youtubeId: youtubeId || '',
+                    image: image || (extractedImages.length > 0 ? extractedImages[0] : ''),
+                    youtubeId: youtubeId || extractedYoutubeId || '',
                     festival: festival || '',
                     location: location || '',
                     category: category || 'Recaps',
                     link: `https://dropsiders.eu/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-                    images: []
+                    images: extractedImages
                 };
 
                 const updatedData = [newItem, ...currentData];
@@ -256,13 +300,17 @@ export default {
                 const index = currentData.findIndex(item => item.id === id);
                 if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
 
+                const { images, youtubeId } = extractMetadata(content || '');
+
                 const existing = currentData[index];
                 currentData[index] = {
                     ...existing,
-                    title: title || existing.title,
-                    summary: summary || existing.summary,
+                    title: cleanStr(title) || existing.title,
+                    summary: cleanStr(generateSummary(content, summary)) || existing.summary,
                     content: '', // Always keep empty in main file
                     image: image || existing.image,
+                    images: images.length > 0 ? images : existing.images,
+                    youtubeId: youtubeId || existing.youtubeId,
                     category: category || existing.category,
                     date: date || existing.date
                 };
@@ -316,17 +364,20 @@ export default {
                 const index = currentData.findIndex(item => item.id === id);
                 if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
 
+                const { images: extractedImages, youtubeId: extractedYoutubeId } = extractMetadata(content || '');
+
                 const existing = currentData[index];
                 currentData[index] = {
                     ...existing,
-                    title: title || existing.title,
-                    summary: summary || existing.summary,
+                    title: cleanStr(title) || existing.title,
+                    summary: cleanStr(generateSummary(content, summary)) || existing.summary,
                     content: '', // Empty
                     image: image || existing.image,
                     date: date || existing.date,
                     festival: festival !== undefined ? festival : existing.festival,
                     location: location !== undefined ? location : existing.location,
-                    youtubeId: youtubeId !== undefined ? youtubeId : existing.youtubeId
+                    youtubeId: youtubeId !== undefined ? youtubeId : (extractedYoutubeId || existing.youtubeId),
+                    images: extractedImages.length > 0 ? extractedImages : (existing.images || [])
                 };
 
                 await saveGitHubFile(FILE_PATH, currentData, `Update recap: ${title || existing.title}`, recapsFile.sha);
