@@ -7,7 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
-import { generateSlug, getArticleLink, getRecapLink } from '../utils/slugify';
+import { getArticleLink, getRecapLink } from '../utils/slugify';
 import '../styles/article-premium.css';
 
 interface ArticlePremiumTemplateProps {
