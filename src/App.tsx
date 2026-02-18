@@ -26,6 +26,7 @@ import { NewsCreate } from './pages/NewsCreate';
 import { AdminManage } from './pages/AdminManage';
 import { AdminEditors } from './pages/AdminEditors';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import { CookieConsent } from './components/ui/CookieConsent';
 
 function App() {
   useEffect(() => {
@@ -80,9 +81,9 @@ function App() {
           <Route path="/galerie/create" element={<ProtectedRoute><GalerieCreate /></ProtectedRoute>} />
         </Routes>
       </Layout>
+      <CookieConsent />
     </Router>
   );
 }
 
 export default App;
-

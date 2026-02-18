@@ -214,20 +214,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                         {/* Sharing Actions */}
                         <div className="flex items-center gap-3">
-                            {/* Twitter / X Share */}
-                            <button
-                                onClick={() => {
-                                    const url = window.location.href;
-                                    const text = `${translatedTitle || article.title} via @dropsiders`;
-                                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-                                }}
-                                className="p-2 bg-white/10 hover:bg-[#1DA1F2]/20 backdrop-blur-md rounded-full border border-white/20 text-white transition-all hover:border-[#1DA1F2]/50 group"
-                                title="Partager sur X"
-                            >
-                                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current group-hover:text-[#1DA1F2] transition-colors">
-                                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                                </svg>
-                            </button>
+                            {/* Main Share Button */}
 
                             {/* Main Share Button */}
                             <button
@@ -317,8 +304,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     </div>
                                 )}
 
-                                {/* Gallery */}
-                                {(article.images && article.images.length > 1) && (
+                                {/* Gallery - Hidden if News as requested */}
+                                {(article.images && article.images.length > 1 && type !== 'news') && (
                                     <div className="mt-20 pt-20 border-t border-white/5">
                                         <h3 className="text-2xl font-display font-black text-white mb-10 flex items-center gap-3 uppercase italic">
                                             <Camera className="w-8 h-8 text-neon-red" />

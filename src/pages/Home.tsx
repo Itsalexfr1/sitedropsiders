@@ -21,17 +21,17 @@ export function Home() {
                 </div>
             </section>
 
-            {/* Row 1.5: Featured Recaps */}
+            {/* Row 1.5: Recaps & Agenda */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <RecapWidget />
+                <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-stretch">
+                    <RecapWidget />
+                    <AgendaWidget />
+                </div>
             </section>
 
-            {/* Row 2: Agenda & Interviews */}
+            {/* Row 2: Featured Interviews */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 items-stretch">
-                    <AgendaWidget />
-                    <InterviewWidget />
-                </div>
+                <InterviewWidget />
             </section>
 
             {/* Row 3: Instagram & TikTok */}
