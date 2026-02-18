@@ -21,7 +21,7 @@ import { AgendaCreate } from './pages/AgendaCreate';
 import { GalerieCreate } from './pages/GalerieCreate';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { NewsletterAdmin } from './pages/NewsletterAdmin';
-import { NewsletterCreate } from './pages/NewsletterCreate';
+import { NewsletterStudio } from './pages/NewsletterStudio';
 import { NewsCreate } from './pages/NewsCreate';
 import { AdminManage } from './pages/AdminManage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -70,7 +70,7 @@ function App() {
 
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/newsletter/admin" element={<ProtectedRoute><NewsletterAdmin /></ProtectedRoute>} />
-          <Route path="/newsletter/create" element={<ProtectedRoute><NewsletterCreate /></ProtectedRoute>} />
+          <Route path="/newsletter/create" element={<ProtectedRoute><NewsletterStudio /></ProtectedRoute>} />
 
           <Route path="/news/create" element={<ProtectedRoute><NewsCreate /></ProtectedRoute>} />
           <Route path="/recaps/create" element={<ProtectedRoute><RecapCreate /></ProtectedRoute>} />

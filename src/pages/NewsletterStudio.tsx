@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Send, Copy, Eye, Layout, Type, Link as LinkIcon, Image as ImageIcon, Users, ArrowLeft } from 'lucide-react';
 import localSubscribersData from '../data/subscribers.json';
 
-export function NewsletterCreate() {
+export function NewsletterStudio() {
     const [subject, setSubject] = useState('');
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
