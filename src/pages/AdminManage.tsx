@@ -77,7 +77,8 @@ export function AdminManage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
                 },
                 body: JSON.stringify({ id })
             });

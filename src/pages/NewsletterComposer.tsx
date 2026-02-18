@@ -46,7 +46,10 @@ export function NewsletterComposer() {
             try {
                 // On tente de charger depuis l'API uniquement
                 const response = await fetch('/api/subscribers', {
-                    headers: { 'X-Admin-Password': localStorage.getItem('admin_password') || '' }
+                    headers: {
+                        'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                        'X-Admin-Username': localStorage.getItem('admin_user') || ''
+                    }
                 });
                 if (response.ok) {
                     const data = await response.json();
@@ -292,7 +295,8 @@ export function NewsletterComposer() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
                 },
                 body: JSON.stringify({
                     subject,

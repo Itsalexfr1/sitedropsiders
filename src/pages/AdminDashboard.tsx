@@ -13,6 +13,8 @@ export function AdminDashboard() {
         const auth = localStorage.getItem('admin_auth');
         if (auth === 'true') {
             setIsAuthenticated(true);
+            const storedUser = localStorage.getItem('admin_user');
+            if (storedUser) setUsername(storedUser);
         }
     }, []);
 
@@ -34,6 +36,7 @@ export function AdminDashboard() {
                     setIsAuthenticated(true);
                     localStorage.setItem('admin_auth', 'true');
                     localStorage.setItem('admin_password', password);
+                    localStorage.setItem('admin_user', data.user || username);
                     return;
                 }
             }
@@ -65,6 +68,7 @@ export function AdminDashboard() {
         setIsAuthenticated(false);
         localStorage.removeItem('admin_auth');
         localStorage.removeItem('admin_password');
+        localStorage.removeItem('admin_user');
     };
 
     if (!isAuthenticated) {
@@ -254,8 +258,9 @@ export function AdminDashboard() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
-                    className="mt-16 pt-16 border-t border-white/5"
+                    className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-6 pb-16"
                 >
+                    {/* Newsletter Admin */}
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-white/5 rounded-3xl p-8 border border-white/10">
                         <div className="flex items-center gap-6">
                             <div className="p-4 bg-neon-cyan/10 rounded-2xl">
@@ -273,6 +278,27 @@ export function AdminDashboard() {
                             Voir la liste
                         </Link>
                     </div>
+
+                    {/* Editors Admin - ONLY for Alex */}
+                    {localStorage.getItem('admin_user') === 'alex' && (
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-8 bg-neon-red/5 rounded-3xl p-8 border border-neon-red/20 shadow-lg shadow-neon-red/5">
+                            <div className="flex items-center gap-6">
+                                <div className="p-4 bg-neon-red/10 rounded-2xl">
+                                    <Lock className="w-8 h-8 text-neon-red" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-display font-black text-white uppercase italic">Gestion des Éditeurs</h3>
+                                    <p className="text-gray-400 text-sm">Ajoutez ou supprimez des rédacteurs</p>
+                                </div>
+                            </div>
+                            <Link
+                                to="/admin/editors"
+                                className="px-8 py-4 bg-neon-red/20 hover:bg-neon-red/30 text-neon-red rounded-xl font-bold uppercase tracking-widest transition-colors border border-neon-red/50"
+                            >
+                                Gérer
+                            </Link>
+                        </div>
+                    )}
                 </motion.div>
             </div>
         </div>

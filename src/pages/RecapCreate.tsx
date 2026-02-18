@@ -53,7 +53,8 @@ export function RecapCreate() {
             const response = await fetch('/api/upload', {
                 method: 'POST',
                 headers: {
-                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
                 },
                 body: formData
             });
@@ -86,7 +87,8 @@ export function RecapCreate() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
                 },
                 body: JSON.stringify({
                     id: isEditing ? editingItem.id : undefined,

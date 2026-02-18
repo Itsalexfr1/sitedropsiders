@@ -24,6 +24,7 @@ import { NewsletterAdmin } from './pages/NewsletterAdmin';
 import { NewsletterComposer } from './pages/NewsletterComposer';
 import { NewsCreate } from './pages/NewsCreate';
 import { AdminManage } from './pages/AdminManage';
+import { AdminEditors } from './pages/AdminEditors';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
           {/* Admin Routes */}
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/manage" element={<ProtectedRoute><AdminManage /></ProtectedRoute>} />
+          <Route path="/admin/editors" element={<ProtectedRoute><AdminEditors /></ProtectedRoute>} />
 
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/newsletter/admin" element={<ProtectedRoute><NewsletterAdmin /></ProtectedRoute>} />

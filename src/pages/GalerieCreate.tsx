@@ -29,7 +29,8 @@ export function GalerieCreate() {
                 const response = await fetch('/api/upload', {
                     method: 'POST',
                     headers: {
-                        'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                        'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                        'X-Admin-Username': localStorage.getItem('admin_user') || ''
                     },
                     body: formData
                 });
@@ -71,7 +72,8 @@ export function GalerieCreate() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                    'X-Admin-Password': localStorage.getItem('admin_password') || '',
+                    'X-Admin-Username': localStorage.getItem('admin_user') || ''
                 },
                 body: JSON.stringify({
                     title,

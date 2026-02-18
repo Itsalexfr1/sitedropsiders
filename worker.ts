@@ -26,12 +26,13 @@ export default {
             'src/data/recaps_content_2.json',
             'src/data/recaps_content_1.json'
         ];
+        const EDITORS_PATH = 'src/data/editors.json';
 
         // CORS Headers
         const headers = {
             'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username',
             'Content-Type': 'application/json'
         };
 
@@ -105,6 +106,7 @@ export default {
         // --- AUTH CHECK ---
         const adminPassword = env.ADMIN_PASSWORD || 'alex2026';
         const requestPassword = request.headers.get('X-Admin-Password');
+        const requestUsername = request.headers.get('X-Admin-Username') || '';
 
         const isAuthRoute = path.startsWith('/api/news/create') ||
             path.startsWith('/api/recaps/create') ||
@@ -116,23 +118,76 @@ export default {
             path.startsWith('/api/recaps/update') ||
             path.startsWith('/api/agenda/update') ||
             path.endsWith('/delete') ||
-            path === '/api/subscribers';
+            path === '/api/subscribers' ||
+            path.startsWith('/api/editors');
 
-        if (isAuthRoute && requestPassword !== adminPassword) {
-            return new Response(JSON.stringify({ error: 'Accès non autorisé' }), { status: 401, headers });
+        if (isAuthRoute) {
+            let authenticated = false;
+            if (requestPassword === adminPassword && (requestUsername === 'alex' || !requestUsername)) {
+                authenticated = true;
+            } else {
+                // Check if it's an editor
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH);
+                if (editorsFile && editorsFile.content) {
+                    const editor = editorsFile.content.find(e => e.username === requestUsername && e.password === requestPassword);
+                    if (editor) authenticated = true;
+                }
+            }
+
+            if (!authenticated) {
+                return new Response(JSON.stringify({ error: 'Accès non autorisé' }), { status: 401, headers });
+            }
+
+            // Specific check for editors management: only Alex
+            if (path.startsWith('/api/editors') && requestUsername !== 'alex') {
+                return new Response(JSON.stringify({ error: 'Réservé à Alex' }), { status: 403, headers });
+            }
         }
 
         // --- API: LOGIN ---
         if (path === '/api/login' && request.method === 'POST') {
             try {
-                const { password } = await request.json();
-                if (password === adminPassword) {
-                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                const { username, password } = await request.json();
+                if (username === 'alex' && password === adminPassword) {
+                    return new Response(JSON.stringify({ success: true, user: 'alex' }), { status: 200, headers });
                 }
-                return new Response(JSON.stringify({ error: 'Mot de passe incorrect' }), { status: 401, headers });
+
+                // Check editors
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH);
+                if (editorsFile && editorsFile.content) {
+                    const editor = editorsFile.content.find(e => e.username === username && e.password === password);
+                    if (editor) {
+                        return new Response(JSON.stringify({ success: true, user: username }), { status: 200, headers });
+                    }
+                }
+
+                return new Response(JSON.stringify({ error: 'Identifiants incorrects' }), { status: 401, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: 'Invalid Request' }), { status: 400, headers });
             }
+        }
+
+        // --- API: EDITORS MANAGEMENT ---
+        if (path === '/api/editors' && request.method === 'GET') {
+            const editors = await fetchGitHubFile(EDITORS_PATH) || { content: [] };
+            return new Response(JSON.stringify(editors.content), { status: 200, headers });
+        }
+
+        if (path === '/api/editors/create' && request.method === 'POST') {
+            const { username, password, name } = await request.json();
+            const file = await fetchGitHubFile(EDITORS_PATH) || { content: [], sha: null };
+            const updated = [...file.content, { username, password, name, created: new Date().toISOString() }];
+            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Add editor: ${username}`, file.sha);
+            return new Response(JSON.stringify({ success: saved }), { status: saved ? 200 : 500, headers });
+        }
+
+        if (path === '/api/editors/delete' && request.method === 'POST') {
+            const { username } = await request.json();
+            const file = await fetchGitHubFile(EDITORS_PATH);
+            if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+            const updated = file.content.filter(e => e.username !== username);
+            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${username}`, file.sha);
+            return new Response(JSON.stringify({ success: saved }), { status: saved ? 200 : 500, headers });
         }
 
         // --- API: SUBSCRIBE ---
