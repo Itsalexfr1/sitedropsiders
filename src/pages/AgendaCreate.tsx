@@ -14,7 +14,6 @@ export function AgendaCreate() {
     const [locationInput, setLocationInput] = useState('');
     const [type, setType] = useState('Festival'); // Default
     const [imageUrl, setImageUrl] = useState('');
-    const [description, setDescription] = useState('');
     const [url, setUrl] = useState('');
     const [genre, setGenre] = useState('Big Room'); // Default
     const [uploading, setUploading] = useState(false);
@@ -26,7 +25,6 @@ export function AgendaCreate() {
             setLocationInput(editingItem.location);
             setType(editingItem.type || 'Festival');
             setImageUrl(editingItem.image);
-            setDescription(editingItem.description);
             setUrl(editingItem.url);
             setGenre(editingItem.genre || 'Big Room');
         }
@@ -82,7 +80,6 @@ export function AgendaCreate() {
                     location: locationInput,
                     type,
                     image: imageUrl,
-                    description,
                     url,
                     genre,
                     month: new Date(date).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
@@ -109,7 +106,6 @@ export function AgendaCreate() {
                 setDate(new Date().toISOString().split('T')[0]);
                 setLocationInput('');
                 setImageUrl('');
-                setDescription('');
                 setUrl('');
             }
 
@@ -275,19 +271,6 @@ export function AgendaCreate() {
                                 />
                             </div>
                         </div>
-
-                        {/* Description */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Description courte</label>
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Une brève description..."
-                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all h-24"
-                                required
-                            />
-                        </div>
-
 
                         {/* Submit Button */}
                         <button
