@@ -51,24 +51,25 @@ export function NewsCreate() {
         setUploading(true);
         const formData = new FormData();
         formData.append('image', file);
+        formData.append('path', 'news');
 
         try {
-            const response = await fetch('https://api.imgur.com/3/image', {
+            const response = await fetch('/api/upload', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Client-ID 546c25a59c58ad7'
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
                 },
                 body: formData
             });
 
             const data = await response.json();
             if (data.success) {
-                setImageUrl(data.data.link);
+                setImageUrl(data.url);
             } else {
-                alert('Erreur lors de l\'upload');
+                alert(data.error || 'Erreur lors de l\'upload');
             }
         } catch (error) {
-            alert('Erreur de connexion');
+            alert('Erreur de connexion au serveur d\'upload');
         } finally {
             setUploading(false);
         }

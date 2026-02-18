@@ -10,7 +10,7 @@ export const onRequestPost = async (context: any) => {
     try {
         const adminPassword = request.headers.get('X-Admin-Password');
         if (adminPassword !== env.ADMIN_PASSWORD) {
-            return jsonResponse({ error: 'Unauthorized' }, 401);
+            return jsonResponse({ error: 'Accès non autorisé' }, 401);
         }
 
         const body = await request.json();
@@ -62,7 +62,7 @@ export const onRequestPost = async (context: any) => {
             try {
                 generatedMonth = new Date(date).toLocaleString('fr-FR', { month: 'long' }).toUpperCase();
             } catch (e) {
-                generatedMonth = "FRANCE";
+                generatedMonth = "JANVIER"; // Fallback
             }
         }
 
@@ -106,6 +106,6 @@ export const onRequestPost = async (context: any) => {
         return jsonResponse({ success: true, event: newEvent });
 
     } catch (err: any) {
-        return jsonResponse({ error: err.message }, 500);
+        return jsonResponse({ error: err.message || 'Erreur inconnue' }, 500);
     }
 };
