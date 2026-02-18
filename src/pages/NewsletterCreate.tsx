@@ -49,6 +49,9 @@ export function NewsletterCreate() {
         // Use relative path for local preview, full URL for export/send
         const logoUrl = isPreview ? '/Logo.png' : 'https://dropsiders.fr/Logo.png';
 
+        // Font stacks
+        const fontStack = "'Helvetica Neue', Helvetica, Arial, sans-serif";
+
         return `
 <!DOCTYPE html>
 <html>
@@ -57,46 +60,49 @@ export function NewsletterCreate() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${subject}</title>
     <style>
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #0c0014; color: #ffffff; padding: 0; margin: 0; }
-        .container { max-width: 600px; margin: 0 auto; background-color: #1a0524; overflow: hidden; }
-        .header-bar { height: 4px; background: linear-gradient(90deg, #ff0033 0%, #00f2ea 100%); width: 100%; }
-        .header { text-align: center; padding: 30px 0; background-color: #0c0014; }
-        .content { padding: 40px 20px; }
-        .title { font-size: 28px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; color: #ffffff; }
+        body { font-family: ${fontStack}; background-color: #0c0014; color: #ffffff; padding: 0; margin: 0; width: 100%; }
+        .wrapper { width: 100%; background-color: #0c0014; padding: 20px 0; }
+        .container { max-width: 600px; margin: 0 auto; background-color: #150518; border: 1px solid #333333; border-radius: 12px; overflow: hidden; box-shadow: 0 0 20px rgba(255, 0, 51, 0.1); }
+        .header { text-align: center; padding: 30px 0; background-color: #0c0014; border-bottom: 1px solid #333333; }
+        .content { padding: 40px 30px; background-color: #150518; }
+        .title { font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; color: #ffffff; letter-spacing: -0.5px; }
         .text { font-size: 16px; line-height: 1.6; color: #d1d5db; margin-bottom: 30px; }
-        .button { display: inline-block; padding: 16px 32px; background: linear-gradient(45deg, #ff0033, #ff00ff); color: #ffffff !important; text-decoration: none; font-weight: bold; text-transform: uppercase; border-radius: 8px; }
-        .footer { padding: 20px; text-align: center; font-size: 12px; color: #6b7280; background-color: #0c0014; }
-        .image { width: 100%; border-radius: 12px; margin-bottom: 30px; }
+        .button { display: inline-block; padding: 16px 32px; background: linear-gradient(90deg, #ff0033 0%, #ff00ff 100%); color: #ffffff !important; text-decoration: none; font-weight: bold; text-transform: uppercase; border-radius: 8px; font-size: 14px; letter-spacing: 1px; }
+        .footer { padding: 30px 20px; text-align: center; font-size: 12px; color: #6b7280; background-color: #0c0014; border-top: 1px solid #333333; }
+        .image { width: 100%; height: auto; border-radius: 8px; margin-bottom: 25px; border: 1px solid #333333; }
+        .highlight { color: #ff0033; }
         @media only screen and (max-width: 600px) {
-            .container { width: 100% !important; }
+            .container { width: 100% !important; border-radius: 0; }
+            .content { padding: 30px 20px; }
         }
     </style>
 </head>
-<body>
-    <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
-        ${subject}
-    </div>
-    <div class="container">
-        <div class="header">
-            <img src="${logoUrl}" alt="Dropsiders" width="180" style="display: block; margin: 0 auto; max-width: 180px; height: auto;">
+<body style="margin: 0; padding: 0; background-color: #0c0014;">
+    <div class="wrapper" style="background-color: #0c0014;">
+        <div style="display:none;font-size:1px;color:#333333;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;">
+            ${subject}
         </div>
-        <div class="header-bar"></div>
-        ${imageUrl ? `<img src="${imageUrl}" alt="Cover" class="image" style="display:block; width:100%; max-width:600px;">` : ''}
-        <div class="content">
-            <h1 class="title">${title}</h1>
-            <div class="text">
-                ${content.replace(/\n/g, '<br>')}
+        <div class="container">
+            <div class="header">
+                <img src="${logoUrl}" alt="Dropsiders" width="160" style="display: block; margin: 0 auto; max-width: 160px; height: auto;">
             </div>
-            ${ctaText && ctaLink ? `
-            <div style="text-align: center; margin-top: 20px;">
-                <a href="${ctaLink}" class="button">${ctaText}</a>
+            ${imageUrl ? `<img src="${imageUrl}" alt="Cover" class="image" style="display:block; width:100%; max-width:600px; border:0;">` : ''}
+            <div class="content">
+                <h1 class="title">${title}</h1>
+                <div class="text">
+                    ${content.replace(/\n/g, '<br>')}
+                </div>
+                ${ctaText && ctaLink ? `
+                <div style="text-align: center; margin-top: 30px;">
+                    <a href="${ctaLink}" class="button">${ctaText}</a>
+                </div>
+                ` : ''}
             </div>
-            ` : ''}
-        </div>
-        <div class="footer">
-            © 2026 Dropsiders. Tous droits réservés.<br>
-            <br>
-            <a href="#" style="color: #00f2ea; text-decoration: none;">Se désinscrire</a>
+            <div class="footer">
+                &copy; 2026 DROPSIDERS. Tous droits réservés.<br>
+                <br>
+                <a href="#" style="color: #6b7280; text-decoration: underline;">Se désinscrire</a>
+            </div>
         </div>
     </div>
 </body>
@@ -334,7 +340,7 @@ export function NewsletterCreate() {
                         </div>
                         <div className="flex-1 bg-gray-900 overflow-y-auto p-8 flex justify-center">
                             <div
-                                className={`bg-white transition-all duration-300 shadow-2xl ${previewMode === 'mobile' ? 'w-[375px]' : 'w-[600px]'} min-h-[600px]`}
+                                className={`bg-[#0c0014] transition-all duration-300 shadow-2xl ${previewMode === 'mobile' ? 'w-[375px]' : 'w-[600px]'} min-h-[600px]`}
                                 dangerouslySetInnerHTML={{ __html: generateHTML(true) }}
                             />
                         </div>
