@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getRecapLink } from '../utils/slugify';
 import { translateText, translateHTML } from '../utils/translate';
+import { getRecapContent } from '../utils/contentLoader';
 
 export function RecapDetail() {
     const { t, language } = useLanguage();
@@ -78,7 +79,10 @@ export function RecapDetail() {
         .filter((item: any) => item.id !== recap.id)
         .slice(0, 3);
 
-    let rawContent = (recap as any).content || '';
+
+    // Récupérer le contenu complet depuis les fichiers séparés
+    const fullContent = recap ? getRecapContent(recap.id) : '';
+    let rawContent = fullContent || (recap as any).content || '';
 
     // Nettoyage robuste via DOMParser pour supprimer les éléments indésirables (boutons partage, pubs, etc.)
     const cleanHTML = (html: string) => {

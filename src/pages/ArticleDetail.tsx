@@ -8,6 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getArticleLink } from '../utils/slugify';
 import { translateText, translateHTML } from '../utils/translate';
+import { getNewsContent } from '../utils/contentLoader';
 
 export function ArticleDetail() {
     const { t, language } = useLanguage();
@@ -75,7 +76,10 @@ export function ArticleDetail() {
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
 
-    let rawContent = (article as any).content || (article as any).summary || '';
+
+    // Récupérer le contenu complet depuis les fichiers séparés
+    const fullContent = article ? getNewsContent(article.id) : '';
+    let rawContent = fullContent || (article as any).content || (article as any).summary || '';
 
     // Nettoyage robuste via DOMParser (identique à RecapDetail)
     const cleanHTML = (html: string) => {

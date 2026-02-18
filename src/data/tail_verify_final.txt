@@ -2,7 +2,7 @@
         "title":  "Paradise: Starship Eden",
         "date":  "2026-09-30",
         "location":  "UNVRS, Ibiza",
-        "type":  "RÃ©sidence",
+        "type":  "Résidence",
         "image":  "/Jamie Jones Paradise.webp",
         "description":  "Paradise.",
         "url":  "https://unvrs.com/"
@@ -12,7 +12,7 @@
         "title":  "Paradise: Starship Eden (Closing)",
         "date":  "2026-10-07",
         "location":  "UNVRS, Ibiza",
-        "type":  "RÃ©sidence",
+        "type":  "Résidence",
         "image":  "/Jamie Jones Paradise.webp",
         "description":  "Paradise Closing.",
         "url":  "https://unvrs.com/"

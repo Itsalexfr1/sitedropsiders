@@ -24,7 +24,7 @@ export default {
         }
 
         // --- AUTH CHECK ---
-        const adminPassword = env.ADMIN_PASSWORD || '1988'; // Fallback for safety during transition
+        const adminPassword = env.ADMIN_PASSWORD || 'alex2026'; // Fallback for safety during transition
         const requestPassword = request.headers.get('X-Admin-Password');
 
         // Helper to check if route needs auth
