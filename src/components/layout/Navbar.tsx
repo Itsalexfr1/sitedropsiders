@@ -95,7 +95,7 @@ export function Navbar() {
                         <img
                             src="/Logo.png"
                             alt="DROPSIDERS"
-                            className="h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                            className="logo-img h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
                         />
                     </Link>
 

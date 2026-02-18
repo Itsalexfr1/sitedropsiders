@@ -39,11 +39,16 @@
   }
 
   /* Re-invert media to keep them looking normal (Original Colors) */
-  html.light-mode img,
+  html.light-mode img:not(.logo-img),
   html.light-mode video,
   html.light-mode iframe,
   html.light-mode [style*="background-image"] {
     filter: invert(1) hue-rotate(180deg) !important;
+  }
+
+  /* Logos stay inverted (negative) in light mode */
+  html.light-mode .logo-img {
+    filter: none !important;
   }
 
   /* Don't re-invert icons or specific decorative elements if needed */

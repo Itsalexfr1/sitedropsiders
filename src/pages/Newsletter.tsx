@@ -50,7 +50,7 @@ export function Newsletter() {
                         <img
                             src="/Logo.png"
                             alt="DROPSIDERS"
-                            className="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                            className="logo-img h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
                         />
                     </motion.div>
 

@@ -35,7 +35,7 @@ export function Footer() {
                     <div className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8">
                         <div className="flex flex-col gap-6 items-center lg:items-start">
                             <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                                <img src="/Logo.png" alt="DROPSIDERS" className="h-16 w-auto object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
+                                <img src="/Logo.png" alt="DROPSIDERS" className="logo-img h-16 w-auto object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
                             </Link>
                             <h2 className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight" dangerouslySetInnerHTML={{ __html: t('footer.slogan') }}>
                             </h2>

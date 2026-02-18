@@ -41,7 +41,7 @@ export function TikTokWidget() {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-neon-cyan to-neon-blue p-[2px]">
                         <div className="w-full h-full rounded-full bg-dark-bg flex items-center justify-center overflow-hidden">
-                            <img src="/Logo.png" alt="Dropsiders" className="w-6 h-6 object-contain" />
+                            <img src="/Logo.png" alt="Dropsiders" className="logo-img w-6 h-6 object-contain" />
                         </div>
                     </div>
                     <div>
