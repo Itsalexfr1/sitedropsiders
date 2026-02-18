@@ -178,9 +178,9 @@ export function AdminDashboard() {
         },
         {
             title: "Newsletter",
-            description: "Envoyer un email",
+            description: "Studio de création",
             icon: <Mail className="w-8 h-8 text-green-400" />,
-            link: "/newsletter/create",
+            link: "/newsletter/studio",
             color: "border-green-400/20 hover:border-green-400",
             bg: "bg-green-400/5"
         }
