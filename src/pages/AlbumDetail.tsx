@@ -14,6 +14,28 @@ export function AlbumDetail() {
     const albumId = extractIdFromSlug(id || '') || id;
     const album = galerieData.find(a => a.id === albumId);
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
+    const [copied, setCopied] = useState(false);
+
+    const handleShare = async () => {
+        const url = window.location.href;
+        const shareData = {
+            title: album?.title || 'Galerie Dropsiders',
+            text: `Découvrez cet album sur Dropsiders : ${album?.title}`,
+            url: url
+        };
+
+        try {
+            if (navigator.share && navigator.canShare(shareData)) {
+                await navigator.share(shareData);
+            } else {
+                await navigator.clipboard.writeText(url);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    };
 
     if (!album) {
         return (
@@ -67,12 +89,14 @@ export function AlbumDetail() {
                             </div>
 
                             <div className="flex items-center gap-4">
-                                <button className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all text-white group">
+                                <button
+                                    onClick={handleShare}
+                                    className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all text-white group flex items-center gap-2"
+                                >
                                     <Share2 className="w-5 h-5 group-hover:text-neon-red" />
+                                    {copied && <span className="text-xs text-green-400 font-bold ml-2">Copié !</span>}
+                                    {!copied && <span className="hidden md:inline font-bold ml-2">{t('album_detail.share_btn')}</span>}
                                 </button>
-                                <div className="px-6 py-3 bg-neon-red rounded-2xl font-bold text-white shadow-[0_0_20px_#ff0033] hover:scale-105 transition-all cursor-pointer">
-                                    {t('album_detail.share_btn')}
-                                </div>
                             </div>
                         </div>
                     </motion.div>
