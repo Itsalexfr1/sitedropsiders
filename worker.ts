@@ -167,7 +167,7 @@ export default {
             let authenticated = false;
 
             // 1. Check Password Auth
-            if (requestPassword === adminPassword && (requestUsername === 'contact@dropsiders.fr' || !requestUsername)) {
+            if (requestPassword === adminPassword && (requestUsername === 'contact@dropsiders.fr' || requestUsername === 'alex' || !requestUsername)) {
                 authenticated = true;
             }
             // 2. Check Google Token Auth
@@ -217,8 +217,8 @@ export default {
         if (path === '/api/login' && request.method === 'POST') {
             try {
                 const { username, password } = await request.json();
-                if (username === 'contact@dropsiders.fr' && password === adminPassword) {
-                    return new Response(JSON.stringify({ success: true, user: 'contact@dropsiders.fr' }), { status: 200, headers });
+                if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === adminPassword) {
+                    return new Response(JSON.stringify({ success: true, user: username }), { status: 200, headers });
                 }
 
                 // Check editors
