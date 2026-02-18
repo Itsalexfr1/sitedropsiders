@@ -20,8 +20,8 @@ export function NewsletterComposer() {
     });
 
     // News Secondaires (2 blocs côte à côte)
-    const [news1, setNews1] = useState({ title: '', image: '', link: '' });
-    const [news2, setNews2] = useState({ title: '', image: '', link: '' });
+    const [news1, setNews1] = useState({ title: '', content: '', image: '', link: '' });
+    const [news2, setNews2] = useState({ title: '', content: '', image: '', link: '' });
 
     // Section Média (Spotify/YouTube/Autre)
     const [media, setMedia] = useState({
@@ -472,6 +472,7 @@ export function NewsletterComposer() {
                                     <div className="absolute -top-2 -left-2 bg-neon-red text-white text-[10px] font-black px-2 py-1 rounded">GAUCHE</div>
                                     <div className="space-y-3 mt-2">
                                         <input type="text" placeholder="Titre" value={news1.title} onChange={e => setNews1({ ...news1, title: e.target.value })} className="input-field" />
+                                        <textarea placeholder="Description courte..." value={news1.content} onChange={e => setNews1({ ...news1, content: e.target.value })} className="input-field min-h-[60px]" />
                                         <input type="text" placeholder="Image URL" value={news1.image} onChange={e => setNews1({ ...news1, image: e.target.value })} className="input-field" />
                                         <input type="text" placeholder="Lien" value={news1.link} onChange={e => setNews1({ ...news1, link: e.target.value })} className="input-field" />
                                     </div>
@@ -482,6 +483,7 @@ export function NewsletterComposer() {
                                     <div className="absolute -top-2 -right-2 bg-neon-red text-white text-[10px] font-black px-2 py-1 rounded">DROITE</div>
                                     <div className="space-y-3 mt-2">
                                         <input type="text" placeholder="Titre" value={news2.title} onChange={e => setNews2({ ...news2, title: e.target.value })} className="input-field" />
+                                        <textarea placeholder="Description courte..." value={news2.content} onChange={e => setNews2({ ...news2, content: e.target.value })} className="input-field min-h-[60px]" />
                                         <input type="text" placeholder="Image URL" value={news2.image} onChange={e => setNews2({ ...news2, image: e.target.value })} className="input-field" />
                                         <input type="text" placeholder="Lien" value={news2.link} onChange={e => setNews2({ ...news2, link: e.target.value })} className="input-field" />
                                     </div>
