@@ -52,7 +52,7 @@ export function Footer() {
 
                     {/* Social Section - "REJOIGNEZ-NOUS" */}
                     <div className="lg:col-span-4 space-y-8">
-                        <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">{t('footer.community')}</h4>
+                        <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]" dangerouslySetInnerHTML={{ __html: t('footer.community') }}></h4>
                         <div className="space-y-6">
                             <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">{t('footer.join')}</h3>
                             <div className="grid grid-cols-5 gap-3">

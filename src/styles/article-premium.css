@@ -112,7 +112,7 @@
     float: left;
     font-family: var(--font-display, 'Orbitron', monospace);
     font-weight: 900;
-    font-size: 80px;
+    font-size: 100px;
     line-height: 0.8;
     padding-right: 12px;
     padding-top: 8px;
@@ -142,7 +142,7 @@
 .article-body-premium .article-section>div>p:first-of-type::first-letter {
     float: left !important;
     font-family: var(--font-display, 'Orbitron', monospace) !important;
-    font-size: 80px !important;
+    font-size: 100px !important;
     line-height: 60px !important;
     padding-top: 4px !important;
     padding-right: 12px !important;
