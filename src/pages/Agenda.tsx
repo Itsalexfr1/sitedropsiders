@@ -182,6 +182,28 @@ export function Agenda() {
                 </h1>
             </motion.div>
 
+            {/* Category Filter */}
+            <div className="flex flex-wrap items-center gap-4 mb-12">
+                <div className="flex items-center gap-2 text-gray-400 mr-2">
+                    <Filter className="w-4 h-4" />
+                    <span className="text-sm font-bold uppercase tracking-wider">{t('agenda.filter_by')}</span>
+                </div>
+                {CATEGORIES.map((cat) => (
+                    <motion.button
+                        key={cat.id}
+                        onClick={() => setActiveCategory(cat.id)}
+                        whileHover={{ scale: 1.05 }}
+                        onMouseEnter={playHoverSound}
+                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
+                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] underline decoration-2 underline-offset-4'
+                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-neon-red'
+                            }`}
+                    >
+                        {cat.label}
+                    </motion.button>
+                ))}
+            </div>
+
             {/* Month Selection */}
             <div className="mb-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -218,28 +240,6 @@ export function Agenda() {
                     </div>
 
                 </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="flex flex-wrap items-center gap-4 mb-12">
-                <div className="flex items-center gap-2 text-gray-400 mr-2">
-                    <Filter className="w-4 h-4" />
-                    <span className="text-sm font-bold uppercase tracking-wider">{t('agenda.filter_by')}</span>
-                </div>
-                {CATEGORIES.map((cat) => (
-                    <motion.button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.id)}
-                        whileHover={{ scale: 1.05 }}
-                        onMouseEnter={playHoverSound}
-                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
-                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] underline decoration-2 underline-offset-4'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                            }`}
-                    >
-                        {cat.label}
-                    </motion.button>
-                ))}
             </div>
 
             {/* Event List */}
