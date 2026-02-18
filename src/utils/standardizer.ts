@@ -18,7 +18,12 @@ const fixEncoding = (text: string) => {
         .replace(/­ƒÄƒ´©Å/g, '🎟️')
         .replace(/ƒÄƒ´©Å/g, '🎟️')
         .replace(/à([a-zA-Z0-9])/g, 'à $1') // Fix missing spaces after 'à'
-        .replace(/Ushuaa/gi, 'Ushuaïa');
+        .replace(/Ushuaa/gi, 'Ushuaïa')
+        .replace(/ÔåÆ/g, '→')
+        .replace(/┬▓/g, '²')
+        .replace(/├é/g, 'Â')
+        .replace(/├ä/g, 'Ä')
+        .replace(/ÔÇô/g, '–');
 };
 
 const RED_KEYWORDS = [
@@ -115,21 +120,42 @@ export function standardizeContent(html: string): string {
         }
     });
 
-    // 2. Style existing <a> tags
-    const links = tempDiv.querySelectorAll('a');
-    links.forEach(link => {
-        link.classList.add('premium-link');
-    });
+    // 3. Process paragraphs for Infos Pratiques / Alignment
+    const children = Array.from(tempDiv.children);
+    let inInfoPratiques = false;
 
-    // 3. APPLY DROP-CAP (REMOVED - Back to Manual as requested)
-    /*
-    const paras = tempDiv.querySelectorAll('p');
-    for (const p of Array.from(paras)) {
-        if (p.textContent && p.textContent.trim().length > 50) {
-            if (applyDropCap(p as HTMLElement)) break;
+    children.forEach(child => {
+        const tagName = child.tagName.toUpperCase();
+
+        // Detect Info Headers
+        if (tagName === 'H1' || tagName === 'H2' || tagName === 'H3' || tagName === 'H4') {
+            const headerText = child.textContent?.toLowerCase() || '';
+            if (headerText.includes('infos pratiques') ||
+                headerText.includes('infos festival') ||
+                headerText.includes('pratique') ||
+                headerText.includes('billetterie') ||
+                headerText.includes('tickets')) {
+                inInfoPratiques = true;
+            } else {
+                inInfoPratiques = false;
+            }
         }
-    }
-    */
+
+        if (tagName === 'P') {
+            const p = child as HTMLElement;
+            const text = p.textContent?.trim() || '';
+
+            // Rule 1: Starts with an emoji indicating info
+            const hasInfoEmoji = /^[📍📅🎟️💵🎫🎫💰🗺️🏨✈️🚅🚗].*/u.test(text);
+
+            // Rule 2: Specifically centered text (usually info blocks)
+            const isCentered = p.style.textAlign === 'center' || p.classList.contains('text-center');
+
+            if (inInfoPratiques || hasInfoEmoji || isCentered) {
+                p.classList.add('no-lettrage');
+            }
+        }
+    });
 
     return tempDiv.innerHTML;
 }

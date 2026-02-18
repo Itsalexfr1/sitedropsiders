@@ -151,7 +151,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
 
     return (
-        <div className="article-premium-wrapper">
+        <div className={`article-premium-wrapper ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : 'article-type-news'}`}>
             {/* Lightbox */}
             <AnimatePresence>
                 {selectedImage && (
@@ -383,26 +383,28 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 <div className="sticky top-32 space-y-12">
                                     {/* Related Articles */}
                                     {relatedArticles.length > 0 && (
-                                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-                                            <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">
-                                                {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
-                                            </h3>
-                                            <div className="space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar scroll-smooth snap-y snap-mandatory pr-2 related-articles-container">
+                                        <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
+                                            {/* Titre fixé en haut, hors du scroll */}
+                                            <div className="px-6 pt-6 pb-4 border-b border-white/5">
+                                                <h3 className="text-base font-display font-black text-white uppercase tracking-tighter italic text-center">
+                                                    {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
+                                                </h3>
+                                            </div>
+                                            {/* Liste scrollable */}
+                                            <div className="space-y-0 max-h-[460px] overflow-y-auto custom-scrollbar scroll-smooth snap-y snap-mandatory related-articles-container">
                                                 {relatedArticles.map(rel => (
                                                     <Link
                                                         key={rel.id}
                                                         to={type === 'recap' ? getRecapLink(rel) : getArticleLink(rel)}
-                                                        className="group block space-y-2 pb-4 border-b border-white/5 last:border-0 last:pb-0 snap-start"
+                                                        className="group flex flex-col items-center text-center gap-1 px-6 py-4 border-b border-white/5 last:border-0 snap-start hover:bg-white/[0.03] transition-colors"
                                                         onMouseEnter={playHoverSound}
                                                     >
-                                                        <div className="space-y-1">
-                                                            <span className="text-[9px] font-black text-neon-red tracking-widest uppercase">
-                                                                {rel.category || (type === 'recap' ? 'Recap' : 'News')}
-                                                            </span>
-                                                            <h4 className="text-sm font-bold text-gray-400 group-hover:text-white transition-colors leading-snug uppercase tracking-tight line-clamp-2 italic">
-                                                                {rel.title}
-                                                            </h4>
-                                                        </div>
+                                                        <span className="text-[9px] font-black text-neon-red tracking-widest uppercase">
+                                                            {rel.category || (type === 'recap' ? 'Recap' : 'News')}
+                                                        </span>
+                                                        <h4 className="text-sm font-bold text-gray-400 group-hover:text-white transition-colors leading-snug uppercase tracking-tight line-clamp-2 italic">
+                                                            {rel.title}
+                                                        </h4>
                                                     </Link>
                                                 ))}
                                             </div>

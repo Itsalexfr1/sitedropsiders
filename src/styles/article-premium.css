@@ -131,6 +131,16 @@
     clear: both !important;
 }
 
+/* Allow centering for specific blocks (like Infos Pratiques) */
+.article-body-premium p.no-lettrage,
+.article-body-premium p[style*="text-align: center"],
+.article-body-premium p[style*="text-align:center"] {
+    text-align: center !important;
+    display: block;
+    width: 100%;
+    margin-bottom: 25px !important;
+}
+
 /* --- AUTOMATIC WIDGET STYLING --- */
 .article-section {
     margin-bottom: 40px;
@@ -138,9 +148,10 @@
     clear: both;
 }
 
-/* Automatic Drop Cap for the FIRST paragraph of each section */
-/* Automatic Drop Cap for EVERY paragraph in the body */
-.article-body-premium p::first-letter {
+/* Automatic Drop Cap for EVERY paragraph in the body EXCEPT those marked as no-lettrage */
+/* Only applies to recaps and interviews, NOT to news articles */
+.article-type-recap .article-body-premium p:not(.no-lettrage)::first-letter,
+.article-type-interview .article-body-premium p:not(.no-lettrage)::first-letter {
     float: left !important;
     font-size: 85px !important;
     line-height: 1 !important;
