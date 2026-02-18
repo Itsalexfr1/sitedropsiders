@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper } from 'lucide-react';
+import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 export function RecapCreate() {
@@ -136,11 +136,15 @@ export function RecapCreate() {
     return (
         <div className="min-h-screen bg-dark-bg text-white py-32 px-6">
             <div className="max-w-4xl mx-auto">
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center gap-6 mb-8">
+                    <Link
+                        to="/admin"
+                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
+                        title="Retour au tableau de bord"
+                    >
+                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </Link>
                     <div>
-                        <Link to="/admin" className="text-gray-400 hover:text-white mb-2 block text-sm">
-                            ← Retour Admin
-                        </Link>
                         <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
                             {isEditing ? 'Modifier le Récap' : 'Nouveau Récap'}
                         </h1>

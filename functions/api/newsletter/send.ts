@@ -59,9 +59,24 @@ export const onRequestPost = async (context: any) => {
             }
         }
 
-        return jsonResponse({ success: true, details: results });
+        const allFailed = results.length > 0 && results.every(r => !r.success);
+        const someFailed = results.some(r => !r.success);
+
+        if (allFailed) {
+            return jsonResponse({
+                success: false,
+                error: 'Tous les envois ont échoué',
+                details: results
+            }, 500);
+        }
+
+        return jsonResponse({
+            success: true,
+            message: someFailed ? 'Newsletter envoyée partiellement' : 'Newsletter envoyée avec succès',
+            details: results
+        });
 
     } catch (err: any) {
-        return jsonResponse({ error: err.message }, 500);
+        return jsonResponse({ success: false, error: err.message }, 500);
     }
 };

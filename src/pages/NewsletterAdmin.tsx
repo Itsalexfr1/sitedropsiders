@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Mail, Users, Calendar, Trash2, Download, Search } from 'lucide-react';
+import { Mail, Users, Calendar, Trash2, Download, Search, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
@@ -123,14 +123,22 @@ export function NewsletterAdmin() {
     return (
         <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="mb-12">
-                    <h1 className="text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
-                        Gestion Newsletter
-                    </h1>
-                    <p className="text-gray-400 text-lg">
-                        Gérez vos abonnés à la newsletter Dropsiders
-                    </p>
+                <div className="flex items-center gap-6 mb-12">
+                    <Link
+                        to="/admin"
+                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
+                        title="Retour au tableau de bord"
+                    >
+                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </Link>
+                    <div>
+                        <h1 className="text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
+                            Gestion Newsletter
+                        </h1>
+                        <p className="text-gray-400 text-lg">
+                            Gérez vos abonnés à la newsletter Dropsiders
+                        </p>
+                    </div>
                 </div>
 
                 {/* Stats Cards */}

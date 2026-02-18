@@ -90,26 +90,30 @@ export function AdminManage() {
         <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                <div className="flex items-center gap-6 mb-12">
+                    <Link
+                        to="/admin"
+                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
+                        title="Retour au tableau de bord"
+                    >
+                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </Link>
                     <div>
-                        <Link to="/admin" className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4">
-                            <ArrowLeft className="w-4 h-4" /> Retour au Dashboard
-                        </Link>
                         <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
                             Gestion du <span className="text-neon-red">Contenu</span>
                         </h1>
                     </div>
+                </div>
 
-                    <div className="relative w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                        <input
-                            type="text"
-                            placeholder="Rechercher..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-neon-red transition-colors"
-                        />
-                    </div>
+                <div className="relative w-full md:w-96">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <input
+                        type="text"
+                        placeholder="Rechercher..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-neon-red transition-colors"
+                    />
                 </div>
 
                 {/* Tabs */}
