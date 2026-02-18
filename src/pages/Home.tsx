@@ -21,16 +21,16 @@ export function Home() {
                 </div>
             </section>
 
-            {/* Row 1.5: Featured Interviews */}
+            {/* Row 1.5: Featured Recaps */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <InterviewWidget />
+                <RecapWidget />
             </section>
 
-            {/* Row 2: Recaps & Agenda */}
+            {/* Row 2: Agenda & Interviews */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-8 items-stretch">
-                    <RecapWidget />
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-8 items-stretch">
                     <AgendaWidget />
+                    <InterviewWidget />
                 </div>
             </section>
 
