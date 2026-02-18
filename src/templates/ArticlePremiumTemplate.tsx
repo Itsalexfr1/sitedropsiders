@@ -40,13 +40,26 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     const handleShare = async () => {
         const url = window.location.href;
-        const shareData = {
+        const shareData: any = {
             title: translatedTitle || article.title,
             text: `Découvrez cet article sur Dropsiders : ${translatedTitle || article.title}`,
             url: url
         };
 
         try {
+            if (article.image) {
+                try {
+                    const response = await fetch(article.image);
+                    const blob = await response.blob();
+                    const file = new File([blob], 'article.jpg', { type: blob.type });
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        shareData.files = [file];
+                    }
+                } catch (e) {
+                    console.warn("Sharing image failed", e);
+                }
+            }
+
             if (navigator.share && navigator.canShare(shareData)) {
                 await navigator.share(shareData);
             } else {
@@ -58,6 +71,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             console.error('Error sharing:', err);
         }
     };
+
+    const isInterview = article.category === 'Interview' || article.category === 'Interviews';
 
     // Clean HTML Content (Remove existing Headers, Metadata to standardize structure)
     const cleanHTML = (html: string) => {
@@ -114,13 +129,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         // Apply Premium Standardizer (Keywords, Links)
         finalHtml = standardizeText(finalHtml);
 
+        // Support Interviews (Bold questions)
+        if (isInterview) {
+            finalHtml = finalHtml.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
+        }
+
         return finalHtml;
     };
 
     const displayContent = language === 'en' && translatedBody ? translatedBody : cleanHTML(content);
     const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
-    const backLink = type === 'recap' ? '/recaps' : '/news';
-    const backText = type === 'recap' ? t('recap_detail.back_to_recaps') : t('article_detail.back_to_news');
+    const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');
+    const backText = type === 'recap'
+        ? t('recap_detail.back_to_recaps')
+        : (isInterview ? t('article_detail.back_to_interviews') : t('article_detail.back_to_news'));
 
     // Calculate reading time
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
@@ -311,7 +333,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     {/* Related Articles */}
                                     {relatedArticles.length > 0 && (
                                         <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
-                                            <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">{t('article_detail.related_title')}</h3>
+                                            <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">
+                                                {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
+                                            </h3>
                                             <div className="space-y-6">
                                                 {relatedArticles.map(rel => (
                                                     <Link
@@ -362,9 +386,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             </aside>
                         </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </div >
+            </main >
+        </div >
     );
 };
 
