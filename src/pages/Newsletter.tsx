@@ -1,4 +1,4 @@
-import { Mail, TrendingUp, Zap, Users, Bell, Sparkles } from 'lucide-react';
+import { TrendingUp, Zap, Users, Bell, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { useLanguage } from '../context/LanguageContext';
@@ -29,96 +29,62 @@ export function Newsletter() {
         },
     ];
 
-    const stats = [
-        { value: '60K+', label: t('newsletter.stats.subscribers') },
-        { value: '1x/semaine', label: t('newsletter.stats.frequency') },
-        { value: '100+', label: t('newsletter.stats.coverage') },
-    ];
-
     return (
         <div className="min-h-screen bg-dark-bg">
             {/* Hero Section */}
-            <section className="relative pt-32 pb-20 px-6 overflow-hidden">
+            <section className="relative min-h-[60vh] flex flex-col items-center justify-center px-6 overflow-hidden">
                 {/* Background Effects */}
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-red/20 blur-[120px] rounded-full" />
-                <div className="absolute top-20 right-1/4 w-96 h-96 bg-neon-purple/20 blur-[120px] rounded-full" />
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl mx-auto pointer-events-none">
+                    <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-red/10 blur-[120px] rounded-full mix-blend-screen" />
+                    <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-purple/10 blur-[120px] rounded-full mix-blend-screen" />
+                </div>
 
-                <div className="max-w-4xl mx-auto text-center relative z-10">
-                    {/* Badge */}
+                <div className="relative z-10 max-w-4xl mx-auto w-full text-center space-y-12">
+                    {/* Logo */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-full mb-8"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex justify-center mb-8"
                     >
-                        <Mail className="w-4 h-4 text-neon-red" />
-                        <span className="text-xs font-black text-neon-red uppercase tracking-widest">{t('newsletter.hero.badge')}</span>
+                        <img
+                            src="/Logo.png"
+                            alt="DROPSIDERS"
+                            className="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                        />
                     </motion.div>
 
                     {/* Title */}
-                    <motion.h1
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-normal leading-tight mb-6 px-2"
-                    >
-                        {t('newsletter.hero.title')}
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red via-neon-pink to-neon-purple pb-1 px-2">
-                            {t('newsletter.hero.title_span')}
-                        </span>
-                    </motion.h1>
+                    <div className="space-y-6">
+                        <motion.h1
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter"
+                        >
+                            Rejoignez la <span className="text-neon-red">Wave</span>
+                        </motion.h1>
 
-                    {/* Description */}
-                    <motion.p
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-lg text-gray-400 font-light leading-relaxed max-w-2xl mx-auto mb-12"
-                    >
-                        {t('newsletter.hero.desc')}
-                    </motion.p>
+                        <motion.p
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-lg md:text-xl text-gray-400 font-light max-w-2xl mx-auto leading-relaxed"
+                        >
+                            {t('newsletter.hero.desc')}
+                        </motion.p>
+                    </div>
 
-                    {/* Stats */}
+                    {/* Form Container */}
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
+                        initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="grid grid-cols-3 gap-8 max-w-2xl mx-auto mb-16"
+                        transition={{ delay: 0.4 }}
+                        className="max-w-xl mx-auto bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-[0_0_50px_rgba(0,0,0,0.5)]"
                     >
-                        {stats.map((stat, index) => (
-                            <div key={index} className="text-center">
-                                <div className="text-2xl md:text-3xl font-display font-black text-neon-red mb-2">
-                                    {stat.value}
-                                </div>
-                                <div className="text-sm text-gray-500 font-bold uppercase tracking-wide">
-                                    {stat.label}
-                                </div>
-                            </div>
-                        ))}
+                        <NewsletterForm variant="default" />
                     </motion.div>
                 </div>
-            </section>
-
-            {/* Form Section */}
-            <section className="py-16 px-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="max-w-2xl mx-auto"
-                >
-                    <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
-                        <div className="text-center mb-10">
-                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-                                {t('newsletter.form.title')}
-                            </h2>
-                            <p className="text-gray-400 text-sm">
-                                {t('newsletter.form.subtitle')}
-                            </p>
-                        </div>
-
-                        <NewsletterForm variant="default" />
-                    </div>
-                </motion.div>
             </section>
 
             {/* Benefits Section */}
