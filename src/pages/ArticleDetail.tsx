@@ -29,7 +29,7 @@ export function ArticleDetail() {
             // Translate title
             translateText(article.title, 'en').then(setTranslatedTitle);
             // Translate content (preserving HTML)
-            translateHTML(article.content || '', 'en').then(setTranslatedContent);
+            translateHTML((article as any).content || (article as any).summary || '', 'en').then(setTranslatedContent);
         } else if (article) {
             setTranslatedTitle(article.title);
             setTranslatedContent('');
@@ -75,7 +75,7 @@ export function ArticleDetail() {
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
 
-    let rawContent = (article as any).content || '';
+    let rawContent = (article as any).content || (article as any).summary || '';
 
     // Nettoyage robuste via DOMParser (identique à RecapDetail)
     const cleanHTML = (html: string) => {
