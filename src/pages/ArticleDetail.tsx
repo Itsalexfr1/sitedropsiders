@@ -30,6 +30,12 @@ export function ArticleDetail() {
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
 
+    // Navigation: Same Category
+    const categoryArticles = newsData.filter(item => item.category === article.category);
+    const currentIndex = categoryArticles.findIndex(item => item.id === article.id);
+    const previousArticle = currentIndex > 0 ? categoryArticles[currentIndex - 1] : null;
+    const nextArticle = currentIndex < categoryArticles.length - 1 ? categoryArticles[currentIndex + 1] : null;
+
     // Get content from separate files
     const fullContent = getNewsContent(article.id);
     const rawContent = fullContent || (article as any).content || (article as any).summary || '';
@@ -40,6 +46,8 @@ export function ArticleDetail() {
             content={rawContent}
             type="news"
             relatedArticles={relatedArticles}
+            previousArticle={previousArticle}
+            nextArticle={nextArticle}
         />
     );
 }

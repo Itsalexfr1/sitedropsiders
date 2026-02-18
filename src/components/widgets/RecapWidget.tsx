@@ -17,7 +17,7 @@ export function RecapWidget() {
     return (
         <div className="h-full flex flex-col space-y-6">
             <div className="flex justify-between items-center">
-                <h3 className="text-xl font-display font-bold text-white flex items-center gap-3">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <span className="w-2 h-2 bg-neon-orange rounded-full animate-pulse shadow-[0_0_10px_#ff6600]" />
                     {t('home.latest_recaps').toUpperCase()}
                 </h3>
@@ -58,7 +58,7 @@ export function RecapWidget() {
                                     </span>
                                 </div>
                                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent">
-                                    <h4 className="text-[11px] font-display font-bold text-white leading-tight group-hover:text-neon-orange transition-colors line-clamp-1 uppercase italic tracking-tight">{item.title}</h4>
+                                    <h4 className="text-[17px] font-display font-bold text-white leading-tight group-hover:text-neon-orange transition-colors line-clamp-1 uppercase italic tracking-tight">{item.title}</h4>
                                     <p className="text-[9px] text-gray-400 mt-0.5 font-medium">{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</p>
                                 </div>
                             </motion.div>

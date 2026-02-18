@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, Play, Camera, Share2, Check, MapPin, X, Mail } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
@@ -16,9 +16,11 @@ interface ArticlePremiumTemplateProps {
     content: string;
     type: 'news' | 'recap';
     relatedArticles?: any[];
+    previousArticle?: any;
+    nextArticle?: any;
 }
 
-const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article, content, type, relatedArticles = [] }) => {
+const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article, content, type, relatedArticles = [], previousArticle, nextArticle }) => {
     const { t, language } = useLanguage();
     const playHoverSound = useHoverSound();
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -277,8 +279,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     <div className="bg-dark-card border border-white/5 rounded-[2rem] p-8 md:p-12 lg:p-16 shadow-2xl backdrop-blur-md">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
-                            {/* LEFT COLUMN: Main Content (8 spans) */}
-                            <div className="lg:col-span-8">
+                            {/* LEFT COLUMN: Main Content (9 spans) */}
+                            <div className="lg:col-span-9">
                                 <div className="article-body-premium w-full">
                                     <MDEditor.Markdown
                                         source={displayContent}
@@ -321,6 +323,46 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     </div>
                                 )}
 
+                                {/* Previous / Next Buttons */}
+                                {(previousArticle || nextArticle) && (
+                                    <div className="mt-16 pt-16 border-t border-white/5 grid grid-cols-2 gap-8">
+                                        <div className="flex justify-start">
+                                            {previousArticle && (
+                                                <Link
+                                                    to={type === 'recap' ? getRecapLink(previousArticle) : getArticleLink(previousArticle)}
+                                                    className="group flex flex-col items-start gap-3 max-w-[200px]"
+                                                    onMouseEnter={playHoverSound}
+                                                >
+                                                    <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase">Précédent</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
+                                                            <ArrowLeft className="w-4 h-4 text-white" />
+                                                        </div>
+                                                        <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase">{previousArticle.title}</span>
+                                                    </div>
+                                                </Link>
+                                            )}
+                                        </div>
+                                        <div className="flex justify-end">
+                                            {nextArticle && (
+                                                <Link
+                                                    to={type === 'recap' ? getRecapLink(nextArticle) : getArticleLink(nextArticle)}
+                                                    className="group flex flex-col items-end gap-3 max-w-[200px]"
+                                                    onMouseEnter={playHoverSound}
+                                                >
+                                                    <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase">Suivant</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase text-right">{nextArticle.title}</span>
+                                                        <div className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
+                                                            <ArrowRight className="w-4 h-4 text-white" />
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Back Link Center */}
                                 <div className="mt-16 pt-8 border-t border-white/5 flex justify-center">
                                     <Link
@@ -336,8 +378,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 </div>
                             </div>
 
-                            {/* RIGHT COLUMN: Sidebar (4 spans, Sticky) */}
-                            <aside className="lg:col-span-4 space-y-12">
+                            {/* RIGHT COLUMN: Sidebar (3 spans, Sticky) */}
+                            <aside className="lg:col-span-3 space-y-12">
                                 <div className="sticky top-32 space-y-12">
                                     {/* Related Articles */}
                                     {relatedArticles.length > 0 && (
@@ -345,7 +387,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             <h3 className="text-base font-display font-black text-white uppercase tracking-tighter mb-8 italic">
                                                 {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
                                             </h3>
-                                            <div className="space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar scroll-smooth snap-y snap-mandatory pr-2">
+                                            <div className="space-y-6 max-h-[500px] overflow-y-auto custom-scrollbar scroll-smooth snap-y snap-mandatory pr-2 related-articles-container">
                                                 {relatedArticles.map(rel => (
                                                     <Link
                                                         key={rel.id}
@@ -372,7 +414,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                     {/* Newsletter Widget (Interview Style) */}
                                     {/* Newsletter Widget (Interview Style) */}
-                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-4 text-center space-y-2 relative overflow-hidden scale-90 origin-top">
+                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl p-4 text-center space-y-2 relative overflow-hidden scale-90 origin-top newsletter-sidebar-compact">
                                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full" />
                                         <div className="relative z-10 space-y-2">
                                             <div className="w-10 h-10 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">

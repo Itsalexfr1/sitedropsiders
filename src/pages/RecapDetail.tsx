@@ -36,6 +36,12 @@ export function RecapDetail() {
         .filter((item: any) => item.id !== recap.id)
         .slice(0, 3);
 
+    // Navigation
+    const allRecaps = recapsData as any[];
+    const currentIndex = allRecaps.findIndex((item: any) => item.id === recap.id);
+    const previousRecap = currentIndex > 0 ? allRecaps[currentIndex - 1] : null;
+    const nextRecap = currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null;
+
     // Get Content
     const fullContent = getRecapContent(recap.id);
     const rawContent = fullContent || (recap as any).content || '';
@@ -46,6 +52,8 @@ export function RecapDetail() {
             content={rawContent}
             type="recap"
             relatedArticles={relatedRecaps}
+            previousArticle={previousRecap}
+            nextArticle={nextRecap}
         />
     );
 }

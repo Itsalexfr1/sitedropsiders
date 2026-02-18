@@ -6,9 +6,18 @@
  * UPDATE: Removed aggressive uppercase wrapping to prevent "Giant Red Letters" issue.
  */
 
-// Fix Anyma Encoding specifically
-const fixAnymaEncoding = (text: string) => {
-    return text.replace(/AEDEN/g, 'ÆDEN').replace(/Ã†DEN/g, 'ÆDEN');
+// Fix Common Encoding issues (Emojis and special chars)
+const fixEncoding = (text: string) => {
+    return text
+        .replace(/AEDEN/g, 'ÆDEN')
+        .replace(/Ã†DEN/g, 'ÆDEN')
+        .replace(/­ƒôì/g, '📍')
+        .replace(/ƒôì/g, '📍')
+        .replace(/­ƒôà/g, '📅')
+        .replace(/ƒôà/g, '📅')
+        .replace(/­ƒÄƒ´©Å/g, '🎟️')
+        .replace(/ƒÄƒ´©Å/g, '🎟️')
+        .replace(/à([a-zA-Z])/g, 'à $1'); // Fix missing spaces after 'à' (e.g. àIbiza -> à Ibiza)
 };
 
 const RED_KEYWORDS = [
@@ -44,15 +53,6 @@ const RED_KEYWORDS = [
     'PACHA',
     'DC-10',
     'MARS',
-    'AVRIL',
-    'MAI',
-    'JUIN',
-    'JUILLET',
-    'AOÛT',
-    'SEPTEMBRE',
-    'OCTOBRE',
-    'NOVEMBRE',
-    'DÉCEMBRE',
     'AEDEN',
     'GENESE',
     'ÆDEN',
@@ -84,7 +84,7 @@ export function standardizeContent(html: string): string {
         if (!text.trim()) return;
 
         // PRE-PROCESS: Fix Encoding
-        text = fixAnymaEncoding(text);
+        text = fixEncoding(text);
 
         let hasMatches = false;
         let resultHtml = text;

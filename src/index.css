@@ -106,8 +106,9 @@
   /* Paragraphes Centrés - Petit espace constant */
   .article-body-premium p {
     @apply text-left text-gray-300 leading-[1.8] text-base md:text-lg font-light max-w-4xl mx-auto;
-    margin: 3rem auto !important;
+    margin-bottom: 45px !important;
     padding: 0 !important;
+    clear: both !important;
   }
 
   .article-body-premium .text-center {

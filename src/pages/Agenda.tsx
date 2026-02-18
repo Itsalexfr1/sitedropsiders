@@ -233,7 +233,7 @@ export function Agenda() {
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
                         className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
-                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
+                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)] underline decoration-2 underline-offset-4'
                             : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
                             }`}
                     >
