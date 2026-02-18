@@ -3,12 +3,23 @@ import { Trash2, Search, Calendar, FileText, Video, Mic, ArrowLeft, Loader2, Ale
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams } from 'react-router-dom';
 
-const GITHUB_RAW_BASE = 'https://raw.githubusercontent.com/Itsalexfr1/sitedropsiders/main/src/data';
+// Import des données locales (fallback si GitHub inaccessible)
+import newsDataLocal from '../data/news.json';
+import recapsDataLocal from '../data/recaps.json';
+import agendaDataLocal from '../data/agenda.json';
+import galerieDataLocal from '../data/galerie.json';
+
+const LOCAL_DATA: Record<string, any[]> = {
+    'news.json': newsDataLocal as any[],
+    'recaps.json': recapsDataLocal as any[],
+    'agenda.json': agendaDataLocal as any[],
+    'galerie.json': galerieDataLocal as any[],
+};
 
 async function fetchJson(file: string): Promise<any[]> {
-    const res = await fetch(`${GITHUB_RAW_BASE}/${file}?t=${Date.now()}`);
-    if (!res.ok) throw new Error(`Failed to fetch ${file}`);
-    return res.json();
+    // On utilise directement les données locales pour éviter les problèmes
+    // d'accès au repo GitHub (repo privé, token expiré, etc.)
+    return LOCAL_DATA[file] ?? [];
 }
 
 type ContentType = 'News' | 'Recaps' | 'Interviews' | 'Agenda' | 'Galeries';
