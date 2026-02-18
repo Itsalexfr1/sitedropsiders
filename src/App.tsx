@@ -70,7 +70,7 @@ function App() {
 
           <Route path="/newsletter" element={<Newsletter />} />
           <Route path="/newsletter/admin" element={<ProtectedRoute><NewsletterAdmin /></ProtectedRoute>} />
-          <Route path="/newsletter/studio" element={<ProtectedRoute><NewsletterStudio /></ProtectedRoute>} />
+          <Route path="/newsletter/studio" element={<NewsletterStudio />} />
 
           <Route path="/news/create" element={<ProtectedRoute><NewsCreate /></ProtectedRoute>} />
           <Route path="/recaps/create" element={<ProtectedRoute><RecapCreate /></ProtectedRoute>} />
