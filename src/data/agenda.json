@@ -29,7 +29,7 @@
     "location": "Miami, USA",
     "type": "Festival",
     "image": "/images/imported/238e704a77b8946409ed108c9d7f42e9.jpg",
-    "description": "Le premier festival mondial de musique electronique au cÃ ÂÂur de Miami.",
+    "description": "Le premier festival mondial de musique electronique au cÃÂ ÃÂÃÂur de Miami.",
     "url": "https://ultramusicfestival.com",
     "genre": "Big Room"
   },
@@ -117,7 +117,7 @@
     "location": "Boom, Belgium",
     "type": "Festival",
     "image": "/images/imported/3594ca2b06edb9e3c8c0809573b218c7.png",
-    "description": "Le chapitre final de la People of Tomorrow Ã ÂÂ  Boom.",
+    "description": "Le chapitre final de la People of Tomorrow ÃÂ ÃÂÃÂ  Boom.",
     "url": "https://www.tomorrowland.com",
     "genre": "Big Room"
   },
@@ -260,7 +260,7 @@
     "location": "Ushuaia Ibiza",
     "type": "Residence",
     "image": "/Ushuaia Tomorrowland presents Dimitri Vegas Like Mike.webp",
-    "description": "Le retour explosif de Tomorrowland Ã ÂÂ  Ushuaia avec Dimitri Vegas & Like Mike.",
+    "description": "Le retour explosif de Tomorrowland ÃÂ ÃÂÃÂ  Ushuaia avec Dimitri Vegas & Like Mike.",
     "url": "https://www.theushuaiaexperience.com/",
     "genre": "Big Room"
   },
@@ -2463,7 +2463,7 @@
     "description": "Anyma present Eden - Defense Arena Paris ",
     "url": "https://www.anyma.com/paris",
     "genre": "Melodic Techno",
-    "month": "DÃ ÂÂCEMBRE"
+    "month": "DÃÂ ÃÂÃÂCEMBRE"
   },
   {
     "id": 232,
@@ -2543,6 +2543,17 @@
     "image": "https://assets.elrowtown.com/2026/galleries/gallery-madrid-2026/fullsize/1-desktop.webp",
     "url": "https://elrowtown.com/es/madrid",
     "genre": "Tech House",
+    "month": "MAI"
+  },
+  {
+    "id": 239,
+    "title": "ELECTRA FESTIVAL",
+    "date": "2026-05-22",
+    "location": "Bourg en Bresse",
+    "type": "Festival",
+    "image": "https://www.electra-festival.com/",
+    "url": "https://www.electra-festival.com/",
+    "genre": "Big Room",
     "month": "MAI"
   }
 ]
