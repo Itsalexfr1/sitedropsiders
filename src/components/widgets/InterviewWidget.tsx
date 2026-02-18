@@ -44,19 +44,12 @@ export function InterviewWidget() {
                                 transition={{ delay: index * 0.1 }}
                                 className="h-full group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 hover:border-neon-red/50 transition-all duration-300 shadow-xl"
                             >
-                                <div className="absolute inset-0 bg-black">
-                                    <img
-                                        src={item.image}
-                                        alt=""
-                                        className="w-full h-full object-cover opacity-30 blur-md scale-110"
-                                    />
-                                </div>
                                 <img
                                     src={item.image}
                                     alt={item.title}
-                                    className="relative z-10 w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 z-20 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
                                     <div className="w-12 h-12 rounded-full bg-neon-red/20 backdrop-blur-md flex items-center justify-center border border-neon-red/50 group-hover:scale-110 group-hover:bg-neon-red/40 transition-all duration-300">
                                         <Mic2 className="w-6 h-6 text-white" />
                                     </div>
