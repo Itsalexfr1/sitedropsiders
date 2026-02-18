@@ -7,6 +7,8 @@ import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { getRecapLink } from '../utils/slugify';
+import { standardizeContent } from '../utils/standardizer';
+
 
 export function Recap() {
     const { t, language } = useLanguage();
@@ -91,9 +93,11 @@ export function Recap() {
                                                 {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
                                             </span>
                                         </div>
-                                        <h2 className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-red transition-colors leading-tight uppercase italic line-clamp-2">
-                                            {item.title}
-                                        </h2>
+                                        <h2
+                                            className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-red transition-colors leading-tight uppercase italic line-clamp-2"
+                                            dangerouslySetInnerHTML={{ __html: standardizeContent(item.title) }}
+                                        />
+
                                         {item.images && item.images.length > 0 && (
                                             <div className="flex items-center gap-2 text-gray-400 text-sm">
                                                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

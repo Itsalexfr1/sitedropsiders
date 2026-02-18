@@ -142,7 +142,13 @@
     @apply text-xl md:text-3xl;
   }
 
+  .premium-text-red {
+    @apply text-neon-red font-black uppercase tracking-tighter italic;
+    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
+  }
+
   /* Finition des Images - SEULE SUR SA LIGNE avec espace - SANS BORDURES */
+
   .article-body-premium img,
   .article-body-premium .jw-element-image,
   .article-body-premium picture {

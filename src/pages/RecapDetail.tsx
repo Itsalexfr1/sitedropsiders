@@ -9,6 +9,8 @@ import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getRecapLink } from '../utils/slugify';
 import { translateText, translateHTML } from '../utils/translate';
 import { getRecapContent } from '../utils/contentLoader';
+import { standardizeContent } from '../utils/standardizer';
+
 
 export function RecapDetail() {
     const { t, language } = useLanguage();
@@ -121,8 +123,11 @@ export function RecapDetail() {
         const emptyLinks = doc.querySelectorAll('a:empty');
         emptyLinks.forEach(link => link.remove());
 
-        // Retourne le HTML nettoyé
-        return doc.body.innerHTML;
+        // Standardisation automatique (Premium tags)
+        let finalHtml = doc.body.innerHTML;
+        finalHtml = standardizeContent(finalHtml);
+
+        return finalHtml;
     };
 
     const cleanedContent = cleanHTML(rawContent);
@@ -227,9 +232,11 @@ export function RecapDetail() {
                                 </span>
                             </div>
 
-                            <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-4 uppercase italic tracking-tighter leading-none">
-                                {translatedTitle || recap.title}
-                            </h1>
+                            <h1
+                                className="text-5xl md:text-7xl font-display font-black text-white mb-4 uppercase italic tracking-tighter leading-none"
+                                dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitle || recap.title) }}
+                            />
+
 
                             {recap.images && recap.images.length > 0 && (
                                 <div className="flex items-center gap-4 text-white/80">

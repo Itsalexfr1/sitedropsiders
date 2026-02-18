@@ -9,6 +9,8 @@ import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug, getArticleLink } from '../utils/slugify';
 import { translateText, translateHTML } from '../utils/translate';
 import { getNewsContent } from '../utils/contentLoader';
+import { standardizeContent } from '../utils/standardizer';
+
 
 export function ArticleDetail() {
     const { t, language } = useLanguage();
@@ -137,6 +139,9 @@ export function ArticleDetail() {
             finalHtml = finalHtml.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
         }
 
+        // Standardisation automatique (Premium tags)
+        finalHtml = standardizeContent(finalHtml);
+
         return finalHtml;
     };
 
@@ -246,9 +251,11 @@ export function ArticleDetail() {
                                 )}
                             </div>
 
-                            <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-4 uppercase italic tracking-tighter leading-none drop-shadow-2xl">
-                                {translatedTitle || article.title}
-                            </h1>
+                            <h1
+                                className="text-5xl md:text-7xl font-display font-black text-white mb-4 uppercase italic tracking-tighter leading-none drop-shadow-2xl"
+                                dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitle || article.title) }}
+                            />
+
                         </motion.div>
                     </div>
                 </div>

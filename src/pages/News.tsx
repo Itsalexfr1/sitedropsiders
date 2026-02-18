@@ -7,6 +7,8 @@ import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getArticleLink } from '../utils/slugify';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
+import { standardizeContent } from '../utils/standardizer';
+
 
 export function News() {
     const { t } = useLanguage();
@@ -76,8 +78,15 @@ export function News() {
                                             <span className="text-xs font-bold text-neon-red border border-neon-red/30 px-2 py-1 rounded-full">{item.category}</span>
                                             <span className="text-xs text-gray-500">{item.date}</span>
                                         </div>
-                                        <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors">{item.title}</h2>
-                                        <p className="text-gray-400 text-sm line-clamp-3">{item.summary}</p>
+                                        <h2
+                                            className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors"
+                                            dangerouslySetInnerHTML={{ __html: standardizeContent(item.title) }}
+                                        />
+                                        <p
+                                            className="text-gray-400 text-sm line-clamp-3"
+                                            dangerouslySetInnerHTML={{ __html: standardizeContent(item.summary) }}
+                                        />
+
                                     </div>
                                 </Link>
                             </motion.article>
