@@ -20,7 +20,7 @@ export type TranslationKey =
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'nav.news': { fr: 'News', en: 'News' },
     'nav.recaps': { fr: 'Récaps', en: 'Recaps' },
-    'nav.galerie': { fr: 'Galerie', en: 'Gallery' },
+    'nav.galerie': { fr: 'Galeries', en: 'Galleries' },
     'nav.interviews': { fr: 'Interviews', en: 'Interviews' },
     'nav.agenda': { fr: 'Agenda', en: 'Agenda' },
     'nav.team': { fr: 'Team', en: 'Team' },

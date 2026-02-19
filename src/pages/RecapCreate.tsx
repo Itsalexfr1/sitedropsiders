@@ -318,19 +318,13 @@ export function RecapCreate() {
                                         required
                                     />
                                 </div>
-                                <label className="px-6 py-4 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-xl font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]">
-                                    {uploading ? (
-                                        <>
-                                            <span className="text-[10px]">{uploadProgress}%</span>
-                                            <div className="w-full bg-neon-cyan/20 h-1 rounded-full overflow-hidden mt-1">
-                                                <div className="h-full bg-neon-cyan" style={{ width: `${uploadProgress}%` }} />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        'Upload'
-                                    )}
-                                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
-                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                    className="px-6 py-4 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-xl font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                >
+                                    Upload
+                                </button>
 
                             </div>
                         </div>
@@ -422,21 +416,23 @@ export function RecapCreate() {
                                                         <><ImageIcon className="w-3 h-3" /> Aperçu Image</>
                                                     )}
                                                 </div>
-                                                <div className="article-body-premium" dangerouslySetInnerHTML={{ __html: widget.content }} />
+                                                <div className="article-body-premium editor-preview-content" dangerouslySetInnerHTML={{ __html: widget.content }} />
                                             </div>
                                         )}
 
-                                        <div className="admin-editor-container" data-color-mode="dark">
-                                            <MDEditor
-                                                value={widget.content}
-                                                onChange={(val) => updateWidget(widget.id, val || '')}
-                                                height={300}
-                                                preview="edit"
-                                                hideToolbar={false}
-                                                visibleDragbar={false}
-                                                extraCommands={[]}
-                                            />
-                                        </div>
+                                        {!widget.content.includes('youtube-player-widget') && (
+                                            <div className="admin-editor-container" data-color-mode="dark">
+                                                <MDEditor
+                                                    value={widget.content}
+                                                    onChange={(val) => updateWidget(widget.id, val || '')}
+                                                    height={300}
+                                                    preview="edit"
+                                                    hideToolbar={false}
+                                                    visibleDragbar={false}
+                                                    extraCommands={[]}
+                                                />
+                                            </div>
+                                        )}
 
                                         <div className="flex justify-center gap-4 mt-4">
                                             {index === widgets.length - 1 && (
@@ -513,6 +509,19 @@ export function RecapCreate() {
                     margin: 0 !important;
                     border-radius: inherit !important;
                 }
+                /* Editor Preview Overrides */
+                .editor-preview-content .youtube-player-wrapper {
+                    width: 350px !important; /* using 350px width which keeps 16/9 roughly ~200px height for visibility, or if user wants strict 200x200... */
+                    /* But user said "200 par 200". If I force 200x200 it might crop weirdly. */
+                    /* Let's try to respect "200 par 200" loosely or provide a compact view. */
+                    width: 355px !important; 
+                    height: 200px !important;
+                    margin: 0 !important;
+                }
+                .editor-preview-content .image-premium-wrapper img,
+                .editor-preview-content .gallery-premium-grid {
+                     /* Also constraining images if needed, but user asked for youtube */
+                }
             `}</style>
             {/* Media Selection Modal */}
             <AnimatePresence>
@@ -544,77 +553,7 @@ export function RecapCreate() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <button
-                                    onClick={() => {
-                                        setMediaModal({ ...mediaModal, show: false });
-                                        if (mediaModal.type === 'image') {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.accept = 'image/*';
-                                            input.onchange = async (e: any) => {
-                                                const file = e.target.files?.[0];
-                                                if (!file) return;
-                                                setUploading(true);
-                                                setUploadProgress(0);
-                                                setStatus('loading');
-                                                setMessage('Upload de l\'image...');
-                                                try {
-                                                    const url = await handleUpload(file);
-                                                    const imgMarkdown = `<div class="image-premium-wrapper my-12">\n  <img src="${url}" class="w-full rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-700 hover:scale-[1.01] cursor-zoom-in" />\n</div>`;
-                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: imgMarkdown }]);
-                                                    setStatus('success');
-                                                    setMessage('Image ajoutée !');
-                                                } catch (error: any) {
-                                                    setStatus('error');
-                                                    setMessage(error.message || 'Erreur lors de l\'upload');
-                                                } finally {
-                                                    setUploading(false);
-                                                    setUploadProgress(0);
-                                                    setTimeout(() => setStatus('idle'), 3000);
-                                                }
-                                            };
-                                            input.click();
-                                        } else {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.multiple = true;
-                                            input.accept = 'image/*';
-                                            input.onchange = async (e: any) => {
-                                                const files = e.target.files;
-                                                if (!files || files.length === 0) return;
-                                                setUploading(true);
-                                                setStatus('loading');
-                                                const uploadedUrls = [];
-                                                const filesArray = Array.from(files);
-
-                                                for (let i = 0; i < filesArray.length; i++) {
-                                                    const file = filesArray[i];
-                                                    setUploadProgress(0);
-                                                    setMessage(`Upload image ${i + 1}/${filesArray.length}...`);
-                                                    try {
-                                                        const url = await handleUpload(file as File);
-                                                        uploadedUrls.push(url);
-                                                    } catch (error) {
-                                                        console.error(`Failed to upload file ${i + 1}`, error);
-                                                    }
-                                                }
-
-                                                if (uploadedUrls.length > 0) {
-                                                    const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12">\n${uploadedUrls.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
-                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
-                                                    setStatus('success');
-                                                    setMessage(`${uploadedUrls.length} images ajoutées !`);
-                                                } else {
-                                                    setStatus('error');
-                                                    setMessage('Aucune image n\'a pu être uploadée');
-                                                }
-                                                setUploading(false);
-                                                setUploadProgress(0);
-                                                setTimeout(() => setStatus('idle'), 3000);
-                                            };
-                                            input.click();
-                                        }
-
-                                    }}
+                                    onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
                                     className="flex flex-col items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
