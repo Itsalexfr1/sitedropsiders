@@ -19,7 +19,7 @@ export function Footer() {
         { label: t('nav.news'), path: '/news' },
         { label: t('nav.recaps'), path: '/recaps' },
         { label: t('nav.interviews'), path: '/interviews' },
-        { label: t('nav.galleries'), path: '/galerie' },
+        { label: t('nav.galerie'), path: '/galerie' },
         { label: t('nav.team'), path: '/team' },
         { label: t('footer.contact'), path: 'mailto:contact@dropsiders.fr' }
     ];

@@ -4,6 +4,7 @@ import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowL
 import { Link } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 // import { uploadValidation, uploadToCloudinary } from '../utils/uploadService'; // Unused
+import { ImageUploadModal } from '../components/ImageUploadModal';
 
 export function GalerieCreate() {
     const [title, setTitle] = useState('');
@@ -11,6 +12,7 @@ export function GalerieCreate() {
     const [category, setCategory] = useState('Festivals');
     const [coverUrl, setCoverUrl] = useState('');
     const [imageUrls, setImageUrls] = useState(''); // Textarea content
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     // const [uploading, setUploading] = useState(false); // Unused
     // const [uploadProgress, setUploadProgress] = useState(0); // Unused
