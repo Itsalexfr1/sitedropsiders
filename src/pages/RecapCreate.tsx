@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus, Trash2, Link2, Upload, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
+import { uploadValidation, uploadToCloudinary } from '../utils/uploadService';
 
 export function RecapCreate() {
     const location = useLocation() as any;
@@ -66,41 +67,10 @@ export function RecapCreate() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
-    const uploadWithProgress = (file: File, path: string): Promise<{ success: boolean, url: string, error?: string }> => {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('path', path);
-
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    setUploadProgress(percent);
-                }
-            });
-
-            xhr.addEventListener('load', () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        resolve(JSON.parse(xhr.responseText));
-                    } catch (e) {
-                        reject(new Error('Erreur de réponse serveur'));
-                    }
-                } else {
-                    reject(new Error(`Erreur ${xhr.status}`));
-                }
-            });
-
-            xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
-
-            xhr.open('POST', '/api/upload');
-            const headers = getAuthHeaders(null) as any;
-            Object.keys(headers).forEach(key => {
-                xhr.setRequestHeader(key, headers[key]);
-            });
-            xhr.send(formData);
-        });
+    const handleUpload = async (file: File) => {
+        const validation = uploadValidation(file);
+        if (!validation.valid) throw new Error(validation.error);
+        return await uploadToCloudinary(file, 'recaps', (p) => setUploadProgress(p));
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,14 +81,14 @@ export function RecapCreate() {
         setUploadProgress(0);
 
         try {
-            const data = await uploadWithProgress(file, 'recaps');
-            if (data.success) {
-                setCoverImage(data.url);
-            } else {
-                alert(data.error || 'Erreur lors de l\'upload');
-            }
+            const url = await handleUpload(file);
+            setCoverImage(url);
+            setStatus('success');
+            setMessage('Image uploadée !');
+            setTimeout(() => setStatus('idle'), 3000);
         } catch (error: any) {
-            alert(error.message || 'Erreur de connexion au serveur d\'upload');
+            setStatus('error');
+            setMessage(error.message || 'Erreur lors de l\'upload');
         } finally {
             setUploading(false);
             setUploadProgress(0);
@@ -588,16 +558,11 @@ export function RecapCreate() {
                                                 setStatus('loading');
                                                 setMessage('Upload de l\'image...');
                                                 try {
-                                                    const data = await uploadWithProgress(file, 'recaps');
-                                                    if (data.success) {
-                                                        const imgMarkdown = `<div class="image-premium-wrapper my-12">\n  <img src="${data.url}" class="w-full rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-700 hover:scale-[1.01] cursor-zoom-in" />\n</div>`;
-                                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: imgMarkdown }]);
-                                                        setStatus('success');
-                                                        setMessage('Image ajoutée !');
-                                                    } else {
-                                                        setStatus('error');
-                                                        setMessage(data.error || 'Erreur upload');
-                                                    }
+                                                    const url = await handleUpload(file);
+                                                    const imgMarkdown = `<div class="image-premium-wrapper my-12">\n  <img src="${url}" class="w-full rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-700 hover:scale-[1.01] cursor-zoom-in" />\n</div>`;
+                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: imgMarkdown }]);
+                                                    setStatus('success');
+                                                    setMessage('Image ajoutée !');
                                                 } catch (error: any) {
                                                     setStatus('error');
                                                     setMessage(error.message || 'Erreur lors de l\'upload');
@@ -626,8 +591,8 @@ export function RecapCreate() {
                                                     setUploadProgress(0);
                                                     setMessage(`Upload image ${i + 1}/${filesArray.length}...`);
                                                     try {
-                                                        const data = await uploadWithProgress(file as File, 'recaps');
-                                                        if (data.success) uploadedUrls.push(data.url);
+                                                        const url = await handleUpload(file as File);
+                                                        uploadedUrls.push(url);
                                                     } catch (error) {
                                                         console.error(`Failed to upload file ${i + 1}`, error);
                                                     }

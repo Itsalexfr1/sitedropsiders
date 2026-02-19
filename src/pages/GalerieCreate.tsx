@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
+import { uploadValidation, uploadToCloudinary } from '../utils/uploadService';
 
 export function GalerieCreate() {
     const [title, setTitle] = useState('');
@@ -17,41 +18,10 @@ export function GalerieCreate() {
     const [message, setMessage] = useState('');
 
 
-    const uploadWithProgress = (file: File, path: string): Promise<{ success: boolean, url: string, error?: string }> => {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('path', path);
-
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    setUploadProgress(percent);
-                }
-            });
-
-            xhr.addEventListener('load', () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        resolve(JSON.parse(xhr.responseText));
-                    } catch (e) {
-                        reject(new Error('Erreur de réponse serveur'));
-                    }
-                } else {
-                    reject(new Error(`Erreur ${xhr.status}`));
-                }
-            });
-
-            xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
-
-            xhr.open('POST', '/api/upload');
-            const headers = getAuthHeaders(null) as any;
-            Object.keys(headers).forEach(key => {
-                xhr.setRequestHeader(key, headers[key]);
-            });
-            xhr.send(formData);
-        });
+    const handleUpload = async (file: File) => {
+        const validation = uploadValidation(file);
+        if (!validation.valid) throw new Error(validation.error);
+        return await uploadToCloudinary(file, 'galeries', (p) => setUploadProgress(p));
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover: boolean) => {
@@ -67,15 +37,11 @@ export function GalerieCreate() {
                 setUploadProgress(0);
                 setMessage(isCover ? 'Upload de la couverture...' : `Upload image ${i + 1}/${filesArray.length}...`);
 
-                const data = await uploadWithProgress(file, 'galerie');
-                if (data.success) {
-                    if (isCover) {
-                        setCoverUrl(data.url);
-                    } else {
-                        setImageUrls(prev => prev ? prev + '\n' + data.url : data.url);
-                    }
+                const url = await handleUpload(file);
+                if (isCover) {
+                    setCoverUrl(url);
                 } else {
-                    alert(data.error || 'Erreur lors de l\'upload');
+                    setImageUrls(prev => prev ? prev + '\n' + url : url);
                 }
             }
             setStatus('success');

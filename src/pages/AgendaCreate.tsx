@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Link as LinkIcon, Music, Tag, ArrowLeft } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
+import { uploadValidation, uploadToCloudinary } from '../utils/uploadService';
 
 export function AgendaCreate() {
     const location = useLocation() as any;
@@ -35,41 +36,10 @@ export function AgendaCreate() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
-    const uploadWithProgress = (file: File, path: string): Promise<{ success: boolean, url: string, error?: string }> => {
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            const formData = new FormData();
-            formData.append('image', file);
-            formData.append('path', path);
-
-            xhr.upload.addEventListener('progress', (e) => {
-                if (e.lengthComputable) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    setUploadProgress(percent);
-                }
-            });
-
-            xhr.addEventListener('load', () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        resolve(JSON.parse(xhr.responseText));
-                    } catch (e) {
-                        reject(new Error('Erreur de réponse serveur'));
-                    }
-                } else {
-                    reject(new Error(`Erreur ${xhr.status}`));
-                }
-            });
-
-            xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
-
-            xhr.open('POST', '/api/upload');
-            const headers = getAuthHeaders(null) as any;
-            Object.keys(headers).forEach(key => {
-                xhr.setRequestHeader(key, headers[key]);
-            });
-            xhr.send(formData);
-        });
+    const handleUpload = async (file: File) => {
+        const validation = uploadValidation(file);
+        if (!validation.valid) throw new Error(validation.error);
+        return await uploadToCloudinary(file, 'agenda', (p) => setUploadProgress(p));
     };
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,19 +52,14 @@ export function AgendaCreate() {
         setMessage('Upload de l\'image...');
 
         try {
-            const data = await uploadWithProgress(file, 'agenda');
-            if (data.success) {
-                setImageUrl(data.url);
-                setStatus('success');
-                setMessage('Image uploadée !');
-                setTimeout(() => setStatus('idle'), 3000);
-            } else {
-                setStatus('error');
-                setMessage(data.error || 'Erreur lors de l\'upload');
-            }
+            const url = await handleUpload(file);
+            setImageUrl(url);
+            setStatus('success');
+            setMessage('Image uploadée !');
+            setTimeout(() => setStatus('idle'), 3000);
         } catch (error: any) {
             setStatus('error');
-            setMessage(error.message || 'Erreur de connexion au serveur d\'upload');
+            setMessage(error.message || 'Erreur lors de l\'upload');
         } finally {
             setUploading(false);
             setUploadProgress(0);
