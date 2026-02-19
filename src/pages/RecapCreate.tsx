@@ -20,7 +20,8 @@ export function RecapCreate() {
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
+    // const [uploadProgress, setUploadProgress] = useState(0); // Unused
+
 
 
     // Widget System State
@@ -67,11 +68,12 @@ export function RecapCreate() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
-    const handleUpload = async (file: File) => {
-        const validation = uploadValidation(file);
-        if (!validation.valid) throw new Error(validation.error);
-        return await uploadToCloudinary(file, 'recaps', (p) => setUploadProgress(p));
-    };
+    // const handleUpload = async (file: File) => {
+    //     const validation = uploadValidation(file);
+    //     if (!validation.valid) throw new Error(validation.error);
+    //     return await uploadToCloudinary(file, 'recaps', (p) => setUploadProgress(p));
+    // };
+
 
 
 
