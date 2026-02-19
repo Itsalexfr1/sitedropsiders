@@ -48,22 +48,51 @@ export default {
             const response = await fetch(getUrl, {
                 headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
             });
-            if (!response.ok) return null;
+            if (!response.ok) {
+                if (response.status === 404) return { content: [], sha: null };
+                return null;
+            }
             const fileData = await response.json();
-            const content = atob(fileData.content.replace(/\n/g, ''));
-            return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
+
+            let content;
+            if (fileData.content) {
+                content = decodeURIComponent(escape(atob(fileData.content.replace(/\n/g, ''))));
+            } else if (fileData.download_url) {
+                const rawRes = await fetch(fileData.download_url, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
+                });
+                if (rawRes.ok) {
+                    content = await rawRes.text();
+                } else {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+
+            try {
+                return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
+            } catch (e) {
+                console.error("JSON Parse Error for " + filePath, e);
+                return { content: [], sha: fileData.sha, rawData: fileData };
+            }
         }
 
-
         async function saveGitHubFile(filePath, content, message, sha) {
-            const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
+            const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
             const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
-            const response = await fetch(getUrl, {
+            const response = await fetch(putUrl, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message, content: encodedContent, sha })
             });
-            return response.ok;
+
+            if (!response.ok) {
+                const errText = await response.text();
+                console.error(`GitHub Save Error (${filePath}): ${response.status} ${errText}`);
+                return { ok: false, status: response.status, error: errText };
+            }
+            return { ok: true };
         }
 
         const extractMetadata = (content) => {
@@ -185,7 +214,7 @@ export default {
             const file = await fetchGitHubFile(EDITORS_PATH) || { content: [], sha: null };
             const updated = [...file.content, { username, password, name, created: new Date().toISOString() }];
             const saved = await saveGitHubFile(EDITORS_PATH, updated, `Add editor: ${username}`, file.sha);
-            return new Response(JSON.stringify({ success: saved }), { status: saved ? 200 : 500, headers });
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/editors/delete' && request.method === 'POST') {
@@ -194,7 +223,7 @@ export default {
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
             const updated = file.content.filter(e => e.username !== username);
             const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${username}`, file.sha);
-            return new Response(JSON.stringify({ success: saved }), { status: saved ? 200 : 500, headers });
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         // --- API: SUBSCRIBE ---
@@ -213,10 +242,11 @@ export default {
                 const newSubscriber = { email, firstName: firstName || null, lastName: lastName || null, subscribedAt: new Date().toISOString() };
                 const updatedData = [...file.content, newSubscriber];
 
-                if (await saveGitHubFile(PATH, updatedData, `Nouvel abonné : ${email}`, file.sha)) {
+                const saved = await saveGitHubFile(PATH, updatedData, `Nouvel abonné : ${email}`, file.sha);
+                if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
-                    return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
                 }
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -234,10 +264,11 @@ export default {
                 const updatedData = file.content.filter(sub => sub.email !== email);
                 if (updatedData.length === file.content.length) return new Response(JSON.stringify({ error: 'Email not found' }), { status: 404, headers });
 
-                if (await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha)) {
+                const saved = await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha);
+                if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
-                    return new Response(JSON.stringify({ error: 'Error updating' }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: 'Error updating: ' + saved.error }), { status: 500, headers });
                 }
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -277,7 +308,7 @@ export default {
 
                 const updatedNews = [newArticle, ...currentNews];
                 const metaSaved = await saveGitHubFile(NEWS_PATH, updatedNews, `Add news: ${title}`, newsFile.sha);
-                if (!metaSaved) return new Response(JSON.stringify({ error: 'Error saving metadata' }), { status: 500, headers });
+                if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
                 // 2. Save Content to separated file
                 const contentFile = await fetchGitHubFile(NEWS_CONTENT_TARGET);
@@ -329,7 +360,7 @@ export default {
 
                 const updatedData = [newItem, ...currentData];
                 const metaSaved = await saveGitHubFile(FILE_PATH, updatedData, `Add recap: ${title}`, recapsFile.sha);
-                if (!metaSaved) return new Response(JSON.stringify({ error: 'Error saving metadata' }), { status: 500, headers });
+                if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
                 // 2. Save Content
                 const contentFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET);
@@ -503,10 +534,11 @@ export default {
                     month: month || existing.month
                 };
 
-                if (await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha)) {
+                const saved = await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha);
+                if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
-                    return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
                 }
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
@@ -539,10 +571,11 @@ export default {
                 };
 
                 const updatedData = [...currentData, newItem];
-                if (await saveGitHubFile(FILE_PATH, updatedData, `Add agenda: ${title}`, agendaFile.sha)) {
+                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Add agenda: ${title}`, agendaFile.sha);
+                if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
-                    return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
                 }
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
@@ -562,10 +595,11 @@ export default {
                 const newItem = { id: newId, title, category, cover, images, date };
                 const updatedData = [newItem, ...galerieFile.content];
 
-                if (await saveGitHubFile(FILE_PATH, updatedData, `Add galerie: ${title}`, galerieFile.sha)) {
+                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Add galerie: ${title}`, galerieFile.sha);
+                if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
-                    return new Response(JSON.stringify({ error: 'Error saving' }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
                 }
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
