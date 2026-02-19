@@ -204,18 +204,23 @@
 
   /* Images that have the aspect-ratio class on THEMSELVES (like in grids) */
   .article-body-premium img[class*="aspect-"],
-  .article-body-premium .grid img {
+  .article-body-premium .grid img,
+  .article-body-premium div[class*="aspect-"] img {
     width: 100% !important;
     height: 100% !important;
-    aspect-ratio: 1/1 !important;
-    /* Square for galleries */
     object-fit: cover !important;
     object-position: center !important;
     display: block !important;
     margin: 0 !important;
-    border-radius: 12px !important;
-    position: relative !important;
+    border-radius: inherit !important;
+    position: absolute !important;
+    inset: 0 !important;
   }
+
+  .image-premium-wrapper img {
+    margin: 0 !important;
+  }
+
 
   /* Fixed aspect-ratio containers (where the CONTAINER has the class, e.g. cover photos or special widgets) */
   .article-body-premium [class*="aspect-"] img,

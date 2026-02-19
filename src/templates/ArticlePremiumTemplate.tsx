@@ -141,6 +141,25 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     };
 
     const displayContent = language === 'en' && translatedBody ? translatedBody : cleanHTML(content);
+
+    // Lightbox for content images
+    useEffect(() => {
+        const contentArea = document.querySelector('.article-body-premium');
+        if (!contentArea) return;
+
+        const handleImageClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            // Only trigger if it's an image and not already inside a clickable element (though we want it even there)
+            if (target.tagName === 'IMG') {
+                const src = (target as HTMLImageElement).src;
+                if (src) setSelectedImage(src);
+            }
+        };
+
+        contentArea.addEventListener('click', handleImageClick as any);
+        return () => contentArea.removeEventListener('click', handleImageClick as any);
+    }, [displayContent]);
+
     const displayTitle = language === 'en' && translatedTitle ? translatedTitle : article.title;
     const backLink = type === 'recap' ? '/recaps' : (isInterview ? '/interviews' : '/news');
     const backText = type === 'recap'

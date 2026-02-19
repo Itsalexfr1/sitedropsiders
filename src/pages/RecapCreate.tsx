@@ -576,7 +576,8 @@ export function RecapCreate() {
                                                 try {
                                                     const data = await uploadWithProgress(file, 'recaps');
                                                     if (data.success) {
-                                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `<img src="${data.url}" class="w-full rounded-2xl shadow-2xl" />` }]);
+                                                        const imgMarkdown = `<div class="image-premium-wrapper my-12">\n  <img src="${data.url}" class="w-full rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-700 hover:scale-[1.01] cursor-zoom-in" />\n</div>`;
+                                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: imgMarkdown }]);
                                                         setStatus('success');
                                                         setMessage('Image ajoutée !');
                                                     } else {
@@ -619,7 +620,7 @@ export function RecapCreate() {
                                                 }
 
                                                 if (uploadedUrls.length > 0) {
-                                                    const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
+                                                    const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-2 md:grid-cols-3 gap-6 my-12">\n${uploadedUrls.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
                                                     setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
                                                     setStatus('success');
                                                     setMessage(`${uploadedUrls.length} images ajoutées !`);
@@ -649,16 +650,18 @@ export function RecapCreate() {
                                         if (mediaModal.type === 'image') {
                                             const url = prompt('Entrez l\'URL de l\'image:');
                                             if (url) {
-                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `<img src="${url}" class="w-full rounded-2xl shadow-2xl" />` }]);
+                                                const imgMarkdown = `<div class="image-premium-wrapper my-12">\n  <img src="${url}" class="w-full rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 transition-transform duration-700 hover:scale-[1.01] cursor-zoom-in" />\n</div>`;
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: imgMarkdown }]);
                                             }
                                         } else {
                                             const urls = prompt('Entrez les URLs séparées par des virgules:');
                                             if (urls) {
                                                 const urlList = urls.split(',').map(u => u.trim()).filter(u => u);
-                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${urlList.map(url => `  <img src="${url}" class="aspect-square object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
+                                                const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-2 md:grid-cols-3 gap-6 my-12">\n${urlList.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
                                             }
                                         }
+
                                     }}
                                     className="flex flex-col items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                                 >
