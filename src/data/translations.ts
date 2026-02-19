@@ -8,7 +8,7 @@ export type TranslationKey =
     | 'interviews.badge' | 'interviews.title' | 'interviews.title_span' | 'interviews.read_more' | 'interviews.no_interviews' | 'interviews.no_interviews_subtitle'
     | 'team.title' | 'team.join_title' | 'team.join_desc' | 'team.contact_btn'
     | 'galerie.badge' | 'galerie.title' | 'galerie.title_span' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_others'
-    | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results' | 'common.photo' | 'common.gallery_alt'
+    | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results' | 'common.photo' | 'common.gallery_alt' | 'common.min_read'
     | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results' | 'agenda.infos_tickets' | 'agenda.no_events_selection' | 'agenda.loading'
     | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.other_interviews' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
     | 'recap_detail.not_found_title' | 'recap_detail.not_found_btn' | 'recap_detail.back_to_recaps' | 'recap_detail.video_available' | 'recap_detail.video_title' | 'recap_detail.gallery_expand' | 'recap_detail.related_title' | 'recap_detail.view_all_recaps'
@@ -110,6 +110,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'common.no_results': { fr: 'Aucun résultat trouvé pour', en: 'No results found for' },
     'common.photo': { fr: 'Photo', en: 'Photo' },
     'common.gallery_alt': { fr: 'Galerie', en: 'Gallery' },
+    'common.min_read': { fr: 'MIN DE LECTURE', en: 'MIN READ' },
 
     'agenda.title': { fr: 'AGENDA', en: 'AGENDA' },
     'agenda.title_span': { fr: '2026', en: '2026' },

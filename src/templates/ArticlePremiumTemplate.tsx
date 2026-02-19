@@ -247,7 +247,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             </span>
                             <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
                                 <Clock className="w-4 h-4 text-neon-red" />
-                                {readingTime} MIN READ
+                                {readingTime} {t('common.min_read')}
                             </span>
                             <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
                                 {new Date(article.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
