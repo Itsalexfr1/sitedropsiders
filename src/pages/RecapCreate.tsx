@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus, Trash2, Link2, Upload, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
-// import { uploadValidation, uploadToCloudinary } from '../utils/uploadService'; // Unused
+
 
 
 export function RecapCreate() {
@@ -20,9 +20,9 @@ export function RecapCreate() {
     const [festival, setFestival] = useState('');
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
-    // const [uploading, setUploading] = useState(false); // Unused
 
-    // const [uploadProgress, setUploadProgress] = useState(0); // Unused
+
+
 
 
 
