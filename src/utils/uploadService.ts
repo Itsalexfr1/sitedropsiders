@@ -10,25 +10,27 @@ export const uploadValidation = (file: File): { valid: boolean; error?: string }
     return { valid: true };
 };
 
+import { getAuthHeaders } from './auth';
+
 export const uploadToCloudinary = async (
     file: File,
     subFolder: string = 'uploads',
     onProgress?: (progress: number) => void
 ): Promise<string> => {
 
-    const CLOUD_NAME = 'drd0k6wve'; // Hardcoded for client-side reliability
-    const UPLOAD_PRESET = 'dropsiders_unsigned';
-
-    const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', UPLOAD_PRESET);
-    formData.append('folder', `dropsiders/${subFolder}`);
+    formData.append('image', file);
+    formData.append('path', subFolder);
 
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
-        xhr.open('POST', url, true);
+        xhr.open('POST', '/api/upload', true);
+
+        // Add auth headers
+        const headers = getAuthHeaders(null);
+        Object.entries(headers).forEach(([key, value]) => {
+            xhr.setRequestHeader(key, value);
+        });
 
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable && onProgress) {
@@ -41,21 +43,29 @@ export const uploadToCloudinary = async (
             if (xhr.status >= 200 && xhr.status < 300) {
                 try {
                     const data = JSON.parse(xhr.responseText);
-                    resolve(data.secure_url);
+                    if (data.success && data.url) {
+                        resolve(data.url);
+                    } else {
+                        reject(new Error(data.error || 'Upload failed'));
+                    }
                 } catch (err) {
-                    reject(new Error("Erreur lors de l'analyse de la réponse Cloudinary"));
+                    console.error('Upload parse error:', err, xhr.responseText);
+                    reject(new Error("Erreur lors de l'analyse de la réponse serveur"));
                 }
             } else {
                 try {
                     const error = JSON.parse(xhr.responseText);
-                    reject(new Error(error.error?.message || "Erreur d'upload Cloudinary"));
+                    console.error('Upload error:', error);
+                    reject(new Error(error.error || "Erreur d'upload"));
                 } catch {
-                    reject(new Error(`Erreur d'upload (${xhr.status})`));
+                    console.error('Upload raw error:', xhr.responseText);
+                    reject(new Error(`Erreur d'upload (${xhr.status}): ${xhr.statusText}`));
                 }
             }
         };
 
         xhr.onerror = () => {
+            console.error('Network error during upload');
             reject(new Error("Erreur réseau lors de l'upload"));
         };
 

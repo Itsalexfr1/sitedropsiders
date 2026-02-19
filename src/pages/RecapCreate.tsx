@@ -386,7 +386,7 @@ export function RecapCreate() {
                                             } else if (val.includes('youtu.be/')) {
                                                 videoId = val.split('youtu.be/')[1].split('?')[0];
                                             }
-                                            const youtubeEmbed = `<div class="youtube-player-wrapper w-full rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 my-12 relative" style="padding-bottom:56.25%;height:0;">\n  <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>\n</div>`;
+                                            const youtubeEmbed = `<div class="youtube-player-wrapper w-full relative rounded-3xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 my-12" style="aspect-ratio: 16/9;">\n  <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>\n</div>`;
                                             setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: youtubeEmbed }]);
                                         }}
                                         className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/30 text-red-400 rounded-full hover:bg-red-600/20 transition-all font-bold uppercase tracking-widest text-[10px]"
