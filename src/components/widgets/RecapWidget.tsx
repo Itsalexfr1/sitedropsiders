@@ -40,7 +40,7 @@ export function RecapWidget() {
                                 whileHover={{ scale: 1.05 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className="h-full group relative aspect-video rounded-lg overflow-hidden cursor-pointer border border-white/10 hover:border-neon-orange/50 transition-all duration-300 shadow-md bg-black"
+                                className="h-full group relative aspect-square rounded-lg overflow-hidden cursor-pointer border border-white/10 hover:border-neon-orange/50 transition-all duration-300 shadow-md"
                             >
                                 <img
                                     src={item.image}
