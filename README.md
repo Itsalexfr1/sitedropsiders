@@ -71,3 +71,5 @@ export default defineConfig([
   },
 ])
 ```
+
+<!-- Rebuild Trigger: 2026-02-19 -->
