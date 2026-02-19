@@ -1,7 +1,7 @@
 
 import { jsonResponse, CORSH } from '../utils';
 
-export const onRequestPost = async (context: any) => {
+export const onRequest = async (context: any) => {
     const { request, env } = context;
 
     // Handle CORS preflight
@@ -82,14 +82,18 @@ export const onRequestPost = async (context: any) => {
         const filePath = `public/images/${subPath}/${filename}`;
 
         // Convert to base64
+        let base64Content = "";
         const arrayBuffer = await file.arrayBuffer();
+
+        // Use a more robust way to convert ArrayBuffer to base64
+        // Chunk processing to avoid stack overflow with large files
         const bytes = new Uint8Array(arrayBuffer);
-        let binary = "";
-        const len = bytes.byteLength;
-        for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
+        const chunkSize = 8192; // Process in 8KB chunks
+        for (let i = 0; i < bytes.length; i += chunkSize) {
+            const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+            base64Content += String.fromCharCode.apply(null, Array.from(chunk));
         }
-        const base64Content = btoa(binary);
+        base64Content = btoa(base64Content);
 
         // Upload to GitHub
         const githubUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
@@ -113,11 +117,12 @@ export const onRequestPost = async (context: any) => {
             return jsonResponse({ error: 'Erreur lors de l\'envoi vers GitHub', details: errorText }, 502);
         }
 
-        const publicUrl = `/images/${subPath}/${filename}`;
+        // Use GitHub Raw URL to ensure image is visible immediately (even locally) and persists across rebuilds
+        const rawUrl = `https://raw.githubusercontent.com/${OWNER}/${REPO}/main/${filePath}`;
 
         return jsonResponse({
             success: true,
-            url: publicUrl,
+            url: rawUrl,
             filename: filename,
             provider: 'github'
         });

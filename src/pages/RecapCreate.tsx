@@ -442,6 +442,20 @@ export function RecapCreate() {
                                             )}
                                         </div>
 
+                                        {/* Inline Media Preview */}
+                                        {(widget.content.includes('youtube-player-widget') || widget.content.includes('image-premium-wrapper') || widget.content.includes('gallery-premium-grid')) && (
+                                            <div className="mb-4 rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4">
+                                                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                                    {widget.content.includes('youtube-player-widget') ? (
+                                                        <><Youtube className="w-3 h-3" /> Aperçu Vidéo</>
+                                                    ) : (
+                                                        <><ImageIcon className="w-3 h-3" /> Aperçu Image</>
+                                                    )}
+                                                </div>
+                                                <div className="article-body-premium" dangerouslySetInnerHTML={{ __html: widget.content }} />
+                                            </div>
+                                        )}
+
                                         <div className="admin-editor-container" data-color-mode="dark">
                                             <MDEditor
                                                 value={widget.content}
@@ -620,7 +634,7 @@ export function RecapCreate() {
                                                 }
 
                                                 if (uploadedUrls.length > 0) {
-                                                    const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-2 md:grid-cols-3 gap-6 my-12">\n${uploadedUrls.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
+                                                    const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12">\n${uploadedUrls.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
                                                     setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
                                                     setStatus('success');
                                                     setMessage(`${uploadedUrls.length} images ajoutées !`);
@@ -657,7 +671,7 @@ export function RecapCreate() {
                                             const urls = prompt('Entrez les URLs séparées par des virgules:');
                                             if (urls) {
                                                 const urlList = urls.split(',').map(u => u.trim()).filter(u => u);
-                                                const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-2 md:grid-cols-3 gap-6 my-12">\n${urlList.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
+                                                const galleryMarkdown = `<div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12">\n${urlList.map(url => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl cursor-zoom-in">\n    <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />\n  </div>`).join('\n')}\n</div>`;
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
                                             }
                                         }

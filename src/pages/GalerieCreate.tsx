@@ -276,6 +276,30 @@ export function GalerieCreate() {
                                 className="w-full bg-black/20 border border-white/10 rounded-xl py-4 px-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all h-64 font-mono text-sm"
                                 required
                             />
+
+                            {/* Live Preview Grid */}
+                            {imageUrls.trim() && (
+                                <div className="mt-6 border-t border-white/10 pt-6">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider mb-4 block">Aperçu ({imageUrls.split('\n').filter(u => u.trim()).length} images)</label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                        {imageUrls.split('\n').filter(u => u.trim()).map((url, idx) => (
+                                            <div key={idx} className="aspect-square relative rounded-xl overflow-hidden border border-white/10 bg-black/40 group hover:border-neon-pink/50 transition-colors">
+                                                <img
+                                                    src={url.trim()}
+                                                    alt={`Preview ${idx}`}
+                                                    className="w-full h-full object-cover transition-opacity duration-300"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).style.opacity = '0.2';
+                                                    }}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/60 transition-opacity">
+                                                    <span className="text-xs font-bold text-white">#{idx + 1}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Submit Button */}

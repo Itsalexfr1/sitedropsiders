@@ -323,8 +323,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     </div>
                                 )}
 
-                                {/* Gallery - Hidden if News as requested */}
-                                {(article.images && article.images.length > 1 && type !== 'news') && (
+                                {/* Gallery - Removed for Recaps as requested */}
+                                {(article.category === 'Gallery' && article.images && article.images.length > 1) && (
                                     <div className="mt-20 pt-20 border-t border-white/5">
                                         <h3 className="text-2xl font-display font-black text-white mb-10 flex items-center gap-3 uppercase italic">
                                             <Camera className="w-8 h-8 text-neon-red" />

@@ -1,6 +1,6 @@
 
 export type TranslationKey =
-    | 'nav.news' | 'nav.recaps' | 'nav.galleries' | 'nav.interviews' | 'nav.agenda' | 'nav.team'
+    | 'nav.news' | 'nav.recaps' | 'nav.galerie' | 'nav.interviews' | 'nav.agenda' | 'nav.team'
     | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.legal' | 'footer.admin' | 'footer.rights'
     | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge'
     | 'news.badge' | 'news.title' | 'news.subtitle' | 'news.no_news'
@@ -20,7 +20,7 @@ export type TranslationKey =
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'nav.news': { fr: 'News', en: 'News' },
     'nav.recaps': { fr: 'Récaps', en: 'Recaps' },
-    'nav.galleries': { fr: 'Galeries', en: 'Galleries' },
+    'nav.galerie': { fr: 'Galerie', en: 'Gallery' },
     'nav.interviews': { fr: 'Interviews', en: 'Interviews' },
     'nav.agenda': { fr: 'Agenda', en: 'Agenda' },
     'nav.team': { fr: 'Team', en: 'Team' },

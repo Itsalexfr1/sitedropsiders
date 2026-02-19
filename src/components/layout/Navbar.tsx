@@ -24,7 +24,7 @@ export function Navbar() {
         { name: t('nav.news'), path: '/news' },
         { name: t('nav.recaps'), path: '/recaps' },
         { name: t('nav.agenda'), path: '/agenda' },
-        { name: t('nav.galleries'), path: '/galerie' },
+        { name: t('nav.galerie'), path: '/galerie' },
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
     ];

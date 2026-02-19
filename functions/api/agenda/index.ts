@@ -1,6 +1,6 @@
 import { jsonResponse, CORSH, utf8_to_b64, b64_to_utf8 } from '../../utils';
 
-export const onRequestPost = async (context: any) => {
+export const onRequest = async (context: any) => {
     const { request, env } = context;
 
     if (request.method === "OPTIONS") {

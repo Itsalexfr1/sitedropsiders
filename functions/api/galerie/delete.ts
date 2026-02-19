@@ -7,7 +7,7 @@ import {
     updateGitHubFile
 } from '../../utils';
 
-export const onRequestPost = async (context: any) => {
+export const onRequest = async (context: any) => {
     const { request, env } = context;
 
     // Handle CORS preflight
