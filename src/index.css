@@ -192,19 +192,29 @@
     justify-items: center !important;
   }
 
+  .article-body-premium img {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 2.5rem auto !important;
+    border-radius: 20px !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  }
+
   .article-body-premium .grid img {
     height: 100% !important;
     width: 100% !important;
     object-fit: cover !important;
     object-position: center !important;
     margin: 0 !important;
+    border-radius: 12px !important;
   }
 
   .article-body-premium picture {
     width: 100% !important;
     height: auto;
     display: block;
-    margin: 2rem auto;
+    margin: 2.5rem auto;
   }
 
   /* Fix for gallery and aspect ratio containers */

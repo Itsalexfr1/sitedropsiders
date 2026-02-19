@@ -307,7 +307,7 @@ export function NewsCreate() {
                                                 body: formData
                                             }).then(res => res.json()).then(data => {
                                                 if (data.success) {
-                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `![image](${data.url})` }]);
+                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `<img src="${data.url}" class="w-full rounded-2xl shadow-2xl" />` }]);
                                                     setStatus('success');
                                                     setMessage('Image ajoutée avec succès !');
                                                     setTimeout(() => setStatus('idle'), 3000);
@@ -470,22 +470,14 @@ export function NewsCreate() {
                 .admin-editor-container .w-md-editor-content {
                     background: #000 !important;
                 }
-                .article-body-premium .article-section {
-                    margin-bottom: 40px;
+                .article-body-premium img {
+                    display: block;
+                    width: 100% !important;
+                    height: auto !important;
+                    margin: 2rem auto !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
                 }
-                /* Removed drop caps as requested */
-                /* .article-body-premium .article-section > p:first-of-type::first-letter {
-                    float: left;
-                    font-family: 'Orbitron', monospace;
-                    font-weight: 900;
-                    font-size: 80px;
-                    line-height: 0.8;
-                    padding-right: 12px;
-                    padding-top: 8px;
-                    color: #ff0033;
-                    text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
-                    margin-right: 4px;
-                } */
             `}</style>
         </div >
     );
