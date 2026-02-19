@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus, Trash2, Link2, Upload, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
-import { uploadValidation, uploadToCloudinary } from '../utils/uploadService';
+// import { uploadValidation, uploadToCloudinary } from '../utils/uploadService'; // Unused
+
 
 export function RecapCreate() {
     const location = useLocation() as any;
@@ -19,7 +20,8 @@ export function RecapCreate() {
     const [festival, setFestival] = useState('');
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
-    const [uploading, setUploading] = useState(false);
+    // const [uploading, setUploading] = useState(false); // Unused
+
     // const [uploadProgress, setUploadProgress] = useState(0); // Unused
 
 
@@ -182,20 +184,7 @@ export function RecapCreate() {
                                     <AlertCircle className="w-5 h-5" />
                                     <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
                                 </div>
-                                {uploading && (
-                                    <div className="space-y-2">
-                                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                            <motion.div
-                                                className="h-full bg-current"
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${uploadProgress}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-end">
-                                            <span className="text-[10px] font-black">{uploadProgress}%</span>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Progress bar removed */}
                             </div>
                         )}
 
