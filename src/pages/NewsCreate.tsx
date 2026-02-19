@@ -80,27 +80,7 @@ export function NewsCreate() {
         return await uploadToCloudinary(file, 'news', (p) => setUploadProgress(p));
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
 
-        setUploading(true);
-        setUploadProgress(0);
-
-        try {
-            const url = await handleUpload(file);
-            setImageUrl(url);
-            setStatus('success');
-            setMessage('Image uploadée !');
-            setTimeout(() => setStatus('idle'), 3000);
-        } catch (error: any) {
-            setStatus('error');
-            setMessage(error.message || 'Erreur lors de l\'upload');
-        } finally {
-            setUploading(false);
-            setUploadProgress(0);
-        }
-    };
 
 
     const addWidget = () => {
