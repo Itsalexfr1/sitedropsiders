@@ -33,6 +33,7 @@ export function NewsCreate() {
     ]);
 
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' }>({ show: false, type: 'image' });
+    const [showUploadModal, setShowUploadModal] = useState(false);
 
     useEffect(() => {
         if (isEditing && editingItem) {
@@ -249,8 +250,8 @@ export function NewsCreate() {
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
-                                        className="px-6 py-4 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-xl font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                        onClick={() => setShowUploadModal(true)}
+                                        className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
                                     >
                                         Upload
                                     </button>
@@ -286,8 +287,8 @@ export function NewsCreate() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setMediaModal({ show: true, type: 'image' })}
-                                        className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                        onClick={() => setShowUploadModal(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
                                         <ImageIcon className="w-3 h-3" /> Image
                                     </button>
