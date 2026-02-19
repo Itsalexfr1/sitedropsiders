@@ -193,7 +193,7 @@
   }
 
   /* Global Article Images - Single blocks */
-  .article-body-premium img:not(.absolute) {
+  .article-body-premium img:not(.absolute):not([class*="aspect-"]) {
     max-width: 100% !important;
     height: auto !important;
     display: block !important;
@@ -204,7 +204,9 @@
   }
 
   /* Fix for gallery and aspect ratio containers inside articles */
-  .article-body-premium [class*="aspect-"] img {
+  .article-body-premium [class*="aspect-"] img,
+  .article-body-premium img.absolute,
+  .article-body-premium .grid img {
     position: absolute !important;
     inset: 0 !important;
     height: 100% !important;

@@ -354,7 +354,7 @@ export function NewsCreate() {
                                             }
 
                                             if (uploadedUrls.length > 0) {
-                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-video object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
+                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
                                                 setStatus('success');
                                                 setMessage(`${uploadedUrls.length} images ajoutées à la galerie !`);
@@ -470,13 +470,22 @@ export function NewsCreate() {
                 .admin-editor-container .w-md-editor-content {
                     background: #000 !important;
                 }
-                .article-body-premium img {
+                .article-body-premium img:not(.absolute):not([class*="aspect-"]) {
                     display: block;
                     width: 100% !important;
                     height: auto !important;
                     margin: 2rem auto !important;
                     border-radius: 16px !important;
                     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                }
+                .article-body-premium .grid img,
+                .article-body-premium [class*="aspect-"] img {
+                    width: 100% !important;
+                    height: 100% !important;
+                    object-fit: cover !important;
+                    object-position: center !important;
+                    margin: 0 !important;
+                    border-radius: inherit !important;
                 }
             `}</style>
         </div >

@@ -276,7 +276,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             {/* --- MAIN CONTENT CONTAINER (8/4 GRID) --- */}
             <main className="relative z-20 pb-16 -mt-10">
                 <div className="max-w-[1400px] mx-auto px-6">
-                    <div className="bg-dark-card border border-white/5 rounded-[2rem] p-8 md:p-12 lg:p-16 shadow-2xl backdrop-blur-md">
+                    <div className="bg-dark-card border border-white/5 rounded-[2rem] p-6 md:p-10 lg:p-12 shadow-2xl backdrop-blur-md">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
                             {/* LEFT COLUMN: Main Content (9 spans) */}
@@ -316,7 +316,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             {article.images.slice(1).map((img: string, idx: number) => (
                                                 <div
                                                     key={idx}
-                                                    className="aspect-video cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black relative"
+                                                    className="aspect-square cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black relative"
                                                     onClick={() => setSelectedImage(img)}
                                                 >
                                                     <img
@@ -387,13 +387,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             </div>
 
                             {/* RIGHT COLUMN: Sidebar (3 spans, Sticky) */}
-                            <aside className="lg:col-span-3 space-y-12">
-                                <div className="sticky top-32 space-y-12">
+                            <aside className="lg:col-span-3 space-y-8">
+                                <div className="sticky top-20 space-y-8">
                                     {/* Related Articles */}
                                     {relatedArticles.length > 0 && (
                                         <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden">
                                             {/* Titre fixé en haut, hors du scroll */}
-                                            <div className="px-6 pt-6 pb-4 border-b border-white/5">
+                                            <div className="px-6 pt-4 pb-3 border-b border-white/5">
                                                 <h3 className="text-base font-display font-black text-white uppercase tracking-tighter italic text-center">
                                                     {isInterview ? t('article_detail.other_interviews') : t('article_detail.related_title')}
                                                 </h3>
