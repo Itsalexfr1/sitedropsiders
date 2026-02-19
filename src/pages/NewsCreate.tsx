@@ -292,7 +292,19 @@ export function NewsCreate() {
                                         onClick={() => setShowUploadModal(true)}
                                         className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
-                                        <ImageIcon className="w-3 h-3" /> Image
+                                        <Upload className="w-3 h-3" /> Upload
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const val = prompt('URL de l\'image');
+                                            if (!val) return;
+                                            const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  <img src="${val}" alt="Image" className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />\n</div>`;
+                                            setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: imgWidget }]);
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                    >
+                                        <ImageIcon className="w-3 h-3" /> Image (URL)
                                     </button>
                                     <button
                                         type="button"
