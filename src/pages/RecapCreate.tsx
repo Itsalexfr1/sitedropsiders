@@ -391,7 +391,7 @@ export function RecapCreate() {
                                             </div>
                                         )}
 
-                                        {!widget.content.includes('youtube-player-widget') && (
+                                        {!widget.content.includes('youtube-player-widget') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && (
                                             <div className="admin-editor-container" data-color-mode="dark">
                                                 <MDEditor
                                                     value={widget.content}
