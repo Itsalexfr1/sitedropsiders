@@ -311,10 +311,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             <Camera className="w-8 h-8 text-neon-red" />
                                             {t('article_detail.gallery_title')}
                                         </h3>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            {article.images.map((img: string, idx: number) => (
-                                                <div key={idx} className="aspect-video cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black/40" onClick={() => setSelectedImage(img)}>
-                                                    <img src={img} alt="" className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110" />
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                            {/* Skip first image as it's the cover */}
+                                            {article.images.slice(1).map((img: string, idx: number) => (
+                                                <div
+                                                    key={idx}
+                                                    className="aspect-[4/3] cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black/40 relative"
+                                                    onClick={() => setSelectedImage(img)}
+                                                >
+                                                    <img
+                                                        src={img}
+                                                        alt=""
+                                                        className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                 </div>
                                             ))}
                                         </div>

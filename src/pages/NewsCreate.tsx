@@ -354,7 +354,7 @@ export function NewsCreate() {
                                             }
 
                                             if (uploadedUrls.length > 0) {
-                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover rounded-xl" />`).join('\n')}\n</div>`;
+                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-video object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
                                                 setStatus('success');
                                                 setMessage(`${uploadedUrls.length} images ajoutées à la galerie !`);
