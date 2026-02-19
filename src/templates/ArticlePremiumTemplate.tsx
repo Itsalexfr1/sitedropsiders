@@ -8,8 +8,8 @@ import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
-import MDEditor from '@uiw/react-md-editor';
 import '../styles/article-premium.css';
+
 
 interface ArticlePremiumTemplateProps {
     article: any;
@@ -281,12 +281,10 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                             {/* LEFT COLUMN: Main Content (9 spans) */}
                             <div className="lg:col-span-9">
-                                <div className="article-body-premium w-full">
-                                    <MDEditor.Markdown
-                                        source={displayContent}
-                                        style={{ backgroundColor: 'transparent', color: 'inherit' }}
-                                    />
-                                </div>
+                                <div
+                                    className="article-body-premium w-full"
+                                    dangerouslySetInnerHTML={{ __html: displayContent }}
+                                />
 
                                 {/* Video Section */}
                                 {article.youtubeId && (

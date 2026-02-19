@@ -384,6 +384,24 @@ export function RecapCreate() {
                                     >
                                         <Plus className="w-3 h-3" /> Galerie
                                     </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const val = prompt('URL ou ID YouTube (ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ)');
+                                            if (!val) return;
+                                            let videoId = val.trim();
+                                            if (val.includes('youtube.com/watch?v=')) {
+                                                videoId = val.split('v=')[1].split('&')[0];
+                                            } else if (val.includes('youtu.be/')) {
+                                                videoId = val.split('youtu.be/')[1].split('?')[0];
+                                            }
+                                            const youtubeEmbed = `<div class="youtube-player-widget" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;my-8">\n  <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>\n</div>`;
+                                            setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: youtubeEmbed }]);
+                                        }}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/30 text-red-400 rounded-full hover:bg-red-600/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                    >
+                                        <Youtube className="w-3 h-3" /> Player YT
+                                    </button>
                                 </div>
                             </div>
 

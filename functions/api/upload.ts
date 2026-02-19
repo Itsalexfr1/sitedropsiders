@@ -25,12 +25,54 @@ export const onRequestPost = async (context: any) => {
             return jsonResponse({ error: 'Aucun fichier reçu' }, 400);
         }
 
+        // ─────────────────────────────────────────────
+        // CLOUDINARY UPLOAD (méthode principale)
+        // ─────────────────────────────────────────────
+        const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME;
+        const CLOUDINARY_UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET;
+
+        if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
+            const cloudinaryFormData = new FormData();
+            cloudinaryFormData.append('file', file);
+            cloudinaryFormData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            // Organise les images dans des dossiers par section
+            cloudinaryFormData.append('folder', `dropsiders/${subPath}`);
+            // Tag pour identifier la source
+            cloudinaryFormData.append('tags', `dropsiders,${subPath}`);
+
+            const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+            const uploadRes = await fetch(cloudinaryUrl, {
+                method: 'POST',
+                body: cloudinaryFormData,
+            });
+
+            if (!uploadRes.ok) {
+                const err = await uploadRes.text();
+                console.error('Cloudinary error:', err);
+                // Si Cloudinary échoue, tombe sur GitHub
+            } else {
+                const cloudData = await uploadRes.json() as any;
+                return jsonResponse({
+                    success: true,
+                    url: cloudData.secure_url,
+                    filename: cloudData.public_id,
+                    provider: 'cloudinary'
+                });
+            }
+        }
+
+        // ─────────────────────────────────────────────
+        // GITHUB FALLBACK (si Cloudinary pas configuré)
+        // ─────────────────────────────────────────────
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
         const TOKEN = env.GITHUB_TOKEN;
 
         if (!TOKEN) {
-            return jsonResponse({ error: 'GITHUB_TOKEN non configuré' }, 500);
+            return jsonResponse({
+                error: 'Aucun hébergeur d\'image configuré. Configurez CLOUDINARY_CLOUD_NAME et CLOUDINARY_UPLOAD_PRESET dans Cloudflare.'
+            }, 500);
         }
 
         // Generate a clean filename
@@ -71,13 +113,13 @@ export const onRequestPost = async (context: any) => {
             return jsonResponse({ error: 'Erreur lors de l\'envoi vers GitHub', details: errorText }, 502);
         }
 
-        // Construct the URL to be used in the site
         const publicUrl = `/images/${subPath}/${filename}`;
 
         return jsonResponse({
             success: true,
             url: publicUrl,
-            filename: filename
+            filename: filename,
+            provider: 'github'
         });
 
     } catch (err: any) {

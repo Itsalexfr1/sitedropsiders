@@ -310,6 +310,58 @@ export function NewsCreate() {
                                         }
                                     }} className="hidden" />
                                 </label>
+                                <button
+                                    onClick={() => {
+                                        const input = document.createElement('input');
+                                        input.type = 'file';
+                                        input.multiple = true;
+                                        input.accept = 'image/*';
+                                        input.onchange = async (e: any) => {
+                                            const files = e.target.files;
+                                            if (!files || files.length === 0) return;
+
+                                            const uploadedUrls = [];
+                                            for (let i = 0; i < files.length; i++) {
+                                                const formData = new FormData();
+                                                formData.append('image', files[i]);
+                                                formData.append('path', 'news');
+                                                const res = await fetch('/api/upload', {
+                                                    method: 'POST',
+                                                    headers: getAuthHeaders(null),
+                                                    body: formData
+                                                });
+                                                const data = await res.json();
+                                                if (data.success) uploadedUrls.push(data.url);
+                                            }
+
+                                            if (uploadedUrls.length > 0) {
+                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover rounded-xl" />`).join('\n')}\n</div>`;
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
+                                            }
+                                        };
+                                        input.click();
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                >
+                                    <Plus className="w-3 h-3" /> Galerie
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        const val = prompt('URL ou ID YouTube (ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ)');
+                                        if (!val) return;
+                                        let videoId = val.trim();
+                                        if (val.includes('youtube.com/watch?v=')) {
+                                            videoId = val.split('v=')[1].split('&')[0];
+                                        } else if (val.includes('youtu.be/')) {
+                                            videoId = val.split('youtu.be/')[1].split('?')[0];
+                                        }
+                                        const youtubeEmbed = `<div class="youtube-player-widget" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;my-8">\n  <iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>\n</div>`;
+                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: youtubeEmbed }]);
+                                    }}
+                                    className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/30 text-red-400 rounded-full hover:bg-red-600/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                >
+                                    <Youtube className="w-3 h-3" /> Player YT
+                                </button>
                             </div>
                         </div>
 
