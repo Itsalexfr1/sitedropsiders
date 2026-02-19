@@ -28,37 +28,41 @@ export const onRequest = async (context: any) => {
         // ─────────────────────────────────────────────
         // CLOUDINARY UPLOAD (méthode principale)
         // ─────────────────────────────────────────────
-        const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME;
-        const CLOUDINARY_UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET;
+        // ─────────────────────────────────────────────
+        // CLOUDINARY UPLOAD (méthode principale)
+        // ─────────────────────────────────────────────
+        const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME || 'drd0k6wve'; // Fallback to hardcoded if needed temporarily, but preferably env
+        const CLOUDINARY_UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET || 'dropsiders_unsigned'; // You should update this!
 
         if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
-            const cloudinaryFormData = new FormData();
-            cloudinaryFormData.append('file', file);
-            cloudinaryFormData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            // Organise les images dans des dossiers par section
-            cloudinaryFormData.append('folder', `dropsiders/${subPath}`);
-            // Tag pour identifier la source
-            cloudinaryFormData.append('tags', `dropsiders,${subPath}`);
+            try {
+                const cloudinaryFormData = new FormData();
+                cloudinaryFormData.append('file', file);
+                cloudinaryFormData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                cloudinaryFormData.append('folder', `dropsiders/${subPath.replace(/[^a-zA-Z0-9-_]/g, '')}`);
 
-            const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+                const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
-            const uploadRes = await fetch(cloudinaryUrl, {
-                method: 'POST',
-                body: cloudinaryFormData,
-            });
-
-            if (!uploadRes.ok) {
-                const err = await uploadRes.text();
-                console.error('Cloudinary error:', err);
-                // Si Cloudinary échoue, tombe sur GitHub
-            } else {
-                const cloudData = await uploadRes.json() as any;
-                return jsonResponse({
-                    success: true,
-                    url: cloudData.secure_url,
-                    filename: cloudData.public_id,
-                    provider: 'cloudinary'
+                const uploadRes = await fetch(cloudinaryUrl, {
+                    method: 'POST',
+                    body: cloudinaryFormData,
                 });
+
+                if (uploadRes.ok) {
+                    const cloudData: any = await uploadRes.json();
+                    return jsonResponse({
+                        success: true,
+                        url: cloudData.secure_url,
+                        filename: cloudData.public_id,
+                        provider: 'cloudinary'
+                    });
+                } else {
+                    const errText = await uploadRes.text();
+                    console.error('Cloudinary Upload Failed:', errText);
+                    // Continue to GitHub fallback
+                }
+            } catch (cloudErr) {
+                console.error('Cloudinary Exception:', cloudErr);
             }
         }
 
