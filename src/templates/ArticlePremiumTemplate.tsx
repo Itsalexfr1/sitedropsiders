@@ -316,7 +316,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             {article.images.slice(1).map((img: string, idx: number) => (
                                                 <div
                                                     key={idx}
-                                                    className="aspect-[4/3] cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black/40 relative"
+                                                    className="aspect-video cursor-pointer overflow-hidden rounded-3xl border border-white/10 group shadow-2xl bg-black relative"
                                                     onClick={() => setSelectedImage(img)}
                                                 >
                                                     <img

@@ -112,7 +112,7 @@ export function AlbumDetail() {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: index * 0.05 }}
-                            className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer bg-black/20 border border-white/5 hover:border-white/20 transition-all"
+                            className="relative aspect-video rounded-2xl overflow-hidden group cursor-pointer bg-black border border-white/5 hover:border-white/20 transition-all"
                             onClick={() => setSelectedPhoto(img)}
                         >
                             <img

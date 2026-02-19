@@ -473,7 +473,8 @@ export function NewsCreate() {
                 .article-body-premium .article-section {
                     margin-bottom: 40px;
                 }
-                .article-body-premium .article-section > p:first-of-type::first-letter {
+                /* Removed drop caps as requested */
+                /* .article-body-premium .article-section > p:first-of-type::first-letter {
                     float: left;
                     font-family: 'Orbitron', monospace;
                     font-weight: 900;
@@ -484,7 +485,7 @@ export function NewsCreate() {
                     color: #ff0033;
                     text-shadow: 0 0 15px rgba(255, 0, 51, 0.4);
                     margin-right: 4px;
-                }
+                } */
             `}</style>
         </div >
     );

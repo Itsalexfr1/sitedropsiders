@@ -101,7 +101,7 @@ export function Galerie() {
                             >
                                 <Link
                                     to={getGalleryLink(album)}
-                                    className="group relative block aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red/50 transition-all duration-500 shadow-2xl"
+                                    className="group relative block aspect-video rounded-3xl overflow-hidden bg-black border border-white/10 hover:border-neon-red/50 transition-all duration-500 shadow-2xl"
                                 >
                                     <motion.div
                                         whileHover={{ scale: 1.05 }}

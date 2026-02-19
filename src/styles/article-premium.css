@@ -150,6 +150,8 @@
 
 /* Automatic Drop Cap for EVERY paragraph in the body EXCEPT those marked as no-lettrage */
 /* Only applies to recaps and interviews, NOT to news articles */
+/* Removed drop caps for recaps and interviews as requested - matching news style */
+/* 
 .article-type-recap .article-body-premium p:not(.no-lettrage)::first-letter,
 .article-type-interview .article-body-premium p:not(.no-lettrage)::first-letter {
     float: left !important;
@@ -160,6 +162,7 @@
     font-weight: 900 !important;
     text-transform: uppercase !important;
 }
+*/
 
 
 /* --- IMAGES --- */
