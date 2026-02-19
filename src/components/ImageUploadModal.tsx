@@ -81,7 +81,11 @@ export function ImageUploadModal({ isOpen, onClose, accentColor = 'neon-pink' }:
 
                                 <button
                                     onClick={() => {
-                                        window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600');
+                                        const width = 1100;
+                                        const height = 800;
+                                        const left = (window.innerWidth - width) / 2;
+                                        const top = (window.innerHeight - height) / 2;
+                                        window.open('https://www.image2url.com/bulk-image-upload', 'ImageUploadWindow', `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`);
                                         // Optional: onClose(); 
                                     }}
                                     className={`w-full py-4 ${bgClass} ${borderClass} border ${textClass} rounded-xl font-bold uppercase tracking-widest flex items-center justify-center gap-2 ${hoverBgClass} transition-all shadow-[0_0_20px_rgba(0,0,0,0.3)] hover:shadow-[0_0_30px_rgba(0,0,0,0.5)] group`}
@@ -95,6 +99,20 @@ export function ImageUploadModal({ isOpen, onClose, accentColor = 'neon-pink' }:
                                     <p className="text-sm text-gray-400">
                                         Copiez les liens générés et collez-les dans le champ correspondant de l'éditeur.
                                     </p>
+                                    <div className="mt-4 pt-4 border-t border-white/5">
+                                        <button
+                                            onClick={() => {
+                                                const width = 1100;
+                                                const height = 800;
+                                                const left = (window.innerWidth - width) / 2;
+                                                const top = (window.innerHeight - height) / 2;
+                                                window.open('https://www.image2url.com/bulk-image-upload', 'ImageUploadWindow', `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes`);
+                                            }}
+                                            className="text-xs text-gray-500 hover:text-white underline decoration-dotted transition-colors"
+                                        >
+                                            Ouvrir dans une fenêtre optimisée
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
