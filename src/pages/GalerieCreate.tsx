@@ -162,7 +162,7 @@ export function GalerieCreate() {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                    onClick={() => setShowUploadModal(true)}
                                     className="px-6 py-4 bg-neon-pink/20 border border-neon-pink/50 text-neon-pink rounded-xl font-bold uppercase tracking-wider hover:bg-neon-pink/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
                                 >
                                     Upload
@@ -177,10 +177,10 @@ export function GalerieCreate() {
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Images de la Galerie (Une par ligne)</label>
                                 <button
                                     type="button"
-                                    onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                    onClick={() => setShowUploadModal(true)}
                                     className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer flex items-center gap-2"
                                 >
-                                    📥 Ajouter des photos via URL
+                                    📥 Ajouter des photos (Upload)
                                 </button>
                             </div>
                             <textarea
@@ -251,6 +251,12 @@ export function GalerieCreate() {
                     </form>
                 </div>
             </div>
+
+            <ImageUploadModal
+                isOpen={showUploadModal}
+                onClose={() => setShowUploadModal(false)}
+                accentColor="neon-pink"
+            />
         </div>
     );
 }
