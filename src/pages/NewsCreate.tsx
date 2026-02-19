@@ -35,7 +35,7 @@ export function NewsCreate() {
 
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' }>({ show: false, type: 'image' });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [showUploadModal, setShowUploadModal] = useState(false);
+
 
     useEffect(() => {
         if (isEditing && editingItem) {
