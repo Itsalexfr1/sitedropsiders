@@ -1,7 +1,8 @@
 
 import { useState, useEffect } from 'react';
 import MDEditor from '@uiw/react-md-editor';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, MapPin, Youtube, PartyPopper, ArrowLeft, Plus, Trash2, Link2, Upload, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -18,11 +19,15 @@ export function RecapCreate() {
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
 
     // Widget System State
     const [widgets, setWidgets] = useState<{ id: string, content: string }[]>([
         { id: 'initial-1', content: '**Écrivez votre récap ici...**' }
     ]);
+
+    const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' }>({ show: false, type: 'image' });
 
     useEffect(() => {
         if (isEditing && editingItem) {
@@ -61,34 +66,65 @@ export function RecapCreate() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
+    const uploadWithProgress = (file: File, path: string): Promise<{ success: boolean, url: string, error?: string }> => {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('path', path);
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    setUploadProgress(percent);
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        resolve(JSON.parse(xhr.responseText));
+                    } catch (e) {
+                        reject(new Error('Erreur de réponse serveur'));
+                    }
+                } else {
+                    reject(new Error(`Erreur ${xhr.status}`));
+                }
+            });
+
+            xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
+
+            xhr.open('POST', '/api/upload');
+            const headers = getAuthHeaders(null) as any;
+            Object.keys(headers).forEach(key => {
+                xhr.setRequestHeader(key, headers[key]);
+            });
+            xhr.send(formData);
+        });
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('path', 'recaps');
+        setUploadProgress(0);
 
         try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                headers: getAuthHeaders(null),
-                body: formData
-            });
-
-            const data = await response.json();
+            const data = await uploadWithProgress(file, 'recaps');
             if (data.success) {
                 setCoverImage(data.url);
             } else {
                 alert(data.error || 'Erreur lors de l\'upload');
             }
-        } catch (error) {
-            alert('Erreur de connexion au serveur d\'upload');
+        } catch (error: any) {
+            alert(error.message || 'Erreur de connexion au serveur d\'upload');
         } finally {
             setUploading(false);
+            setUploadProgress(0);
         }
     };
+
 
     const addWidget = () => {
         setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: '' }]);
@@ -187,13 +223,30 @@ export function RecapCreate() {
 
                         {/* Status Message */}
                         {status !== 'idle' && (
-                            <div className={`p-4 rounded-xl flex items-center gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
+                            <div className={`p-4 rounded-xl flex flex-col gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
                                 status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
                                 }`}>
-                                <AlertCircle className="w-5 h-5" />
-                                <p>{message}</p>
+                                <div className="flex items-center gap-3">
+                                    <AlertCircle className="w-5 h-5" />
+                                    <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
+                                </div>
+                                {uploading && (
+                                    <div className="space-y-2">
+                                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                            <motion.div
+                                                className="h-full bg-current"
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <span className="text-[10px] font-black">{uploadProgress}%</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
+
 
                         {/* Title */}
                         <div className="space-y-2">
@@ -295,10 +348,20 @@ export function RecapCreate() {
                                         required
                                     />
                                 </div>
-                                <label className="px-6 py-4 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-xl font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                    {uploading ? '...' : 'Upload'}
+                                <label className="px-6 py-4 bg-neon-cyan/20 border border-neon-cyan/50 text-neon-cyan rounded-xl font-bold uppercase tracking-wider hover:bg-neon-cyan/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]">
+                                    {uploading ? (
+                                        <>
+                                            <span className="text-[10px]">{uploadProgress}%</span>
+                                            <div className="w-full bg-neon-cyan/20 h-1 rounded-full overflow-hidden mt-1">
+                                                <div className="h-full bg-neon-cyan" style={{ width: `${uploadProgress}%` }} />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        'Upload'
+                                    )}
                                     <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" disabled={uploading} />
                                 </label>
+
                             </div>
                         </div>
 
@@ -328,84 +391,17 @@ export function RecapCreate() {
                                     >
                                         <Plus className="w-3 h-3" /> Bloc Texte
                                     </button>
-                                    <label className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px] cursor-pointer relative">
-                                        {uploading ? 'Chargement...' : <><ImageIcon className="w-3 h-3" /> Image</>}
-                                        <input type="file" accept="image/*" onChange={(e) => {
-                                            const file = e.target.files?.[0];
-                                            if (file) {
-                                                setUploading(true);
-                                                setStatus('loading');
-                                                setMessage('Upload de l\'image...');
-                                                const formData = new FormData();
-                                                formData.append('image', file);
-                                                formData.append('path', 'recaps');
-                                                fetch('/api/upload', {
-                                                    method: 'POST',
-                                                    headers: getAuthHeaders(null),
-                                                    body: formData
-                                                }).then(res => res.json()).then(data => {
-                                                    if (data.success) {
-                                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `<img src="${data.url}" class="w-full rounded-2xl shadow-2xl" />` }]);
-                                                        setStatus('success');
-                                                        setMessage('Image ajoutée avec succès !');
-                                                        setTimeout(() => setStatus('idle'), 3000);
-                                                    } else {
-                                                        setStatus('error');
-                                                        setMessage(data.error || 'Erreur lors de l\'upload');
-                                                    }
-                                                }).finally(() => setUploading(false));
-                                            }
-                                        }} className="hidden" disabled={uploading} />
-                                    </label>
                                     <button
                                         type="button"
-                                        disabled={uploading}
-                                        onClick={() => {
-                                            const input = document.createElement('input');
-                                            input.type = 'file';
-                                            input.multiple = true;
-                                            input.accept = 'image/*';
-                                            input.onchange = async (e: any) => {
-                                                const files = e.target.files;
-                                                if (!files || files.length === 0) return;
-
-                                                setUploading(true);
-                                                setStatus('loading');
-                                                setMessage(`Upload de ${files.length} images...`);
-
-                                                const uploadedUrls = [];
-                                                for (let i = 0; i < files.length; i++) {
-                                                    const formData = new FormData();
-                                                    formData.append('image', files[i]);
-                                                    formData.append('path', 'recaps');
-                                                    try {
-                                                        const res = await fetch('/api/upload', {
-                                                            method: 'POST',
-                                                            headers: getAuthHeaders(null),
-                                                            body: formData
-                                                        });
-                                                        const data = await res.json();
-                                                        if (data.success) uploadedUrls.push(data.url);
-                                                    } catch (err) {
-                                                        console.error('Upload failed for file', i);
-                                                    }
-                                                }
-
-                                                if (uploadedUrls.length > 0) {
-                                                    const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
-                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
-                                                    setStatus('success');
-                                                    setMessage(`${uploadedUrls.length} images ajoutées à la galerie !`);
-                                                    setTimeout(() => setStatus('idle'), 3000);
-                                                } else {
-                                                    setStatus('error');
-                                                    setMessage('Aucune image n\'a pu être uploadée');
-                                                }
-                                                setUploading(false);
-                                            };
-                                            input.click();
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[10px] disabled:opacity-50"
+                                        onClick={() => setMediaModal({ show: true, type: 'image' })}
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                    >
+                                        <ImageIcon className="w-3 h-3" /> Image
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'gallery' })}
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
                                         <Plus className="w-3 h-3" /> Galerie
                                     </button>
@@ -534,6 +530,150 @@ export function RecapCreate() {
                     border-radius: inherit !important;
                 }
             `}</style>
+            {/* Media Selection Modal */}
+            <AnimatePresence>
+                {mediaModal.show && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMediaModal({ ...mediaModal, show: false })}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-md bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                        >
+                            <button
+                                onClick={() => setMediaModal({ ...mediaModal, show: false })}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
+                                {mediaModal.type === 'image' ? 'Ajouter une photo' : 'Ajouter une galerie'}
+                            </h3>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => {
+                                        setMediaModal({ ...mediaModal, show: false });
+                                        if (mediaModal.type === 'image') {
+                                            const input = document.createElement('input');
+                                            input.type = 'file';
+                                            input.accept = 'image/*';
+                                            input.onchange = async (e: any) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+                                                setUploading(true);
+                                                setUploadProgress(0);
+                                                setStatus('loading');
+                                                setMessage('Upload de l\'image...');
+                                                try {
+                                                    const data = await uploadWithProgress(file, 'recaps');
+                                                    if (data.success) {
+                                                        setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `<img src="${data.url}" class="w-full rounded-2xl shadow-2xl" />` }]);
+                                                        setStatus('success');
+                                                        setMessage('Image ajoutée !');
+                                                    } else {
+                                                        setStatus('error');
+                                                        setMessage(data.error || 'Erreur upload');
+                                                    }
+                                                } catch (error: any) {
+                                                    setStatus('error');
+                                                    setMessage(error.message || 'Erreur lors de l\'upload');
+                                                } finally {
+                                                    setUploading(false);
+                                                    setUploadProgress(0);
+                                                    setTimeout(() => setStatus('idle'), 3000);
+                                                }
+                                            };
+                                            input.click();
+                                        } else {
+                                            const input = document.createElement('input');
+                                            input.type = 'file';
+                                            input.multiple = true;
+                                            input.accept = 'image/*';
+                                            input.onchange = async (e: any) => {
+                                                const files = e.target.files;
+                                                if (!files || files.length === 0) return;
+                                                setUploading(true);
+                                                setStatus('loading');
+                                                const uploadedUrls = [];
+                                                const filesArray = Array.from(files);
+
+                                                for (let i = 0; i < filesArray.length; i++) {
+                                                    const file = filesArray[i];
+                                                    setUploadProgress(0);
+                                                    setMessage(`Upload image ${i + 1}/${filesArray.length}...`);
+                                                    try {
+                                                        const data = await uploadWithProgress(file as File, 'recaps');
+                                                        if (data.success) uploadedUrls.push(data.url);
+                                                    } catch (error) {
+                                                        console.error(`Failed to upload file ${i + 1}`, error);
+                                                    }
+                                                }
+
+                                                if (uploadedUrls.length > 0) {
+                                                    const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
+                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
+                                                    setStatus('success');
+                                                    setMessage(`${uploadedUrls.length} images ajoutées !`);
+                                                } else {
+                                                    setStatus('error');
+                                                    setMessage('Aucune image n\'a pu être uploadée');
+                                                }
+                                                setUploading(false);
+                                                setUploadProgress(0);
+                                                setTimeout(() => setStatus('idle'), 3000);
+                                            };
+                                            input.click();
+                                        }
+
+                                    }}
+                                    className="flex flex-col items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Upload className="w-6 h-6 text-neon-red" />
+                                    </div>
+                                    <span className="text-xs font-black uppercase tracking-widest text-white">Upload</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        setMediaModal({ ...mediaModal, show: false });
+                                        if (mediaModal.type === 'image') {
+                                            const url = prompt('Entrez l\'URL de l\'image:');
+                                            if (url) {
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `<img src="${url}" class="w-full rounded-2xl shadow-2xl" />` }]);
+                                            }
+                                        } else {
+                                            const urls = prompt('Entrez les URLs séparées par des virgules:');
+                                            if (urls) {
+                                                const urlList = urls.split(',').map(u => u.trim()).filter(u => u);
+                                                const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${urlList.map(url => `  <img src="${url}" class="aspect-square object-cover object-center rounded-xl" />`).join('\n')}\n</div>`;
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
+                                            }
+                                        }
+                                    }}
+                                    className="flex flex-col items-center gap-4 p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Link2 className="w-6 h-6 text-neon-purple" />
+                                    </div>
+                                    <span className="text-xs font-black uppercase tracking-widest text-white">Lien</span>
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
+
+export default RecapCreate;

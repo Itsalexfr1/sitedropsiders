@@ -17,6 +17,8 @@ export function AgendaCreate() {
     const [url, setUrl] = useState('');
     const [genre, setGenre] = useState('Big Room'); // Default
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+
 
     useEffect(() => {
         if (isEditing && editingItem) {
@@ -33,34 +35,72 @@ export function AgendaCreate() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
+    const uploadWithProgress = (file: File, path: string): Promise<{ success: boolean, url: string, error?: string }> => {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('path', path);
+
+            xhr.upload.addEventListener('progress', (e) => {
+                if (e.lengthComputable) {
+                    const percent = Math.round((e.loaded / e.total) * 100);
+                    setUploadProgress(percent);
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        resolve(JSON.parse(xhr.responseText));
+                    } catch (e) {
+                        reject(new Error('Erreur de réponse serveur'));
+                    }
+                } else {
+                    reject(new Error(`Erreur ${xhr.status}`));
+                }
+            });
+
+            xhr.addEventListener('error', () => reject(new Error('Erreur réseau')));
+
+            xhr.open('POST', '/api/upload');
+            const headers = getAuthHeaders(null) as any;
+            Object.keys(headers).forEach(key => {
+                xhr.setRequestHeader(key, headers[key]);
+            });
+            xhr.send(formData);
+        });
+    };
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(true);
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('path', 'agenda');
+        setUploadProgress(0);
+        setStatus('loading');
+        setMessage('Upload de l\'image...');
 
         try {
-            const response = await fetch('/api/upload', {
-                method: 'POST',
-                headers: getAuthHeaders(null),
-                body: formData
-            });
-
-            const data = await response.json();
+            const data = await uploadWithProgress(file, 'agenda');
             if (data.success) {
                 setImageUrl(data.url);
+                setStatus('success');
+                setMessage('Image uploadée !');
+                setTimeout(() => setStatus('idle'), 3000);
             } else {
-                alert(data.error || 'Erreur lors de l\'upload');
+                setStatus('error');
+                setMessage(data.error || 'Erreur lors de l\'upload');
             }
-        } catch (error) {
-            alert('Erreur de connexion au serveur d\'upload');
+        } catch (error: any) {
+            setStatus('error');
+            setMessage(error.message || 'Erreur de connexion au serveur d\'upload');
         } finally {
             setUploading(false);
+            setUploadProgress(0);
         }
     };
+
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -243,8 +283,17 @@ export function AgendaCreate() {
                                         required
                                     />
                                 </div>
-                                <label className="px-6 py-4 bg-neon-yellow/20 border border-neon-yellow/50 text-neon-yellow rounded-xl font-bold uppercase tracking-wider hover:bg-neon-yellow/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap">
-                                    {uploading ? 'Upload...' : '📤 Upload'}
+                                <label className="px-6 py-4 bg-neon-yellow/20 border border-neon-yellow/50 text-neon-yellow rounded-xl font-bold uppercase tracking-wider hover:bg-neon-yellow/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]">
+                                    {uploading ? (
+                                        <>
+                                            <span className="text-[10px]">{uploadProgress}%</span>
+                                            <div className="w-full bg-neon-yellow/20 h-1 rounded-full overflow-hidden mt-1">
+                                                <div className="h-full bg-neon-yellow" style={{ width: `${uploadProgress}%` }} />
+                                            </div>
+                                        </>
+                                    ) : (
+                                        '📤 Upload'
+                                    )}
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -253,6 +302,7 @@ export function AgendaCreate() {
                                         disabled={uploading}
                                     />
                                 </label>
+
                             </div>
                         </div>
 
@@ -293,13 +343,29 @@ export function AgendaCreate() {
 
                         {/* Status Message */}
                         {status !== 'idle' && (
-                            <div className={`p-4 rounded-xl flex items-center gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
+                            <div className={`p-4 rounded-xl flex flex-col gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
                                 status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
                                 }`}>
-                                <AlertCircle className="w-5 h-5" />
-                                <p>{message}</p>
+                                <div className="flex items-center gap-3">
+                                    <AlertCircle className="w-5 h-5" />
+                                    <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
+                                </div>
+                                {uploading && (
+                                    <div className="space-y-2">
+                                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                            <div
+                                                className="h-full bg-current transition-all duration-300"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                        <div className="flex justify-end">
+                                            <span className="text-[10px] font-black">{uploadProgress}%</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
+
                     </form>
                 </div>
             </div>
