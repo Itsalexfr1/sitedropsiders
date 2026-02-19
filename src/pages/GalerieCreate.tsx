@@ -97,7 +97,7 @@ export function GalerieCreate() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Title */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre de l'Album</label>
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre de l'Album <span className="text-neon-red">*</span></label>
                             <div className="relative group">
                                 <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
                                 <input
@@ -114,7 +114,7 @@ export function GalerieCreate() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Date (Year) */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
                                     <input

@@ -203,7 +203,7 @@ export function NewsCreate() {
                         {/* Metadata Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Titre</label>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Titre <span className="text-neon-red">*</span></label>
                                 <input
                                     type="text"
                                     value={title}
@@ -213,7 +213,7 @@ export function NewsCreate() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Date</label>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Date <span className="text-neon-red">*</span></label>
                                 <div className="relative">
                                     <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
                                     <input
@@ -227,7 +227,7 @@ export function NewsCreate() {
                         </div>
 
                         <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Résumé (Intro)</label>
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Résumé (Intro) <span className="text-neon-red">*</span></label>
                             <textarea
                                 value={summary}
                                 onChange={(e) => setSummary(e.target.value)}
@@ -240,7 +240,7 @@ export function NewsCreate() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <ImageIcon className="w-4 h-4" /> Image
+                                    <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
                                 </label>
                                 <div className="flex gap-2">
                                     <input

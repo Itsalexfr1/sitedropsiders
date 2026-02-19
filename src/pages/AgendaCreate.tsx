@@ -143,7 +143,7 @@ export function AgendaCreate() {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Title */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre de l'événement</label>
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre de l'événement <span className="text-neon-red">*</span></label>
                             <div className="relative group">
                                 <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                 <input
@@ -160,7 +160,7 @@ export function AgendaCreate() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Date */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                     <input
@@ -175,7 +175,7 @@ export function AgendaCreate() {
 
                             {/* Location */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                     <input
@@ -235,7 +235,7 @@ export function AgendaCreate() {
 
                         {/* Image URL */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image</label>
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image <span className="text-neon-red">*</span></label>
                             <div className="flex gap-2">
                                 <div className="relative group flex-1">
                                     <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
@@ -273,7 +273,7 @@ export function AgendaCreate() {
 
                         {/* Link URL */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lien de l'événement (Billetterie/Infos)</label>
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lien de l'événement (Billetterie/Infos) <span className="text-neon-red">*</span></label>
                             <div className="relative group">
                                 <LinkIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                 <input

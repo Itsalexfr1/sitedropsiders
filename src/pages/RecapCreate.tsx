@@ -193,7 +193,7 @@ export function RecapCreate() {
 
                         {/* Title */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre du Récap</label>
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre du Récap <span className="text-neon-red">*</span></label>
                             <div className="relative group">
                                 <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                 <input
@@ -210,7 +210,7 @@ export function RecapCreate() {
                         {/* Date & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
@@ -249,7 +249,7 @@ export function RecapCreate() {
                         {/* Festival & Location */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Festival (Opt)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Images de la Galerie (Une par ligne) <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <PartyPopper className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
@@ -278,7 +278,7 @@ export function RecapCreate() {
 
                         {/* Cover Image */}
                         <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture</label>
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture <span className="text-neon-red">*</span></label>
                             <div className="flex gap-2">
                                 <div className="relative group flex-1">
                                     <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
