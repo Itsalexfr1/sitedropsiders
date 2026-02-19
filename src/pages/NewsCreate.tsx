@@ -290,11 +290,14 @@ export function NewsCreate() {
                                 >
                                     <Plus className="w-3 h-3" /> Bloc Texte
                                 </button>
-                                <label className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px] cursor-pointer">
-                                    <ImageIcon className="w-3 h-3" /> Image
+                                <label className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px] cursor-pointer relative">
+                                    {uploading ? 'Chargement...' : <><ImageIcon className="w-3 h-3" /> Image</>}
                                     <input type="file" accept="image/*" onChange={(e) => {
                                         const file = e.target.files?.[0];
                                         if (file) {
+                                            setUploading(true);
+                                            setStatus('loading');
+                                            setMessage('Upload de l\'image...');
                                             const formData = new FormData();
                                             formData.append('image', file);
                                             formData.append('path', 'news');
@@ -305,12 +308,20 @@ export function NewsCreate() {
                                             }).then(res => res.json()).then(data => {
                                                 if (data.success) {
                                                     setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: `![image](${data.url})` }]);
+                                                    setStatus('success');
+                                                    setMessage('Image ajoutée avec succès !');
+                                                    setTimeout(() => setStatus('idle'), 3000);
+                                                } else {
+                                                    setStatus('error');
+                                                    setMessage(data.error || 'Erreur lors de l\'upload');
                                                 }
-                                            });
+                                            }).finally(() => setUploading(false));
                                         }
-                                    }} className="hidden" />
+                                    }} className="hidden" disabled={uploading} />
                                 </label>
                                 <button
+                                    type="button"
+                                    disabled={uploading}
                                     onClick={() => {
                                         const input = document.createElement('input');
                                         input.type = 'file';
@@ -320,32 +331,48 @@ export function NewsCreate() {
                                             const files = e.target.files;
                                             if (!files || files.length === 0) return;
 
+                                            setUploading(true);
+                                            setStatus('loading');
+                                            setMessage(`Upload de ${files.length} images...`);
+
                                             const uploadedUrls = [];
                                             for (let i = 0; i < files.length; i++) {
                                                 const formData = new FormData();
                                                 formData.append('image', files[i]);
                                                 formData.append('path', 'news');
-                                                const res = await fetch('/api/upload', {
-                                                    method: 'POST',
-                                                    headers: getAuthHeaders(null),
-                                                    body: formData
-                                                });
-                                                const data = await res.json();
-                                                if (data.success) uploadedUrls.push(data.url);
+                                                try {
+                                                    const res = await fetch('/api/upload', {
+                                                        method: 'POST',
+                                                        headers: getAuthHeaders(null),
+                                                        body: formData
+                                                    });
+                                                    const data = await res.json();
+                                                    if (data.success) uploadedUrls.push(data.url);
+                                                } catch (err) {
+                                                    console.error('Upload failed for file', i);
+                                                }
                                             }
 
                                             if (uploadedUrls.length > 0) {
                                                 const galleryMarkdown = `<div class="grid grid-cols-2 md:grid-cols-3 gap-4 my-8">\n${uploadedUrls.map(url => `  <img src="${url}" class="aspect-square object-cover rounded-xl" />`).join('\n')}\n</div>`;
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: galleryMarkdown }]);
+                                                setStatus('success');
+                                                setMessage(`${uploadedUrls.length} images ajoutées à la galerie !`);
+                                                setTimeout(() => setStatus('idle'), 3000);
+                                            } else {
+                                                setStatus('error');
+                                                setMessage('Aucune image n\'a pu être uploadée');
                                             }
+                                            setUploading(false);
                                         };
                                         input.click();
                                     }}
-                                    className="flex items-center gap-2 px-4 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                    className="flex items-center gap-2 px-4 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[10px] disabled:opacity-50"
                                 >
                                     <Plus className="w-3 h-3" /> Galerie
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => {
                                         const val = prompt('URL ou ID YouTube (ex: https://www.youtube.com/watch?v=dQw4w9WgXcQ)');
                                         if (!val) return;
