@@ -28,11 +28,8 @@ export const onRequest = async (context: any) => {
         // ─────────────────────────────────────────────
         // CLOUDINARY UPLOAD (méthode principale)
         // ─────────────────────────────────────────────
-        // ─────────────────────────────────────────────
-        // CLOUDINARY UPLOAD (méthode principale)
-        // ─────────────────────────────────────────────
-        const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME || 'drd0k6wve'; // Fallback to hardcoded if needed temporarily, but preferably env
-        const CLOUDINARY_UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET || 'dropsiders_unsigned'; // You should update this!
+        const CLOUDINARY_CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME || 'drd0k6wve';
+        const CLOUDINARY_UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET || 'dropsiders_unsigned';
 
         if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
             try {
