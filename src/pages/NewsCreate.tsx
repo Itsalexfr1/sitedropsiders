@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft, Youtube, Plus, Trash2, Link2, Upload, X } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
-// import { uploadValidation, uploadToCloudinary } from '../utils/uploadService'; // Unused
+
 
 
 export function NewsCreate() {
@@ -21,9 +21,9 @@ export function NewsCreate() {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
-    // const [uploading, setUploading] = useState(false); // Unused
 
-    // const [uploadProgress, setUploadProgress] = useState(0); // Unused
+
+
 
 
 
@@ -193,16 +193,7 @@ export function NewsCreate() {
                                     <AlertCircle className="w-5 h-5" />
                                     <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
                                 </div>
-                                {/* {uploading && (
-                                    <div className="space-y-2">
-                                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                            <div className="h-full bg-current" style={{ width: '0%' }} />
-                                        </div>
-                                        <div className="flex justify-end">
-                                            <span className="text-[10px] font-black">0%</span>
-                                        </div>
-                                    </div>
-                                )} */}
+
                             </div>
                         )}
 
