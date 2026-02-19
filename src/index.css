@@ -179,22 +179,26 @@
     clear: both !important;
     width: 100% !important;
     max-width: 100% !important;
-    height: auto !important;
+    height: auto;
     border-radius: 12px !important;
     position: relative !important;
     padding: 0 !important;
-    /* Overrides intrinsic ratio padding hack */
     object-fit: cover !important;
+  }
+
+  .article-body-premium .aspect-square img,
+  .article-body-premium .grid img {
+    height: 100% !important;
+    margin: 0 !important;
   }
 
   .article-body-premium picture {
     width: 100% !important;
-    height: auto !important;
+    height: auto;
   }
 
   .article-body-premium img {
     width: 100% !important;
-    height: auto !important;
   }
 
   .article-body-premium .jw-element-image-is-left,
