@@ -219,8 +219,8 @@ export function Agenda() {
                         <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                     </button>
 
-                    <div className="w-48 md:w-80 text-center">
-                        <h2 className="text-3xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter truncate">
+                    <div className="w-60 md:w-[450px] text-center">
+                        <h2 className="text-3xl md:text-5xl font-display font-black text-white hover:text-neon-red transition-colors duration-300 cursor-default uppercase italic tracking-tighter">
                             {selectedMonth ? formatMonthName(selectedMonth) : t('agenda.loading')}
                         </h2>
                     </div>
