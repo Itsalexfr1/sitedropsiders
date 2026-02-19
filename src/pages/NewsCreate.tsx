@@ -21,7 +21,8 @@ export function NewsCreate() {
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
     const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
+    // const [uploadProgress, setUploadProgress] = useState(0); // Unused
+
 
 
     // Widget System State
@@ -74,11 +75,12 @@ export function NewsCreate() {
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
-    const handleUpload = async (file: File) => {
-        const validation = uploadValidation(file);
-        if (!validation.valid) throw new Error(validation.error);
-        return await uploadToCloudinary(file, 'news', (p) => setUploadProgress(p));
-    };
+    // const handleUpload = async (file: File) => {
+    //     const validation = uploadValidation(file);
+    //     if (!validation.valid) throw new Error(validation.error);
+    //     return await uploadToCloudinary(file, 'news', (p) => setUploadProgress(p));
+    // };
+
 
 
 
