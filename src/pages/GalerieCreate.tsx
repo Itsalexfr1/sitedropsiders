@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
-import { uploadValidation, uploadToCloudinary } from '../utils/uploadService';
+// import { uploadValidation, uploadToCloudinary } from '../utils/uploadService'; // Unused
 
 export function GalerieCreate() {
     const [title, setTitle] = useState('');
@@ -12,49 +12,13 @@ export function GalerieCreate() {
     const [coverUrl, setCoverUrl] = useState('');
     const [imageUrls, setImageUrls] = useState(''); // Textarea content
 
-    const [uploading, setUploading] = useState(false);
-    const [uploadProgress, setUploadProgress] = useState(0);
+    // const [uploading, setUploading] = useState(false); // Unused
+    // const [uploadProgress, setUploadProgress] = useState(0); // Unused
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
 
 
-    const handleUpload = async (file: File) => {
-        const validation = uploadValidation(file);
-        if (!validation.valid) throw new Error(validation.error);
-        return await uploadToCloudinary(file, 'galeries', (p) => setUploadProgress(p));
-    };
-
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, isCover: boolean) => {
-        const files = e.target.files;
-        if (!files || files.length === 0) return;
-
-        setUploading(true);
-        setStatus('loading');
-        try {
-            const filesArray = Array.from(files);
-            for (let i = 0; i < filesArray.length; i++) {
-                const file = filesArray[i];
-                setUploadProgress(0);
-                setMessage(isCover ? 'Upload de la couverture...' : `Upload image ${i + 1}/${filesArray.length}...`);
-
-                const url = await handleUpload(file);
-                if (isCover) {
-                    setCoverUrl(url);
-                } else {
-                    setImageUrls(prev => prev ? prev + '\n' + url : url);
-                }
-            }
-            setStatus('success');
-            setMessage(isCover ? 'Couverture uploadée !' : `${filesArray.length} images uploadées !`);
-            setTimeout(() => setStatus('idle'), 3000);
-        } catch (error: any) {
-            setStatus('error');
-            setMessage(error.message || 'Erreur de connexion au serveur d\'upload');
-        } finally {
-            setUploading(false);
-            setUploadProgress(0);
-        }
-    };
+    // Upload functions removed in favor of external link
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -196,25 +160,13 @@ export function GalerieCreate() {
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
                                     />
                                 </div>
-                                <label className="px-6 py-4 bg-neon-pink/20 border border-neon-pink/50 text-neon-pink rounded-xl font-bold uppercase tracking-wider hover:bg-neon-pink/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]">
-                                    {uploading && message.includes('couverture') ? (
-                                        <>
-                                            <span className="text-[10px]">{uploadProgress}%</span>
-                                            <div className="w-full bg-neon-pink/20 h-1 rounded-full overflow-hidden mt-1">
-                                                <div className="h-full bg-neon-pink" style={{ width: `${uploadProgress}%` }} />
-                                            </div>
-                                        </>
-                                    ) : (
-                                        '📤 Upload'
-                                    )}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(e) => handleImageUpload(e, true)}
-                                        className="hidden"
-                                        disabled={uploading}
-                                    />
-                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                    className="px-6 py-4 bg-neon-pink/20 border border-neon-pink/50 text-neon-pink rounded-xl font-bold uppercase tracking-wider hover:bg-neon-pink/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                >
+                                    Upload
+                                </button>
 
                             </div>
                         </div>
@@ -223,17 +175,13 @@ export function GalerieCreate() {
                         <div className="space-y-2">
                             <div className="flex justify-between items-center">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Images de la Galerie (Une par ligne)</label>
-                                <label className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer flex items-center gap-2">
-                                    {uploading ? 'Upload en cours...' : '📥 Ajouter des photos'}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        multiple
-                                        onChange={(e) => handleImageUpload(e, false)}
-                                        className="hidden"
-                                        disabled={uploading}
-                                    />
-                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                    className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-bold text-xs uppercase tracking-wider hover:bg-white/10 transition-all cursor-pointer flex items-center gap-2"
+                                >
+                                    📥 Ajouter des photos via URL
+                                </button>
                             </div>
                             <textarea
                                 value={imageUrls}
@@ -296,19 +244,7 @@ export function GalerieCreate() {
                                     <AlertCircle className="w-5 h-5" />
                                     <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
                                 </div>
-                                {uploading && (
-                                    <div className="space-y-2">
-                                        <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-current transition-all duration-300"
-                                                style={{ width: `${uploadProgress}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-end">
-                                            <span className="text-[10px] font-black">{uploadProgress}%</span>
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Progress bar removed */}
                             </div>
                         )}
 
