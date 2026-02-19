@@ -201,6 +201,14 @@
     width: 100% !important;
   }
 
+  /* Fix for gallery and aspect ratio containers */
+  [class*="aspect-"] img {
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
   .article-body-premium .jw-element-image-is-left,
   .article-body-premium .jw-element-image-is-right {
     margin: 4rem auto !important;
