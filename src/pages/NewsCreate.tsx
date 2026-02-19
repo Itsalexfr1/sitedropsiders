@@ -21,7 +21,8 @@ export function NewsCreate() {
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
-    const [uploading, setUploading] = useState(false);
+    // const [uploading, setUploading] = useState(false); // Unused
+
     // const [uploadProgress, setUploadProgress] = useState(0); // Unused
 
 
