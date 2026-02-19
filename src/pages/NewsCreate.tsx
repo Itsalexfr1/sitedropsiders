@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Image as ImageIcon, FileText, Calendar, AlertCircle, ArrowLeft, Youtube, Plus, Trash2, Link2, Upload, X } from 'lucide-react';
 import { Link, useSearchParams, useLocation } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
+import { ImageUploadModal } from '../components/ImageUploadModal';
 
 
 
@@ -33,6 +34,7 @@ export function NewsCreate() {
     ]);
 
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' }>({ show: false, type: 'image' });
+    const [showUploadModal, setShowUploadModal] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     useEffect(() => {
@@ -508,10 +510,16 @@ export function NewsCreate() {
                         </div>
                     )}
                 </AnimatePresence>
+
+                {/* Upload Modal */}
+                <ImageUploadModal
+                    isOpen={showUploadModal}
+                    onClose={() => setShowUploadModal(false)}
+                    accentColor="neon-red"
+                />
             </div>
         </div>
     );
 }
 
 export default NewsCreate;
-
