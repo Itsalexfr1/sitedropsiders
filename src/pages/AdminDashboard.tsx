@@ -54,7 +54,7 @@ export function AdminDashboard() {
             // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vérifie en dur ici pour débloquer
             console.log("API Login failed, trying local check...", err);
 
-            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === 'alex2026') {
+            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026alexC') {
                 setIsAuthenticated(true);
                 localStorage.setItem('admin_auth', 'true');
                 localStorage.setItem('admin_password', password);
