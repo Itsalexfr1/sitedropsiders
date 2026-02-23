@@ -1363,7 +1363,7 @@ export default {
                 if (!emails.contact) emails.contact = [];
                 emails.contact = [newEmail, ...emails.contact];
 
-                await saveGitHubFile(EMAILS_PATH, emails, `Nouveau message de contact de ${name || email} [skip ci]`, file.sha);
+                await saveGitHubFile(EMAILS_PATH, emails, `Nouveau message de contact de ${name || email} [skip ci] [CF-Pages-Skip]`, file.sha);
                 await triggerMailSync();
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -1388,7 +1388,7 @@ export default {
                     date: new Date().toISOString()
                 };
                 const updated = [...file.content, newEmail];
-                await saveGitHubFile(SEND_LOG_PATH, updated, `Send email from ${account} to ${to} [skip ci]`, file.sha);
+                await saveGitHubFile(SEND_LOG_PATH, updated, `Send email from ${account} to ${to} [skip ci] [CF-Pages-Skip]`, file.sha);
                 await triggerMailSync();
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -1430,7 +1430,7 @@ export default {
                 if (!emailToMove) return new Response(JSON.stringify({ error: 'Email not found' }), { status: 404, headers });
 
                 // Save updated source
-                await saveGitHubFile(sourcePath, updatedSource, `Action ${action} on email ${emailId} (remove from ${fromFolder}) [skip ci]`, sourceFile.sha);
+                await saveGitHubFile(sourcePath, updatedSource, `Action ${action} on email ${emailId} (remove from ${fromFolder}) [skip ci] [CF-Pages-Skip]`, sourceFile.sha);
 
                 // Add to target folder if moving
                 if (toFolder) {
@@ -1449,7 +1449,7 @@ export default {
                         updatedTarget = [emailWithAccount, ...(Array.isArray(targetFile.content) ? targetFile.content : [])];
                     }
 
-                    await saveGitHubFile(targetPath, updatedTarget, `Action ${action} on email ${emailId} (add to ${toFolder}) [skip ci]`, targetFile.sha);
+                    await saveGitHubFile(targetPath, updatedTarget, `Action ${action} on email ${emailId} (add to ${toFolder}) [skip ci] [CF-Pages-Skip]`, targetFile.sha);
                 }
 
                 await triggerMailSync();
@@ -1639,7 +1639,7 @@ export default {
             // 2. Sauvegarder
             const updatedContent = JSON.stringify(emails, null, 2);
             const putBody = {
-                message: `📧 Mail reçu de ${from} pour ${account} [skip ci]`,
+                message: `📧 Mail reçu de ${from} pour ${account} [skip ci] [CF-Pages-Skip]`,
                 content: btoa(unescape(encodeURIComponent(updatedContent))),
                 sha: fileData.sha
             };
