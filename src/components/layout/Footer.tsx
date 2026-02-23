@@ -62,7 +62,7 @@ export function Footer() {
         { label: t('nav.galerie'), path: '/galerie' },
         ...(shopEnabled && !shopPasswordProtected ? [{ label: t('nav.shop'), path: '/shop' }] : []),
         { label: t('nav.team'), path: '/team' },
-        { label: t('footer.contact'), path: 'mailto:contact@dropsiders.fr' }
+        { label: t('footer.contact'), path: '/contact' }
     ];
 
     return (
@@ -96,7 +96,7 @@ export function Footer() {
 
                         <div className="flex items-center gap-4 text-sm text-gray-500 font-bold uppercase tracking-widest">
                             <Mail className="w-5 h-5 text-neon-red" />
-                            <a href="mailto:contact@dropsiders.fr" className="hover:text-neon-red transition-colors">contact@dropsiders.fr</a>
+                            <Link to="/contact" className="hover:text-neon-red transition-colors">contact@dropsiders.fr</Link>
                         </div>
                     </motion.div>
 

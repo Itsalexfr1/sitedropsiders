@@ -1339,6 +1339,39 @@ export default {
             });
         }
 
+        if (path === '/api/contact' && request.method === 'POST') {
+            const EMAILS_PATH = 'src/data/emails.json';
+            const { name, email, subject, message } = await request.json();
+
+            try {
+                const file = await fetchGitHubFile(EMAILS_PATH) || { content: { contact: [], alex: [] }, sha: null };
+                const emails = file.content || { contact: [], alex: [] };
+
+                const newEmail = {
+                    id: Date.now().toString(),
+                    from: email || 'anonymous@dropsiders.fr',
+                    fromName: name || 'Utilisateur',
+                    subject: subject || 'Message via formulaire de contact',
+                    preview: (message.substring(0, 100).replace(/\n/g, ' ') + '...') || '',
+                    content: message || '',
+                    date: new Date().toISOString(),
+                    read: false,
+                    starred: false,
+                    labels: []
+                };
+
+                if (!emails.contact) emails.contact = [];
+                emails.contact = [newEmail, ...emails.contact];
+
+                await saveGitHubFile(EMAILS_PATH, emails, `Nouveau message de contact de ${name || email}`, file.sha);
+                await triggerMailSync();
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/emails/send' && request.method === 'POST') {
             const SEND_LOG_PATH = 'src/data/emails_sent.json';
             const { to, subject, content, account, status } = await request.json();
