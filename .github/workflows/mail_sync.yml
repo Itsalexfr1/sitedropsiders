@@ -27,12 +27,12 @@ jobs:
       - name: Run Mail Bridge
         run: node tools/mail_bridge.js
         env:
-          MAIL_CONFIG: ${{ secrets.MAIL_CONFIG }} # Optionnel si on veut sécuriser davantage plus tard
+          MAIL_CONFIG: ${{ secrets.MAIL_CONFIG }}
 
       - name: Commit and Push changes
         run: |
           git config --global user.name "Dropsiders Bot"
           git config --global user.email "bot@dropsiders.fr"
           git add src/data/emails.json src/data/emails_sent.json
-          git commit -m "Auto: Synchronisation des emails [skip ci]" || echo "No changes to commit"
+          git commit -m "Auto: Synchronisation des emails [CF-Pages-Skip]" || echo "No changes to commit"
           git push
