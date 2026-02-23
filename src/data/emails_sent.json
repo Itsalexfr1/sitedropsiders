@@ -1,45 +1,45 @@
 [
-  {
-    "id": "1771865742873",
-    "to": "alexflex30@gmail.com",
-    "subject": "test",
-    "content": "test",
-    "account": "alex",
-    "date": "2026-02-23T16:55:42.873Z"
-  },
-  {
-    "id": "1771866487615",
-    "to": "alexflex30@gmail.com",
-    "subject": "test",
-    "content": "test",
-    "account": "alex",
-    "date": "2026-02-23T17:08:07.615Z"
-  },
-  {
-    "id": "1771868554681",
-    "to": "alexflex30@gmail.com",
-    "subject": "Re: test",
-    "content": "\n\n-------------------\nLe 23/02/2026 17:55:42, undefined a écrit :\n\ntest",
-    "account": "alex",
-    "status": "pending",
-    "date": "2026-02-23T17:42:34.681Z"
-  },
-  {
-    "id": "1771870144341",
-    "to": "contact@dropsiders.fr",
-    "subject": "test",
-    "content": "test",
-    "account": "alex",
-    "status": "pending",
-    "date": "2026-02-23T18:09:04.341Z"
-  },
-  {
-    "id": "1771870809177",
-    "to": "alexflex30@gmail.com",
-    "subject": "test",
-    "content": "test",
-    "account": "contact",
-    "status": "pending",
-    "date": "2026-02-23T18:20:09.177Z"
-  }
+    {
+        "id": "1771865742873",
+        "to": "alexflex30@gmail.com",
+        "subject": "test",
+        "content": "test",
+        "account": "alex",
+        "date": "2026-02-23T16:55:42.873Z"
+    },
+    {
+        "id": "1771866487615",
+        "to": "alexflex30@gmail.com",
+        "subject": "test",
+        "content": "test",
+        "account": "alex",
+        "date": "2026-02-23T17:08:07.615Z"
+    },
+    {
+        "id": "1771868554681",
+        "to": "alexflex30@gmail.com",
+        "subject": "Re: test",
+        "content": "\n\n-------------------\nLe 23/02/2026 17:55:42, undefined a écrit :\n\ntest",
+        "account": "alex",
+        "status": "pending",
+        "date": "2026-02-23T17:42:34.681Z"
+    },
+    {
+        "id": "1771870144341",
+        "to": "contact@dropsiders.fr",
+        "subject": "test",
+        "content": "test",
+        "account": "alex",
+        "status": "pending",
+        "date": "2026-02-23T18:09:04.341Z"
+    },
+    {
+        "id": "1771870809177",
+        "to": "alexflex30@gmail.com",
+        "subject": "test",
+        "content": "test",
+        "account": "contact",
+        "status": "pending",
+        "date": "2026-02-23T18:20:09.177Z"
+    }
 ]
