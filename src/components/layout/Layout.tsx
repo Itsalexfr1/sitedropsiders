@@ -21,7 +21,7 @@ export function Layout({ children }: LayoutProps) {
 
             <Navbar />
 
-            <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-20'}`}>
+            <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-16'}`}>
                 {children}
             </main>
 

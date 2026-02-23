@@ -141,6 +141,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         });
 
         // Specific iframe handling: only remove if they are NOT inside our premium wrappers
+        // OR if they are from a trusted source (YouTube, Spotify, Beatport)
         doc.querySelectorAll('iframe').forEach(iframe => {
             const isInsidePremium =
                 iframe.closest('.youtube-player-wrapper') ||
@@ -148,7 +149,31 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 iframe.closest('.music-top-item-premium') ||
                 iframe.closest('.music-top-section');
 
-            if (!isInsidePremium) {
+            const src = iframe.src || '';
+            const isTrustedSource =
+                src.includes('youtube.com') ||
+                src.includes('youtu.be') ||
+                src.includes('spotify.com') ||
+                src.includes('beatport.com');
+
+            if (!isInsidePremium && isTrustedSource) {
+                // It's a manual link we want to keep. 
+                // Let's wrap it to make it look good and responsive
+                const wrapper = doc.createElement('div');
+                if (src.includes('youtube.com') || src.includes('youtu.be')) {
+                    wrapper.className = 'youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12';
+                    iframe.classList.add('absolute', 'top-0', 'left-0', 'w-full', 'h-full');
+                } else if (src.includes('spotify.com')) {
+                    wrapper.className = 'spotify-player-widget w-full my-8 rounded-2xl overflow-hidden border border-white/10';
+                    iframe.setAttribute('width', '100%');
+                    iframe.setAttribute('height', '152');
+                } else {
+                    wrapper.className = 'media-player-widget w-full my-8 rounded-2xl overflow-hidden border border-white/10';
+                }
+
+                iframe.parentNode?.insertBefore(wrapper, iframe);
+                wrapper.appendChild(iframe);
+            } else if (!isInsidePremium) {
                 iframe.remove();
             }
         });

@@ -90,9 +90,9 @@ const KitMedia = () => {
     ], [language]);
 
     const featuredArtists = [
-        { name: "Morten", image: "https://159001-3fab-4329-0001.production.d.bitsof.love/eyJidWNrZXQiOiJwdWJsaWMtYXNzZXRzLXN0YWNrLXB1YmxpY2Fzc2V0c2NjMDcxYjgzLWRwNW1tb3NwYWl3diIsImtleSI6ImltYWdlcy9Nb3J0ZW4tdGVhY2hlcl8yMDI0LTA1LTA4LTE2MTgzNF96aGJyLnBuZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6MTkyMH0sInRvRm9ybWF0Ijoid2VicCIsIndlYnAiOnsicXVhbGl0eSI6NzV9fX0=?w=1920&q=75", role: "Special Guest", link: "https://dropsiders.fr/#/interviews/interview-morten-edc-las-vegas-2025-37" },
-        { name: "Da Tweekaz", image: "https://yt3.googleusercontent.com/5IxI2tqwGqGcpA1xctAIuSBuS5xHqf_fXBKb6zmSmRKQZKefUzSIkFF7YzesAd5yq80tacmoiQ=s900-c-k-c0x00ffffff-no-rj", role: "Exclusive Interview", link: "https://dropsiders.fr/#/interviews/interview-da-tweekaz-edc-las-vegas-2025-34" },
-        { name: "Vintage Culture", image: "https://res.cloudinary.com/shotgun/image/upload/c_limit,w_1200,h_630/f_jpg/q_auto/production/artworks/artists/vintageculturemusic.jpg", role: "Artist Spotlight", link: "https://dropsiders.fr/#/interviews/interview-video-vintage-culture-tomorrowland-winter-145" }
+        { name: "Morten", image: "https://159001-3fab-4329-0001.production.d.bitsof.love/eyJidWNrZXQiOiJwdWJsaWMtYXNzZXRzLXN0YWNrLXB1YmxpY2Fzc2V0c2NjMDcxYjgzLWRwNW1tb3NwYWl3diIsImtleSI6ImltYWdlcy9Nb3J0ZW4tdGVhY2hlcl8yMDI0LTA1LTA4LTE2MTgzNF96aGJyLnBuZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJ3aWR0aCI6MTkyMH0sInRvRm9ybWF0Ijoid2VicCIsIndlYnAiOnsicXVhbGl0eSI6NzV9fX0=?w=1920&q=75", role: "Special Guest", link: "https://dropsiders.fr/interviews/interview-morten-edc-las-vegas-2025-37" },
+        { name: "Da Tweekaz", image: "https://yt3.googleusercontent.com/5IxI2tqwGqGcpA1xctAIuSBuS5xHqf_fXBKb6zmSmRKQZKefUzSIkFF7YzesAd5yq80tacmoiQ=s900-c-k-c0x00ffffff-no-rj", role: "Exclusive Interview", link: "https://dropsiders.fr/interviews/interview-da-tweekaz-edc-las-vegas-2025-34" },
+        { name: "Vintage Culture", image: "https://res.cloudinary.com/shotgun/image/upload/c_limit,w_1200,h_630/f_jpg/q_auto/production/artworks/artists/vintageculturemusic.jpg", role: "Artist Spotlight", link: "https://dropsiders.fr/interviews/interview-video-vintage-culture-tomorrowland-winter-145" }
     ];
 
     const socialLinks = [
@@ -451,7 +451,7 @@ const KitMedia = () => {
                             {galleryImages.map((img, i) => (
                                 <motion.a
                                     key={i}
-                                    href={`/#/galerie/${img.split('/')[3]}`}
+                                    href={`/galerie/${img.split('/')[3]}`}
                                     target="_blank"
                                     rel="noreferrer"
                                     initial={{ opacity: 0, y: 50 }}

@@ -586,6 +586,7 @@ export default {
 
                 const file = await fetchGitHubFile(PATH) || { content: [], sha: null };
                 if (file.content.some(sub => sub.email === email)) {
+                    console.log(`Newsletter: ${email} already subscribed.`);
                     return new Response(JSON.stringify({ error: 'Déjà inscrit' }), { status: 409, headers });
                 }
 
@@ -627,7 +628,7 @@ export default {
                                             </p>
                                             <p style="font-size: 12px; color: #444; text-align: center; margin: 0;">
                                                 Tu reçois ce mail car tu t'es inscrit sur dropsiders.fr<br>
-                                                <a href="https://dropsiders.fr/#/unsubscribe?email=${email}" style="color: #666; text-decoration: underline;">Se désabonner</a>
+                                                <a href="https://dropsiders.fr/unsubscribe?email=${email}" style="color: #666; text-decoration: underline;">Se désabonner</a>
                                             </p>
                                         </div>
                                     </div>
@@ -635,14 +636,21 @@ export default {
                                 replyTo: { email: "contact@dropsiders.fr", name: "Dropsiders" }
                             };
 
-                            await fetch(brevoUrl, {
+                            console.log(`Sending confirmation email to ${email}...`);
+                            const response = await fetch(brevoUrl, {
                                 method: 'POST',
                                 headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
                                 body: JSON.stringify(payload)
                             });
+
+                            if (response.ok) {
+                                console.log('Confirmation email sent successfully');
+                            } else {
+                                const errorText = await response.text();
+                                console.error('Brevo API Error:', response.status, errorText);
+                            }
                         } catch (mailError) {
                             console.error('Failed to send confirmation email:', mailError);
-                            // Don't fail the whole request if email fails
                         }
                     }
 

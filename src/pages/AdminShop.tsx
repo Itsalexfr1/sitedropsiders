@@ -41,23 +41,73 @@ export function AdminShop() {
     });
 
     const [hasChanges, setHasChanges] = useState(false);
+    const [isFormDirty, setIsFormDirty] = useState(false);
     const initialDataLoaded = useRef(false);
+    const previousProductsRef = useRef<any[]>([]);
 
-    // Track changes
+    // Track settings changes
     useEffect(() => {
-        if (products.length > 0 && !initialDataLoaded.current) {
-            initialDataLoaded.current = true;
+        if (!initialDataLoaded.current) return;
+        setHasChanges(true);
+    }, [shopEnabled, shopPasswordProtected, shopPasswordImage]);
+
+    // Track product form changes
+    useEffect(() => {
+        if (!isAdding && !editingProduct) {
+            setIsFormDirty(false);
             return;
         }
-        if (initialDataLoaded.current) {
-            setHasChanges(true);
+
+        const isNotEmpty = newProduct.name !== '' || newProduct.price !== '' || newProduct.image !== '' || newProduct.description !== '';
+
+        if (editingProduct) {
+            const hasFormChanged =
+                newProduct.name !== editingProduct.name ||
+                newProduct.price !== editingProduct.price ||
+                newProduct.image !== editingProduct.image ||
+                newProduct.description !== (editingProduct.description || '') ||
+                newProduct.category !== (editingProduct.category || 'Vetements') ||
+                newProduct.url !== (editingProduct.url || '') ||
+                newProduct.imageBack !== (editingProduct.imageBack || '') ||
+                JSON.stringify(newProduct.colors) !== JSON.stringify(editingProduct.colors || []);
+
+            setIsFormDirty(hasFormChanged);
+        } else {
+            setIsFormDirty(isNotEmpty);
         }
-    }, [products, shopEnabled, shopPasswordProtected, shopPasswordImage]);
+    }, [newProduct, isAdding, editingProduct]);
+
+    // Track reorder changes manually in handleReorder instead of useEffect on products
+    const handleReorder = async (newOrder: any[]) => {
+        setProducts(newOrder);
+        setHasChanges(true); // Mark as dirty when manual reorder happens
+    };
+
+    const saveOrder = async () => {
+        setLoading(true);
+        try {
+            await fetch('/api/shop/reorder', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ products })
+            });
+            setHasChanges(false);
+            setStatus('success');
+            setMessage('Ordre enregistré !');
+            setTimeout(() => setStatus('idle'), 3000);
+        } catch (error) {
+            console.error('Error reordering products:', error);
+            setStatus('error');
+            setMessage('Erreur reorder');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Prompt before internal React Router navigation
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
-            hasChanges && currentLocation.pathname !== nextLocation.pathname
+            (hasChanges || isFormDirty) && currentLocation.pathname !== nextLocation.pathname
     );
 
     // Confirm navigation handled by ConfirmationModal component in JSX
@@ -65,7 +115,7 @@ export function AdminShop() {
     // Prompt before window reload/close
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (hasChanges) {
+            if (hasChanges || isFormDirty) {
                 e.preventDefault();
                 e.returnValue = '';
             }
@@ -92,7 +142,13 @@ export function AdminShop() {
                 if (productsRes.ok) {
                     const data = await productsRes.json();
                     setProducts(data);
+                    previousProductsRef.current = data;
                 }
+
+                // Set loaded after first fetch to prevent initial changes from being marked as dirty
+                setTimeout(() => {
+                    initialDataLoaded.current = true;
+                }, 500);
             } catch (error) {
                 console.error('Error fetching shop data:', error);
             }
@@ -148,7 +204,7 @@ export function AdminShop() {
                     setProducts(products.map(p => p.id === editingProduct.id ? data.product : p));
                     resetForm();
                     setStatus('success');
-                    setHasChanges(false);
+                    setIsFormDirty(false); // Clear form dirty state
                     setMessage('Produit mis à jour !');
                     setTimeout(() => setStatus('idle'), 3000);
                 }
@@ -164,7 +220,7 @@ export function AdminShop() {
                     setProducts([data.product, ...products]);
                     resetForm();
                     setStatus('success');
-                    setHasChanges(false);
+                    setIsFormDirty(false); // Clear form dirty state
                     setMessage('Produit ajouté !');
                     setTimeout(() => setStatus('idle'), 3000);
                 }
@@ -182,6 +238,7 @@ export function AdminShop() {
         setNewProduct({ name: '', price: '', image: '', description: '', url: '', colors: [], colorImages: {}, images: [], category: 'Vetements', imageBack: '' });
         setEditingProduct(null);
         setIsAdding(false);
+        setIsFormDirty(false);
     };
 
     const handleDeleteProduct = async (id: number) => {
@@ -228,18 +285,8 @@ export function AdminShop() {
         });
     };
 
-    const handleReorder = async (newOrder: any[]) => {
-        setProducts(newOrder);
-        try {
-            await fetch('/api/shop/reorder', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ products: newOrder })
-            });
-        } catch (error) {
-            console.error('Error reordering products:', error);
-        }
-    };
+    // The manual reorder handling is now at the top near state definitions
+
 
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -267,19 +314,31 @@ export function AdminShop() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => {
-                            if (isAdding) {
-                                resetForm();
-                            } else {
-                                setIsAdding(true);
-                            }
-                        }}
-                        className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
-                    >
-                        {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
-                        {isAdding ? 'Annuler' : 'Ajouter un article'}
-                    </button>
+                    <div className="flex items-center gap-4">
+                        {hasChanges && (
+                            <button
+                                onClick={saveOrder}
+                                disabled={loading}
+                                className="flex items-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
+                            >
+                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Enregistrer l'ordre
+                            </button>
+                        )}
+                        <button
+                            onClick={() => {
+                                if (isAdding) {
+                                    resetForm();
+                                } else {
+                                    setIsAdding(true);
+                                }
+                            }}
+                            className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
+                        >
+                            {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
+                            {isAdding ? 'Annuler' : 'Ajouter un article'}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

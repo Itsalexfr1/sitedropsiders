@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { createHashRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { News } from './pages/News';
@@ -52,7 +52,7 @@ function Root() {
   );
 }
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   {
     path: "/",
     element: <Root />,

@@ -151,7 +151,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'article_detail.other_interviews': { fr: 'Nos autres interviews', en: 'Our other interviews' },
     'article_detail.not_found_title': { fr: 'Page Intraçable', en: 'Page Not Found' },
     'article_detail.not_found_btn': { fr: 'Retourner à la home', en: 'Back to home' },
-    'article_detail.newsletter_title': { fr: 'Rejoignez-nous', en: 'Join us' },
+    'article_detail.newsletter_title': { fr: 'REJOIGNEZ NOUS', en: 'JOIN US' },
     'article_detail.newsletter_subtitle': { fr: 'Recevez l\'actu des festivals en avant-première', en: 'Get festival news first' },
     'article_detail.newsletter_placeholder': { fr: 'votre@email.com', en: 'your@email.com' },
     'article_detail.newsletter_btn': { fr: 'S\'abonner', en: 'Subscribe' },
