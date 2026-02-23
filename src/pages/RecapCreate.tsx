@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Columns, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, Music, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, Wand2, X, Youtube } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Columns, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, Wand2, X, Youtube } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
