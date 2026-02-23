@@ -62,10 +62,10 @@ export function RecapCreate() {
         { id: 'initial-1', content: '<h2 class="premium-section-title">TITRE DU RÉCAP</h2>' }
     ]);
 
-    const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string }>({ show: false, type: 'image', url: '', urls: '' });
+    const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string, aspectRatio?: string, widgetId?: string }>({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto' });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit', index?: number, widgetId?: string }>({ type: 'main' });
-    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2', index?: number, widgetId?: string }>({ type: 'main' });
+    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
     const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -339,10 +339,19 @@ export function RecapCreate() {
 
     const extractDuoUrls = (html: string) => {
         const matches = html.match(/src="([^"]+)"/g);
-        if (matches) {
-            return matches.map(m => m.replace('src="', '').replace('"', ''));
-        }
-        return ['', ''];
+        const urls = matches ? matches.map(m => m.replace('src="', '').replace('"', '')) : ['', ''];
+        const aspectMatch = html.match(/aspect-\[([^\]]+)\]/);
+        const ratio = aspectMatch ? aspectMatch[1] : '3/4';
+        return { urls, ratio };
+    };
+
+    const extractSingleImageUrlAndRatio = (html: string) => {
+        const srcMatch = html.match(/src="([^"]+)"/);
+        const aspectMatch = html.match(/aspect-\[([^\]]+)\]/);
+        return {
+            url: srcMatch ? srcMatch[1] : '',
+            ratio: aspectMatch ? aspectMatch[1] : 'auto'
+        };
     };
 
     const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-2xl' | 'text-5xl') => {
@@ -547,13 +556,15 @@ export function RecapCreate() {
     };
 
     const handleMediaConfirm = (index?: number) => {
-        const { type, url, urls } = mediaModal;
+        const { type, url, urls, aspectRatio } = mediaModal;
         let content = '';
 
         if (type === 'image' && url) {
-            content = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">
+            const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect-[${aspectRatio}]` : '';
+            const imgClass = aspectRatio && aspectRatio !== 'auto' ? 'w-full h-full object-cover' : 'w-full h-auto object-cover';
+            content = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group ${aspectClass}">
   <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
-  <img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />
+  <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
 </div>`;
         } else if (type === 'video' && url) {
             let id = url;
@@ -578,13 +589,15 @@ export function RecapCreate() {
         }
 
         if (content) {
-            if (typeof index === 'number') {
+            if (mediaModal.widgetId) {
+                updateWidget(mediaModal.widgetId, content);
+            } else if (typeof index === 'number') {
                 addWidget(index, content);
             } else {
                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content }]);
             }
         }
-        setMediaModal({ show: false, type: 'image', url: '', urls: '' });
+        setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined });
     };
 
     const handleSubmit = async (e: React.FormEvent | MouseEvent) => {
@@ -929,7 +942,7 @@ export function RecapCreate() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
+                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                         className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
                                         <Columns className="w-3 h-3" /> Duo Photos
@@ -1102,13 +1115,14 @@ export function RecapCreate() {
                                                         type="button"
                                                         onClick={() => {
                                                             if (widget.content.includes('duo-photos-premium')) {
-                                                                const urls = extractDuoUrls(widget.content);
+                                                                const extracted = extractDuoUrls(widget.content);
                                                                 setDuoModal({
                                                                     show: true,
-                                                                    url1: urls[0] || '',
-                                                                    url2: urls[1] || '',
+                                                                    url1: extracted.urls[0] || '',
+                                                                    url2: extracted.urls[1] || '',
                                                                     widgetIndex: undefined,
-                                                                    widgetId: widget.id
+                                                                    widgetId: widget.id,
+                                                                    aspectRatio: extracted.ratio
                                                                 });
                                                             } else if (widget.content.includes('youtube-player-widget')) {
                                                                 const val = prompt('Nouvelle URL YouTube ou ID');
@@ -1122,8 +1136,15 @@ export function RecapCreate() {
                                                                 const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
                                                                 updateWidget(widget.id, videoWidget);
                                                             } else if (widget.content.includes('image-premium-wrapper')) {
-                                                                setUploadTarget({ type: 'widget-edit' as any, widgetId: widget.id });
-                                                                setShowUploadModal(true);
+                                                                const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
+                                                                setMediaModal({
+                                                                    show: true,
+                                                                    type: 'image',
+                                                                    url: url,
+                                                                    urls: '',
+                                                                    aspectRatio: ratio,
+                                                                    widgetId: widget.id
+                                                                });
                                                             }
                                                         }}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors"
@@ -1244,7 +1265,7 @@ export function RecapCreate() {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined })}
+                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined, aspectRatio: '3/4' })}
                                                     className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px]"
                                                     title="Ajouter un Duo Photo ici"
                                                 >
@@ -1462,6 +1483,24 @@ export function RecapCreate() {
                                     </div>
                                 )}
 
+                                {mediaModal.type === 'image' && (
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">Format de l'image</label>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {['auto', '1/1', '3/4', '16/9'].map(ratio => (
+                                                <button
+                                                    key={ratio}
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ ...mediaModal, aspectRatio: ratio })}
+                                                    className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${mediaModal.aspectRatio === ratio ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                                >
+                                                    {ratio === 'auto' ? 'Orig' : ratio}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="flex gap-4">
                                     <button
                                         onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
@@ -1589,7 +1628,7 @@ export function RecapCreate() {
                             className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
                         >
                             <button
-                                onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
+                                onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
                                 <X className="w-5 h-5" />
@@ -1642,9 +1681,25 @@ export function RecapCreate() {
                                         </button>
                                     </div>
                                 </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Format du duo</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['1/1', '3/4', '16/9'].map(ratio => (
+                                            <button
+                                                key={ratio}
+                                                type="button"
+                                                onClick={() => setDuoModal({ ...duoModal, aspectRatio: ratio })}
+                                                className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.aspectRatio === ratio ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                            >
+                                                {ratio}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
                                 <div className="flex gap-4 pt-4">
                                     <button
-                                        onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
+                                        onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                         className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                                     >
                                         Annuler
@@ -1673,7 +1728,7 @@ export function RecapCreate() {
                                             } else {
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: duoWidget }]);
                                             }
-                                            setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined });
+                                            setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
                                         }}
                                         className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
                                     >
