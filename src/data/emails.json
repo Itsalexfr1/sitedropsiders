@@ -42,20 +42,5 @@
       ]
     }
   ],
-  "contact": [
-    {
-      "id": "ext_3",
-      "from": "julien.m@agence-media.fr",
-      "fromName": "Julien Morel",
-      "subject": "Demande d'interview - Dropsiders",
-      "preview": "Bonjour, je travaille pour une agence média et je souhaiterais interviewer Alex sur...",
-      "content": "Bonjour,\n\nJe travaille pour une agence média spécialisée dans l'événementiel et je souhaiterais interviewer Alex sur l'évolution de Dropsiders et ses projets pour l'année 2026.\n\nAuriez-vous une disponibilité dans les 15 prochains jours pour un entretien de 20 minutes ?\n\nMerci,\nJulien Morel",
-      "date": "2026-02-23T10:05:00Z",
-      "read": false,
-      "starred": true,
-      "labels": [
-        "Interview"
-      ]
-    }
-  ]
+  "contact": []
 }
