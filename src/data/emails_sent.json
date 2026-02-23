@@ -21,7 +21,7 @@
         "subject": "Re: test",
         "content": "\n\n-------------------\nLe 23/02/2026 17:55:42, undefined a écrit :\n\ntest",
         "account": "alex",
-        "status": "pending",
+        "status": "error",
         "date": "2026-02-23T17:42:34.681Z"
     },
     {
@@ -30,7 +30,7 @@
         "subject": "test",
         "content": "test",
         "account": "alex",
-        "status": "pending",
+        "status": "error",
         "date": "2026-02-23T18:09:04.341Z"
     },
     {
@@ -39,7 +39,7 @@
         "subject": "test",
         "content": "test",
         "account": "contact",
-        "status": "pending",
+        "status": "error",
         "date": "2026-02-23T18:20:09.177Z"
     }
 ]
