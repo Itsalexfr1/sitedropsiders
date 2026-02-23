@@ -6,7 +6,16 @@
     "link": "/admin/home",
     "baseColor": "#ffffff",
     "permission": "publications",
-    "columns": 2
+    "columns": 1
+  },
+  {
+    "title": "Mails",
+    "description": "LWS Webmail",
+    "icon": "Mail",
+    "link": "/admin/emails",
+    "baseColor": "#ff6600",
+    "permission": "mail",
+    "columns": 1
   },
   {
     "title": "Statistiques",
@@ -117,16 +126,7 @@
     "link": "/admin/team",
     "baseColor": "#000000",
     "permission": "all",
-    "columns": 3
-  },
-  {
-    "title": "Mails",
-    "description": "LWS Webmail",
-    "icon": "Mail",
-    "link": "/admin/emails",
-    "baseColor": "#ff6600",
-    "permission": "mail",
-    "columns": 1
+    "columns": 2
   },
   {
     "title": "Paramètres",
