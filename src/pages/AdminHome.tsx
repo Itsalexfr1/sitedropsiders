@@ -103,7 +103,7 @@ function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { i
                                     <span className="text-[10px] font-black text-gray-600 uppercase">OU</span>
                                     <button
                                         onClick={() => onUploadVideo?.(item.id)}
-                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[10px] font-bold uppercase ${item.videoUrl ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                        className={`flex items - center gap - 2 px - 3 py - 1.5 rounded - xl border transition - all text - [10px] font - bold uppercase ${item.videoUrl ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'} `}
                                     >
                                         {item.videoUrl ? 'Vidéo Uploadée' : 'Upload Vidéo File'}
                                     </button>
@@ -117,6 +117,7 @@ function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { i
                                     )}
                                 </div>
                             )}
+
 
                             {(item.id === 'news_grid' || item.id === 'recap_agenda_grid' || item.id === 'social_grid') && (
                                 <div className="flex items-center gap-2">
@@ -158,7 +159,7 @@ function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { i
                 <div className="flex items-center gap-2 lg:pl-2">
                     <button
                         onClick={() => updateItem(item.id, { enabled: !item.enabled })}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${item.enabled ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
+                        className={`w - 10 h - 10 rounded - xl flex items - center justify - center transition - all ${item.enabled ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'} `}
                         title={item.enabled ? "Masquer cette section" : "Afficher cette section"}
                     >
                         {item.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}

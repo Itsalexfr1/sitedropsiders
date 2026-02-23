@@ -1,7 +1,11 @@
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
 export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }: { videoId?: string, videoUrl?: string, accentColor?: string, resolvedColor?: string }) {
     const finalVideoId = videoId || "xoB5fdoOMV8";
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
+
     return (
         <section className="relative h-[75vh] w-full flex items-center overflow-hidden bg-black">
             {/* Background Video */}

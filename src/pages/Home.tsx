@@ -40,7 +40,7 @@ export function Home() {
 
         switch (id) {
             case 'hero':
-                return <Hero key="hero" videoId={item.videoId} videoUrl={item.videoUrl} accentColor={accentColor} resolvedColor={color} />;
+                return <Hero key="hero" videoId={item.videoId} videoUrl={item.videoUrl} accentColor={accentColor} resolvedColor={color} heroNews={item.heroNews} />;
             case 'news_grid':
                 return (
                     <section key="news_grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

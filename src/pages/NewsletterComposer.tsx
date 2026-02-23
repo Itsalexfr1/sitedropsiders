@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Copy, Eye, Type, Image as ImageIcon, Users, ArrowLeft, Music, Youtube, X } from 'lucide-react';
+import { Send, Copy, Eye, Type, Image as ImageIcon, Users, ArrowLeft, Music, Youtube, X, Bold, Italic, Plus } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { ImageUploadModal } from '../components/ImageUploadModal';
 
 
 export function NewsletterComposer() {
@@ -38,6 +39,8 @@ export function NewsletterComposer() {
     const [activeTab, setActiveTab] = useState<'main' | 'secondary' | 'media'>('main');
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
     const [sending, setSending] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadTarget, setUploadTarget] = useState<'main' | 'news1' | 'news2' | null>(null);
 
     // Abonnés (Initialisé vide pour éviter tout crash au démarrage)
     const [subscribersData, setSubscribersData] = useState<any[]>([]);
@@ -241,14 +244,14 @@ export function NewsletterComposer() {
                             <div class="news-col">
                                 ${news1.image ? `<img src="${news1.image}" class="news-image" alt="News 1">` : ''}
                                 <div class="news-title">${news1.title}</div>
-                                ${news1.content ? `<div class="news-desc">${news1.content}</div>` : ''}
+                                ${news1.content ? `<div class="news-desc">${news1.content.replace(/\n/g, '<br>')}</div>` : ''}
                                 ${news1.link ? `<a href="${news1.link}" class="news-link">Lire la news &rarr;</a>` : ''}
                             </div>
                             <div class="news-spacer"></div>
                             <div class="news-col">
                                 ${news2.image ? `<img src="${news2.image}" class="news-image" alt="News 2">` : ''}
                                 <div class="news-title">${news2.title}</div>
-                                ${news2.content ? `<div class="news-desc">${news2.content}</div>` : ''}
+                                ${news2.content ? `<div class="news-desc">${news2.content.replace(/\n/g, '<br>')}</div>` : ''}
                                 ${news2.link ? `<a href="${news2.link}" class="news-link">Lire la news &rarr;</a>` : ''}
                             </div>
                         </div>
@@ -297,6 +300,41 @@ export function NewsletterComposer() {
 
     // SECTION 5 : HANDLERS (Actions utilisateur)
     // -----------------------------------------------------------
+    const applyStyle = (target: 'main' | 'news1' | 'news2', style: 'b' | 'i' | 'color') => {
+        let tag = '';
+        if (style === 'b') tag = 'b';
+        else if (style === 'i') tag = 'i';
+        else if (style === 'color') tag = 'span style="color: #ff0033"';
+
+        const setter = target === 'main' ? setMainArticle : (target === 'news1' ? setNews1 : setNews2);
+        const current = target === 'main' ? mainArticle : (target === 'news1' ? news1 : news2);
+
+        const textarea = document.getElementById(`content-${target}`) as HTMLTextAreaElement;
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = current.content;
+        const selectedText = text.substring(start, end);
+
+        let newContent = '';
+        if (style === 'color') {
+            newContent = text.substring(0, start) + `<${tag}>` + selectedText + `</span>` + text.substring(end);
+        } else {
+            newContent = text.substring(0, start) + `<${tag}>` + selectedText + `</${tag}>` + text.substring(end);
+        }
+
+        setter({ ...current, content: newContent } as any);
+    };
+
+    const onUploadSuccess = (url: string) => {
+        if (uploadTarget === 'main') setMainArticle({ ...mainArticle, image: url });
+        else if (uploadTarget === 'news1') setNews1({ ...news1, image: url });
+        else if (uploadTarget === 'news2') setNews2({ ...news2, image: url });
+        setIsUploadModalOpen(false);
+        setUploadTarget(null);
+    };
+
     const handleCopyHTML = () => {
         navigator.clipboard.writeText(generateHTML(false));
         alert('Code HTML copié dans le presse-papier !');
@@ -463,18 +501,35 @@ export function NewsletterComposer() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="label-field"><ImageIcon size={12} /> Image URL</label>
-                                    <input
-                                        type="text"
-                                        value={mainArticle.image}
-                                        onChange={e => setMainArticle({ ...mainArticle, image: e.target.value })}
-                                        className="input-field"
-                                        placeholder="https://..."
-                                    />
+                                    <label className="label-field"><ImageIcon size={12} /> Image</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={mainArticle.image}
+                                            onChange={e => setMainArticle({ ...mainArticle, image: e.target.value })}
+                                            className="input-field"
+                                            placeholder="https://..."
+                                        />
+                                        <button
+                                            onClick={() => { setUploadTarget('main'); setIsUploadModalOpen(true); }}
+                                            className="p-3 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-colors"
+                                            title="Uploader une image"
+                                        >
+                                            <Plus size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
-                                    <label className="label-field">Contenu</label>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="label-field mb-0">Contenu</label>
+                                        <div className="flex gap-1">
+                                            <button onClick={() => applyStyle('main', 'b')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Gras"><Bold size={12} /></button>
+                                            <button onClick={() => applyStyle('main', 'i')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Italique"><Italic size={12} /></button>
+                                            <button onClick={() => applyStyle('main', 'color')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Couleur Rouge"><Type size={12} /></button>
+                                        </div>
+                                    </div>
                                     <textarea
+                                        id="content-main"
                                         value={mainArticle.content}
                                         onChange={e => setMainArticle({ ...mainArticle, content: e.target.value })}
                                         className="input-field min-h-[120px]"
@@ -512,8 +567,23 @@ export function NewsletterComposer() {
                                     <div className="absolute -top-2 -left-2 bg-neon-red text-white text-[10px] font-black px-2 py-1 rounded">GAUCHE</div>
                                     <div className="space-y-3 mt-2">
                                         <input type="text" placeholder="Titre" value={news1.title} onChange={e => setNews1({ ...news1, title: e.target.value })} className="input-field" />
-                                        <textarea placeholder="Description courte..." value={news1.content} onChange={e => setNews1({ ...news1, content: e.target.value })} className="input-field min-h-[60px]" />
-                                        <input type="text" placeholder="Image URL" value={news1.image} onChange={e => setNews1({ ...news1, image: e.target.value })} className="input-field" />
+
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[10px] font-black text-gray-500 uppercase">Description</span>
+                                                <div className="flex gap-1">
+                                                    <button onClick={() => applyStyle('news1', 'b')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Bold size={10} /></button>
+                                                    <button onClick={() => applyStyle('news1', 'i')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Italic size={10} /></button>
+                                                    <button onClick={() => applyStyle('news1', 'color')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Type size={10} /></button>
+                                                </div>
+                                            </div>
+                                            <textarea id="content-news1" placeholder="Description courte..." value={news1.content} onChange={e => setNews1({ ...news1, content: e.target.value })} className="input-field min-h-[60px]" />
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <input type="text" placeholder="Image URL" value={news1.image} onChange={e => setNews1({ ...news1, image: e.target.value })} className="input-field" />
+                                            <button onClick={() => { setUploadTarget('news1'); setIsUploadModalOpen(true); }} className="p-3 bg-white/5 border border-white/10 rounded-lg"><Plus size={16} /></button>
+                                        </div>
                                         <input type="text" placeholder="Lien" value={news1.link} onChange={e => setNews1({ ...news1, link: e.target.value })} className="input-field" />
                                     </div>
                                 </div>
@@ -523,8 +593,23 @@ export function NewsletterComposer() {
                                     <div className="absolute -top-2 -right-2 bg-neon-red text-white text-[10px] font-black px-2 py-1 rounded">DROITE</div>
                                     <div className="space-y-3 mt-2">
                                         <input type="text" placeholder="Titre" value={news2.title} onChange={e => setNews2({ ...news2, title: e.target.value })} className="input-field" />
-                                        <textarea placeholder="Description courte..." value={news2.content} onChange={e => setNews2({ ...news2, content: e.target.value })} className="input-field min-h-[60px]" />
-                                        <input type="text" placeholder="Image URL" value={news2.image} onChange={e => setNews2({ ...news2, image: e.target.value })} className="input-field" />
+
+                                        <div>
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[10px] font-black text-gray-500 uppercase">Description</span>
+                                                <div className="flex gap-1">
+                                                    <button onClick={() => applyStyle('news2', 'b')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Bold size={10} /></button>
+                                                    <button onClick={() => applyStyle('news2', 'i')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Italic size={10} /></button>
+                                                    <button onClick={() => applyStyle('news2', 'color')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Type size={10} /></button>
+                                                </div>
+                                            </div>
+                                            <textarea id="content-news2" placeholder="Description courte..." value={news2.content} onChange={e => setNews2({ ...news2, content: e.target.value })} className="input-field min-h-[60px]" />
+                                        </div>
+
+                                        <div className="flex gap-2">
+                                            <input type="text" placeholder="Image URL" value={news2.image} onChange={e => setNews2({ ...news2, image: e.target.value })} className="input-field" />
+                                            <button onClick={() => { setUploadTarget('news2'); setIsUploadModalOpen(true); }} className="p-3 bg-white/5 border border-white/10 rounded-lg"><Plus size={16} /></button>
+                                        </div>
                                         <input type="text" placeholder="Lien" value={news2.link} onChange={e => setNews2({ ...news2, link: e.target.value })} className="input-field" />
                                     </div>
                                 </div>
@@ -702,6 +787,13 @@ export function NewsletterComposer() {
                 message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                 onConfirm={() => blocker.proceed?.()}
                 onCancel={() => blocker.reset?.()}
+                accentColor="neon-red"
+            />
+
+            <ImageUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onUploadSuccess={onUploadSuccess}
                 accentColor="neon-red"
             />
         </div>
