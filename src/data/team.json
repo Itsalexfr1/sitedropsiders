@@ -3,7 +3,7 @@
     "id": 1,
     "name": "ALEX",
     "role": "FONDATEUR / REDACTEUR",
-    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771785411716-cropped_image.jpg",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818220/dropsiders/wcyxatveeurgu5s1fi3s.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/itsalex.fr1/",
       "tiktok": "#"
@@ -13,7 +13,7 @@
     "id": 2,
     "name": "KEVIN ",
     "role": "PHOTOGRAPHE & VIDÉASTE",
-    "image": "/images/team/kevin-m-.jpg",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818310/dropsiders/e2nt8hmtt0gyvmlxb2fu.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/kevinmiralla",
       "tiktok": "#"
@@ -23,7 +23,7 @@
     "id": 3,
     "name": "TIFFANY ",
     "role": "RÉDACTRICE",
-    "image": "/images/team/tiffany-d-.png",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818347/dropsiders/txunljvoqbpi1k49nt2w.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/tiffdreamgarrix",
       "tiktok": "#"
