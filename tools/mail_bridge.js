@@ -15,7 +15,18 @@ const SENT_PATH = path.join(ROOT, 'src/data/emails_sent.json');
 const WATCH_MODE = process.argv.includes('--watch');
 
 // Charger la config
-const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+let config;
+if (process.env.MAIL_CONFIG) {
+    try {
+        config = JSON.parse(process.env.MAIL_CONFIG);
+        console.log('ℹ️ Configuration chargée via variable d\'environnement');
+    } catch (e) {
+        console.error('❌ Erreur parsing MAIL_CONFIG env:', e.message);
+        config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+    }
+} else {
+    config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+}
 
 async function syncAccount(accountKey) {
     const acc = config.accounts[accountKey];
