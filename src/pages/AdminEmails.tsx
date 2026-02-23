@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, AlertCircle, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
+import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Email {
@@ -310,13 +310,7 @@ export function AdminEmails() {
                                 Messagerie <span className="text-neon-orange">Dropsiders</span>
                             </h1>
                             <div className="flex items-center gap-2 mt-1">
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Outil de Communication Interne</p>
-                                <div className="group relative">
-                                    <AlertCircle className="w-3 h-3 text-neon-orange cursor-help" />
-                                    <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-black/90 border border-neon-orange/20 rounded-xl text-[10px] text-gray-300 hidden group-hover:block z-50 backdrop-blur-xl">
-                                        🚀 Pour voir vos vrais mails LWS, lancez <strong>npm run mail:sync</strong> dans votre terminal.
-                                    </div>
-                                </div>
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Outil de Communication Directe</p>
                             </div>
                         </div>
                     </div>
