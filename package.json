@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "fix:encoding": "node tools/clean_encoding.cjs",
-    "migrate:images": "node tools/migrate_to_cloudinary.cjs"
+    "migrate:images": "node tools/migrate_to_cloudinary.cjs",
+    "mail:sync": "node tools/mail_bridge.js"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
@@ -20,8 +21,11 @@
     "d3-geo": "^3.1.1",
     "d3-scale": "^4.0.2",
     "framer-motion": "^12.34.0",
+    "imap": "^0.8.19",
     "jsdom": "^28.1.0",
     "lucide-react": "^0.564.0",
+    "mailparser": "^3.9.3",
+    "nodemailer": "^8.0.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-easy-crop": "^5.5.6",
