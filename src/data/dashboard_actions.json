@@ -112,19 +112,20 @@
     "columns": 2
   },
   {
-    "title": "Éditeurs",
-    "description": "Gérer l'équipe",
-    "icon": "Lock",
-    "link": "/admin/editors",
-    "baseColor": "#ff2e2e",
-    "permission": "all"
-  },
-  {
     "title": "Team",
     "description": "La Dream Team",
     "icon": "Users",
     "link": "/admin/team",
     "baseColor": "#000000",
+    "permission": "all",
+    "columns": 1
+  },
+  {
+    "title": "Éditeurs",
+    "description": "Gérer l'équipe",
+    "icon": "Lock",
+    "link": "/admin/editors",
+    "baseColor": "#ff2e2e",
     "permission": "all",
     "columns": 2
   },
