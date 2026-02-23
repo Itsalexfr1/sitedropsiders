@@ -1,0 +1,49 @@
+{
+    "alex": [
+        {
+            "id": "1",
+            "from": "partnership@brands.com",
+            "fromName": "Sarah Brandt",
+            "subject": "Proposition de partenariat - Festival Summer 2026",
+            "preview": "Bonjour Alex, nous avons suivi vos derniers reportages sur les festivals et nous aimerions vous proposer...",
+            "content": "Bonjour Alex,\n\nNous avons suivi avec grand intérêt vos derniers reportages sur les festivals, notamment votre couverture de Tomorrowland Winter. Votre style visuel correspond parfaitement à l'image de notre marque.\n\nNous aimerions vous proposer un partenariat pour le prochain festival Summer 2026. L'idée serait de vous fournir notre nouveau kit média en échange d'une série de photos et d'une mention dans votre prochain récap.\n\nSeriez-vous disponible pour un appel Zoom mardi prochain à 14h ?\n\nBien cordialement,\nSarah Brandt\nMarketing Manager @ Brands.com",
+            "date": "23 Fév, 14:23",
+            "read": false,
+            "starred": true,
+            "labels": [
+                "Partenariat",
+                "Urgent"
+            ]
+        }
+    ],
+    "contact": [
+        {
+            "id": "2",
+            "from": "jean.dupont@gmail.com",
+            "fromName": "Jean Dupont",
+            "subject": "Question sur l'accréditation presse",
+            "preview": "Bonjour l'équipe Dropsiders, je suis photographe freelance et je souhaitais savoir comment...",
+            "content": "Bonjour l'équipe Dropsiders,\n\nJe suis photographe freelance basé à Lyon et je suis votre travail depuis quelques mois. Je souhaitais savoir quelle est votre procédure pour les demandes d'accréditation presse pour les festivals français ?\n\nFaut-il passer par vous ou directement par les organisateurs ?\n\nMerci d'avance pour votre aide.\n\nCordialement,\nJean Dupont",
+            "date": "23 Fév, 10:15",
+            "read": true,
+            "starred": false,
+            "labels": [
+                "Question"
+            ]
+        },
+        {
+            "id": "3",
+            "from": "noreply@lws.fr",
+            "fromName": "LWS Support",
+            "subject": "Renouvellement de votre domaine dropsiders.fr",
+            "preview": "Cher client, votre nom de domaine arrive à expiration dans 30 jours. Pour éviter toute interruption...",
+            "content": "Cher client,\n\nVotre nom de domaine dropsiders.fr arrive à expiration dans 30 jours.\n\nPour éviter toute interruption de vos services, nous vous invitons à procéder à son renouvellement dès maintenant depuis votre espace client LWS.\n\nCeci est un message automatique, merci de ne pas y répondre.",
+            "date": "22 Fév, 09:00",
+            "read": true,
+            "starred": false,
+            "labels": [
+                "Admin"
+            ]
+        }
+    ]
+}

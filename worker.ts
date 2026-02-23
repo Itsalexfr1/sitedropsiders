@@ -1267,44 +1267,55 @@ export default {
         // --- API: EMAILS ---
         if (path === '/api/emails/list' && request.method === 'GET') {
             const account = url.searchParams.get('account') || 'contact';
-            const isAlex = account === 'alex';
-            const user = isAlex ? 'alex@dropsiders.fr' : 'contact@dropsiders.fr';
-            const pass = isAlex ? '01061988Aa-' : 'alexdropsiders2025';
-            const host = 'mail.dropsiders.fr';
+            const folder = url.searchParams.get('folder') || 'inbox';
+            let targetPath = 'src/data/emails.json';
+
+            if (folder === 'sent') targetPath = 'src/data/emails_sent.json';
+            if (folder === 'archive') targetPath = 'src/data/emails_archive.json';
+            if (folder === 'trash') targetPath = 'src/data/emails_trash.json';
 
             try {
-                // Simulation d'emails réels récupérés via IMAP
-                // Pour une connexion réelle IMAP/TCP sur Cloudflare Worker, 
-                // on utiliserait normalement un bridge HTTPS/Socket.
-                const mockEmails = isAlex ? [
-                    {
-                        id: 'a1',
-                        from: 'partnership@brands.com',
-                        fromName: 'Sarah Brandt',
-                        subject: 'Proposition de partenariat - Summer 2026',
-                        preview: 'Bonjour Alex, nous avons suivi vos derniers reportages...',
-                        content: '...',
-                        date: 'Aujourd\'hui, 14:23',
-                        read: false, starred: true, labels: ['Partenariat']
+                const file = await fetchGitHubFile(targetPath);
+                let emails = [];
+
+                if (file) {
+                    if (folder === 'inbox') {
+                        emails = file.content[account] || [];
+                    } else {
+                        // For sent, archive, trash (filter by account if needed)
+                        emails = Array.isArray(file.content)
+                            ? file.content.filter(e => e.account === account)
+                            : [];
                     }
-                ] : [
-                    {
-                        id: 'c1',
-                        from: 'jean.dupont@gmail.com',
-                        fromName: 'Jean Dupont',
-                        subject: 'Question sur l\'accréditation presse',
-                        preview: 'Bonjour l\'équipe Dropsiders, je souhaitais savoir comment...',
-                        content: '...',
-                        date: 'Hier, 10:15',
-                        read: true, starred: false, labels: ['Question']
-                    }
-                ];
+                }
 
                 return new Response(JSON.stringify({
                     success: true,
-                    account: user,
-                    emails: mockEmails
+                    emails: emails
                 }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ success: true, emails: [] }), { status: 200, headers });
+            }
+        }
+
+        if (path === '/api/emails/send' && request.method === 'POST') {
+            const SEND_LOG_PATH = 'src/data/emails_sent.json';
+            const { to, subject, content, account } = await request.json();
+
+            try {
+                const file = await fetchGitHubFile(SEND_LOG_PATH) || { content: [], sha: null };
+                const newEmail = {
+                    id: Date.now().toString(),
+                    to,
+                    subject,
+                    content,
+                    account,
+                    date: new Date().toISOString()
+                };
+                const updated = [...file.content, newEmail];
+                await saveGitHubFile(SEND_LOG_PATH, updated, `Send email from ${account} to ${to}`, file.sha);
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }

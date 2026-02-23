@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, AlertCircle, MoreVertical, Star, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, AlertCircle, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Email {
     id: string;
-    from: string;
-    fromName: string;
+    from?: string;
+    to?: string;
+    fromName?: string;
     subject: string;
     preview: string;
     content: string;
@@ -24,7 +25,10 @@ const EmailSignature = ({ password = '2026' }: { password?: string }) => (
             </div>
             <div>
                 <p className="text-sm font-black text-white uppercase tracking-widest italic">L'Équipe <span className="text-neon-red">Dropsiders</span></p>
-                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-0.5">Média & Production Festivals</p>
+                <div className="flex flex-col mt-0.5">
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">Média Festivals</p>
+                    <p className="text-[7px] font-black text-gray-600 uppercase tracking-[0.1em]">News - Récaps Events - Interviews - Concours</p>
+                </div>
             </div>
         </div>
 
@@ -49,7 +53,7 @@ const EmailSignature = ({ password = '2026' }: { password?: string }) => (
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <div className="w-1 h-1 rounded-full bg-neon-red shadow-[0_0_5px_red]"></div>
-                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Paris • Ibiza • Las Vegas</span>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">France • Espagne • USA</span>
                     </div>
                     <p className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.3em] hover:text-white cursor-default">www.dropsiders.fr</p>
                 </div>
@@ -61,6 +65,7 @@ const EmailSignature = ({ password = '2026' }: { password?: string }) => (
 export function AdminEmails() {
     const navigate = useNavigate();
     const [activeAccount, setActiveAccount] = useState<'alex' | 'contact'>('contact');
+    const [activeFolder, setActiveFolder] = useState<'inbox' | 'sent' | 'archive' | 'trash'>('inbox');
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
@@ -68,9 +73,12 @@ export function AdminEmails() {
     const [savedPassword, setSavedPassword] = useState('2026');
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [loginError, setLoginError] = useState('');
+    const [isComposing, setIsComposing] = useState(false);
+    const [composeData, setComposeData] = useState({ to: '', subject: '', content: '' });
+    const [isSending, setIsSending] = useState(false);
+    const [emails, setEmails] = useState<{ [key: string]: Email[] }>({});
 
     useEffect(() => {
-        // Fetch custom password from settings if Alexander
         const fetchSettings = async () => {
             try {
                 const res = await fetch('/api/settings');
@@ -78,7 +86,6 @@ export function AdminEmails() {
                     const data = await res.json();
                     const savedPass = data.email_password || '2026';
                     setSavedPassword(savedPass);
-                    // Auto-auth if already entered in session
                     if (sessionStorage.getItem('email_auth') === savedPass) {
                         setIsAuthorized(true);
                     }
@@ -89,6 +96,12 @@ export function AdminEmails() {
         };
         fetchSettings();
     }, []);
+
+    useEffect(() => {
+        if (isAuthorized) {
+            handleRefresh();
+        }
+    }, [isAuthorized, activeAccount, activeFolder]);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -110,87 +123,49 @@ export function AdminEmails() {
         }
     };
 
-    // Mock data for initial UI
-    const [emails] = useState<{ alex: Email[], contact: Email[] }>({
-        alex: [
-            {
-                id: '1',
-                from: 'partnership@brands.com',
-                fromName: 'Sarah Brandt',
-                subject: 'Proposition de partenariat - Festival Summer 2026',
-                preview: 'Bonjour Alex, nous avons suivi vos derniers reportages sur les festivals et nous aimerions vous proposer...',
-                content: `Bonjour Alex,
-
-Nous avons suivi avec grand intérêt vos derniers reportages sur les festivals, notamment votre couverture de Tomorrowland Winter. Votre style visuel correspond parfaitement à l'image de notre marque.
-
-Nous aimerions vous proposer un partenariat pour le prochain festival Summer 2026. L'idée serait de vous fournir notre nouveau kit média en échange d'une série de photos et d'une mention dans votre prochain récap.
-
-Seriez-vous disponible pour un appel Zoom mardi prochain à 14h ?
-
-Bien cordialement,
-Sarah Brandt
-Marketing Manager @ Brands.com`,
-                date: 'Aujourd\'hui, 14:23',
-                read: false,
-                starred: true,
-                labels: ['Partenariat', 'Urgent']
-            }
-        ],
-        contact: [
-            {
-                id: '2',
-                from: 'jean.dupont@gmail.com',
-                fromName: 'Jean Dupont',
-                subject: 'Question sur l\'accréditation presse',
-                preview: 'Bonjour l\'équipe Dropsiders, je suis photographe freelance et je souhaitais savoir comment...',
-                content: `Bonjour l'équipe Dropsiders,
-
-Je suis photographe freelance basé à Lyon et je suis votre travail depuis quelques mois. Je souhaitais savoir quelle est votre procédure pour les demandes d'accréditation presse pour les festivals français ?
-
-Faut-il passer par vous ou directement par les organisateurs ?
-
-Merci d'avance pour votre aide.
-
-Cordialement,
-Jean Dupont`,
-                date: 'Hier, 10:15',
-                read: true,
-                starred: false,
-                labels: ['Question']
-            },
-            {
-                id: '3',
-                from: 'noreply@lws.fr',
-                fromName: 'LWS Support',
-                subject: 'Renouvellement de votre domaine dropsiders.fr',
-                preview: 'Cher client, votre nom de domaine arrive à expiration dans 30 jours. Pour éviter toute interruption...',
-                content: `Cher client,
-
-Votre nom de domaine dropsiders.fr arrive à expiration dans 30 jours.
-
-Pour éviter toute interruption de vos services, nous vous invitons à procéder à son renouvellement dès maintenant depuis votre espace client LWS.
-
-Ceci est un message automatique, merci de ne pas y répondre.`,
-                date: '22 Fév, 09:00',
-                read: true,
-                starred: false,
-                labels: ['Admin']
-            }
-        ]
-    });
-
-    const handleRefresh = () => {
+    const handleRefresh = async () => {
         setIsRefreshing(true);
-        // Simulate API call to LWS IMAP
-        setTimeout(() => {
+        try {
+            const res = await fetch(`/api/emails/list?account=${activeAccount}&folder=${activeFolder}`);
+            if (res.ok) {
+                const data = await res.json();
+                setEmails(prev => ({ ...prev, [`${activeAccount}_${activeFolder}`]: data.emails }));
+            }
+        } catch (e) {
+            console.error('Failed to fetch emails');
+        } finally {
             setIsRefreshing(false);
-        }, 1500);
+        }
     };
 
-    const filteredEmails = emails[activeAccount].filter(email =>
+    const handleSendEmail = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSending(true);
+        try {
+            const res = await fetch('/api/emails/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ...composeData, account: activeAccount })
+            });
+            if (res.ok) {
+                setIsComposing(false);
+                setComposeData({ to: '', subject: '', content: '' });
+                alert('E-mail envoyé avec succès !');
+                if (activeFolder === 'sent') handleRefresh();
+            }
+        } catch (e) {
+            alert('Erreur lors de l\'envoi');
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    const currentEmails = emails[`${activeAccount}_${activeFolder}`] || [];
+    const filteredEmails = currentEmails.filter(email =>
         email.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        email.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        email.fromName.toLowerCase().includes(searchTerm.toLowerCase())
+        (email.from?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (email.fromName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+        (email.to?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
 
     if (!isAuthorized) {
@@ -275,25 +250,46 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
 
                     {/* Sidebar Navigation */}
                     <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 space-y-8">
+                        <button
+                            onClick={() => setIsComposing(true)}
+                            className="w-full py-4 bg-neon-orange text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-orange/20 active:scale-95 text-xs flex items-center justify-center gap-2"
+                        >
+                            <Plus className="w-4 h-4" /> Nouveau Message
+                        </button>
+
                         <div className="space-y-2">
-                            <button className="w-full flex items-center justify-between px-4 py-3 bg-neon-orange/10 border border-neon-orange/20 rounded-xl text-neon-orange group transition-all">
+                            <button
+                                onClick={() => setActiveFolder('inbox')}
+                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeFolder === 'inbox' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                            >
                                 <div className="flex items-center gap-3">
                                     <Inbox className="w-4 h-4" />
                                     <span className="text-[11px] font-black uppercase tracking-widest">Boîte de réception</span>
                                 </div>
-                                <span className="bg-neon-orange text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
-                                    {emails[activeAccount].filter(e => !e.read).length}
-                                </span>
+                                {activeFolder === 'inbox' && (
+                                    <span className="bg-neon-orange text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                                        {filteredEmails.filter(e => !e.read).length}
+                                    </span>
+                                )}
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-white transition-all">
+                            <button
+                                onClick={() => setActiveFolder('sent')}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'sent' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                            >
                                 <Send className="w-4 h-4" />
                                 <span className="text-[11px] font-black uppercase tracking-widest">Envoyés</span>
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-white transition-all">
+                            <button
+                                onClick={() => setActiveFolder('archive')}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'archive' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                            >
                                 <Archive className="w-4 h-4" />
                                 <span className="text-[11px] font-black uppercase tracking-widest">Archives</span>
                             </button>
-                            <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:text-white transition-all">
+                            <button
+                                onClick={() => setActiveFolder('trash')}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'trash' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                            >
                                 <Trash2 className="w-4 h-4" />
                                 <span className="text-[11px] font-black uppercase tracking-widest">Corbeille</span>
                             </button>
@@ -376,15 +372,15 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
                                             onClick={() => setSelectedEmail(email)}
                                             className={`w-full text-left p-6 border-b border-white/5 transition-all relative group ${!email.read ? 'bg-neon-orange/[0.03]' : 'hover:bg-white/[0.02]'} ${selectedEmail?.id === email.id ? 'bg-neon-orange/[0.08] border-r-2 border-r-neon-orange' : ''}`}
                                         >
-                                            {!email.read && (
+                                            {!email.read && activeFolder === 'inbox' && (
                                                 <div className="absolute top-7 left-2 w-1.5 h-1.5 bg-neon-orange rounded-full shadow-[0_0_10px_#ffa500]" />
                                             )}
                                             <div className="flex justify-between items-start gap-2 mb-2">
                                                 <span className={`text-[11px] font-black uppercase tracking-tight truncate ${!email.read ? 'text-white' : 'text-gray-400'}`}>
-                                                    {email.fromName}
+                                                    {activeFolder === 'sent' ? `À: ${email.to}` : email.fromName}
                                                 </span>
                                                 <span className="text-[9px] font-bold text-gray-500 flex-shrink-0">
-                                                    {email.date}
+                                                    {new Date(email.date).toLocaleDateString()}
                                                 </span>
                                             </div>
                                             <h4 className={`text-sm font-bold mb-1 truncate ${!email.read ? 'text-white' : 'text-gray-300'}`}>
@@ -395,7 +391,7 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
                                             </p>
 
                                             <div className="flex gap-2 mt-4">
-                                                {email.labels.map(label => (
+                                                {(email.labels || []).map(label => (
                                                     <span key={label} className="text-[8px] font-black px-2 py-0.5 bg-white/5 border border-white/10 rounded-full text-gray-500 uppercase tracking-widest">
                                                         {label}
                                                     </span>
@@ -422,21 +418,21 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                                             <div className="flex items-center gap-6">
                                                 <div className="w-16 h-16 bg-gradient-to-br from-neon-orange to-orange-700 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-neon-orange/20">
-                                                    {selectedEmail.fromName[0]}
+                                                    {(selectedEmail.fromName || selectedEmail.to || 'D')[0]}
                                                 </div>
                                                 <div>
                                                     <div className="flex items-center gap-3 mb-1">
-                                                        <h3 className="text-xl font-bold text-white">{selectedEmail.fromName}</h3>
-                                                        <span className="text-xs text-gray-500 font-medium">({selectedEmail.from})</span>
+                                                        <h3 className="text-xl font-bold text-white">{selectedEmail.fromName || selectedEmail.from}</h3>
+                                                        <span className="text-xs text-gray-500 font-medium">({selectedEmail.from || selectedEmail.to})</span>
                                                     </div>
                                                     <div className="flex items-center gap-4">
                                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                                             <Calendar className="w-3.5 h-3.5" />
-                                                            {selectedEmail.date}
+                                                            {new Date(selectedEmail.date).toLocaleString()}
                                                         </span>
                                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                                             <User className="w-3.5 h-3.5" />
-                                                            à moi
+                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || activeAccount}` : 'à moi'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -520,6 +516,86 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
                     </div>
                 </div>
             </div>
+
+            {/* Compose Modal */}
+            <AnimatePresence>
+                {isComposing && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                                <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Nouveau <span className="text-neon-orange">Message</span></h3>
+                                <button onClick={() => setIsComposing(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors text-gray-400 hover:text-white">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleSendEmail} className="p-8 space-y-6">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-[80px_1fr] items-center gap-4">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">À :</span>
+                                        <input
+                                            required
+                                            type="email"
+                                            value={composeData.to}
+                                            onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
+                                            className="bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-neon-orange transition-all text-sm font-medium"
+                                            placeholder="destinataire@exemple.com"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-[80px_1fr] items-center gap-4">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Objet :</span>
+                                        <input
+                                            required
+                                            type="text"
+                                            value={composeData.subject}
+                                            onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
+                                            className="bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-neon-orange transition-all text-sm font-medium"
+                                            placeholder="Sujet de votre message..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <textarea
+                                        required
+                                        rows={12}
+                                        value={composeData.content}
+                                        onChange={(e) => setComposeData({ ...composeData, content: e.target.value })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-white outline-none focus:border-neon-orange transition-all text-sm font-medium resize-none leading-relaxed"
+                                        placeholder="Écrivez votre message ici..."
+                                    />
+
+                                    {/* Preview Signature in Compose */}
+                                    <EmailSignature password={savedPassword} />
+                                </div>
+
+                                <div className="flex justify-end gap-4 pt-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsComposing(false)}
+                                        className="px-8 py-3.5 bg-white/5 text-gray-400 rounded-xl text-[11px] font-black uppercase tracking-widest hover:text-white transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isSending}
+                                        className={`px-10 py-3.5 bg-neon-orange text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-neon-orange/20 flex items-center gap-3 hover:scale-105 transition-all active:scale-95 ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    >
+                                        {isSending ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                        Envoyer
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

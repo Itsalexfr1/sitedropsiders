@@ -47,7 +47,7 @@ export function AdminStats() {
     const [onlineUsers, setOnlineUsers] = useState(0);
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
     const [language, setLanguage] = useState<'fr' | 'en'>('fr');
-    const [viewMode, setViewMode] = useState<'overview' | 'time'>('overview');
+    const [viewMode, setViewMode] = useState<'overview' | 'time' | 'distribution'>('overview');
     const [timeRange, setTimeRange] = useState<'day' | 'month' | 'year'>('month');
     const [position, setPosition] = useState<{ coordinates: [number, number], zoom: number }>({ coordinates: [0, 20], zoom: 1 });
 
@@ -143,20 +143,33 @@ export function AdminStats() {
             .sort((a, b) => b.views - a.views)
             .slice(0, 15);
 
-        // Calcul des stats historiques de contenu (basé sur news.json et recaps.json)
         const getHistoricalData = () => {
-            const allContentDates = [
-                ...news.map(n => n.date),
-                ...recaps.map(r => r.date)
-            ].filter(d => d).map(d => new Date(d));
+            const allItemsForTime = [
+                ...news.map(n => ({ ...n, type: n.category })),
+                ...recaps.map(r => ({ ...r, type: 'Recap' })),
+                ...agenda.map(a => ({ ...a, type: 'Agenda' })),
+                ...galerie.map(g => ({ ...g, type: 'Galerie' }))
+            ].filter(i => i.date).map(i => ({ ...i, dateObj: new Date(i.date) }));
+
+            const getItemBreakdown = (items: any[]) => ({
+                news: items.filter(i => i.type === 'News').length,
+                interviews: items.filter(i => i.type === 'Interview').length,
+                recaps: items.filter(i => i.type === 'Recap').length,
+                agenda: items.filter(i => i.type === 'Agenda').length,
+                galeries: items.filter(i => i.type === 'Galerie').length
+            });
 
             if (timeRange === 'year') {
-                const years = [2022, 2023, 2024, 2025, 2026];
-                return years.map(year => ({
-                    label: year.toString(),
-                    value: allContentDates.filter(d => d.getFullYear() === year).length,
-                    visits: Math.floor(Math.random() * 50000) + 10000 // Simulation visites
-                }));
+                const years = [2024, 2025, 2026];
+                return years.map(year => {
+                    const itemsInYear = allItemsForTime.filter(i => i.dateObj.getFullYear() === year);
+                    return {
+                        label: year.toString(),
+                        value: itemsInYear.length,
+                        visits: Math.floor(Math.random() * 50000) + 10000,
+                        breakdown: getItemBreakdown(itemsInYear)
+                    };
+                });
             }
 
             if (timeRange === 'month') {
@@ -164,11 +177,15 @@ export function AdminStats() {
                     ? ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
                     : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
                 const currentYear = 2026;
-                return months.map((m, i) => ({
-                    label: m,
-                    value: allContentDates.filter(d => d.getFullYear() === currentYear && d.getMonth() === i).length,
-                    visits: Math.floor(Math.random() * 5000) + 1000 // Simulation visites
-                }));
+                return months.map((m, i) => {
+                    const itemsInMonth = allItemsForTime.filter(item => item.dateObj.getFullYear() === currentYear && item.dateObj.getMonth() === i);
+                    return {
+                        label: m,
+                        value: itemsInMonth.length,
+                        visits: Math.floor(Math.random() * 5000) + 1000,
+                        breakdown: getItemBreakdown(itemsInMonth)
+                    };
+                });
             }
 
             // TimeRange === 'day' (derniers 30 jours)
@@ -176,14 +193,16 @@ export function AdminStats() {
             for (let i = 29; i >= 0; i--) {
                 const d = new Date();
                 d.setDate(d.getDate() - i);
+                const itemsInDay = allItemsForTime.filter(item =>
+                    item.dateObj.getDate() === d.getDate() &&
+                    item.dateObj.getMonth() === d.getMonth() &&
+                    item.dateObj.getFullYear() === d.getFullYear()
+                );
                 days.push({
                     label: d.toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' }),
-                    value: allContentDates.filter(date =>
-                        date.getDate() === d.getDate() &&
-                        date.getMonth() === d.getMonth() &&
-                        date.getFullYear() === d.getFullYear()
-                    ).length,
-                    visits: Math.floor(Math.random() * 200) + 50 // Simulation visites
+                    value: itemsInDay.length,
+                    visits: Math.floor(Math.random() * 200) + 50,
+                    breakdown: getItemBreakdown(itemsInDay)
                 });
             }
             return days;
@@ -376,6 +395,12 @@ export function AdminStats() {
                             {language === 'fr' ? "Vue d'ensemble" : "Overview"}
                         </button>
                         <button
+                            onClick={() => setViewMode('distribution')}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'distribution' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                        >
+                            {language === 'fr' ? "Répartition" : "Distribution"}
+                        </button>
+                        <button
                             onClick={() => { setViewMode('time'); setTimeRange('day'); }}
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'time' && timeRange === 'day' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
@@ -535,7 +560,7 @@ export function AdminStats() {
                                 </div>
                             </div>
                         </motion.div>
-                    ) : (
+                    ) : viewMode === 'time' ? (
                         <motion.div
                             key="time"
                             initial={{ opacity: 0, y: 20 }}
@@ -721,6 +746,122 @@ export function AdminStats() {
                                     </div>
                                     <span className="text-[10px] font-black text-white uppercase tracking-widest">{language === 'fr' ? "Contenu Dropped" : "Content Dropped"}</span>
                                 </div>
+                            </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="distribution"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="bg-white/5 border border-white/10 rounded-[40px] p-6 md:p-12 shadow-2xl mb-16"
+                        >
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-16">
+                                <div>
+                                    <div className="flex items-center gap-4 mb-2">
+                                        <BarChart3 className="w-8 h-8 text-neon-blue" />
+                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tight">
+                                            {language === 'fr' ? "Répartition Temporelle" : "Temporal Distribution"}
+                                        </h3>
+                                    </div>
+                                    <p className="text-gray-400 text-xs uppercase tracking-widest font-black flex items-center gap-2 pl-12 pr-4">
+                                        {language === 'fr' ? "Analyse du mix de contenu par période" : "Analysis of content mix by period"}
+                                    </p>
+                                </div>
+
+                                <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                                    {(['day', 'month', 'year'] as const).map((range) => (
+                                        <button
+                                            key={range}
+                                            onClick={() => setTimeRange(range)}
+                                            className={`px-6 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${timeRange === range ? 'bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            {range === 'day' ? (language === 'fr' ? 'Jour' : 'Day') :
+                                                range === 'month' ? (language === 'fr' ? 'Mois' : 'Month') :
+                                                    (language === 'fr' ? 'Année' : 'Year')}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                {[...stats.community.historical].reverse().filter(item => item.value > 0).map((item, idx) => (
+                                    <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: idx * 0.05 }}
+                                        className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex flex-col md:flex-row md:items-center gap-6">
+                                            <div className="w-32 flex-shrink-0">
+                                                <span className="text-sm font-black text-white uppercase italic truncate pr-2">{item.label}</span>
+                                                <div className="text-[10px] font-black text-neon-red mt-1">{item.value} POSTS</div>
+                                            </div>
+
+                                            <div className="flex-1 flex h-4 rounded-full overflow-hidden border border-white/5">
+                                                {item.breakdown.news > 0 && (
+                                                    <div
+                                                        style={{ width: `${(item.breakdown.news / item.value) * 100}%` }}
+                                                        className="h-full bg-neon-blue relative group/bar"
+                                                        title={`News: ${item.breakdown.news}`}
+                                                    >
+                                                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/bar:opacity-100 transition-opacity" />
+                                                    </div>
+                                                )}
+                                                {item.breakdown.interviews > 0 && (
+                                                    <div
+                                                        style={{ width: `${(item.breakdown.interviews / item.value) * 100}%` }}
+                                                        className="h-full bg-neon-purple relative group/bar"
+                                                        title={`Interviews: ${item.breakdown.interviews}`}
+                                                    >
+                                                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/bar:opacity-100 transition-opacity" />
+                                                    </div>
+                                                )}
+                                                {item.breakdown.recaps > 0 && (
+                                                    <div
+                                                        style={{ width: `${(item.breakdown.recaps / item.value) * 100}%` }}
+                                                        className="h-full bg-neon-red relative group/bar"
+                                                        title={`Récaps: ${item.breakdown.recaps}`}
+                                                    >
+                                                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/bar:opacity-100 transition-opacity" />
+                                                    </div>
+                                                )}
+                                                {item.breakdown.agenda > 0 && (
+                                                    <div
+                                                        style={{ width: `${(item.breakdown.agenda / item.value) * 100}%` }}
+                                                        className="h-full bg-neon-yellow relative group/bar"
+                                                        title={`Agenda: ${item.breakdown.agenda}`}
+                                                    >
+                                                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/bar:opacity-100 transition-opacity" />
+                                                    </div>
+                                                )}
+                                                {item.breakdown.galeries > 0 && (
+                                                    <div
+                                                        style={{ width: `${(item.breakdown.galeries / item.value) * 100}%` }}
+                                                        className="h-full bg-neon-pink relative group/bar"
+                                                        title={`Galeries: ${item.breakdown.galeries}`}
+                                                    >
+                                                        <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/bar:opacity-100 transition-opacity" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-wrap gap-4 text-[9px] font-black uppercase tracking-widest text-gray-500">
+                                                {item.breakdown.news > 0 && <span className="text-neon-blue">News: {item.breakdown.news}</span>}
+                                                {item.breakdown.interviews > 0 && <span className="text-neon-purple">Int: {item.breakdown.interviews}</span>}
+                                                {item.breakdown.recaps > 0 && <span className="text-neon-red">Récap: {item.breakdown.recaps}</span>}
+                                                {item.breakdown.agenda > 0 && <span className="text-neon-yellow">Agenda: {item.breakdown.agenda}</span>}
+                                                {item.breakdown.galeries > 0 && <span className="text-neon-pink">Gal: {item.breakdown.galeries}</span>}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                                {[...stats.community.historical].reverse().filter(item => item.value === 0).length > 0 && (
+                                    <div className="pt-8 text-center text-[10px] font-black text-gray-600 uppercase tracking-widest">
+                                        Les segments sans activité sont masqués
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}

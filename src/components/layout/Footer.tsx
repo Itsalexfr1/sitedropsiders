@@ -10,7 +10,6 @@ export function Footer() {
     const { t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
-    const [kitMediaPassword, setKitMediaPassword] = useState('2026');
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -20,7 +19,9 @@ export function Footer() {
                     const data = await response.json();
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
-                    if (data.email_password) setKitMediaPassword(data.email_password);
+                    if (data.email_password) {
+                        // kitMediaPassword was used here
+                    }
                 }
             } catch (e) {
                 // Keep default
@@ -186,9 +187,7 @@ export function Footer() {
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[9px] font-black text-white uppercase tracking-widest">Kit Média 2026</span>
-                                <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-2">
-                                    Accès : <span className="text-neon-red font-black group-hover:animate-pulse uppercase">{kitMediaPassword}</span>
-                                </span>
+                                <span className="text-[6px] font-black text-gray-700 uppercase tracking-widest mt-1">News • Récaps Events • Interviews • Concours</span>
                             </div>
                             <Globe className="w-4 h-4 text-gray-600 group-hover:text-neon-red transition-colors ml-2" />
                         </Link>
