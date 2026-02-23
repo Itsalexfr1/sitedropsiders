@@ -25,5 +25,18 @@
       "labels": []
     }
   ],
-  "contact": []
+  "contact": [
+    {
+      "id": "1771873727634",
+      "from": "alexflex30@gmail.com",
+      "fromName": "Dropsiders",
+      "subject": "Récap : John Summit - Ushuaia Ibiza",
+      "preview": "test...",
+      "content": "test",
+      "date": "2026-02-23T19:08:47.634Z",
+      "read": false,
+      "starred": false,
+      "labels": []
+    }
+  ]
 }
