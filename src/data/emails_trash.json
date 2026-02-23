@@ -1,5 +1,20 @@
 [
   {
+    "id": "ext_2",
+    "from": "contact@lws.fr",
+    "fromName": "LWS Service Client",
+    "subject": "Confirmation de paiement - Facture #FA2026-991",
+    "preview": "Bonjour, nous vous confirmons le bon règlement de votre service Hébergement Web...",
+    "content": "Bonjour,\n\nNous vous confirmons le bon règlement de votre facture #FA2026-991 concernant le renouvellement de votre pack Hébergement Web et noms de domaine.\n\nVotre service est désormais actif jusqu'au 22/02/2027.\n\nMerci de votre confiance.\nL'équipe LWS",
+    "date": "2026-02-21T09:12:00Z",
+    "read": true,
+    "starred": false,
+    "labels": [
+      "Facture"
+    ],
+    "account": "alex"
+  },
+  {
     "id": "1771870003691",
     "from": "no_reply@communications.paypal.com",
     "fromName": "no_reply@communications.paypal.com",
