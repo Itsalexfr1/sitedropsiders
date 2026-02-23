@@ -217,7 +217,11 @@ export function AdminEmails() {
             const res = await fetch('/api/emails/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...composeData, account: activeAccount })
+                body: JSON.stringify({
+                    ...composeData,
+                    account: activeAccount,
+                    status: 'pending'
+                })
             });
             if (res.ok) {
                 setIsComposing(false);

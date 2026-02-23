@@ -1310,7 +1310,7 @@ export default {
 
         if (path === '/api/emails/send' && request.method === 'POST') {
             const SEND_LOG_PATH = 'src/data/emails_sent.json';
-            const { to, subject, content, account } = await request.json();
+            const { to, subject, content, account, status } = await request.json();
 
             try {
                 const file = await fetchGitHubFile(SEND_LOG_PATH) || { content: [], sha: null };
@@ -1320,6 +1320,7 @@ export default {
                     subject,
                     content,
                     account,
+                    status: status || 'sent',
                     date: new Date().toISOString()
                 };
                 const updated = [...file.content, newEmail];

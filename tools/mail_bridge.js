@@ -75,16 +75,55 @@ async function syncAccount(accountKey) {
 }
 
 async function sendPendingEmails() {
-    console.log('\n--- Vérification des mails à envoyer ---');
+    console.log('\n--- Envoi des messages en attente ---');
     if (!fs.existsSync(SENT_PATH)) return;
 
-    const sentData = JSON.parse(fs.readFileSync(SENT_PATH, 'utf8'));
-    // On peut imaginer un tag "pending" ou simplement envoyer tout ce qui n'a pas été envoyé par SMTP
-    // Pour simplifier, on regarde les mails des dernières 5 minutes produits par l'interface
+    let sentData = JSON.parse(fs.readFileSync(SENT_PATH, 'utf8'));
+    const pending = sentData.filter(e => e.status === 'pending');
+
+    if (pending.length === 0) {
+        console.log('Aucun message en attente.');
+        return;
+    }
+
+    for (const email of pending) {
+        const acc = config.accounts[email.account];
+        if (!acc) continue;
+
+        const transporter = nodemailer.createTransport({
+            host: acc.host,
+            port: acc.smtp_port,
+            secure: acc.smtp_port === 465,
+            auth: {
+                user: acc.user,
+                password: acc.pass
+            },
+            tls: { rejectUnauthorized: false }
+        });
+
+        try {
+            await transporter.sendMail({
+                from: acc.email,
+                to: email.to,
+                subject: email.subject,
+                text: email.content
+            });
+            email.status = 'sent';
+            console.log(`✅ Envoyé : ${email.subject} (à ${email.to})`);
+        } catch (err) {
+            console.error(`❌ Échec envoi vers ${email.to} : ${err.message}`);
+        }
+    }
+
+    fs.writeFileSync(SENT_PATH, JSON.stringify(sentData, null, 4));
 }
 
 async function run() {
     try {
+        // 1. Envoyer les mails sortants
+        await sendPendingEmails();
+
+        // 2. Récupérer les mails entrants
         const allData = JSON.parse(fs.readFileSync(EMAILS_PATH, 'utf8'));
 
         for (const key of Object.keys(config.accounts)) {
