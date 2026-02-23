@@ -59,5 +59,23 @@
         "account": "alex",
         "status": "error",
         "date": "2026-02-23T20:41:28.785Z"
+    },
+    {
+        "id": "1771882204016",
+        "to": "alexflex30@gmail.com",
+        "subject": "test",
+        "content": "test",
+        "account": "contact",
+        "status": "error",
+        "date": "2026-02-23T21:30:04.016Z"
+    },
+    {
+        "id": "1771882204984",
+        "to": "alexflex30@gmail.com",
+        "subject": "test",
+        "content": "test",
+        "account": "alex",
+        "status": "error",
+        "date": "2026-02-23T21:30:04.984Z"
     }
 ]
