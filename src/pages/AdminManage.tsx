@@ -98,9 +98,10 @@ export function AdminManage() {
 
         setDeleteStatus('loading');
         try {
-            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
-                activeTab === 'Galeries' ? '/api/galerie/delete' :
-                    `/ api / ${activeTab.toLowerCase()}/delete`;
+            const endpoint = (activeTab === 'News' || activeTab === 'Musique' || activeTab === 'Interviews') ? '/api/news/delete' :
+                activeTab === 'Recaps' ? '/api/recaps/delete' :
+                    activeTab === 'Agenda' ? '/api/agenda/delete' :
+                        '/api/galerie/delete';
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: getAuthHeaders(),
