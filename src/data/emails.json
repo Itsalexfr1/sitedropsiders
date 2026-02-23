@@ -1,4 +1,49 @@
 {
-    "alex": [],
-    "contact": []
+    "alex": [
+        {
+            "id": "ext_1",
+            "from": "marketing@tomorrowland.com",
+            "fromName": "Debby Wilmsen",
+            "subject": "Press Accreditation - Tomorrowland 2026",
+            "preview": "Dear Alex, we have received your request for accreditation. After reviewing your portfolio...",
+            "content": "Dear Alex,\n\nWe have received your request for press accreditation for Tomorrowland 2026.\n\nAfter reviewing your portfolio and the impressive coverage you did last year, we are pleased to confirm your access for both weekends. Please find attached the preliminary press kit and safety guidelines.\n\nWe look forward to seeing your work again.\n\nBest,\nDebby Wilmsen\nTomorrowland Press Office",
+            "date": "2026-02-22T14:20:00Z",
+            "read": true,
+            "starred": true,
+            "labels": [
+                "Accréditation",
+                "Urgent"
+            ]
+        },
+        {
+            "id": "ext_2",
+            "from": "contact@lws.fr",
+            "fromName": "LWS Service Client",
+            "subject": "Confirmation de paiement - Facture #FA2026-991",
+            "preview": "Bonjour, nous vous confirmons le bon règlement de votre service Hébergement Web...",
+            "content": "Bonjour,\n\nNous vous confirmons le bon règlement de votre facture #FA2026-991 concernant le renouvellement de votre pack Hébergement Web et noms de domaine.\n\nVotre service est désormais actif jusqu'au 22/02/2027.\n\nMerci de votre confiance.\nL'équipe LWS",
+            "date": "2026-02-21T09:12:00Z",
+            "read": true,
+            "starred": false,
+            "labels": [
+                "Facture"
+            ]
+        }
+    ],
+    "contact": [
+        {
+            "id": "ext_3",
+            "from": "julien.m@agence-media.fr",
+            "fromName": "Julien Morel",
+            "subject": "Demande d'interview - Dropsiders",
+            "preview": "Bonjour, je travaille pour une agence média et je souhaiterais interviewer Alex sur...",
+            "content": "Bonjour,\n\nJe travaille pour une agence média spécialisée dans l'événementiel et je souhaiterais interviewer Alex sur l'évolution de Dropsiders et ses projets pour l'année 2026.\n\nAuriez-vous une disponibilité dans les 15 prochains jours pour un entretien de 20 minutes ?\n\nMerci,\nJulien Morel",
+            "date": "2026-02-23T10:05:00Z",
+            "read": false,
+            "starred": true,
+            "labels": [
+                "Interview"
+            ]
+        }
+    ]
 }

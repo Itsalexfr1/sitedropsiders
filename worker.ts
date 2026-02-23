@@ -1298,6 +1298,16 @@ export default {
             }
         }
 
+        if (path === '/api/emails/config' && request.method === 'GET') {
+            const CONFIG_PATH = 'src/data/mail_setup.json';
+            try {
+                const file = await fetchGitHubFile(CONFIG_PATH);
+                return new Response(JSON.stringify(file ? file.content : {}), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/emails/send' && request.method === 'POST') {
             const SEND_LOG_PATH = 'src/data/emails_sent.json';
             const { to, subject, content, account } = await request.json();

@@ -78,9 +78,12 @@ export function AdminEmails() {
     const [isSending, setIsSending] = useState(false);
     const [emails, setEmails] = useState<{ [key: string]: Email[] }>({});
 
+    const [mailConfig, setMailConfig] = useState<any>(null);
+
     useEffect(() => {
         const fetchSettings = async () => {
             try {
+                // Fetch general settings for password
                 const res = await fetch('/api/settings');
                 if (res.ok) {
                     const data = await res.json();
@@ -89,6 +92,13 @@ export function AdminEmails() {
                     if (sessionStorage.getItem('email_auth') === savedPass) {
                         setIsAuthorized(true);
                     }
+                }
+
+                // Fetch mail configuration
+                const mailRes = await fetch('/api/emails/config');
+                if (mailRes.ok) {
+                    const mailData = await mailRes.json();
+                    setMailConfig(mailData);
                 }
             } catch (e) {
                 console.error('Failed to fetch settings');
@@ -234,13 +244,13 @@ export function AdminEmails() {
                             onClick={() => setActiveAccount('contact')}
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'contact' ? 'bg-neon-orange text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
-                            contact@dropsiders.fr
+                            {mailConfig?.accounts?.contact?.email || 'contact@dropsiders.fr'}
                         </button>
                         <button
                             onClick={() => setActiveAccount('alex')}
                             className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'alex' ? 'bg-neon-orange text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
-                            alex@dropsiders.fr
+                            {mailConfig?.accounts?.alex?.email || 'alex@dropsiders.fr'}
                         </button>
                     </div>
                 </div>

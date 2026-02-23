@@ -1,0 +1,22 @@
+{
+    "accounts": {
+        "alex": {
+            "email": "alex@dropsiders.fr",
+            "user": "alex@dropsiders.fr",
+            "pass": "01061988Aa-",
+            "host": "mail.dropsiders.fr",
+            "imap_port": 143,
+            "smtp_port": 587
+        },
+        "contact": {
+            "email": "contact@dropsiders.fr",
+            "user": "contact@dropsiders.fr",
+            "pass": "alexdropsiders2025",
+            "host": "mail.dropsiders.fr",
+            "imap_port": 143,
+            "smtp_port": 587
+        }
+    },
+    "provider": "LWS",
+    "status": "ready_for_bridge"
+}
