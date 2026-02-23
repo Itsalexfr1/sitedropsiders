@@ -14,5 +14,14 @@
     "content": "test",
     "account": "alex",
     "date": "2026-02-23T17:08:07.615Z"
+  },
+  {
+    "id": "1771868554681",
+    "to": "alexflex30@gmail.com",
+    "subject": "Re: test",
+    "content": "\n\n-------------------\nLe 23/02/2026 17:55:42, undefined a écrit :\n\ntest",
+    "account": "alex",
+    "status": "pending",
+    "date": "2026-02-23T17:42:34.681Z"
   }
 ]
