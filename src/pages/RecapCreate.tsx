@@ -10,6 +10,33 @@ import recapsData from '../data/recaps.json';
 
 
 
+// Helper component to fix caret jumping in contentEditable
+function VisualEditor({ content, onChange, className, widgetId, onFocus }: { content: string, onChange: (html: string) => void, className: string, widgetId: string, onFocus?: (e: any) => void }) {
+    const editorRef = useRef<HTMLDivElement>(null);
+
+    // Update innerHTML only if it differs from state (prevents caret jumping)
+    useEffect(() => {
+        if (editorRef.current) {
+            if (editorRef.current.innerHTML !== content) {
+                editorRef.current.innerHTML = content;
+            }
+        }
+    }, [content]);
+
+    return (
+        <div
+            ref={editorRef}
+            contentEditable
+            onInput={(e) => onChange(e.currentTarget.innerHTML)}
+            onFocus={onFocus}
+            className={className}
+            data-widget-id={widgetId}
+            onBlur={(e) => onChange(e.currentTarget.innerHTML)}
+            spellCheck={false}
+        />
+    );
+}
+
 export function RecapCreate() {
     const navigate = useNavigate();
     const location = useLocation() as any;
@@ -1091,12 +1118,11 @@ export function RecapCreate() {
                                             ) : (
                                                 !widget.content.includes('youtube-player-widget') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && (
                                                     <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                                                        <div
-                                                            contentEditable
-                                                            dangerouslySetInnerHTML={{ __html: widget.content }}
-                                                            onInput={(e) => updateWidget(widget.id, e.currentTarget.innerHTML)}
+                                                        <VisualEditor
+                                                            content={widget.content}
+                                                            onChange={(html) => updateWidget(widget.id, html)}
                                                             className="visual-editor-content p-8 min-h-[150px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium"
-                                                            data-widget-id={widget.id}
+                                                            widgetId={widget.id}
                                                             onFocus={(e) => {
                                                                 if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
                                                             }}
