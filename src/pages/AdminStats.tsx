@@ -281,7 +281,7 @@ export function AdminStats() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-12 relative overflow-x-hidden">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8 relative overflow-x-hidden">
             {/* Modal Top Articles */}
             <AnimatePresence>
                 {selectedDetail === 'articles' && (
@@ -297,20 +297,20 @@ export function AdminStats() {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-5xl bg-white/5 backdrop-blur-xl rounded-[40px] p-8 md:p-12 shadow-2xl border border-white/10 overflow-hidden max-h-[90vh] flex flex-col"
+                            className="relative w-full max-w-5xl bg-[#0a0a0a]/90 backdrop-blur-2xl rounded-[32px] md:rounded-[40px] p-6 md:p-12 shadow-2xl border border-white/10 overflow-hidden max-h-[85vh] flex flex-col"
                         >
-                            <div className="flex justify-between items-center mb-10">
+                            <div className="flex justify-between items-center mb-6 md:mb-10">
                                 <div>
-                                    <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                                        {language === 'fr' ? "Contenus les " : "Most "} <span className="text-neon-red">{language === 'fr' ? "plus populaires" : "popular content"}</span>
+                                    <h2 className="text-xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        {language === 'fr' ? "Contenus " : "Top "} <span className="text-neon-red">{language === 'fr' ? "Populaires" : "Content"}</span>
                                     </h2>
-                                    <p className="text-gray-400 mt-1 uppercase tracking-[0.2em] text-[10px] font-black">{language === 'fr' ? "Tracking Réel de Session" : "Real Session Tracking"}</p>
+                                    <p className="text-gray-400 mt-1 uppercase tracking-[0.2em] text-[8px] md:text-[10px] font-black">{language === 'fr' ? "Tracking Réel" : "Real Tracking"}</p>
                                 </div>
                                 <button
                                     onClick={() => setSelectedDetail(null)}
-                                    className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-gray-400 group border border-white/10"
+                                    className="p-2 md:p-3 bg-white/5 hover:bg-white/10 rounded-xl md:rounded-2xl transition-all text-gray-400 border border-white/10"
                                 >
-                                    <X className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                                    <X className="w-5 h-5 md:w-6 md:h-6" />
                                 </button>
                             </div>
 

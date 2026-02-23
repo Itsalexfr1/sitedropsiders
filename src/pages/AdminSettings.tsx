@@ -68,22 +68,22 @@ export function AdminSettings() {
     if (!isAlex) return null;
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
             <div className="max-w-3xl mx-auto">
                 <button
                     onClick={() => navigate('/admin')}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group"
+                    className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 md:mb-8 transition-colors group"
                 >
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    <span>Retour au Dashboard</span>
+                    <span className="text-sm font-bold uppercase tracking-widest">Retour</span>
                 </button>
 
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 md:mb-12">
                     <div>
-                        <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Paramètres <span className="text-neon-purple">Système</span>
+                        <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                            Studio <span className="text-neon-purple">Settings</span>
                         </h1>
-                        <p className="text-gray-400 mt-2">Configuration réservée à l'administrateur principal.</p>
+                        <p className="text-gray-400 mt-2 text-sm md:text-base">Configuration réservée à l'administrateur principal.</p>
                     </div>
                     <button
                         onClick={handleSave}
