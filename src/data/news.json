@@ -1914,7 +1914,7 @@
   },
   {
     "id": 101,
-    "title": "Retour sur la programmation de l'Amnesia Cap D'Agde",
+    "title": "Retour sur la programmation de l'Amnesia Cap D'Agde ! ",
     "date": "2024-06-12",
     "summary": "L'Amnesia au Cap d'Agde : Une Institution de la Nuit",
     "content": "",
@@ -1938,7 +1938,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.eu/news/1878536_retour-sur-la-programmation-de-l-amnesia-cap-d-agde",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "isFocus": false
   },
   {
     "id": 102,
