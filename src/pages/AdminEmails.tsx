@@ -62,43 +62,67 @@ const parseAndCleanEmail = (raw: string) => {
     if (!raw) return '';
     let content = raw;
 
-    // Extract HTML part if it's a multipart message
+    // Detect if it's a multipart message and extract the HTML part
     if (content.includes('Content-Type: text/html')) {
-        const parts = content.split('Content-Type: text/html');
+        const parts = content.split(/Content-Type: text\/html/i);
         content = parts[parts.length - 1];
-        if (content.includes('Content-Transfer-Encoding: quoted-printable')) {
-            content = content.replace(/^.*?Content-Transfer-Encoding: quoted-printable\s*/i, '');
+
+        // Remove trailing boundaries
+        if (content.includes('--')) {
+            content = content.split(/--[A-Za-z0-9'()+ ,./:?=-]+--/)[0];
         }
+
+        // Clean up headers remaining in the block
+        content = content.replace(/^.*?\r?\n\r?\n/s, '');
     }
 
-    // Decode quoted printable
-    if (content.includes('=\r\n') || content.includes('=\n') || content.includes('=3D') || content.includes('=20')) {
-        // Remove soft line breaks first
-        content = content.replace(/=\r?\n/g, '');
-        try {
-            // Re-encode existing % to %25, then replace =XX with %XX
-            const preProcessed = content.replace(/%/g, '%25').replace(/=([A-Fa-f0-9]{2})/g, '%$1');
-            content = decodeURIComponent(preProcessed);
-        } catch (e) {
-            content = content.replace(/=([A-Fa-f0-9]{2})/g, (_match, hex) => String.fromCharCode(parseInt(hex, 16)));
-        }
+    // Decode quoted-printable properly
+    if (content.includes('=3D') || content.includes('=\r\n') || content.includes('=\n')) {
+        // Remove soft line breaks (encoded as = at end of line)
+        content = content.replace(/=\r?\n/g, '').replace(/=\n/g, '');
+
+        // Replace =XX with the actual character
+        content = content.replace(/=([A-Fa-f0-9]{2})/g, (_match, hex) => {
+            const charCode = parseInt(hex, 16);
+            return String.fromCharCode(charCode);
+        });
     }
 
-    // Isolate HTML payload
+    // Isolate HTML payload if needed
     if (content.toLowerCase().includes('<html')) {
         const htmlStart = content.toLowerCase().indexOf('<html');
-        content = content.slice(htmlStart);
-    } else if (content.toLowerCase().includes('<body')) {
-        const bodyStart = content.toLowerCase().indexOf('<body');
-        content = content.slice(bodyStart);
-    } else if (content.toLowerCase().includes('<div')) {
-        const divStart = content.toLowerCase().indexOf('<div');
-        content = content.slice(divStart);
+        const htmlEnd = content.toLowerCase().lastIndexOf('</html>');
+        if (htmlEnd !== -1) {
+            content = content.slice(htmlStart, htmlEnd + 7);
+        } else {
+            content = content.slice(htmlStart);
+        }
     }
 
-    // Strip out generic MIME boundaries at the end
-    content = content.replace(/--[A-Za-z0-9-]+--\s*$/g, '');
-    content = content.replace(/--Apple-Mail-[A-Za-z0-9-]+--/gi, '');
+    // Ensure we have a valid HTML structure for the iframe
+    if (!content.toLowerCase().includes('<html')) {
+        content = `
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        body { 
+                            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+                            line-height: 1.6; 
+                            color: #eee; 
+                            background: transparent;
+                            margin: 0;
+                            padding: 20px;
+                        }
+                        a { color: #ff4d4d; }
+                        img { max-width: 100%; height: auto; }
+                    </style>
+                </head>
+                <body>${content}</body>
+            </html>
+        `;
+    }
 
     return content;
 };
@@ -321,11 +345,11 @@ export function AdminEmails() {
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-xl shadow-2xl text-center"
                     >
-                        <div className="w-20 h-20 bg-neon-orange/10 rounded-3xl flex items-center justify-center border border-neon-orange/20 mx-auto mb-8">
-                            <Lock className="w-8 h-8 text-neon-orange" />
+                        <div className="w-20 h-20 bg-neon-red/10 rounded-3xl flex items-center justify-center border border-neon-red/20 mx-auto mb-8">
+                            <Lock className="w-8 h-8 text-neon-red" />
                         </div>
                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                            Accès <span className="text-neon-orange">Sécurisé</span>
+                            Accès <span className="text-neon-red">Sécurisé</span>
                         </h2>
                         <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">
                             Veuillez entrer le code d'accès à la messagerie
@@ -337,12 +361,12 @@ export function AdminEmails() {
                                 value={emailPassword}
                                 onChange={(e) => setEmailPassword(e.target.value)}
                                 placeholder="MOT DE PASSE"
-                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-orange transition-all"
+                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-red transition-all"
                             />
                             {loginError && <p className="text-neon-red text-[10px] font-black uppercase tracking-widest">{loginError}</p>}
                             <button
                                 type="submit"
-                                className="w-full py-5 bg-neon-orange text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-orange/20 active:scale-95 text-xs"
+                                className="w-full py-5 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20 active:scale-95 text-xs"
                             >
                                 Se connecter
                             </button>
@@ -367,7 +391,7 @@ export function AdminEmails() {
                         </button>
                         <div>
                             <h1 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
-                                Messagerie <span className="text-neon-orange">Dropsiders</span>
+                                Messagerie <span className="text-neon-red">Dropsiders</span>
                             </h1>
                             <div className="flex items-center gap-2 mt-1">
                                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Outil de Communication Directe</p>
@@ -378,19 +402,19 @@ export function AdminEmails() {
                     <div className="flex items-center gap-3 bg-black/40 p-1.5 rounded-2xl border border-white/5">
                         <button
                             onClick={() => setActiveAccount('all')}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'all' ? 'bg-neon-orange text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'all' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
                             Tous
                         </button>
                         <button
                             onClick={() => setActiveAccount('contact')}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'contact' ? 'bg-neon-orange text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'contact' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
                             {mailConfig?.accounts?.contact?.email || 'contact@dropsiders.fr'}
                         </button>
                         <button
                             onClick={() => setActiveAccount('alex')}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'alex' ? 'bg-neon-orange text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${activeAccount === 'alex' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                         >
                             {mailConfig?.accounts?.alex?.email || 'alex@dropsiders.fr'}
                         </button>
@@ -407,7 +431,7 @@ export function AdminEmails() {
                                 setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
                                 setIsComposing(true);
                             }}
-                            className="w-full py-4 bg-neon-orange text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-orange/20 active:scale-95 text-xs flex items-center justify-center gap-2"
+                            className="w-full py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20 active:scale-95 text-xs flex items-center justify-center gap-2"
                         >
                             <Plus className="w-4 h-4" /> Nouveau Message
                         </button>
@@ -415,35 +439,35 @@ export function AdminEmails() {
                         <div className="space-y-2">
                             <button
                                 onClick={() => setActiveFolder('inbox')}
-                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeFolder === 'inbox' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${activeFolder === 'inbox' ? 'bg-neon-red/10 border border-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <div className="flex items-center gap-3">
                                     <Inbox className="w-4 h-4" />
                                     <span className="text-[11px] font-black uppercase tracking-widest">Boîte de réception</span>
                                 </div>
                                 {activeFolder === 'inbox' && (
-                                    <span className="bg-neon-orange text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
+                                    <span className="bg-neon-red text-white text-[9px] font-black px-1.5 py-0.5 rounded-full">
                                         {filteredEmails.filter(e => !e.read).length}
                                     </span>
                                 )}
                             </button>
                             <button
                                 onClick={() => setActiveFolder('sent')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'sent' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'sent' ? 'bg-neon-red/10 border border-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <Send className="w-4 h-4" />
                                 <span className="text-[11px] font-black uppercase tracking-widest">Envoyés</span>
                             </button>
                             <button
                                 onClick={() => setActiveFolder('archive')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'archive' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'archive' ? 'bg-neon-red/10 border border-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <Archive className="w-4 h-4" />
                                 <span className="text-[11px] font-black uppercase tracking-widest">Archives</span>
                             </button>
                             <button
                                 onClick={() => setActiveFolder('trash')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'trash' ? 'bg-neon-orange/10 border border-neon-orange/20 text-neon-orange' : 'text-gray-500 hover:text-white'}`}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeFolder === 'trash' ? 'bg-neon-red/10 border border-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <Trash2 className="w-4 h-4" />
                                 <span className="text-[11px] font-black uppercase tracking-widest">Corbeille</span>
@@ -482,7 +506,7 @@ export function AdminEmails() {
                                     placeholder="Rechercher un message..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm text-white outline-none focus:border-neon-orange transition-all font-medium"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-sm text-white outline-none focus:border-neon-red transition-all font-medium"
                                 />
                             </div>
 
@@ -509,7 +533,7 @@ export function AdminEmails() {
                                                     });
                                                     setIsComposing(true);
                                                 }}
-                                                className="flex items-center gap-2 px-3 py-2 text-neon-orange hover:bg-neon-orange/10 rounded-lg transition-all"
+                                                className="flex items-center gap-2 px-3 py-2 text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
                                                 title="Répondre"
                                             >
                                                 <Reply className="w-4 h-4" />
@@ -566,7 +590,7 @@ export function AdminEmails() {
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing}
-                                    className={`p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-neon-orange transition-all ${isRefreshing ? 'animate-spin text-neon-orange' : ''}`}
+                                    className={`p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-neon-red transition-all ${isRefreshing ? 'animate-spin text-neon-red' : ''}`}
                                     title="Rafraîchir"
                                 >
                                     <RefreshCcw className="w-4 h-4" />
@@ -582,10 +606,10 @@ export function AdminEmails() {
                                         <button
                                             key={email.id}
                                             onClick={() => setSelectedEmail(email)}
-                                            className={`w-full text-left p-6 border-b border-white/5 transition-all relative group ${!email.read ? 'bg-neon-orange/[0.03]' : 'hover:bg-white/[0.02]'} ${selectedEmail?.id === email.id ? 'bg-neon-orange/[0.08] border-r-2 border-r-neon-orange' : ''}`}
+                                            className={`w-full text-left p-6 border-b border-white/5 transition-all relative group ${!email.read ? 'bg-neon-red/[0.03]' : 'hover:bg-white/[0.02]'} ${selectedEmail?.id === email.id ? 'bg-neon-red/[0.08] border-r-2 border-r-neon-red' : ''}`}
                                         >
                                             {!email.read && activeFolder === 'inbox' && (
-                                                <div className="absolute top-7 left-2 w-1.5 h-1.5 bg-neon-orange rounded-full shadow-[0_0_10px_#ffa500]" />
+                                                <div className="absolute top-7 left-2 w-1.5 h-1.5 bg-neon-red rounded-full shadow-[0_0_10px_#ffa500]" />
                                             )}
                                             <div className="flex justify-between items-start gap-2 mb-2">
                                                 <span className={`text-[11px] font-black uppercase tracking-tight truncate ${!email.read ? 'text-white' : 'text-gray-400'}`}>
@@ -662,7 +686,7 @@ export function AdminEmails() {
                                         {/* Reader Header */}
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                                             <div className="flex items-center gap-6">
-                                                <div className="w-16 h-16 bg-gradient-to-br from-neon-orange to-orange-700 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-neon-orange/20">
+                                                <div className="w-16 h-16 bg-gradient-to-br from-neon-red to-red-900 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-neon-red/20 uppercase">
                                                     {(selectedEmail.fromName || selectedEmail.to || 'D')[0]}
                                                 </div>
                                                 <div>
@@ -688,19 +712,29 @@ export function AdminEmails() {
                                             {selectedEmail.subject}
                                         </h2>
 
-                                        <div className="bg-black/20 border border-white/5 rounded-3xl p-8 md:p-10 text-gray-300 leading-relaxed space-y-4 font-medium break-all overflow-hidden max-w-full relative email-reader-content">
-                                            {selectedEmail.content.toLowerCase().includes('<html') || selectedEmail.content.includes('=3D') || selectedEmail.content.includes('<div') ? (
-                                                <div
-                                                    dangerouslySetInnerHTML={{ __html: parseAndCleanEmail(selectedEmail.content) }}
-                                                    className="prose prose-invert max-w-none text-white w-full overflow-hidden break-words [&_a]:text-neon-orange [&_a]:underline [&_*:not(a)]:bg-transparent [&_*:not(a)]:!bg-none"
+                                        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden text-gray-300 leading-relaxed font-medium max-w-full relative email-reader-content min-h-[400px]">
+                                            {selectedEmail.content.toLowerCase().includes('<html') || selectedEmail.content.toLowerCase().includes('<body') || selectedEmail.content.includes('=3D') || selectedEmail.content.toLowerCase().includes('<div') ? (
+                                                <iframe
+                                                    srcDoc={parseAndCleanEmail(selectedEmail.content)}
+                                                    className="w-full min-h-[600px] border-none"
+                                                    title="Email Content"
+                                                    onLoad={(e) => {
+                                                        const iframe = e.target as HTMLIFrameElement;
+                                                        if (iframe.contentWindow) {
+                                                            const body = iframe.contentWindow.document.body;
+                                                            if (body) {
+                                                                iframe.style.height = body.scrollHeight + 'px';
+                                                            }
+                                                        }
+                                                    }}
                                                 />
                                             ) : (
-                                                <div className="whitespace-pre-wrap">{selectedEmail.content}</div>
+                                                <div className="p-8 md:p-10 whitespace-pre-wrap break-words">{selectedEmail.content}</div>
                                             )}
 
-
-                                            {/* Ajout automatique de la signature sur les emails sortants ou prévisualisation */}
-                                            <EmailSignature password={savedPassword} />
+                                            <div className="p-8 md:p-10 border-t border-white/5 bg-black/20">
+                                                <EmailSignature password={savedPassword} />
+                                            </div>
                                         </div>
 
                                         <div className="mt-12 flex justify-between items-center text-gray-600 border-t border-white/5 pt-8">
@@ -720,8 +754,8 @@ export function AdminEmails() {
                                     </div>
                                 ) : (
                                     <div className="text-center space-y-6">
-                                        <div className="w-24 h-24 bg-neon-orange/5 rounded-[2.5rem] flex items-center justify-center mx-auto border border-neon-orange/10 relative">
-                                            <Mail className="w-10 h-10 text-neon-orange" />
+                                        <div className="w-24 h-24 bg-neon-red/5 rounded-[2.5rem] flex items-center justify-center mx-auto border border-neon-red/10 relative">
+                                            <Mail className="w-10 h-10 text-neon-red" />
                                         </div>
                                         <div className="space-y-2">
                                             <h3 className="text-lg font-bold text-white uppercase italic tracking-tight">Sélectionnez un message</h3>
@@ -745,7 +779,7 @@ export function AdminEmails() {
                                 className="bg-dark-bg border border-white/10 rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl"
                             >
                                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                                    <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Nouveau <span className="text-neon-orange">Message</span></h3>
+                                    <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">Nouveau <span className="text-neon-red">Message</span></h3>
                                     <button onClick={() => setIsComposing(false)} className="p-2 hover:bg-white/5 rounded-xl transition-colors text-gray-400 hover:text-white">
                                         <X className="w-6 h-6" />
                                     </button>
@@ -779,7 +813,7 @@ export function AdminEmails() {
                                                 type="email"
                                                 value={composeData.to}
                                                 onChange={(e) => setComposeData({ ...composeData, to: e.target.value })}
-                                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-neon-orange transition-all text-sm font-medium"
+                                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-neon-red transition-all text-sm font-medium"
                                                 placeholder="destinataire@exemple.com"
                                             />
                                         </div>
@@ -790,7 +824,7 @@ export function AdminEmails() {
                                                 type="text"
                                                 value={composeData.subject}
                                                 onChange={(e) => setComposeData({ ...composeData, subject: e.target.value })}
-                                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-neon-orange transition-all text-sm font-medium"
+                                                className="bg-black/40 border border-white/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-neon-red transition-all text-sm font-medium"
                                                 placeholder="Sujet de votre message..."
                                             />
                                         </div>
@@ -802,7 +836,7 @@ export function AdminEmails() {
                                             rows={12}
                                             value={composeData.content}
                                             onChange={(e) => setComposeData({ ...composeData, content: e.target.value })}
-                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-white outline-none focus:border-neon-orange transition-all text-sm font-medium resize-none leading-relaxed"
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-6 text-white outline-none focus:border-neon-red transition-all text-sm font-medium resize-none leading-relaxed"
                                             placeholder="Écrivez votre message ici..."
                                         />
 
@@ -821,7 +855,7 @@ export function AdminEmails() {
                                         <button
                                             type="submit"
                                             disabled={isSending}
-                                            className={`px-10 py-3.5 bg-neon-orange text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-neon-orange/20 flex items-center gap-3 hover:scale-105 transition-all active:scale-95 ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            className={`px-10 py-3.5 bg-neon-red text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-neon-red/20 flex items-center gap-3 hover:scale-105 transition-all active:scale-95 ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
                                             {isSending ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                             Envoyer
