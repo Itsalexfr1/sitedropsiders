@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Columns, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, Wand2, X, Youtube } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, Wand2, X, Youtube } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -64,8 +64,8 @@ export function RecapCreate() {
 
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string }>({ show: false, type: 'image', url: '', urls: '' });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget', index?: number }>({ type: 'main' });
-    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit', index?: number, widgetId?: string }>({ type: 'main' });
+    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
     const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -335,6 +335,14 @@ export function RecapCreate() {
 
     const updateWidget = (id: string, newContent: string) => {
         setWidgets(widgets.map(w => w.id === id ? { ...w, content: newContent } : w));
+    };
+
+    const extractDuoUrls = (html: string) => {
+        const matches = html.match(/src="([^"]+)"/g);
+        if (matches) {
+            return matches.map(m => m.replace('src="', '').replace('"', ''));
+        }
+        return ['', ''];
     };
 
     const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-2xl' | 'text-5xl') => {
@@ -921,7 +929,7 @@ export function RecapCreate() {
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined })}
+                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
                                         className="flex items-center gap-2 px-4 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[10px]"
                                     >
                                         <Columns className="w-3 h-3" /> Duo Photos
@@ -1092,6 +1100,39 @@ export function RecapCreate() {
                                                     </button>
                                                     <button
                                                         type="button"
+                                                        onClick={() => {
+                                                            if (widget.content.includes('duo-photos-premium')) {
+                                                                const urls = extractDuoUrls(widget.content);
+                                                                setDuoModal({
+                                                                    show: true,
+                                                                    url1: urls[0] || '',
+                                                                    url2: urls[1] || '',
+                                                                    widgetIndex: undefined,
+                                                                    widgetId: widget.id
+                                                                });
+                                                            } else if (widget.content.includes('youtube-player-widget')) {
+                                                                const val = prompt('Nouvelle URL YouTube ou ID');
+                                                                if (!val) return;
+                                                                let id = val;
+                                                                if (val.includes('youtube.com/watch?v=')) {
+                                                                    id = val.split('v=')[1].split('&')[0];
+                                                                } else if (val.includes('youtu.be/')) {
+                                                                    id = val.split('youtu.be/')[1];
+                                                                }
+                                                                const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
+                                                                updateWidget(widget.id, videoWidget);
+                                                            } else if (widget.content.includes('image-premium-wrapper')) {
+                                                                setUploadTarget({ type: 'widget-edit' as any, widgetId: widget.id });
+                                                                setShowUploadModal(true);
+                                                            }
+                                                        }}
+                                                        className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors"
+                                                        title="Éditer le widget"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
                                                         onClick={() => fixWidgetEncoding(widget.id)}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors"
                                                         title="Réparer les caractères"
@@ -1113,43 +1154,45 @@ export function RecapCreate() {
                                             {/* Le rendu final est désormais directement éditable au-dessus (WYSIWYG) */}
 
                                             {/* Title Block Editor */}
-                                            {widget.content.startsWith('<h2 class="premium-section-title">') && widget.content.endsWith('</h2>') ? (
-                                                <div className="bg-black/60 border-l-4 border-neon-red pl-4 py-4 rounded-r-xl">
-                                                    <input
-                                                        type="text"
-                                                        value={widget.content.replace('<h2 class="premium-section-title">', '').replace('</h2>', '')}
-                                                        onChange={(e) => updateWidget(widget.id, `<h2 class="premium-section-title">${e.target.value}</h2>`)}
-                                                        className="w-full bg-transparent text-xl font-display font-black text-white uppercase italic tracking-tighter border-none focus:ring-0 placeholder-gray-700"
-                                                        placeholder="VOTRE TITRE DE SECTION..."
-                                                    />
-                                                </div>
-                                            ) : (
-                                                !widget.content.includes('youtube-player-widget') &&
-                                                    !widget.content.includes('image-premium-wrapper') &&
-                                                    !widget.content.includes('gallery-premium-grid') &&
-                                                    !widget.content.includes('duo-photos-premium') ? (
-                                                    <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                                                        <VisualEditor
-                                                            content={widget.content}
-                                                            onChange={(html) => updateWidget(widget.id, html)}
-                                                            className="visual-editor-content p-8 min-h-[150px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium"
-                                                            widgetId={widget.id}
-                                                            onFocus={(e) => {
-                                                                if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
-                                                            }}
+                                            {
+                                                widget.content.startsWith('<h2 class="premium-section-title">') && widget.content.endsWith('</h2>') ? (
+                                                    <div className="bg-black/60 border-l-4 border-neon-red pl-4 py-4 rounded-r-xl">
+                                                        <input
+                                                            type="text"
+                                                            value={widget.content.replace('<h2 class="premium-section-title">', '').replace('</h2>', '')}
+                                                            onChange={(e) => updateWidget(widget.id, `<h2 class="premium-section-title">${e.target.value}</h2>`)}
+                                                            className="w-full bg-transparent text-xl font-display font-black text-white uppercase italic tracking-tighter border-none focus:ring-0 placeholder-gray-700"
+                                                            placeholder="VOTRE TITRE DE SECTION..."
                                                         />
                                                     </div>
                                                 ) : (
-                                                    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
-                                                        <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
-                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                                                            <div className="bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
-                                                                <ImageIcon className="w-8 h-8 text-white" />
+                                                    !widget.content.includes('youtube-player-widget') &&
+                                                        !widget.content.includes('image-premium-wrapper') &&
+                                                        !widget.content.includes('gallery-premium-grid') &&
+                                                        !widget.content.includes('duo-photos-premium') ? (
+                                                        <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                                                            <VisualEditor
+                                                                content={widget.content}
+                                                                onChange={(html) => updateWidget(widget.id, html)}
+                                                                className="visual-editor-content p-8 min-h-[150px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium"
+                                                                widgetId={widget.id}
+                                                                onFocus={(e) => {
+                                                                    if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
+                                                            <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
+                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                                                                <div className="bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
+                                                                    <ImageIcon className="w-8 h-8 text-white" />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    )
                                                 )
-                                            )}
+                                            }
                                         </div>
 
                                         {/* Add Button BETWEEN widgets */}
@@ -1201,7 +1244,7 @@ export function RecapCreate() {
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index })}
+                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined })}
                                                     className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px]"
                                                     title="Ajouter un Duo Photo ici"
                                                 >
@@ -1305,8 +1348,8 @@ export function RecapCreate() {
                             }
                         </div>
                     </form>
-                </div>
-            </div>
+                </div >
+            </div >
             <style>{`
                 .admin-editor-container.w-md-editor {
                     border: 1px solid rgba(255, 255, 255, 0.1)!important;
@@ -1546,7 +1589,7 @@ export function RecapCreate() {
                             className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
                         >
                             <button
-                                onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined })}
+                                onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
                                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
                                 <X className="w-5 h-5" />
@@ -1601,7 +1644,7 @@ export function RecapCreate() {
                                 </div>
                                 <div className="flex gap-4 pt-4">
                                     <button
-                                        onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined })}
+                                        onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
                                         className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                                     >
                                         Annuler
@@ -1623,12 +1666,14 @@ export function RecapCreate() {
 
                                             const duoWidget = `<div class="duo-photos-premium flex flex-row gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media1}\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media2}\n  </div>\n</div>`;
 
-                                            if (duoModal.widgetIndex !== undefined) {
+                                            if (duoModal.widgetId) {
+                                                updateWidget(duoModal.widgetId, duoWidget);
+                                            } else if (duoModal.widgetIndex !== undefined) {
                                                 addWidget(duoModal.widgetIndex, duoWidget);
                                             } else {
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: duoWidget }]);
                                             }
-                                            setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined });
+                                            setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined });
                                         }}
                                         className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
                                     >
@@ -1648,7 +1693,7 @@ export function RecapCreate() {
                 onCancel={() => blocker.reset?.()}
                 accentColor="neon-red"
             />
-        </div>
+        </div >
     );
 }
 

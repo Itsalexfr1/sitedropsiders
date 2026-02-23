@@ -510,7 +510,20 @@ export function AdminManage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-white line-clamp-1">{item.title}</div>
+                                                <Link
+                                                    to={
+                                                        item.category === 'Recap' ? `/recaps/${item.id}` :
+                                                            item.category === 'Interview' ? `/interviews/${item.id}` :
+                                                                item.category === 'Agenda' ? `/agenda` :
+                                                                    item.category === 'Galerie' ? `/galerie/${item.id}` :
+                                                                        `/news/${item.id}`
+                                                    }
+                                                    target="_blank"
+                                                    className="font-bold text-white line-clamp-1 hover:text-neon-red transition-colors flex items-center gap-2 group/title"
+                                                >
+                                                    {item.title}
+                                                    <ArrowLeft className="w-3 h-3 rotate-180 opacity-0 group-hover/title:opacity-100 transition-all text-neon-red" />
+                                                </Link>
                                                 <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>

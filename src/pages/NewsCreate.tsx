@@ -73,7 +73,7 @@ export function NewsCreate() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit', index?: number, widgetId?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
-    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined });
+    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
 
     // Fetch item if missing from state but ID is present
@@ -594,6 +594,14 @@ export function NewsCreate() {
         }
     };
 
+    const extractDuoUrls = (html: string) => {
+        const matches = html.match(/src="([^"]+)"/g);
+        if (matches) {
+            return matches.map(m => m.replace('src="', '').replace('"', ''));
+        }
+        return ['', ''];
+    };
+
     const fixWidgetEncoding = (id: string) => {
         setWidgets(widgets.map(w => w.id === id ? { ...w, content: fixEncoding(w.content) } : w));
     };
@@ -1052,7 +1060,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined })}
+                                            onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
                                             className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                         >
                                             <Columns className="w-3 h-3" /> Duo
@@ -1233,7 +1241,16 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    if (widget.content.includes('youtube-player-widget')) {
+                                                                    if (widget.content.includes('duo-photos-premium')) {
+                                                                        const urls = extractDuoUrls(widget.content);
+                                                                        setDuoModal({
+                                                                            show: true,
+                                                                            url1: urls[0] || '',
+                                                                            url2: urls[1] || '',
+                                                                            widgetIndex: undefined,
+                                                                            widgetId: widget.id
+                                                                        });
+                                                                    } else if (widget.content.includes('youtube-player-widget')) {
                                                                         const val = prompt('Nouvelle URL YouTube ou ID');
                                                                         if (!val) return;
                                                                         let id = val;
@@ -1355,7 +1372,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index })}
+                                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined })}
                                                         className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all"
                                                         title="Ajouter un Duo Photo ici"
                                                     >
@@ -1792,7 +1809,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                 className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
                             >
                                 <button
-                                    onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined })}
+                                    onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
                                     className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                                 >
                                     <X className="w-5 h-5" />
@@ -1847,7 +1864,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                     </div>
                                     <div className="flex gap-4 pt-4">
                                         <button
-                                            onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined })}
+                                            onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined })}
                                             className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                                         >
                                             Annuler
@@ -1869,12 +1886,14 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 
                                                 const duoWidget = `<div class="duo-photos-premium flex flex-row gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media1}\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media2}\n  </div>\n</div>`;
 
-                                                if (duoModal.widgetIndex !== undefined) {
+                                                if (duoModal.widgetId) {
+                                                    updateWidget(duoModal.widgetId, duoWidget);
+                                                } else if (duoModal.widgetIndex !== undefined) {
                                                     addWidget(duoModal.widgetIndex, duoWidget);
                                                 } else {
                                                     setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: duoWidget }]);
                                                 }
-                                                setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined });
+                                                setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined });
                                             }}
                                             className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
                                         >
