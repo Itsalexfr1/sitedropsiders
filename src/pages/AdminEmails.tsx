@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
     Mail,
     Inbox,
@@ -7,21 +7,17 @@ import {
     Trash2,
     RefreshCcw,
     Search,
-    X,
-    ChevronRight,
-    AlertCircle,
-    Archive,
-    Star,
-    MoreVertical,
     Reply,
     Forward,
-    Filter,
     ArrowLeft,
     Calendar,
     User,
     ExternalLink,
-    Zap,
-    Globe
+    Globe,
+    Archive,
+    AlertCircle,
+    MoreVertical,
+    Star
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -85,11 +81,10 @@ export function AdminEmails() {
     const [activeAccount, setActiveAccount] = useState<'alex' | 'contact'>('contact');
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     // Mock data for initial UI
-    const [emails, setEmails] = useState<{ alex: Email[], contact: Email[] }>({
+    const [emails] = useState<{ alex: Email[], contact: Email[] }>({
         alex: [
             {
                 id: '1',
@@ -208,7 +203,7 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
                 </div>
 
                 {/* Main Interface */}
-                <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-xl shadow-2xl flex flex-col md:flex-row min-h-[700px]">
+                <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden backdrop-blur-xl shadow-2xl flex flex-col md:flex-row min-h-[800px]">
 
                     {/* Sidebar Navigation */}
                     <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 space-y-8">
