@@ -33,7 +33,7 @@
     "id": 4,
     "name": "JULIEN",
     "role": "PHOTOGRAPHE",
-    "image": "/images/team/julien-b-.jpg",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818449/dropsiders/daus7k4zpjneubdjfdw9.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/julien_b68",
       "tiktok": "#"
@@ -43,7 +43,7 @@
     "id": 5,
     "name": "TANGUY ",
     "role": "RÉDACTEUR",
-    "image": "/images/team/tanguy-p-.jpg",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818490/dropsiders/ihz3zw9dcgn0bwtcftn9.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/tanguy_pllt",
       "tiktok": "#"
@@ -53,7 +53,7 @@
     "id": 6,
     "name": "GUILLAUME ",
     "role": "VIDÉASTE",
-    "image": "/images/team/guillaume-d-.jpg",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818551/dropsiders/iu8hxmmrcts4cigtuosz.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/guiyoome",
       "tiktok": "#"
@@ -63,7 +63,7 @@
     "id": 7,
     "name": "QUENTIN ",
     "role": "RÉDACTEUR",
-    "image": "/images/team/quentin-a-.jpg",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818582/dropsiders/yckyeyqpkgtdlzh3soan.jpg",
     "socials": {
       "instagram": "https://www.instagram.com/quentin.asbert",
       "tiktok": "#"
