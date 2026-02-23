@@ -378,10 +378,10 @@ export function AdminEmails() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-bg pt-24 px-4 sm:px-6 pb-12">
-            <div className="max-w-7xl mx-auto">
+        <div className="h-[calc(100vh-64px)] bg-dark-bg flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col h-full w-full">
                 {/* Header Dashboard Style */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-8 pb-0">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate('/admin')}
@@ -422,10 +422,10 @@ export function AdminEmails() {
                 </div>
 
                 {/* Main Interface */}
-                <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden no-scrollbar backdrop-blur-xl shadow-2xl flex flex-col md:flex-row min-h-[800px]">
+                <div className="bg-white/[0.02] border-t border-white/5 flex flex-col md:flex-row flex-1 min-h-0 overflow-hidden">
 
                     {/* Sidebar Navigation */}
-                    <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 space-y-8">
+                    <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 space-y-8 overflow-y-auto no-scrollbar">
                         <button
                             onClick={() => {
                                 setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });

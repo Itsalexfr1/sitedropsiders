@@ -9,6 +9,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const isHome = location.pathname === '/';
+    const isMessagerie = location.pathname === '/admin/emails';
 
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white">
@@ -25,7 +26,7 @@ export function Layout({ children }: LayoutProps) {
                 {children}
             </main>
 
-            <Footer />
+            {!isMessagerie && <Footer />}
         </div>
     );
 }
