@@ -149,6 +149,25 @@ export default {
             return { ok: true };
         }
 
+        async function triggerMailSync() {
+            if (!TOKEN) return;
+            const dispatchUrl = `https://api.github.com/repos/${OWNER}/${REPO}/dispatches`;
+            try {
+                await fetch(dispatchUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${TOKEN}`,
+                        'User-Agent': 'Cloudflare-Worker',
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ event_type: 'sync-mail' })
+                });
+            } catch (e) {
+                console.error('Failed to trigger mail sync workflow');
+            }
+        }
+
         const extractMetadata = (content) => {
             if (!content) return { images: [], youtubeId: '' };
             const images = [];
@@ -1308,6 +1327,11 @@ export default {
             }
         }
 
+        if (path === '/api/emails/sync' && request.method === 'POST') {
+            await triggerMailSync();
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
         if (path === '/api/emails/send' && request.method === 'POST') {
             const SEND_LOG_PATH = 'src/data/emails_sent.json';
             const { to, subject, content, account, status } = await request.json();
@@ -1325,6 +1349,7 @@ export default {
                 };
                 const updated = [...file.content, newEmail];
                 await saveGitHubFile(SEND_LOG_PATH, updated, `Send email from ${account} to ${to}`, file.sha);
+                await triggerMailSync();
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
@@ -1386,6 +1411,8 @@ export default {
 
                     await saveGitHubFile(targetPath, updatedTarget, `Action ${action} on email ${emailId} (add to ${toFolder})`, targetFile.sha);
                 }
+
+                await triggerMailSync();
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {

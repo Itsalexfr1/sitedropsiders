@@ -136,6 +136,9 @@ export function AdminEmails() {
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
+            // Déclencher le robot GitHub en arrière-plan
+            fetch('/api/emails/sync', { method: 'POST' }).catch(() => { });
+
             const res = await fetch(`/api/emails/list?account=${activeAccount}&folder=${activeFolder}`);
             if (res.ok) {
                 const data = await res.json();
