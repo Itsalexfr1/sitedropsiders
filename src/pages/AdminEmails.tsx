@@ -1,24 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import {
-    Mail,
-    Inbox,
-    Send,
-    Trash2,
-    RefreshCcw,
-    Search,
-    Reply,
-    Forward,
-    ArrowLeft,
-    Calendar,
-    User,
-    ExternalLink,
-    Globe,
-    Archive,
-    AlertCircle,
-    MoreVertical,
-    Star
-} from 'lucide-react';
+import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, AlertCircle, MoreVertical, Star, Lock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Email {
@@ -34,33 +16,33 @@ interface Email {
     labels: string[];
 }
 
-const EmailSignature = () => (
+const EmailSignature = ({ password = '2026' }: { password?: string }) => (
     <div className="mt-12 pt-8 border-t border-white/10">
         <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-neon-red via-neon-red/80 to-black rounded-xl flex items-center justify-center border border-white/10 shadow-lg shadow-neon-red/10">
-                <span className="text-white font-black italic text-sm tracking-tighter">DS.</span>
+            <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center border border-white/10 shadow-lg overflow-hidden">
+                <img src="/logo_presentation.png" alt="Dropsiders" className="w-full h-full object-contain p-1" />
             </div>
             <div>
                 <p className="text-sm font-black text-white uppercase tracking-widest italic">L'Équipe <span className="text-neon-red">Dropsiders</span></p>
-                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-0.5">Media & Production Festivals</p>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-0.5">Média & Production Festivals</p>
             </div>
         </div>
 
         <div className="flex flex-wrap gap-4 items-center">
-            <a
-                href="https://dropsiders.fr/kitmedia"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 hover:bg-white/10 transition-all"
-            >
+            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 transition-all">
                 <Globe className="w-3.5 h-3.5 text-neon-red" />
                 <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-white uppercase tracking-widest">Kit Media 2026</span>
-                    <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-1">
-                        Code : <span className="text-neon-red font-black">DROPSIDERS</span>
-                    </span>
+                    <span className="text-[8px] font-black text-white uppercase tracking-widest">Kit Média 2026</span>
+                    <a
+                        href="https://dropsiders.fr/kitmedia"
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[7px] font-bold text-gray-500 hover:text-white uppercase flex items-center gap-1 transition-colors"
+                    >
+                        Accès : <span className="text-neon-red font-black uppercase">{password}</span>
+                    </a>
                 </div>
-            </a>
+            </div>
 
             <div className="flex items-center gap-3">
                 <div className="w-px h-8 bg-white/10"></div>
@@ -69,7 +51,7 @@ const EmailSignature = () => (
                         <div className="w-1 h-1 rounded-full bg-neon-red shadow-[0_0_5px_red]"></div>
                         <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Paris • Ibiza • Las Vegas</span>
                     </div>
-                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.3em]">www.dropsiders.fr</p>
+                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.3em] hover:text-white cursor-default">www.dropsiders.fr</p>
                 </div>
             </div>
         </div>
@@ -82,6 +64,51 @@ export function AdminEmails() {
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [emailPassword, setEmailPassword] = useState('');
+    const [savedPassword, setSavedPassword] = useState('2026');
+    const [isAuthorized, setIsAuthorized] = useState(false);
+    const [loginError, setLoginError] = useState('');
+
+    useEffect(() => {
+        // Fetch custom password from settings if Alexander
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    const savedPass = data.email_password || '2026';
+                    setSavedPassword(savedPass);
+                    // Auto-auth if already entered in session
+                    if (sessionStorage.getItem('email_auth') === savedPass) {
+                        setIsAuthorized(true);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch settings');
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            const res = await fetch('/api/settings');
+            const data = res.ok ? await res.json() : {};
+            const correctPass = data.email_password || '2026';
+
+            if (emailPassword === correctPass) {
+                setIsAuthorized(true);
+                sessionStorage.setItem('email_auth', correctPass);
+                setLoginError('');
+            } else {
+                setLoginError('Code d\'accès incorrect');
+                setEmailPassword('');
+            }
+        } catch (e) {
+            setLoginError('Erreur de connexion');
+        }
+    };
 
     // Mock data for initial UI
     const [emails] = useState<{ alex: Email[], contact: Email[] }>({
@@ -165,6 +192,47 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
         email.from.toLowerCase().includes(searchTerm.toLowerCase()) ||
         email.fromName.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    if (!isAuthorized) {
+        return (
+            <div className="min-h-screen bg-dark-bg flex items-center justify-center px-4">
+                <div className="max-w-md w-full">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-xl shadow-2xl text-center"
+                    >
+                        <div className="w-20 h-20 bg-neon-orange/10 rounded-3xl flex items-center justify-center border border-neon-orange/20 mx-auto mb-8">
+                            <Lock className="w-8 h-8 text-neon-orange" />
+                        </div>
+                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                            Accès <span className="text-neon-orange">Sécurisé</span>
+                        </h2>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">
+                            Veuillez entrer le code d'accès à la messagerie
+                        </p>
+
+                        <form onSubmit={handleLogin} className="space-y-6">
+                            <input
+                                type="password"
+                                value={emailPassword}
+                                onChange={(e) => setEmailPassword(e.target.value)}
+                                placeholder="MOT DE PASSE"
+                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-orange transition-all"
+                            />
+                            {loginError && <p className="text-neon-red text-[10px] font-black uppercase tracking-widest">{loginError}</p>}
+                            <button
+                                type="submit"
+                                className="w-full py-5 bg-neon-orange text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-orange/20 active:scale-95 text-xs"
+                            >
+                                Se connecter
+                            </button>
+                        </form>
+                    </motion.div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-dark-bg pt-24 px-4 sm:px-6 pb-12">
@@ -389,7 +457,7 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
                                             {selectedEmail.content}
 
                                             {/* Ajout automatique de la signature sur les emails sortants ou prévisualisation */}
-                                            <EmailSignature />
+                                            <EmailSignature password={savedPassword} />
                                         </div>
 
                                         <div className="mt-12 flex flex-wrap gap-4">

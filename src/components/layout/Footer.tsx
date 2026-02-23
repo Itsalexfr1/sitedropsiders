@@ -1,5 +1,5 @@
 
-import { Mail, ExternalLink, FileText, Lock } from 'lucide-react';
+import { Mail, ExternalLink, Lock, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
@@ -10,6 +10,7 @@ export function Footer() {
     const { t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
+    const [kitMediaPassword, setKitMediaPassword] = useState('2026');
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -19,6 +20,7 @@ export function Footer() {
                     const data = await response.json();
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
+                    if (data.email_password) setKitMediaPassword(data.email_password);
                 }
             } catch (e) {
                 // Keep default
@@ -166,15 +168,31 @@ export function Footer() {
 
                 {/* Bottom Bar: Copyright & Legal */}
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 relative">
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <ZoomText text={`© ${new Date().getFullYear()} DROPSIDERS. ${t('footer.rights')}`} />
-                        <Link to="/kit-media" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-gray-800 hover:text-neon-red transition-colors ml-2" title="Kit Media">
-                            <FileText className="w-3 h-3" />
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                            <ZoomText text={`© ${new Date().getFullYear()} DROPSIDERS. ${t('footer.rights')}`} />
+                            <Link to="/admin" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-gray-800 hover:text-neon-red transition-colors ml-2" title="Admin">
+                                <Lock className="w-3 h-3" />
+                            </Link>
+                        </p>
+
+                        <Link
+                            to="/kit-media"
+                            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                            className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 hover:bg-white/10 transition-all group"
+                        >
+                            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center border border-white/10 shadow-lg overflow-hidden shrink-0 group-hover:border-neon-red transition-colors">
+                                <img src="/logo_presentation.png" alt="Dropsiders" className="w-full h-full object-contain p-1" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black text-white uppercase tracking-widest">Kit Média 2026</span>
+                                <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-2">
+                                    Accès : <span className="text-neon-red font-black group-hover:animate-pulse uppercase">{kitMediaPassword}</span>
+                                </span>
+                            </div>
+                            <Globe className="w-4 h-4 text-gray-600 group-hover:text-neon-red transition-colors ml-2" />
                         </Link>
-                        <Link to="/admin" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-gray-800 hover:text-neon-red transition-colors ml-2" title="Admin">
-                            <Lock className="w-3 h-3" />
-                        </Link>
-                    </p>
+                    </div>
                     <div className="flex flex-wrap justify-center gap-8 text-center">
                         <Link to="/politique-de-confidentialite" className="text-[10px] font-black text-gray-500 hover:text-neon-red transition-colors uppercase tracking-widest">
                             <ZoomText text={t('footer.privacy')} />

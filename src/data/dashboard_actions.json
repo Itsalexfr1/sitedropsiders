@@ -118,5 +118,23 @@
     "baseColor": "#000000",
     "permission": "all",
     "columns": 3
+  },
+  {
+    "title": "Mails",
+    "description": "LWS Webmail",
+    "icon": "Mail",
+    "link": "/admin/emails",
+    "baseColor": "#ff6600",
+    "permission": "mail",
+    "columns": 1
+  },
+  {
+    "title": "Paramètres",
+    "description": "Config système",
+    "icon": "Settings2",
+    "link": "/admin/settings",
+    "baseColor": "#9d00ff",
+    "permission": "alex_only",
+    "columns": 1
   }
 ]

@@ -29,14 +29,29 @@ const KitMedia = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [error, setError] = useState('');
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (password.toUpperCase() === 'DROPSIDERS') {
-            setIsAuthenticated(true);
-            setError('');
-        } else {
-            setError(language === 'fr' ? "Code d'accès incorrect" : "Incorrect access code");
-            shakeForm();
+        try {
+            const res = await fetch('/api/settings');
+            const data = await res.json();
+            const correctPass = data.email_password || '2026';
+
+            if (password.toUpperCase() === correctPass.toUpperCase()) {
+                setIsAuthenticated(true);
+                setError('');
+            } else {
+                setError(language === 'fr' ? "Code d'accès incorrect" : "Incorrect access code");
+                shakeForm();
+            }
+        } catch (e) {
+            // Fallback to 2026 if API fails
+            if (password.toUpperCase() === '2026') {
+                setIsAuthenticated(true);
+                setError('');
+            } else {
+                setError(language === 'fr' ? "Code d'accès incorrect" : "Incorrect access code");
+                shakeForm();
+            }
         }
     };
 

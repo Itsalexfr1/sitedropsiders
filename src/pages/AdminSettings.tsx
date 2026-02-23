@@ -1,0 +1,161 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { getAuthHeaders } from '../utils/auth';
+
+export function AdminSettings() {
+    const navigate = useNavigate();
+    const [emailPassword, setEmailPassword] = useState('2026');
+    const [isSaving, setIsSaving] = useState(false);
+    const [message, setMessage] = useState('');
+
+    const isAlex = localStorage.getItem('admin_user') === 'alex';
+
+    useEffect(() => {
+        if (!isAlex) {
+            navigate('/admin');
+            return;
+        }
+
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.email_password) {
+                        setEmailPassword(data.email_password);
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch settings');
+            }
+        };
+        fetchSettings();
+    }, [isAlex, navigate]);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setMessage('');
+        try {
+            const res = await fetch('/api/settings');
+            const data = res.ok ? await res.json() : {};
+
+            const newSettings = {
+                ...data,
+                email_password: emailPassword
+            };
+
+            const saveRes = await fetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(newSettings)
+            });
+
+            if (saveRes.ok) {
+                setMessage('Paramètres enregistrés avec succès !');
+                setTimeout(() => setMessage(''), 3000);
+            } else {
+                setMessage('Erreur lors de l\'enregistrement');
+            }
+        } catch (e) {
+            setMessage('Erreur de connexion');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    if (!isAlex) return null;
+
+    return (
+        <div className="min-h-screen bg-dark-bg py-32 px-6">
+            <div className="max-w-3xl mx-auto">
+                <button
+                    onClick={() => navigate('/admin')}
+                    className="flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group"
+                >
+                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    <span>Retour au Dashboard</span>
+                </button>
+
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                    <div>
+                        <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                            Paramètres <span className="text-neon-purple">Système</span>
+                        </h1>
+                        <p className="text-gray-400 mt-2">Configuration réservée à l'administrateur principal.</p>
+                    </div>
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="px-8 py-3 bg-neon-purple hover:bg-neon-purple/80 text-white font-black uppercase rounded-xl transition-all shadow-lg shadow-neon-purple/20 flex items-center gap-2 disabled:opacity-50"
+                    >
+                        <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
+                        {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                    </button>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl"
+                    >
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-neon-purple/10 rounded-2xl">
+                                <ShieldCheck className="w-6 h-6 text-neon-purple" />
+                            </div>
+                            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Accès Messagerie</h2>
+                        </div>
+
+                        <div className="space-y-6">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">
+                                    Mot de passe de la section Mails
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <Lock className="w-5 h-5 text-gray-500" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={emailPassword}
+                                        onChange={(e) => setEmailPassword(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-purple transition-all"
+                                        placeholder="EX: 2026"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
+                                    Ce mot de passe protège l'accès à la page /admin/emails pour tous les éditeurs ayant la permission 'mail'.
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {message && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className={`p-4 rounded-xl text-center font-bold uppercase tracking-widest text-xs ${message.includes('succès') ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-neon-red/10 text-neon-red border border-neon-red/20'}`}
+                        >
+                            {message}
+                        </motion.div>
+                    )}
+                </div>
+
+                <div className="mt-12 p-8 border border-white/5 rounded-3xl bg-white/[0.02]">
+                    <div className="flex gap-4 items-start">
+                        <Mail className="w-5 h-5 text-gray-500 shrink-0 mt-1" />
+                        <div>
+                            <h4 className="text-white font-bold mb-1 uppercase text-xs tracking-wider">Note de sécurité</h4>
+                            <p className="text-gray-500 text-xs leading-relaxed uppercase tracking-tight">
+                                Le changement de mot de passe est instantané. Assurez-vous de le communiquer à l'équipe si nécessaire.
+                                Ce code est distinct de votre mot de passe de connexion personnel.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
