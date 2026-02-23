@@ -210,23 +210,29 @@
 /* --- DUO PHOTOS & PREMIUM WRAPPERS --- */
 .duo-photos-premium {
     display: grid !important;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1.5rem !important;
     margin: 4rem 0 !important;
-    width: 100%;
+    width: 100% !important;
 }
 
 @media (max-width: 768px) {
     .duo-photos-premium {
         grid-template-columns: 1fr !important;
-        gap: 1.5rem;
+        gap: 1rem !important;
     }
 }
 
 .image-premium-wrapper {
-    position: relative;
-    width: 100%;
-    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative !important;
+    width: 100% !important;
+    background-color: rgba(0, 0, 0, 0.4);
+    border-radius: 1.5rem !important;
+    /* 24px */
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .image-premium-wrapper img,
@@ -238,11 +244,11 @@
 }
 
 .duo-photos-premium .image-premium-wrapper {
-    aspect-ratio: 3/4;
+    aspect-ratio: 3/4 !important;
 }
 
 .image-premium-wrapper:hover {
-    transform: translateY(-8px) scale(1.01);
+    transform: translateY(-8px) scale(1.01) !important;
     box-shadow: 0 30px 60px -10px rgba(255, 0, 51, 0.2) !important;
     border-color: rgba(255, 0, 51, 0.4) !important;
     z-index: 10;
