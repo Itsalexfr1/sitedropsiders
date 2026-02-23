@@ -9,7 +9,10 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const isHome = location.pathname === '/';
-    const isMessagerie = location.pathname === '/admin/emails';
+    const isAdminPage = location.pathname.startsWith('/admin') ||
+        location.pathname.startsWith('/newsletter/admin') ||
+        location.pathname.startsWith('/newsletter/composer') ||
+        location.pathname.includes('/create');
 
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white">
@@ -20,13 +23,13 @@ export function Layout({ children }: LayoutProps) {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             </div>
 
-            {!isMessagerie && <Navbar />}
+            {!isAdminPage && <Navbar />}
 
-            <main className={`flex-grow relative ${isHome || isMessagerie ? 'pt-0' : 'pt-16'}`}>
+            <main className={`flex-grow relative ${isHome || isAdminPage ? 'pt-0' : 'pt-16'}`}>
                 {children}
             </main>
 
-            {!isMessagerie && <Footer />}
+            {!isAdminPage && <Footer />}
         </div>
     );
 }

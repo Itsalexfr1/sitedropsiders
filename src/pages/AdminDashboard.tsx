@@ -301,25 +301,25 @@ export function AdminDashboard() {
     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-16 text-center md:text-left flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+                    className="mb-8 md:mb-16 text-center md:text-left flex flex-col items-center md:items-end md:flex-row justify-between gap-6"
                 >
-                    <div>
-                        <div className="flex items-center gap-4 justify-center md:justify-start mb-4">
-                            <div className="p-3 bg-neon-red/10 rounded-2xl">
-                                <LayoutDashboard className="w-8 h-8 text-neon-red" />
+                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
+                        <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-4">
+                            <div className="p-2 md:p-3 bg-neon-red/10 rounded-xl md:rounded-2xl">
+                                <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-neon-red" />
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Tableau de <span className="text-neon-red">Bord</span>
+                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                Studio <span className="text-neon-red">Dropsiders</span>
                             </h1>
                         </div>
-                        <p className="text-gray-400 text-lg max-w-2xl">
-                            Bienvenue dans votre espace d'administration. {isAdmin && "Déplacez les cartes pour réorganiser."}
+                        <p className="text-gray-400 text-sm md:text-lg max-w-2xl px-4 md:px-0">
+                            Espace d'administration centralisé. {isAdmin && <span className="hidden md:inline">Personnalisez votre vue.</span>}
                         </p>
                     </div>
 
@@ -348,17 +348,17 @@ export function AdminDashboard() {
                             )}
                         </div>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex flex-row items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2 md:pb-0 w-full md:w-auto">
                             {hasChanges && (
                                 <motion.button
                                     initial={{ scale: 0.9, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     onClick={deployConfig}
                                     disabled={isSaving}
-                                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-black uppercase rounded-full shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all"
+                                    className="px-4 md:px-6 py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] md:text-xs font-black uppercase rounded-full shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all whitespace-nowrap"
                                 >
-                                    <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
-                                    {isSaving ? 'Déploiement...' : 'Enregistrer & Déployer'}
+                                    <Save className={`w-3 h-3 md:w-4 md:h-4 ${isSaving ? 'animate-spin' : ''}`} />
+                                    {isSaving ? '...' : 'Déployer'}
                                 </motion.button>
                             )}
                             <button
@@ -366,16 +366,16 @@ export function AdminDashboard() {
                                     setEditMode(!editMode);
                                     if (editMode) setOpenMenu(null);
                                 }}
-                                className={`px-6 py-2 border rounded-full text-sm font-bold transition-colors w-full md:w-auto flex items-center justify-center gap-2 ${editMode ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                className={`px-4 md:px-6 py-2 border rounded-full text-[10px] md:text-sm font-black md:font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${editMode ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                             >
-                                <LayoutDashboard className="w-4 h-4" />
-                                {editMode ? 'Quitter Personnalisation' : 'Personnaliser'}
+                                <LayoutDashboard className="w-3 h-3 md:w-4 md:h-4" />
+                                <span className="uppercase">{editMode ? 'OK' : 'Éditer'}</span>
                             </button>
                             <button
                                 onClick={handleLogout}
-                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-bold text-gray-400 hover:text-white transition-colors w-full md:w-auto"
+                                className="px-4 md:px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] md:text-sm font-black md:font-bold text-gray-400 hover:text-white transition-all whitespace-nowrap uppercase"
                             >
-                                Se déconnecter
+                                Quitter
                             </button>
                         </div>
                     </div>

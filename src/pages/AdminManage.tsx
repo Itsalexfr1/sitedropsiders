@@ -316,21 +316,21 @@ export function AdminManage() {
     ];
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
             <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
-                    <div className="flex items-center gap-6">
-                        <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <Link to="/admin" className="p-2 md:p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group" title="Retour au tableau de bord">
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Gestion du <span className="text-neon-red">Contenu</span>
+                            <h1 className="text-2xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                Gestion <span className="text-neon-red">Contenu</span>
                             </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 md:gap-4 w-full md:w-auto">
                         <AnimatePresence>
                             {selectedIds.length > 0 && (
                                 <motion.button
@@ -342,49 +342,50 @@ export function AdminManage() {
                                             handleBulkDelete();
                                         }
                                     }}
-                                    className="px-6 py-3 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all flex items-center gap-2 shadow-lg shadow-red-600/20"
+                                    className="px-4 py-2 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-red-700 transition-all flex items-center gap-2 shadow-lg shadow-red-600/20 whitespace-nowrap"
                                 >
-                                    <Trash2 className="w-4 h-4" />
-                                    Supprimer ({selectedIds.length})
+                                    <Trash2 className="w-3 h-3 md:w-4 md:h-4" />
+                                    {selectedIds.length}
                                 </motion.button>
                             )}
                         </AnimatePresence>
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                        <div className="relative flex-1 md:w-80">
+                            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-500" />
                             <input
                                 type="text"
                                 placeholder="Rechercher..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-neon-red transition-colors"
+                                className="w-full pl-10 md:pl-12 pr-10 py-2 md:py-3 bg-white/5 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:border-neon-red transition-colors"
                             />
                             {searchTerm && (
                                 <button
                                     onClick={() => setSearchTerm('')}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
                                 >
-                                    <X className="w-4 h-4" />
+                                    <X className="w-3 h-3 md:w-4 md:h-4" />
                                 </button>
                             )}
                         </div>
                         <Link
                             to={activeTab === 'News' ? '/news/create' : activeTab === 'Musique' ? '/news/create?type=Musique' : activeTab === 'Recaps' ? '/recaps/create' : activeTab === 'Interviews' ? '/news/create?type=Interview' : activeTab === 'Agenda' ? '/agenda/create' : activeTab === 'Galeries' ? '/galerie/create' : '#'}
-                            className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
+                            className="p-3 md:p-4 bg-neon-red text-white rounded-xl md:rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
                         >
-                            <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                            <Plus className="w-5 h-5 md:w-6 md:h-6 group-hover:rotate-90 transition-transform" />
                         </Link>
                     </div>
                 </div>
 
                 <div className="flex flex-col gap-6 mb-8">
-                    <div className="flex flex-wrap gap-3">
+                    <div className="flex flex-row md:flex-wrap gap-2 md:gap-3 overflow-x-auto no-scrollbar pb-2 md:pb-0">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.type}
                                 onClick={() => setActiveTab(tab.type)}
-                                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold uppercase tracking-wider transition-all border ${activeTab === tab.type ? 'bg-white/10 border-white/20 ' + tab.color + ' transform -translate-y-1' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'}`}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 rounded-xl font-black md:font-bold uppercase tracking-wider transition-all border whitespace-nowrap text-[10px] md:text-sm ${activeTab === tab.type ? 'bg-white/10 border-white/20 ' + tab.color + ' transform -translate-y-1 shadow-lg' : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'}`}
                             >
-                                {tab.icon} {tab.type}
+                                <span className="md:w-4 md:h-4">{tab.icon}</span>
+                                <span>{tab.type}</span>
                             </button>
                         ))}
                     </div>
