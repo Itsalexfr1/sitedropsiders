@@ -4,12 +4,14 @@ import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { ImageUploadModal } from '../components/ImageUploadModal';
 
 interface LayoutItem {
     id: string;
     enabled: boolean;
     columns?: string;
     videoId?: string;
+    videoUrl?: string;
     maxAgendaItems?: number;
     accentColor?: string;
     accentColor2?: string;
@@ -24,7 +26,7 @@ const SECTION_CONFIG: Record<string, { name: string, icon: any, color: string, d
     spotify: { name: "Playlists Spotify", icon: Music, color: "#1db954", description: "Sélection de playlists sur l'accueil" }
 };
 
-function ReorderableItem({ item, updateItem, getColorValue }: { item: LayoutItem, updateItem: (id: string, updates: Partial<LayoutItem>) => void, getColorValue: (color?: string) => string }) {
+function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { item: LayoutItem, updateItem: (id: string, updates: Partial<LayoutItem>) => void, getColorValue: (color?: string) => string, onUploadVideo?: (id: string) => void }) {
     const config = SECTION_CONFIG[item.id] || { name: item.id, icon: Layout, color: "#fff", description: "" };
     const Icon = config.icon;
 
@@ -87,15 +89,32 @@ function ReorderableItem({ item, updateItem, getColorValue }: { item: LayoutItem
                             </div>
 
                             {item.id === 'hero' && (
-                                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                                    <Youtube className="w-3 h-3 text-red-500" />
-                                    <input
-                                        type="text"
-                                        value={item.videoId || ''}
-                                        onChange={(e) => updateItem(item.id, { videoId: e.target.value })}
-                                        className="bg-transparent border-none text-[10px] font-bold outline-none w-24 text-white"
-                                        placeholder="ID YouTube"
-                                    />
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                                        <Youtube className="w-3 h-3 text-red-500" />
+                                        <input
+                                            type="text"
+                                            value={item.videoId || ''}
+                                            onChange={(e) => updateItem(item.id, { videoId: e.target.value })}
+                                            className="bg-transparent border-none text-[10px] font-bold outline-none w-24 text-white"
+                                            placeholder="ID YouTube"
+                                        />
+                                    </div>
+                                    <span className="text-[10px] font-black text-gray-600 uppercase">OU</span>
+                                    <button
+                                        onClick={() => onUploadVideo?.(item.id)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all text-[10px] font-bold uppercase ${item.videoUrl ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        {item.videoUrl ? 'Vidéo Uploadée' : 'Upload Vidéo File'}
+                                    </button>
+                                    {item.videoUrl && (
+                                        <button
+                                            onClick={() => updateItem(item.id, { videoUrl: undefined })}
+                                            className="text-[10px] text-red-500 font-bold hover:underline"
+                                        >
+                                            Supprimer
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
@@ -161,9 +180,8 @@ export function AdminHome() {
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [hasChanges, setHasChanges] = useState(false);
-
-
-
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
     // Prompt before internal React Router navigation
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
@@ -250,6 +268,17 @@ export function AdminHome() {
         return colorMap[color] || '#ff0000';
     };
 
+    const handleUploadVideo = (id: string) => {
+        setUploadingItemId(id);
+        setIsUploadModalOpen(true);
+    };
+
+    const onUploadSuccess = (url: string) => {
+        if (uploadingItemId) {
+            updateItem(uploadingItemId, { videoUrl: url });
+        }
+    };
+
     return (
         <div className="min-h-screen bg-dark-bg py-32 px-6 text-white overflow-x-hidden uppercase">
             <div className="max-w-5xl mx-auto">
@@ -320,6 +349,7 @@ export function AdminHome() {
                                         item={item}
                                         updateItem={updateItem}
                                         getColorValue={getColorValue}
+                                        onUploadVideo={handleUploadVideo}
                                     />
                                 ))}
                             </AnimatePresence>
@@ -355,6 +385,13 @@ export function AdminHome() {
                 message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                 onConfirm={() => blocker.proceed?.()}
                 onCancel={() => blocker.reset?.()}
+                accentColor="neon-cyan"
+            />
+
+            <ImageUploadModal
+                isOpen={isUploadModalOpen}
+                onClose={() => setIsUploadModalOpen(false)}
+                onUploadSuccess={onUploadSuccess}
                 accentColor="neon-cyan"
             />
         </div>
