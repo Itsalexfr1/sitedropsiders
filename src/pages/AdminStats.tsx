@@ -372,16 +372,16 @@ export function AdminStats() {
             </AnimatePresence>
 
             <div className="w-full">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 px-4 md:px-0">
-                    <div className="flex items-center gap-6">
-                        <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-gray-400 group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16 px-4 md:px-0">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Dashboard <span className="text-neon-red underline decoration-8 decoration-neon-red/10 underline-offset-8">Analytics</span>
+                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                Studio <span className="text-neon-red">Analytics</span>
                             </h1>
-                            <p className="text-gray-400 mt-4 text-[10px] md:text-xs font-black uppercase tracking-[0.3em] font-display">
+                            <p className="text-gray-400 mt-2 text-sm md:text-base">
                                 {language === 'fr' ? "Tracking Réel Temps Réel" : "Real Time Real Tracking"} • Dropsiders V2
                             </p>
                         </div>

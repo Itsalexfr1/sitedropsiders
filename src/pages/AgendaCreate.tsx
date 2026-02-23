@@ -206,34 +206,38 @@ export function AgendaCreate() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-bg text-white py-32 px-6">
-            <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center gap-6 mb-8">
-                    <div className="flex items-center gap-4">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
+            <div className="max-w-5xl mx-auto">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
+                    <div className="flex items-center gap-4 md:gap-6">
                         <button
                             onClick={() => navigate('/admin/manage')}
-                            className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
+                            className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group"
                             title="Retour"
                         >
-                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </button>
-                        <h1 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                            {isEditing ? 'Modifier l\'Événement' : 'Ajouter à l\'Agenda'}
-                        </h1>
+                        <div>
+                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                Studio <span className="text-neon-yellow">Agenda</span>
+                            </h1>
+                            <p className="text-gray-400 mt-2 text-sm md:text-base">{isEditing ? 'Modifier l\'Événement' : 'Ajouter à l\'Agenda'}</p>
+                        </div>
                     </div>
+
                     {isEditing && (
-                        <div className="flex-1 flex justify-end">
+                        <div className="w-full md:w-auto">
                             <button
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={status === 'loading'}
-                                className={`px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${status === 'loading'
+                                className={`w-full md:w-auto px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 ${status === 'loading'
                                     ? 'bg-gray-600 cursor-not-allowed opacity-50'
                                     : 'bg-neon-yellow hover:scale-105 active:scale-95 text-black shadow-lg shadow-neon-yellow/20'
                                     }`}
                             >
                                 <Send className="w-4 h-4" />
-                                {status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}
+                                <span>{status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}</span>
                             </button>
                         </div>
                     )}

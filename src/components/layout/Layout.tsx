@@ -11,7 +11,7 @@ export function Layout({ children }: LayoutProps) {
     const isHome = location.pathname === '/';
     const isAdminPage = location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
-        location.pathname.startsWith('/newsletter/composer') ||
+        location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.includes('/create');
 
     return (

@@ -140,76 +140,116 @@ export function AdminDashboard() {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-dark-bg py-32 px-6 flex items-center justify-center">
-                <div className="w-full max-w-md">
+            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+                {/* Background Effects */}
+                <div className="absolute inset-0 z-0 pointer-events-none">
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl"
-                    >
-                        <div className="flex justify-center mb-8">
-                            <div className="p-4 bg-neon-red/10 rounded-full border border-neon-red/20">
-                                <Lock className="w-8 h-8 text-neon-red" />
-                            </div>
-                        </div>
-
-                        <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
-                            Accès Restreint
-                        </h2>
-                        <p className="text-center text-gray-400 text-sm mb-8">
-                            Veuillez vous identifier pour accéder au tableau de bord.
-                        </p>
-
-                        <form onSubmit={handleLogin} className="space-y-4">
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <User className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="text"
-                                    placeholder="Identifiant"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
-                                />
-                            </div>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <Lock className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <input
-                                    type="password"
-                                    placeholder="Mot de passe"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
-                                />
-                            </div>
-
-                            {error && (
-                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                    <p className="text-red-400 text-xs text-center font-bold">{error}</p>
-                                </div>
-                            )}
-
-                            <button
-                                type="submit"
-                                className="w-full py-3 bg-neon-red hover:bg-neon-red/80 text-white font-bold uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center gap-2 group"
-                            >
-                                Se connecter
-                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                            </button>
-                        </form>
-
-                        <div className="mt-8 pt-6 border-t border-white/5">
-                            <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
-                                Espace d'administration réservé à l'équipe Dropsiders.
-                                Ce portail permet la gestion des actualités, des reportages festivals,
-                                de la billetterie et des statistiques d'audience du site.
-                            </p>
-                        </div>
-                    </motion.div>
+                        animate={{
+                            scale: [1, 1.2, 1],
+                            opacity: [0.3, 0.5, 0.3]
+                        }}
+                        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-neon-red/20 blur-[120px] rounded-full"
+                    />
+                    <motion.div
+                        animate={{
+                            scale: [1.2, 1, 1.2],
+                            opacity: [0.2, 0.4, 0.2]
+                        }}
+                        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
+                        className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-neon-blue/10 blur-[150px] rounded-full"
+                    />
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay" />
                 </div>
+
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative z-10 w-full max-w-md"
+                >
+                    <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                        {/* Subtle inner glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50 pointer-events-none" />
+
+                        <div className="relative z-10">
+                            <div className="flex justify-center mb-10">
+                                <motion.div
+                                    whileHover={{ rotate: 360, scale: 1.1 }}
+                                    transition={{ duration: 0.6 }}
+                                    className="w-20 h-20 bg-gradient-to-br from-neon-red to-neon-pink p-[1px] rounded-3xl"
+                                >
+                                    <div className="w-full h-full bg-black rounded-[23px] flex items-center justify-center">
+                                        <Lock className="w-8 h-8 text-white" />
+                                    </div>
+                                </motion.div>
+                            </div>
+
+                            <div className="text-center mb-10">
+                                <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2 leading-none">
+                                    Studio <span className="text-neon-red">Access</span>
+                                </h1>
+                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-4">
+                                    Portail d'Administration Centralisé
+                                </p>
+                            </div>
+
+                            <form onSubmit={handleLogin} className="space-y-6">
+                                <div className="space-y-4">
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-neon-red">
+                                            <User className="h-5 w-5 text-gray-500 transition-colors group-focus-within:text-neon-red" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="IDENTIFIANT"
+                                            value={username}
+                                            onChange={(e) => setUsername(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all font-bold tracking-widest text-xs"
+                                        />
+                                    </div>
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-neon-red">
+                                            <Lock className="h-5 w-5 text-gray-500 transition-colors group-focus-within:text-neon-red" />
+                                        </div>
+                                        <input
+                                            type="password"
+                                            placeholder="MOT DE PASSE"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all font-bold tracking-widest text-xs"
+                                        />
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="p-4 bg-neon-red/10 border border-neon-red/20 rounded-2xl"
+                                    >
+                                        <p className="text-neon-red text-[10px] text-center font-black uppercase tracking-widest">{error}</p>
+                                    </motion.div>
+                                )}
+
+                                <button
+                                    type="submit"
+                                    className="w-full py-5 bg-white text-black hover:bg-neon-red hover:text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all duration-300 shadow-xl shadow-white/5 flex items-center justify-center gap-3 group active:scale-[0.98]"
+                                >
+                                    Se connecter
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </button>
+                            </form>
+
+                            <div className="mt-12 pt-8 border-t border-white/5">
+                                <p className="text-[9px] text-gray-500 uppercase tracking-[0.2em] text-center leading-relaxed font-medium">
+                                    Accès réservé. Ce portail permet la gestion complète des contenus,
+                                    statistiques et configurations du média Dropsiders.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
             </div>
         );
     }

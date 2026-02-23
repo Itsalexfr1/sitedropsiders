@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Music, ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -85,7 +85,7 @@ export function AdminSpotify() {
                 setStatus('error');
                 setMessage(err.error || 'Erreur lors de la sauvegarde');
             }
-        } catch (error) {
+        } catch {
             setStatus('error');
             setMessage('Erreur de connexion');
         }
@@ -96,7 +96,7 @@ export function AdminSpotify() {
             <div className="max-w-4xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
                     <div className="flex items-center gap-4 md:gap-6">
-                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group">
+                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
                             <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>

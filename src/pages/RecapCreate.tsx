@@ -711,50 +711,54 @@ export function RecapCreate() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-bg text-white py-32 px-6">
-            <div className="max-w-5xl mx-auto">
-                <div className="flex items-center gap-6 mb-8">
-                    <button
-                        onClick={() => {
-                            if (window.history.length > 1) {
-                                navigate(-1);
-                            } else {
-                                navigate('/admin/manage');
-                            }
-                        }}
-                        className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group"
-                        title="Retour"
-                    >
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                    </button>
-                    <div className="flex-1 flex items-center justify-between gap-4">
-                        <h1 className="text-2xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                            {isEditing ? 'Modifier le Récap' : 'Nouveau Récap'}
-                        </h1>
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
+            <div className="max-w-6xl mx-auto">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <button
+                            onClick={() => {
+                                if (window.history.length > 1) navigate(-1);
+                                else navigate('/admin/manage');
+                            }}
+                            className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group"
+                            title="Retour"
+                        >
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                        </button>
+                        <div>
+                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                Studio <span className="text-neon-red">Editor</span>
+                            </h1>
+                            <p className="text-gray-400 mt-2 text-sm md:text-base">{isEditing ? 'Modifier le Récap' : 'Nouveau Récap'}</p>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 w-full md:w-auto">
                         {isEditing && (
                             <button
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={status === 'loading'}
-                                className={`px-4 md:px-6 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[8px] md:text-[10px] transition-all flex items-center gap-2 shadow-lg ${status === 'loading'
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
                                     ? 'bg-gray-600 cursor-not-allowed opacity-50'
                                     : 'bg-neon-red hover:scale-105 active:scale-95 text-white shadow-neon-red/20'
                                     }`}
                             >
                                 <Send className="w-4 h-4" />
-                                {status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}
+                                <span>{status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}</span>
                             </button>
                         )}
                         <button
                             type="button"
                             onClick={() => setIsFeatured(!isFeatured)}
-                            className={`flex items-center gap-3 px-6 py-2.5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all border ${isFeatured
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border ${isFeatured
                                 ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.2)]'
                                 : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-white/20'
                                 }`}
                         >
                             <Star className={`w-4 h-4 ${isFeatured ? 'fill-current' : ''}`} />
-                            {isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}
+                            <span className="hidden md:inline">{isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}</span>
+                            <span className="md:hidden">UNE</span>
                         </button>
                     </div>
                 </div>

@@ -300,29 +300,31 @@ export function AdminShop() {
     });
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
             <div className="max-w-6xl mx-auto">
-                <div className="flex items-center justify-between mb-12">
-                    <div className="flex items-center gap-6">
-                        <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-gray-400 group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Gestion <span className="text-neon-red">Shop</span>
+                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                Studio <span className="text-neon-red">Shop</span>
                             </h1>
+                            <p className="text-gray-400 mt-2 text-sm md:text-base">Gérez les articles de la boutique</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 w-full md:w-auto">
                         {hasChanges && (
                             <button
                                 onClick={saveOrder}
                                 disabled={loading}
-                                className="flex items-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
+                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
                             >
                                 {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                Enregistrer l'ordre
+                                <span className="hidden md:inline">Enregistrer l'ordre</span>
+                                <span className="md:hidden">Ordre</span>
                             </button>
                         )}
                         <button
@@ -333,10 +335,10 @@ export function AdminShop() {
                                     setIsAdding(true);
                                 }
                             }}
-                            className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
+                            className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
                         >
                             {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
-                            {isAdding ? 'Annuler' : 'Ajouter un article'}
+                            <span>{isAdding ? 'Annuler' : 'Ajouter'}</span>
                         </button>
                     </div>
                 </div>

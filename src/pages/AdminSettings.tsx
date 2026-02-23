@@ -70,21 +70,23 @@ export function AdminSettings() {
     return (
         <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
             <div className="max-w-3xl mx-auto">
-                <button
-                    onClick={() => navigate('/admin')}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white mb-6 md:mb-8 transition-colors group"
-                >
-                    <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    <span className="text-sm font-bold uppercase tracking-widest">Retour</span>
-                </button>
-
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 md:mb-12">
-                    <div>
-                        <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                            Studio <span className="text-neon-purple">Settings</span>
-                        </h1>
-                        <p className="text-gray-400 mt-2 text-sm md:text-base">Configuration réservée à l'administrateur principal.</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
+                    <div className="flex items-center gap-4 md:gap-6">
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group"
+                            title="Retour au tableau de bord"
+                        >
+                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                        </button>
+                        <div>
+                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                Studio <span className="text-neon-purple">Settings</span>
+                            </h1>
+                            <p className="text-gray-400 mt-2 text-sm md:text-base">Configuration réservée à l'administrateur principal.</p>
+                        </div>
                     </div>
+
                     <button
                         onClick={handleSave}
                         disabled={isSaving}

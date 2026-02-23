@@ -391,47 +391,51 @@ export function NewsletterComposer() {
     // SECTION 6 : RENDU (JSX)
     // -----------------------------------------------------------
     return (
-        <div className="min-h-screen bg-black text-white p-4 md:p-8 font-sans">
-
+        <div className="min-h-screen bg-black text-white py-8 md:py-20 px-4 md:px-8 font-sans">
             {/* Header de la page */}
-            <header className="max-w-[1400px] mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-6">
-                <div className="flex items-center gap-4">
-                    <Link to="/admin" className="p-3 bg-white/5 rounded-full hover:bg-white/10 transition-colors">
-                        <ArrowLeft className="w-6 h-6" />
+            <header className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-16 gap-6">
+                <div className="flex items-center gap-4 md:gap-6">
+                    <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group">
+                        <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                     </Link>
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter text-white">
+                        <h1 className="text-3xl md:text-5xl font-display font-black uppercase italic tracking-tighter leading-none text-white">
                             Studio <span className="text-neon-red">Newsletter</span>
                         </h1>
-                        <p className="text-gray-500 text-sm font-medium">Création d'emails • Mode Sombre</p>
+                        <p className="text-gray-500 text-xs md:text-sm font-medium mt-2">Création d'emails • Mode Sombre</p>
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3 justify-center">
+                <div className="flex flex-wrap gap-2 md:gap-3 w-full md:w-auto">
                     <button
                         onClick={() => setShowSubscribersModal(true)}
-                        className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2 text-sm font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                        className="flex-1 md:flex-none px-4 py-2.5 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center gap-2 text-[10px] md:text-xs font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
                         title="Voir les abonnés"
                     >
-                        <Users size={16} className="text-neon-cyan" />
+                        <Users size={14} className="text-neon-cyan" />
                         <span>{subscribers.length} Abonnés</span>
                     </button>
 
-                    <button onClick={handleCopyHTML} className="px-4 py-2 bg-white/5 rounded-xl border border-white/10 flex items-center gap-2 text-sm font-bold hover:bg-white/10 transition-colors hover:border-white/30">
-                        <Copy size={16} /> Copier HTML
+                    <button
+                        onClick={handleCopyHTML}
+                        className="flex-1 md:flex-none px-4 py-2.5 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center gap-2 text-[10px] md:text-xs font-bold hover:bg-white/10 transition-colors hover:border-white/30"
+                    >
+                        <Copy size={14} />
+                        <span className="hidden md:inline">Copier HTML</span>
+                        <span className="md:hidden">HTML</span>
                     </button>
 
                     <button
                         onClick={handleSend}
                         disabled={sending || subscribers.length === 0}
-                        className={`px-6 py-2 rounded-xl flex items-center gap-2 text-sm font-black uppercase tracking-wide transition-all
+                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wide transition-all
                             ${sending
                                 ? 'bg-gray-800 text-gray-500 cursor-wait'
-                                : 'bg-gradient-to-r from-neon-red to-neon-pink text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-105'
+                                : 'bg-gradient-to-r from-neon-red to-neon-pink text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-105 active:scale-95'
                             }
                         `}
                     >
-                        <Send size={16} className={sending ? 'animate-pulse' : ''} />
+                        <Send size={14} className={sending ? 'animate-pulse' : ''} />
                         {sending ? 'Envoi...' : 'Envoyer'}
                     </button>
                 </div>
