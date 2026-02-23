@@ -23,5 +23,14 @@
     "account": "alex",
     "status": "pending",
     "date": "2026-02-23T17:42:34.681Z"
+  },
+  {
+    "id": "1771870144341",
+    "to": "contact@dropsiders.fr",
+    "subject": "test",
+    "content": "test",
+    "account": "alex",
+    "status": "pending",
+    "date": "2026-02-23T18:09:04.341Z"
   }
 ]
