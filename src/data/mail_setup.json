@@ -4,17 +4,17 @@
             "email": "alex@dropsiders.fr",
             "user": "alex@dropsiders.fr",
             "pass": "2026alex",
-            "host": "mail.dropsiders.fr",
-            "imap_port": 143,
-            "smtp_port": 587
+            "host": "mail.lws.fr",
+            "imap_port": 993,
+            "smtp_port": 465
         },
         "contact": {
             "email": "contact@dropsiders.fr",
             "user": "contact@dropsiders.fr",
             "pass": "alex2026",
-            "host": "mail.dropsiders.fr",
-            "imap_port": 143,
-            "smtp_port": 587
+            "host": "mail.lws.fr",
+            "imap_port": 993,
+            "smtp_port": 465
         }
     },
     "provider": "LWS",
