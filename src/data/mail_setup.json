@@ -3,7 +3,15 @@
         "alex": {
             "email": "alex@dropsiders.fr",
             "user": "alex@dropsiders.fr",
-            "pass": "Dropsiders2026!",
+            "pass": "2026alex",
+            "host": "mail.lws.fr",
+            "imap_port": 993,
+            "smtp_port": 465
+        },
+        "contact": {
+            "email": "contact@dropsiders.fr",
+            "user": "contact@dropsiders.fr",
+            "pass": "alex2026",
             "host": "mail.lws.fr",
             "imap_port": 993,
             "smtp_port": 465

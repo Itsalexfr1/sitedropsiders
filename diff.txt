@@ -1,0 +1,267 @@
+﻿commit 530d51a91c2a30ed0aebf2c9356f8b204c93a745
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 23:17:27 2026 +0100
+
+    Admin emails remove contact account and simplify login and fetching logic using alex only
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 7961e2d..1f17fdf 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -7,14 +7,6 @@
+             "host": "mail.lws.fr",
+             "imap_port": 993,
+             "smtp_port": 465
+-        },
+-        "contact": {
+-            "email": "contact@dropsiders.fr",
+-            "user": "contact@dropsiders.fr",
+-            "pass": "alex2026",
+-            "host": "mail.lws.fr",
+-            "imap_port": 993,
+-            "smtp_port": 465
+         }
+     },
+     "provider": "LWS",
+
+commit 5c1acbb98ba1eff584f937cae423ec764297239a
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 22:36:20 2026 +0100
+
+    Revert "Update mail credentials and server [skip ci] [CF-Pages-Skip]"
+    
+    This reverts commit e73e029cde4b26ad66138b7a414a475b89e7713f.
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 8729819..7961e2d 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -3,7 +3,7 @@
+         "alex": {
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+-            "pass": "2026alexC",
++            "pass": "2026alex",
+             "host": "mail.lws.fr",
+             "imap_port": 993,
+             "smtp_port": 465
+
+commit e73e029cde4b26ad66138b7a414a475b89e7713f
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 21:49:48 2026 +0100
+
+    Update mail credentials and server [skip ci] [CF-Pages-Skip]
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 7961e2d..8729819 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -3,7 +3,7 @@
+         "alex": {
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+-            "pass": "2026alex",
++            "pass": "2026alexC",
+             "host": "mail.lws.fr",
+             "imap_port": 993,
+             "smtp_port": 465
+
+commit 0ab2315103a09102a26a6d92c1ff7758b53175ab
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 21:13:35 2026 +0100
+
+    fix: Update mail credentials and server [skip ci]
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 3d71b4a..7961e2d 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -4,17 +4,17 @@
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+             "pass": "2026alex",
+-            "host": "mail.dropsiders.fr",
+-            "imap_port": 143,
+-            "smtp_port": 587
++            "host": "mail.lws.fr",
++            "imap_port": 993,
++            "smtp_port": 465
+         },
+         "contact": {
+             "email": "contact@dropsiders.fr",
+             "user": "contact@dropsiders.fr",
+             "pass": "alex2026",
+-            "host": "mail.dropsiders.fr",
+-            "imap_port": 143,
+-            "smtp_port": 587
++            "host": "mail.lws.fr",
++            "imap_port": 993,
++            "smtp_port": 465
+         }
+     },
+     "provider": "LWS",
+
+commit be69cecf0b19a4fc5dd4460dde30055151382552
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 21:04:07 2026 +0100
+
+    fix: Stop triggering Cloudflare builds on email actions and revert mail config for alex [skip ci]
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 7961e2d..3d71b4a 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -4,17 +4,17 @@
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+             "pass": "2026alex",
+-            "host": "mail.lws.fr",
+-            "imap_port": 993,
+-            "smtp_port": 465
++            "host": "mail.dropsiders.fr",
++            "imap_port": 143,
++            "smtp_port": 587
+         },
+         "contact": {
+             "email": "contact@dropsiders.fr",
+             "user": "contact@dropsiders.fr",
+             "pass": "alex2026",
+-            "host": "mail.lws.fr",
+-            "imap_port": 993,
+-            "smtp_port": 465
++            "host": "mail.dropsiders.fr",
++            "imap_port": 143,
++            "smtp_port": 587
+         }
+     },
+     "provider": "LWS",
+
+commit 657833787ff86fea9d1e5210bb19dd38aa1d788c
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 20:41:57 2026 +0100
+
+    fix(mail): Revert to mail.lws.fr and port 993 to fix timeouts
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 3d71b4a..7961e2d 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -4,17 +4,17 @@
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+             "pass": "2026alex",
+-            "host": "mail.dropsiders.fr",
+-            "imap_port": 143,
+-            "smtp_port": 587
++            "host": "mail.lws.fr",
++            "imap_port": 993,
++            "smtp_port": 465
+         },
+         "contact": {
+             "email": "contact@dropsiders.fr",
+             "user": "contact@dropsiders.fr",
+             "pass": "alex2026",
+-            "host": "mail.dropsiders.fr",
+-            "imap_port": 143,
+-            "smtp_port": 587
++            "host": "mail.lws.fr",
++            "imap_port": 993,
++            "smtp_port": 465
+         }
+     },
+     "provider": "LWS",
+
+commit 492a2faf80e94efade3dfe2b08e1d0181a2a8bcc
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 20:27:19 2026 +0100
+
+    fix(mail): Correct IMAP/SMTP host and ports for dropsiders.fr [CF-Pages-Skip]
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 7961e2d..3d71b4a 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -4,17 +4,17 @@
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+             "pass": "2026alex",
+-            "host": "mail.lws.fr",
+-            "imap_port": 993,
+-            "smtp_port": 465
++            "host": "mail.dropsiders.fr",
++            "imap_port": 143,
++            "smtp_port": 587
+         },
+         "contact": {
+             "email": "contact@dropsiders.fr",
+             "user": "contact@dropsiders.fr",
+             "pass": "alex2026",
+-            "host": "mail.lws.fr",
+-            "imap_port": 993,
+-            "smtp_port": 465
++            "host": "mail.dropsiders.fr",
++            "imap_port": 143,
++            "smtp_port": 587
+         }
+     },
+     "provider": "LWS",
+
+commit 5faf7d636924144bb1a84dd6035b30ba01f16ce3
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 20:15:38 2026 +0100
+
+    fix(mail): Update contact@dropsiders.fr IMAP/SMTP password
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 40b17e1..7961e2d 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -11,7 +11,7 @@
+         "contact": {
+             "email": "contact@dropsiders.fr",
+             "user": "contact@dropsiders.fr",
+-            "pass": "alexdropsiders2025",
++            "pass": "alex2026",
+             "host": "mail.lws.fr",
+             "imap_port": 993,
+             "smtp_port": 465
+
+commit 32d3d7605876e293974c5131f4ce940b71ff2fa7
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 18:26:08 2026 +0100
+
+    MAJ: Correction du mot de passe pour alex@dropsiders.fr
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index b236817..40b17e1 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -3,7 +3,7 @@
+         "alex": {
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+-            "pass": "alex2026",
++            "pass": "2026alex",
+             "host": "mail.lws.fr",
+             "imap_port": 993,
+             "smtp_port": 465
+
+commit 178e7204ebcb14876acaf616fb7e07ed72ff15e2
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 18:24:06 2026 +0100
+
+    MAJ: Nouveau mot de passe pour alex@dropsiders.fr et finalisation de l'envoi/r├®ception
+
+diff --git a/src/data/mail_setup.json b/src/data/mail_setup.json
+index 340ee36..b236817 100644
+--- a/src/data/mail_setup.json
++++ b/src/data/mail_setup.json
+@@ -3,7 +3,7 @@
+         "alex": {
+             "email": "alex@dropsiders.fr",
+             "user": "alex@dropsiders.fr",
+-            "pass": "01061988Aa-",
++            "pass": "alex2026",
+             "host": "mail.lws.fr",
+             "imap_port": 993,
+             "smtp_port": 465

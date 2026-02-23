@@ -86,5 +86,14 @@
         "account": "alex",
         "status": "error",
         "date": "2026-02-23T22:02:26.976Z"
+    },
+    {
+        "id": "1771887326120",
+        "to": "alexflex30@gmail.com",
+        "subject": "Test envoi Dropsiders",
+        "content": "Bonjour, ce message est un test du bridge mail Dropsiders.",
+        "account": "alex",
+        "status": "error",
+        "date": "2026-02-23T22:55:26.120Z"
     }
 ]
