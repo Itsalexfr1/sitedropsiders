@@ -33,20 +33,20 @@ const EmailSignature = ({ password = '2026' }: { password?: string }) => (
         </div>
 
         <div className="flex flex-wrap gap-4 items-center">
-            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 transition-all">
-                <Globe className="w-3.5 h-3.5 text-neon-red" />
+            <a
+                href="/kitmedia"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 transition-all hover:bg-white/10 group/km"
+            >
+                <Globe className="w-3.5 h-3.5 text-neon-red group-hover/km:scale-110 transition-transform" />
                 <div className="flex flex-col">
                     <span className="text-[8px] font-black text-white uppercase tracking-widest">Kit Média 2026</span>
-                    <a
-                        href="https://dropsiders.fr/kitmedia"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-[7px] font-bold text-gray-500 hover:text-white uppercase flex items-center gap-1 transition-colors"
-                    >
+                    <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-1 transition-colors">
                         Accès : <span className="text-neon-red font-black uppercase">{password}</span>
-                    </a>
+                    </span>
                 </div>
-            </div>
+            </a>
 
             <div className="flex items-center gap-3">
                 <div className="w-px h-8 bg-white/10"></div>
@@ -584,12 +584,30 @@ export function AdminEmails() {
                                             >
                                                 <Reply className="w-4 h-4" /> Répondre
                                             </button>
-                                            <button className="px-8 py-3.5 bg-white/5 border border-white/10 text-white rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all">
+                                            <button
+                                                onClick={() => {
+                                                    setComposeData({
+                                                        to: '',
+                                                        subject: `Fwd: ${selectedEmail.subject || ''}`,
+                                                        content: `\n\n---------- Message transféré ----------\nDe : ${selectedEmail.fromName} <${selectedEmail.from}>\nDate : ${new Date(selectedEmail.date).toLocaleString()}\nObjet : ${selectedEmail.subject}\n\n${selectedEmail.content}`
+                                                    });
+                                                    setIsComposing(true);
+                                                }}
+                                                className="px-8 py-3.5 bg-white/5 border border-white/10 text-white rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all active:scale-95"
+                                            >
                                                 <Forward className="w-4 h-4" /> Transférer
                                             </button>
 
                                             <div className="ml-auto flex items-center gap-3 text-gray-600">
-                                                <button className="text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors flex items-center gap-2">
+                                                <button
+                                                    onClick={() => {
+                                                        const win = window.open('', '_blank');
+                                                        if (win) {
+                                                            win.document.write(`<html><body style="font-family:monospace; white-space:pre-wrap; background:#111; color:#eee; padding:40px;">${selectedEmail.content}</body></html>`);
+                                                        }
+                                                    }}
+                                                    className="text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors flex items-center gap-2"
+                                                >
                                                     Voir l'original <ExternalLink className="w-3 h-3" />
                                                 </button>
                                             </div>
