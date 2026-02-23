@@ -51,10 +51,6 @@ const EmailSignature = ({ password = '2026' }: { password?: string }) => (
             <div className="flex items-center gap-3">
                 <div className="w-px h-8 bg-white/10"></div>
                 <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-neon-red shadow-[0_0_5px_red]"></div>
-                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">France • Espagne • USA</span>
-                    </div>
                     <p className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.3em] hover:text-white cursor-default">www.dropsiders.fr</p>
                 </div>
             </div>
