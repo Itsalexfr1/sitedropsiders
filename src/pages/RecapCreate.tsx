@@ -7,6 +7,7 @@ import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
+import '../styles/article-premium.css';
 
 
 

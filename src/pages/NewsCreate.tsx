@@ -9,6 +9,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import { Wand2, Star } from 'lucide-react';
 import newsData from '../data/news.json';
+import '../styles/article-premium.css';
 
 
 
