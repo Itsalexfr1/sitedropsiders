@@ -17,6 +17,7 @@ import { TermsOfService } from './pages/TermsOfService';
 import { CookiesPolicy } from './pages/CookiesPolicy';
 import { MentionsLegales } from './pages/MentionsLegales';
 import { Newsletter } from './pages/Newsletter';
+import { Unsubscribe } from './pages/Unsubscribe';
 import { RecapCreate } from './pages/RecapCreate';
 import { AgendaCreate } from './pages/AgendaCreate';
 import { GalerieCreate } from './pages/GalerieCreate';
@@ -85,6 +86,7 @@ const router = createHashRouter([
       { path: "admin/shop", element: <ProtectedRoute><AdminShop /></ProtectedRoute> },
 
       { path: "newsletter", element: <Newsletter /> },
+      { path: "unsubscribe", element: <Unsubscribe /> },
       { path: "newsletter/admin", element: <ProtectedRoute><NewsletterAdmin /></ProtectedRoute> },
       { path: "newsletter/studio", element: <ProtectedRoute><NewsletterComposer /></ProtectedRoute> },
 

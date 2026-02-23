@@ -622,9 +622,12 @@ export default {
                                                 <a href="https://dropsiders.eu" style="display: inline-block; padding: 16px 32px; background-color: #ff1241; color: #ffffff; text-decoration: none; font-weight: 900; border-radius: 12px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 18, 65, 0.3);">Découvrir le site</a>
                                             </div>
                                             <hr style="border: 0; border-top: 1px solid #333; margin-bottom: 32px;">
-                                            <p style="font-size: 14px; color: #666; text-align: center; margin: 0;">
-                                                © 2026 Dropsiders. Tous droits réservés.<br>
-                                                Tu reçois ce mail car tu t'es inscrit sur dropsiders.eu
+                                            <p style="font-size: 14px; color: #666; text-align: center; margin: 0 0 12px 0;">
+                                                © 2026 Dropsiders. Tous droits réservés.
+                                            </p>
+                                            <p style="font-size: 12px; color: #444; text-align: center; margin: 0;">
+                                                Tu reçois ce mail car tu t'es inscrit sur dropsiders.eu<br>
+                                                <a href="https://dropsiders.eu/#/unsubscribe?email=${email}" style="color: #666; text-decoration: underline;">Se désabonner</a>
                                             </p>
                                         </div>
                                     </div>
@@ -1220,6 +1223,34 @@ export default {
                 }
 
                 return new Response(JSON.stringify(file.content), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: UNSUBSCRIBE ---
+        if (path === '/api/unsubscribe' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            try {
+                const { email } = await request.json();
+                if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(PATH);
+                if (!file) return new Response(JSON.stringify({ error: 'Liste d\'abonnés introuvable' }), { status: 404, headers });
+
+                const initialCount = file.content.length;
+                const updatedData = file.content.filter(sub => (typeof sub === 'string' ? sub : sub.email) !== email);
+
+                if (updatedData.length === initialCount) {
+                    return new Response(JSON.stringify({ error: 'Email non trouvé' }), { status: 404, headers });
+                }
+
+                const saved = await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha);
+                if (saved.ok) {
+                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                } else {
+                    return new Response(JSON.stringify({ error: 'Erreur lors de la suppression' }), { status: 500, headers });
+                }
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }

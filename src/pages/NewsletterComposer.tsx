@@ -282,12 +282,11 @@ export function NewsletterComposer() {
                     </div>
                     ` : ''}
                     
-                    <!-- FOOTER -->
                     <div class="footer">
                         &copy; 2026 DROPSIDERS. Tous droits réservés.<br>
                         <br>
                         Vous recevez cet email car vous êtes inscrit à la newsletter Dropsiders.<br>
-                        <a href="#" style="text-decoration: underline;">Se désinscrire</a>
+                        <a href="https://dropsiders.eu/#/unsubscribe" style="text-decoration: underline;">Se désinscrire</a>
                     </div>
                 </div>
             </div>
