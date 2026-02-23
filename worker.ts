@@ -593,7 +593,56 @@ export default {
                 const updatedData = [...file.content, newSubscriber];
 
                 const saved = await saveGitHubFile(PATH, updatedData, `Nouvel abonné : ${email}`, file.sha);
+
                 if (saved.ok) {
+                    // --- SEND CONFIRMATION EMAIL VIA BREVO ---
+                    const BREVO_KEY = env.BREVO_API_KEY;
+                    if (BREVO_KEY) {
+                        try {
+                            const brevoUrl = 'https://api.brevo.com/v3/smtp/email';
+                            const payload = {
+                                sender: { name: "Dropsiders", email: "contact@dropsiders.fr" },
+                                to: [{ email: email, name: firstName || email }],
+                                subject: "Bienvenue chez Dropsiders ! 🎵",
+                                htmlContent: `
+                                    <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0b; color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #333;">
+                                        <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);">
+                                            <img src="https://dropsiders.eu/logo_presentation.png" alt="Dropsiders" style="width: 180px; margin-bottom: 24px;">
+                                            <h1 style="color: #ffffff; font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin: 0; font-style: italic;">Confirmation d'inscription</h1>
+                                        </div>
+                                        <div style="padding: 40px; line-height: 1.6;">
+                                            <p style="font-size: 18px; margin-bottom: 24px;">Bonjour ${firstName || 'passionné(e) de musique'},</p>
+                                            <p style="font-size: 16px; color: #a0a0a0; margin-bottom: 24px;">
+                                                On est super contents de t'avoir parmi nous ! Ton inscription à la newsletter <strong>Dropsiders</strong> est bien confirmée.
+                                            </p>
+                                            <p style="font-size: 16px; color: #a0a0a0; margin-bottom: 32px;">
+                                                Tu recevras désormais en avant-première nos derniers recaps de festivals, des interviews exclusives et toute l'actu de la scène électronique.
+                                            </p>
+                                            <div style="text-align: center; margin-bottom: 40px;">
+                                                <a href="https://dropsiders.eu" style="display: inline-block; padding: 16px 32px; background-color: #ff1241; color: #ffffff; text-decoration: none; font-weight: 900; border-radius: 12px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 18, 65, 0.3);">Découvrir le site</a>
+                                            </div>
+                                            <hr style="border: 0; border-top: 1px solid #333; margin-bottom: 32px;">
+                                            <p style="font-size: 14px; color: #666; text-align: center; margin: 0;">
+                                                © 2026 Dropsiders. Tous droits réservés.<br>
+                                                Tu reçois ce mail car tu t'es inscrit sur dropsiders.eu
+                                            </p>
+                                        </div>
+                                    </div>
+                                `,
+                                replyTo: { email: "contact@dropsiders.fr", name: "Dropsiders" }
+                            };
+
+                            await fetch(brevoUrl, {
+                                method: 'POST',
+                                headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        } catch (mailError) {
+                            console.error('Failed to send confirmation email:', mailError);
+                            // Don't fail the whole request if email fails
+                        }
+                    }
+
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
                     return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });

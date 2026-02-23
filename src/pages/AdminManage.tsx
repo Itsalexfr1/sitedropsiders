@@ -46,6 +46,7 @@ export function AdminManage() {
     const [message, setMessage] = useState('');
     const [loadingEditId, setLoadingEditId] = useState<number | string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: number | string, title: string } | null>(null);
+    const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
 
     // Sync with sessionStorage
     useEffect(() => {
@@ -64,6 +65,7 @@ export function AdminManage() {
 
     useEffect(() => {
         setCurrentPage(1);
+        setSelectedIds([]);
         fetchData();
     }, [activeTab]);
 
@@ -124,6 +126,63 @@ export function AdminManage() {
         } catch (error) {
             setDeleteStatus('error');
             setMessage('Erreur de connexion');
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedIds.length === 0) return;
+
+        setDeleteStatus('loading');
+        setMessage(`Suppression de ${selectedIds.length} éléments...`);
+
+        try {
+            const endpoint = (activeTab === 'News' || activeTab === 'Musique' || activeTab === 'Interviews') ? '/api/news/delete' :
+                activeTab === 'Recaps' ? '/api/recaps/delete' :
+                    activeTab === 'Agenda' ? '/api/agenda/delete' :
+                        '/api/galerie/delete';
+
+            let successCount = 0;
+            for (const id of selectedIds) {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id })
+                });
+                if (response.ok) successCount++;
+            }
+
+            if (successCount > 0) {
+                setDeleteStatus('success');
+                setMessage(`${successCount} éléments supprimés avec succès !`);
+                setSelectedIds([]);
+                setTimeout(async () => {
+                    await fetchData();
+                    setDeleteStatus('idle');
+                }, 1500);
+            } else {
+                setDeleteStatus('error');
+                setMessage('Erreur lors de la suppression groupée');
+            }
+        } catch (error) {
+            setDeleteStatus('error');
+            setMessage('Erreur de connexion');
+        }
+    };
+
+    const toggleSelect = (id: number | string) => {
+        setSelectedIds(prev =>
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        const pageIds = paginatedItems.map(item => item.id);
+        const allSelected = pageIds.every(id => selectedIds.includes(id));
+
+        if (allSelected) {
+            setSelectedIds(prev => prev.filter(id => !pageIds.includes(id)));
+        } else {
+            setSelectedIds(prev => [...new Set([...prev, ...pageIds])]);
         }
     };
 
@@ -272,6 +331,24 @@ export function AdminManage() {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <AnimatePresence>
+                            {selectedIds.length > 0 && (
+                                <motion.button
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.8 }}
+                                    onClick={() => {
+                                        if (window.confirm(`Voulez-vous vraiment supprimer ces ${selectedIds.length} éléments ?`)) {
+                                            handleBulkDelete();
+                                        }
+                                    }}
+                                    className="px-6 py-3 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-700 transition-all flex items-center gap-2 shadow-lg shadow-red-600/20"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Supprimer ({selectedIds.length})
+                                </motion.button>
+                            )}
+                        </AnimatePresence>
                         <div className="relative w-full md:w-80">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                             <input
@@ -402,9 +479,14 @@ export function AdminManage() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-white/10 bg-white/5">
-                                        {localStorage.getItem('admin_user') === 'alex' && (
-                                            <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest w-10">Sup.</th>
-                                        )}
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest w-10">
+                                            <input
+                                                type="checkbox"
+                                                onChange={toggleSelectAll}
+                                                checked={paginatedItems.length > 0 && paginatedItems.every(item => selectedIds.includes(item.id))}
+                                                className="w-4 h-4 rounded border-white/10 bg-black/20 text-neon-red focus:ring-neon-red transition-all cursor-pointer"
+                                            />
+                                        </th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Image</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Titre</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
@@ -414,17 +496,14 @@ export function AdminManage() {
                                 <tbody className="divide-y divide-white/5">
                                     {paginatedItems.map((item) => (
                                         <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
-                                            {localStorage.getItem('admin_user') === 'alex' && (
-                                                <td className="px-6 py-4">
-                                                    <button
-                                                        onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
-                                                        className="p-3 text-gray-600 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all"
-                                                        title="Supprimer"
-                                                    >
-                                                        <Trash2 className="w-5 h-5" />
-                                                    </button>
-                                                </td>
-                                            )}
+                                            <td className="px-6 py-4">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(item.id)}
+                                                    onChange={() => toggleSelect(item.id)}
+                                                    className="w-4 h-4 rounded border-white/10 bg-black/20 text-neon-red focus:ring-neon-red transition-all cursor-pointer"
+                                                />
+                                            </td>
                                             <td className="px-6 py-4">
                                                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10">
                                                     <img src={item.image} alt="" className="w-full h-full object-cover" />
@@ -455,6 +534,13 @@ export function AdminManage() {
                                                         ? <Loader2 className="w-5 h-5 animate-spin text-neon-cyan" />
                                                         : <Pencil className="w-5 h-5" />
                                                     }
+                                                </button>
+                                                <button
+                                                    onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
+                                                    className="p-3 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all"
+                                                    title="Supprimer"
+                                                >
+                                                    <Trash2 className="w-5 h-5" />
                                                 </button>
                                             </td>
                                         </tr>

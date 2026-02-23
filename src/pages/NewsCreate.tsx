@@ -381,11 +381,62 @@ export function NewsCreate() {
     };
 
     const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-2xl' | 'text-5xl') => {
+        const activeEl = document.activeElement;
+        const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
+        const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
+        const selection = window.getSelection();
+
+        // 1. Visual Editor Selection Mode
+        if (isVisualEditor && selection && selection.toString().length > 0) {
+            const widgetId = (activeEl as HTMLElement).getAttribute('data-widget-id');
+            if (widgetId === id) {
+                const range = selection.getRangeAt(0);
+
+                let parent = range.commonAncestorContainer;
+                if (parent && parent.nodeType === 3) parent = parent.parentNode as HTMLElement;
+
+                if (parent && (parent as HTMLElement).tagName === 'SPAN' && (parent as HTMLElement).classList.contains(style)) {
+                    const content = (parent as HTMLElement).innerHTML;
+                    (parent as HTMLElement).outerHTML = content;
+                } else {
+                    const span = document.createElement('span');
+                    span.className = style;
+                    const content = range.cloneContents();
+                    span.appendChild(content);
+                    range.deleteContents();
+                    range.insertNode(span);
+                }
+
+                updateWidget(id, (activeEl as HTMLElement).innerHTML);
+                return;
+            }
+        }
+
+        // 2. Textarea Selection Mode
+        if (isTextarea && activeEl) {
+            const ta = activeEl as HTMLTextAreaElement;
+            const widgetId = ta.getAttribute('data-widget-id');
+            if (widgetId === id) {
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                const val = ta.value;
+                const selectedText = val.substring(start, end);
+
+                if (selectedText) {
+                    const formatted = `<span class="${style}">${selectedText}</span>`;
+                    const before = val.substring(0, start);
+                    const after = val.substring(end);
+                    updateWidget(id, before + formatted + after);
+                    return;
+                }
+            }
+        }
+
+        // 3. Whole Widget Mode (Fallback)
         setWidgets(prev => prev.map(w => {
             if (w.id !== id) return w;
 
             let content = w.content;
-            // Detect if it's already wrapped in our style div
             const wrapperRegex = /^<div class="([^"]*)">\n([\s\S]*)\n<\/div>$/;
             const match = content.match(wrapperRegex);
 
@@ -1008,7 +1059,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                             <>
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => toggleWidgetStyle(widget.id, 'font-display')}
+                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'font-display')}
                                                                     className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('font-display') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
                                                                     title="Changer Police (Display)"
                                                                 >
@@ -1016,7 +1067,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                                 </button>
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => toggleWidgetStyle(widget.id, 'uppercase')}
+                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'uppercase')}
                                                                     className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('uppercase') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
                                                                     title="Tout en Majuscules"
                                                                 >
@@ -1025,7 +1076,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                                 <div className="flex bg-black/40 rounded-lg border border-white/5 p-0.5">
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => toggleWidgetStyle(widget.id, 'text-sm')}
+                                                                        onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-sm')}
                                                                         className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-sm') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
                                                                         title="Petit"
                                                                     >
@@ -1033,7 +1084,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => toggleWidgetStyle(widget.id, 'text-2xl')}
+                                                                        onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-2xl')}
                                                                         className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-2xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
                                                                         title="Grand"
                                                                     >
@@ -1041,7 +1092,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                                     </button>
                                                                     <button
                                                                         type="button"
-                                                                        onClick={() => toggleWidgetStyle(widget.id, 'text-5xl')}
+                                                                        onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-5xl')}
                                                                         className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-5xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
                                                                         title="Énorme"
                                                                     >
