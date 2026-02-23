@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, AlertCircle, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
+import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Email {
@@ -225,7 +225,7 @@ export function AdminEmails() {
                             <h1 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
                                 Messagerie <span className="text-neon-orange">Dropsiders</span>
                             </h1>
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Flux d'emails en temps réel • LWS Hosting</p>
+                            <p className="text-[10px] font-black text-neon-orange uppercase tracking-[0.2em] italic">Outil de Communication Interne</p>
                         </div>
                     </div>
 
@@ -313,22 +313,6 @@ export function AdminEmails() {
                             </div>
                         </div>
 
-                        <div className="pt-20">
-                            <div className="p-4 bg-orange-600/5 rounded-2xl border border-orange-600/10 space-y-3">
-                                <div className="flex items-center gap-2 text-neon-orange">
-                                    <AlertCircle className="w-4 h-4" />
-                                    <span className="text-[9px] font-black uppercase">Statut Serveur</span>
-                                </div>
-                                <p className="text-[10px] text-gray-500 leading-relaxed">Connecté à <strong>mxb.lws.fr</strong> via IMAP.</p>
-                                <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden">
-                                    <motion.div
-                                        className="h-full bg-neon-orange"
-                                        animate={{ width: ["0%", "100%", "0%"] }}
-                                        transition={{ duration: 4, repeat: Infinity }}
-                                    />
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Email List / Reader */}
@@ -494,27 +478,6 @@ export function AdminEmails() {
                     </div>
                 </div>
 
-                {/* Technical Footer */}
-                <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 px-6 py-8 bg-white/[0.02] border border-white/5 rounded-3xl">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-neon-orange/10 border border-neon-orange/20 flex items-center justify-center">
-                            <RefreshCcw className="w-5 h-5 text-neon-orange" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-white uppercase tracking-widest">Dernière synchronisation</p>
-                            <p className="text-xs text-gray-500">Il y a 2 minutes • IMAP sécurisé TLS</p>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button className="text-[9px] font-black uppercase tracking-tighter px-4 py-2 border border-white/10 rounded-lg text-gray-500 hover:text-white transition-colors">
-                            Configuration Serveur
-                        </button>
-                        <button className="text-[9px] font-black uppercase tracking-tighter px-4 py-2 border border-white/10 rounded-lg text-gray-500 hover:text-white transition-colors">
-                            Logs de connexion
-                        </button>
-                    </div>
-                </div>
             </div>
 
             {/* Compose Modal */}
