@@ -150,10 +150,10 @@ export default {
         }
 
         async function triggerMailSync() {
-            if (!TOKEN) return;
+            if (!TOKEN) return { success: false, error: 'No GitHub token' };
             const dispatchUrl = `https://api.github.com/repos/${OWNER}/${REPO}/dispatches`;
             try {
-                await fetch(dispatchUrl, {
+                const response = await fetch(dispatchUrl, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${TOKEN}`,
@@ -163,8 +163,13 @@ export default {
                     },
                     body: JSON.stringify({ event_type: 'sync-mail' })
                 });
+                if (!response.ok) {
+                    const text = await response.text();
+                    return { success: false, status: response.status, error: text };
+                }
+                return { success: true };
             } catch (e) {
-                console.error('Failed to trigger mail sync workflow');
+                return { success: false, error: e.message };
             }
         }
 
@@ -1328,8 +1333,11 @@ export default {
         }
 
         if (path === '/api/emails/sync' && request.method === 'POST') {
-            await triggerMailSync();
-            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            const result = await triggerMailSync();
+            return new Response(JSON.stringify(result), {
+                status: result.success ? 200 : 500,
+                headers
+            });
         }
 
         if (path === '/api/emails/send' && request.method === 'POST') {

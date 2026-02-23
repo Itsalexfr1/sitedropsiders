@@ -31,6 +31,7 @@ async function syncAccount(accountKey) {
         authTimeout: 10000
     });
 
+    const newEmails = [];
     return new Promise((resolve, reject) => {
         imap.once('ready', () => {
             imap.openBox('INBOX', true, (err, box) => {
@@ -46,7 +47,6 @@ async function syncAccount(accountKey) {
                     struct: true
                 });
 
-                const newEmails = [];
                 let completed = 0;
                 let total = 0;
 

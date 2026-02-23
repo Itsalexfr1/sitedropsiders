@@ -137,7 +137,12 @@ export function AdminEmails() {
         setIsRefreshing(true);
         try {
             // Déclencher le robot GitHub en arrière-plan
-            fetch('/api/emails/sync', { method: 'POST' }).catch(() => { });
+            fetch('/api/emails/sync', { method: 'POST' })
+                .then(r => {
+                    if (!r.ok) console.error('Sync trigger failed');
+                    else console.log('Sync robot triggered');
+                })
+                .catch(() => console.error('Sync trigger error'));
 
             const res = await fetch(`/api/emails/list?account=${activeAccount}&folder=${activeFolder}`);
             if (res.ok) {
