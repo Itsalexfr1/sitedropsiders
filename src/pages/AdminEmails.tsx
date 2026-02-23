@@ -759,14 +759,14 @@ export function AdminEmails() {
                                                 <button
                                                     type="button"
                                                     onClick={() => setComposeData({ ...composeData, from: 'contact' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'contact' ? 'bg-neon-orange text-white border border-neon-orange' : 'bg-white/5 text-gray-500 border border-white/10 hover:text-white'}`}
+                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'contact' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
                                                 >
                                                     contact@dropsiders.fr
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => setComposeData({ ...composeData, from: 'alex' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'alex' ? 'bg-neon-orange text-white border border-neon-orange' : 'bg-white/5 text-gray-500 border border-white/10 hover:text-white'}`}
+                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'alex' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
                                                 >
                                                     alex@dropsiders.fr
                                                 </button>

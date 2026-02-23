@@ -1152,11 +1152,14 @@ export default {
 
             try {
                 const body = await request.json();
-                const { subject, htmlContent, recipients } = body;
+                const { subject, htmlContent, recipients, fromAccount } = body;
 
                 if (!subject || !htmlContent || !recipients || !Array.isArray(recipients)) {
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
+
+                const senderEmail = fromAccount === 'alex' ? "alex@dropsiders.fr" : "contact@dropsiders.fr";
+                const senderName = fromAccount === 'alex' ? "Alex (Dropsiders)" : "Dropsiders";
 
                 const brevoUrl = 'https://api.brevo.com/v3/smtp/email';
                 const CHUNK_SIZE = 99;
@@ -1166,12 +1169,12 @@ export default {
                 const results = [];
                 for (const chunk of chunks) {
                     const payload = {
-                        sender: { name: "Dropsiders", email: "contact@dropsiders.fr" },
-                        to: [{ email: "contact@dropsiders.fr", name: "Dropsiders Admin" }],
+                        sender: { name: senderName, email: senderEmail },
+                        to: [{ email: senderEmail, name: `${senderName} Admin` }],
                         bcc: chunk.map(email => ({ email })),
                         subject: subject,
                         htmlContent: htmlContent,
-                        replyTo: { email: "contact@dropsiders.fr", name: "Dropsiders" }
+                        replyTo: { email: senderEmail, name: senderName }
                     };
 
                     const response = await fetch(brevoUrl, {

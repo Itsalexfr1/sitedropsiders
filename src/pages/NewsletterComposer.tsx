@@ -13,6 +13,7 @@ export function NewsletterComposer() {
 
     // Métadonnées Email
     const [subject, setSubject] = useState('');
+    const [fromAccount, setFromAccount] = useState<'contact' | 'alex'>('contact');
 
     // Article Principal (Gros bloc en haut)
     const [mainArticle, setMainArticle] = useState({
@@ -367,7 +368,8 @@ export function NewsletterComposer() {
                 body: JSON.stringify({
                     subject,
                     htmlContent: generateHTML(false),
-                    recipients: subscribers
+                    recipients: subscribers,
+                    fromAccount: fromAccount
                 })
             });
 
@@ -476,15 +478,37 @@ export function NewsletterComposer() {
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
 
                         {/* Champ Sujet (Toujours visible) */}
-                        <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Sujet de l'email (Obligatoire)</label>
-                            <input
-                                type="text"
-                                value={subject}
-                                onChange={e => setSubject(e.target.value)}
-                                className="w-full bg-black border border-white/20 rounded-lg p-3 text-white focus:border-neon-red outline-none text-sm transition-all focus:bg-white/5"
-                                placeholder="🔥 Alerte : Le lineup EDC est tombé !"
-                            />
+                        <div className="bg-black/40 p-4 rounded-xl border border-white/5 space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Compte d'expédition</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFromAccount('contact')}
+                                        className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase transition-all border ${fromAccount === 'contact' ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.3)]' : 'bg-white/5 text-gray-500 border-white/10 hover:text-white'}`}
+                                    >
+                                        contact@dropsiders.fr
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFromAccount('alex')}
+                                        className={`flex-1 py-3 rounded-lg text-[10px] font-black uppercase transition-all border ${fromAccount === 'alex' ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.3)]' : 'bg-white/5 text-gray-500 border-white/10 hover:text-white'}`}
+                                    >
+                                        alex@dropsiders.fr
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">Sujet de l'email (Obligatoire)</label>
+                                <input
+                                    type="text"
+                                    value={subject}
+                                    onChange={e => setSubject(e.target.value)}
+                                    className="w-full bg-black border border-white/20 rounded-lg p-3 text-white focus:border-neon-red outline-none text-sm transition-all focus:bg-white/5"
+                                    placeholder="🔥 Alerte : Le lineup EDC est tombé !"
+                                />
+                            </div>
                         </div>
 
                         {/* Contenu Article Principal */}
