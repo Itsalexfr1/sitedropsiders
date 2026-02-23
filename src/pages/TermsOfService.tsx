@@ -38,7 +38,7 @@ export function TermsOfService() {
                             <h2 className="text-2xl font-bold text-white">1. Acceptance of Terms</h2>
                         </div>
                         <p className="leading-relaxed">
-                            By accessing and using the Dropsiders.eu website, you agree to be bound by these terms of service.
+                            By accessing and using the dropsiders.fr website, you agree to be bound by these terms of service.
                             If you do not accept these terms, please do not use our site. We reserve the right to modify these
                             terms at any time. Your continued use of the site after such changes constitutes your acceptance of the new terms.
                         </p>
@@ -56,7 +56,7 @@ export function TermsOfService() {
                         </div>
                         <div className="space-y-4">
                             <p className="leading-relaxed">
-                                All content on Dropsiders.eu, including but not limited to text, graphics, logos, images, videos,
+                                All content on dropsiders.fr, including but not limited to text, graphics, logos, images, videos,
                                 audio clips, and software, is the property of Dropsiders or its content providers and is protected by
                                 French and international copyright laws.
                             </p>
@@ -146,7 +146,7 @@ export function TermsOfService() {
                     >
                         <h2 className="text-2xl font-bold text-white mb-4">6. Limitation of Liability</h2>
                         <p className="leading-relaxed mb-3">
-                            The Dropsiders.eu site is provided "as is" without warranty of any kind. To the fullest extent permitted by law:
+                            The dropsiders.fr site is provided "as is" without warranty of any kind. To the fullest extent permitted by law:
                         </p>
                         <ul className="list-disc list-inside space-y-2 ml-4">
                             <li>We do not guarantee that the site will always be available or free of errors</li>
@@ -225,7 +225,7 @@ export function TermsOfService() {
                         </p>
                         <div className="space-y-2">
                             <p><strong className="text-white">Email:</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
-                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.fr" className="text-neon-red hover:underline">www.dropsiders.fr</a></p>
                         </div>
                     </motion.section>
                 </div>
@@ -265,7 +265,7 @@ export function TermsOfService() {
                         <h2 className="text-2xl font-bold text-white">1. Acceptation des conditions</h2>
                     </div>
                     <p className="leading-relaxed">
-                        En accédant et en utilisant le site web Dropsiders.eu, vous acceptez d'être lié par les présentes conditions d'utilisation.
+                        En accédant et en utilisant le site web dropsiders.fr, vous acceptez d'être lié par les présentes conditions d'utilisation.
                         Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre site. Nous nous réservons le droit de modifier ces
                         conditions à tout moment. Votre utilisation continue du site après de telles modifications constitue votre acceptation des nouvelles conditions.
                     </p>
@@ -283,7 +283,7 @@ export function TermsOfService() {
                     </div>
                     <div className="space-y-4">
                         <p className="leading-relaxed">
-                            Tout le contenu présent sur Dropsiders.eu, incluant mais non limité aux textes, graphiques, logos, images, vidéos,
+                            Tout le contenu présent sur dropsiders.fr, incluant mais non limité aux textes, graphiques, logos, images, vidéos,
                             clips audio et logiciels, est la propriété de Dropsiders ou de ses fournisseurs de contenu et est protégé par les
                             lois françaises et internationales sur le droit d'auteur.
                         </p>
@@ -373,7 +373,7 @@ export function TermsOfService() {
                 >
                     <h2 className="text-2xl font-bold text-white mb-4">6. Limitation de responsabilité</h2>
                     <p className="leading-relaxed mb-3">
-                        Le site Dropsiders.eu est fourni "tel quel" sans garantie d'aucune sorte. Dans toute la mesure permise par la loi :
+                        Le site dropsiders.fr est fourni "tel quel" sans garantie d'aucune sorte. Dans toute la mesure permise par la loi :
                     </p>
                     <ul className="list-disc list-inside space-y-2 ml-4">
                         <li>Nous ne garantissons pas que le site sera toujours disponible ou exempt d'erreurs</li>
@@ -452,7 +452,7 @@ export function TermsOfService() {
                     </p>
                     <div className="space-y-2">
                         <p><strong className="text-white">Email :</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
-                        <p><strong className="text-white">Site web :</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                        <p><strong className="text-white">Site web :</strong> <a href="https://www.dropsiders.fr" className="text-neon-red hover:underline">www.dropsiders.fr</a></p>
                     </div>
                 </motion.section>
             </div>

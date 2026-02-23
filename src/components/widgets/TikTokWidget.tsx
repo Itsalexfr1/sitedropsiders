@@ -55,13 +55,13 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor }: { accentCo
                             <div className="absolute inset-x-0" style={{ top: '-10px' }}>
                                 <blockquote
                                     className="tiktok-embed"
-                                    cite="https://www.tiktok.com/@dropsiders.eu"
-                                    data-unique-id="dropsiders.eu"
+                                    cite="https://www.tiktok.com/@dropsiders.fr"
+                                    data-unique-id="dropsiders.fr"
                                     data-embed-type="creator"
                                     style={{ width: '100%', maxWidth: '100%', margin: 0, padding: 0 }}
                                 >
                                     <section>
-                                        <a target="_blank" href="https://www.tiktok.com/@dropsiders.eu?refer=creator_embed" rel="noreferrer">@dropsiders.eu</a>
+                                        <a target="_blank" href="https://www.tiktok.com/@dropsiders.fr?refer=creator_embed" rel="noreferrer">@dropsiders.fr</a>
                                     </section>
                                 </blockquote>
                             </div>
@@ -76,12 +76,12 @@ export function TikTokWidget({ accentColor = 'cyan', resolvedColor }: { accentCo
                                 Ne manquez aucune actu, festival et exclusivité sur notre compte TikTok.
                             </p>
                             <a
-                                href="https://www.tiktok.com/@dropsiders.eu"
+                                href="https://www.tiktok.com/@dropsiders.fr"
                                 target="_blank"
                                 rel="noreferrer"
                                 className="w-full py-3 bg-gradient-to-r from-[#00f2fe] to-[#4facfe] text-white font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_20px_rgba(0,242,254,0.4)] transition-all duration-300 text-center text-sm"
                             >
-                                S'abonner à @dropsiders.eu
+                                S'abonner à @dropsiders.fr
                             </a>
                         </div>
                     </div>

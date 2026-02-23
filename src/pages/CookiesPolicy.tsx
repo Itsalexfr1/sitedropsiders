@@ -52,7 +52,7 @@ export function CookiesPolicy() {
                     >
                         <h2 className="text-2xl font-bold text-white mb-4">2. How do we use cookies?</h2>
                         <p className="leading-relaxed mb-4">
-                            Dropsiders.eu uses cookies to improve your browsing experience and to analyze the use of our site.
+                            dropsiders.fr uses cookies to improve your browsing experience and to analyze the use of our site.
                             Here are the different types of cookies we use:
                         </p>
 
@@ -280,7 +280,7 @@ export function CookiesPolicy() {
                         </p>
                         <div className="space-y-2">
                             <p><strong className="text-white">Email:</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
-                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.fr" className="text-neon-red hover:underline">www.dropsiders.fr</a></p>
                         </div>
                     </motion.section>
                 </div>
@@ -334,7 +334,7 @@ export function CookiesPolicy() {
                 >
                     <h2 className="text-2xl font-bold text-white mb-4">2. Comment utilisons-nous les cookies ?</h2>
                     <p className="leading-relaxed mb-4">
-                        Dropsiders.eu utilise des cookies pour améliorer votre expérience de navigation et pour analyser l'utilisation de notre site.
+                        dropsiders.fr utilise des cookies pour améliorer votre expérience de navigation et pour analyser l'utilisation de notre site.
                         Voici les différents types de cookies que nous utilisons :
                     </p>
 
@@ -562,7 +562,7 @@ export function CookiesPolicy() {
                     </p>
                     <div className="space-y-2">
                         <p><strong className="text-white">Email :</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
-                        <p><strong className="text-white">Site web :</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                        <p><strong className="text-white">Site web :</strong> <a href="https://www.dropsiders.fr" className="text-neon-red hover:underline">www.dropsiders.fr</a></p>
                     </div>
                 </motion.section>
             </div>

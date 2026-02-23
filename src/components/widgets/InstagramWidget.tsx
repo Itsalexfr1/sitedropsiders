@@ -41,7 +41,7 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor }: { accen
                         {/* Instagram Embed with flex-1 to stretch the white block identically to TikTok */}
                         <div className="w-full px-2 pt-2 pb-0 flex justify-center bg-white flex-1 overflow-hidden relative min-h-[380px] sm:min-h-[480px]">
                             <InstagramEmbed
-                                url="https://www.instagram.com/dropsiders.eu/"
+                                url="https://www.instagram.com/dropsiders.fr/"
                                 width="100%"
                                 style={{ borderRadius: '12px' }}
                             />
@@ -56,12 +56,12 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor }: { accen
                                 Ne manquez aucune actu, festival et exclusivité sur notre compte Instagram.
                             </p>
                             <a
-                                href="https://www.instagram.com/dropsiders.eu/"
+                                href="https://www.instagram.com/dropsiders.fr/"
                                 target="_blank"
                                 rel="noreferrer"
                                 className="w-full py-3 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_20px_rgba(236,72,153,0.4)] transition-all duration-300 text-center text-sm"
                             >
-                                S'abonner à @dropsiders.eu
+                                S'abonner à @dropsiders.fr
                             </a>
                         </div>
                     </div>

@@ -607,7 +607,7 @@ export default {
                                 htmlContent: `
                                     <div style="font-family: 'Inter', Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #0b0b0b; color: #ffffff; border-radius: 24px; overflow: hidden; border: 1px solid #333;">
                                         <div style="padding: 40px; text-align: center; background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);">
-                                            <img src="https://dropsiders.eu/logo_presentation.png" alt="Dropsiders" style="width: 180px; margin-bottom: 24px;">
+                                            <img src="https://dropsiders.fr/logo_presentation.png" alt="Dropsiders" style="width: 180px; margin-bottom: 24px;">
                                             <h1 style="color: #ffffff; font-size: 28px; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; margin: 0; font-style: italic;">Confirmation d'inscription</h1>
                                         </div>
                                         <div style="padding: 40px; line-height: 1.6;">
@@ -619,15 +619,15 @@ export default {
                                                 Tu recevras désormais en avant-première nos derniers recaps de festivals, des interviews exclusives et toute l'actu de la scène électronique.
                                             </p>
                                             <div style="text-align: center; margin-bottom: 40px;">
-                                                <a href="https://dropsiders.eu" style="display: inline-block; padding: 16px 32px; background-color: #ff1241; color: #ffffff; text-decoration: none; font-weight: 900; border-radius: 12px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 18, 65, 0.3);">Découvrir le site</a>
+                                                <a href="https://dropsiders.fr" style="display: inline-block; padding: 16px 32px; background-color: #ff1241; color: #ffffff; text-decoration: none; font-weight: 900; border-radius: 12px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(255, 18, 65, 0.3);">Découvrir le site</a>
                                             </div>
                                             <hr style="border: 0; border-top: 1px solid #333; margin-bottom: 32px;">
                                             <p style="font-size: 14px; color: #666; text-align: center; margin: 0 0 12px 0;">
                                                 © 2026 Dropsiders. Tous droits réservés.
                                             </p>
                                             <p style="font-size: 12px; color: #444; text-align: center; margin: 0;">
-                                                Tu reçois ce mail car tu t'es inscrit sur dropsiders.eu<br>
-                                                <a href="https://dropsiders.eu/#/unsubscribe?email=${email}" style="color: #666; text-decoration: underline;">Se désabonner</a>
+                                                Tu reçois ce mail car tu t'es inscrit sur dropsiders.fr<br>
+                                                <a href="https://dropsiders.fr/#/unsubscribe?email=${email}" style="color: #666; text-decoration: underline;">Se désabonner</a>
                                             </p>
                                         </div>
                                     </div>
@@ -713,7 +713,7 @@ export default {
                     category: category || 'News',
                     isFeatured: isFeatured || false,
                     isFocus: isFocus || false,
-                    link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+                    link: `https://dropsiders.fr/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
                 };
 
                 const updatedNews = [newArticle, ...currentNews];
@@ -771,7 +771,7 @@ export default {
                     location: location || '',
                     category: category || 'Recaps',
                     isFeatured: isFeatured || false,
-                    link: `https://dropsiders.eu/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                    link: `https://dropsiders.fr/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     images: extractedImages
                 };
 

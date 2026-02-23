@@ -26,7 +26,7 @@ export function MentionsLegales() {
                             1. SITE EDITION
                         </h2>
                         <p className="text-gray-400 leading-relaxed">
-                            Under Article 6 of Law No. 2004-575 of June 21, 2004 for confidence in the digital economy, users of the website <span className="text-white">https://dropsiders.eu</span> are informed of the identity of the various parties involved in its creation and monitoring:
+                            Under Article 6 of Law No. 2004-575 of June 21, 2004 for confidence in the digital economy, users of the website <span className="text-white">https://dropsiders.fr</span> are informed of the identity of the various parties involved in its creation and monitoring:
                         </p>
                         <ul className="text-gray-400 space-y-2 list-disc pl-6">
                             <li><strong className="text-white">Site Owner:</strong> DROPSIDERS: All festival news</li>
@@ -61,7 +61,7 @@ export function MentionsLegales() {
                             4. LIMITATIONS OF LIABILITY
                         </h2>
                         <p className="text-gray-400 leading-relaxed">
-                            DROPSIDERS: All festival news shall not be held liable for direct or indirect damage caused to the user's equipment when accessing the site https://dropsiders.eu.
+                            DROPSIDERS: All festival news shall not be held liable for direct or indirect damage caused to the user's equipment when accessing the site https://dropsiders.fr.
                         </p>
                     </section>
 
@@ -70,7 +70,7 @@ export function MentionsLegales() {
                             5. APPLICABLE LAW AND JURISDICTION
                         </h2>
                         <p className="text-gray-400 leading-relaxed">
-                            Any dispute relating to the use of the site https://dropsiders.eu is subject to French law. Except in cases where the law does not allow it, exclusive jurisdiction is granted to the competent courts.
+                            Any dispute relating to the use of the site https://dropsiders.fr is subject to French law. Except in cases where the law does not allow it, exclusive jurisdiction is granted to the competent courts.
                         </p>
                     </section>
                 </motion.div>
@@ -99,7 +99,7 @@ export function MentionsLegales() {
                         1. ÉDITION DU SITE
                     </h2>
                     <p className="text-gray-400 leading-relaxed">
-                        En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site internet <span className="text-white">https://dropsiders.eu</span> l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi :
+                        En vertu de l'article 6 de la loi n° 2004-575 du 21 juin 2004 pour la confiance dans l'économie numérique, il est précisé aux utilisateurs du site internet <span className="text-white">https://dropsiders.fr</span> l'identité des différents intervenants dans le cadre de sa réalisation et de son suivi :
                     </p>
                     <ul className="text-gray-400 space-y-2 list-disc pl-6">
                         <li><strong className="text-white">Propriétaire du site :</strong> DROPSIDERS : L'actu de tous les festivals</li>
@@ -134,7 +134,7 @@ export function MentionsLegales() {
                         4. LIMITATIONS DE RESPONSABILITÉ
                     </h2>
                     <p className="text-gray-400 leading-relaxed">
-                        DROPSIDERS : L'actu de tous les festivals ne pourra être tenu pour responsable des dommages directs et indirects causés au matériel de l’utilisateur, lors de l’accès au site https://dropsiders.eu.
+                        DROPSIDERS : L'actu de tous les festivals ne pourra être tenu pour responsable des dommages directs et indirects causés au matériel de l’utilisateur, lors de l’accès au site https://dropsiders.fr.
                     </p>
                 </section>
 
@@ -143,7 +143,7 @@ export function MentionsLegales() {
                         5. DROIT APPLICABLE ET ATTRIBUTION DE JURIDICTION
                     </h2>
                     <p className="text-gray-400 leading-relaxed">
-                        Tout litige en relation avec l’utilisation du site https://dropsiders.eu est soumis au droit français. En dehors des cas où la loi ne le permet pas, il est fait attribution exclusive de juridiction aux tribunaux compétents.
+                        Tout litige en relation avec l’utilisation du site https://dropsiders.fr est soumis au droit français. En dehors des cas où la loi ne le permet pas, il est fait attribution exclusive de juridiction aux tribunaux compétents.
                     </p>
                 </section>
             </motion.div>

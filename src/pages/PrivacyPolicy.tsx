@@ -38,7 +38,7 @@ export function PrivacyPolicy() {
                             <h2 className="text-2xl font-bold text-white">1. Introduction</h2>
                         </div>
                         <p className="leading-relaxed">
-                            Welcome to Dropsiders.eu. We respect your privacy and are committed to protecting your personal data.
+                            Welcome to dropsiders.fr. We respect your privacy and are committed to protecting your personal data.
                             This privacy policy informs you about how we process your personal data when you visit our website
                             and informs you of your privacy rights.
                         </p>
@@ -186,7 +186,7 @@ export function PrivacyPolicy() {
                         </p>
                         <div className="mt-4 space-y-2">
                             <p><strong className="text-white">Email:</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
-                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                            <p><strong className="text-white">Website:</strong> <a href="https://www.dropsiders.fr" className="text-neon-red hover:underline">www.dropsiders.fr</a></p>
                         </div>
                     </motion.section>
                 </div>
@@ -226,7 +226,7 @@ export function PrivacyPolicy() {
                         <h2 className="text-2xl font-bold text-white">1. Introduction</h2>
                     </div>
                     <p className="leading-relaxed">
-                        Bienvenue sur Dropsiders.eu. Nous respectons votre vie privée et nous nous engageons à protéger vos données personnelles.
+                        Bienvenue sur dropsiders.fr. Nous respectons votre vie privée et nous nous engageons à protéger vos données personnelles.
                         Cette politique de confidentialité vous informe sur la manière dont nous traitons vos données personnelles lorsque vous visitez notre site web
                         et vous informe de vos droits en matière de confidentialité.
                     </p>
@@ -374,7 +374,7 @@ export function PrivacyPolicy() {
                     </p>
                     <div className="mt-4 space-y-2">
                         <p><strong className="text-white">Email :</strong> <a href="mailto:contact@dropsiders.fr" className="text-neon-red hover:underline">contact@dropsiders.fr</a></p>
-                        <p><strong className="text-white">Site web :</strong> <a href="https://www.dropsiders.eu" className="text-neon-red hover:underline">www.dropsiders.eu</a></p>
+                        <p><strong className="text-white">Site web :</strong> <a href="https://www.dropsiders.fr" className="text-neon-red hover:underline">www.dropsiders.fr</a></p>
                     </div>
                 </motion.section>
             </div>
