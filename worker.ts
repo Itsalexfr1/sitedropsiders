@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 export default {
     async fetch(request, env, ctx) {
@@ -1550,5 +1549,80 @@ export default {
         }
 
         return response;
+    },
+
+    async email(message, env, ctx) {
+        const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
+        const REPO = env.GITHUB_REPO || 'sitedropsiders';
+        const TOKEN = env.GITHUB_TOKEN;
+        const EMAILS_PATH = 'src/data/emails.json';
+
+        if (!TOKEN) return;
+
+        try {
+            const from = message.from;
+            const to = message.to;
+            const subject = message.headers.get("subject") || "(Sans objet)";
+
+            // On récupère le contenu brut
+            const raw = await new Response(message.raw).text();
+            // Tentative d'extraction simplifiée du corps du message
+            const body = raw.split("\r\n\r\n").slice(1).join("\r\n\r\n") || "Contenu brut illisible";
+
+            // 1. Charger les emails existants
+            const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${EMAILS_PATH}`;
+            const getRes = await fetch(getUrl, {
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
+            });
+
+            if (!getRes.ok) return;
+            const fileData = await getRes.json();
+
+            // Décodage UTF-8 sûr
+            const binary = atob(fileData.content.replace(/\s/g, ''));
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            const contentJson = new TextDecoder().decode(bytes);
+            const emails = JSON.parse(contentJson);
+
+            const account = to.toLowerCase().includes('contact') ? 'contact' : 'alex';
+
+            const newMail = {
+                id: Date.now().toString(),
+                from: from,
+                fromName: from.split('<')[0].trim() || from,
+                subject: subject,
+                preview: body.substring(0, 100).replace(/\n/g, ' ') + '...',
+                content: body,
+                date: new Date().toISOString(),
+                read: false,
+                starred: false,
+                labels: []
+            };
+
+            if (!emails[account]) emails[account] = [];
+            emails[account] = [newMail, ...emails[account]].slice(0, 50);
+
+            // 2. Sauvegarder
+            const updatedContent = JSON.stringify(emails, null, 2);
+            const putBody = {
+                message: `📧 Mail reçu de ${from} pour ${account}`,
+                content: btoa(unescape(encodeURIComponent(updatedContent))),
+                sha: fileData.sha
+            };
+
+            await fetch(getUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'User-Agent': 'Cloudflare-Worker',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(putBody)
+            });
+
+        } catch (e) {
+            console.error("Worker Email Error:", e);
+        }
     }
 }
