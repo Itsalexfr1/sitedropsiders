@@ -619,20 +619,25 @@ export function RecapCreate() {
             }
 
             await response.json();
-
             setStatus('success');
             setIsDirty(false);
             setMessage(isEditing ? 'Récap mis à jour avec succès !' : 'Récap publié avec succès !');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
             if (!isEditing) {
                 setTitle('');
                 setSummary('');
-                setWidgets([{ id: 'new-1', content: '' }]);
+                setWidgets([{ id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DU RÉCAP</h2>' }]);
                 setCoverImage('');
                 setFestival('');
                 setLocationInput('');
                 setYoutubeId('');
                 setIsFeatured(false);
+                // Clear status after a while
+                setTimeout(() => setStatus('idle'), 3000);
+            } else {
+                // Redirect after edit
+                setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
         } catch (error) {

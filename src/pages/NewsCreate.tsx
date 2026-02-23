@@ -759,14 +759,21 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 setIsDirty(false);
                 setMessage(isEditing ? 'Article mis à jour avec succès !' : 'Article publié avec succès !');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+
                 if (!isEditing) {
+                    // Reset to TRUE initial state (with title placeholder widget)
                     setTitle('');
                     setSummary('');
-                    setWidgets([{ id: 'new-1', content: '' }]);
+                    setWidgets([{ id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }]);
                     setImageUrl('');
                     setYoutubeId('');
                     setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
                     setIsFeatured(false);
+                    // Clear status after a while
+                    setTimeout(() => setStatus('idle'), 3000);
+                } else {
+                    // If editing, redirect back to management after a short delay
+                    setTimeout(() => navigate('/admin/manage'), 2000);
                 }
             } else {
                 let errorData;

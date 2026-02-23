@@ -169,6 +169,8 @@ export function AgendaCreate() {
             setStatus('success');
             setIsDirty(false);
             setMessage(isEditing ? 'Événement mis à jour avec succès !' : 'Événement ajouté avec succès !');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
             // Reset form
             if (!isEditing) {
                 setTitle('');
@@ -180,6 +182,9 @@ export function AgendaCreate() {
                 setUrl('');
                 setIsWeekly(false);
                 setIsSoldOut(false);
+                setTimeout(() => setStatus('idle'), 3000);
+            } else {
+                setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
         } catch (error) {

@@ -167,6 +167,8 @@ export function GalerieCreate() {
             setStatus('success');
             setIsDirty(false);
             setMessage(isEditing ? 'Album mis à jour avec succès !' : 'Album créé avec succès !');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
             // Reset form if not editing
             if (!isEditing) {
                 setTitle('');
@@ -174,6 +176,9 @@ export function GalerieCreate() {
                 setCoverUrl('');
                 setHoverMediaUrl('');
                 setImageUrls('');
+                setTimeout(() => setStatus('idle'), 3000);
+            } else {
+                setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
         } catch (error) {
