@@ -19,7 +19,9 @@ import {
     ArrowLeft,
     Calendar,
     User,
-    ExternalLink
+    ExternalLink,
+    Zap,
+    Globe
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -35,6 +37,48 @@ interface Email {
     starred: boolean;
     labels: string[];
 }
+
+const EmailSignature = () => (
+    <div className="mt-12 pt-8 border-t border-white/10">
+        <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-neon-red via-neon-red/80 to-black rounded-xl flex items-center justify-center border border-white/10 shadow-lg shadow-neon-red/10">
+                <span className="text-white font-black italic text-sm tracking-tighter">DS.</span>
+            </div>
+            <div>
+                <p className="text-sm font-black text-white uppercase tracking-widest italic">L'Équipe <span className="text-neon-red">Dropsiders</span></p>
+                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em] mt-0.5">Media & Production Festivals</p>
+            </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 items-center">
+            <a
+                href="https://dropsiders.fr/kitmedia"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 hover:bg-white/10 transition-all"
+            >
+                <Globe className="w-3.5 h-3.5 text-neon-red" />
+                <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-white uppercase tracking-widest">Kit Media 2026</span>
+                    <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-1">
+                        Code : <span className="text-neon-red font-black">DROPSIDERS</span>
+                    </span>
+                </div>
+            </a>
+
+            <div className="flex items-center gap-3">
+                <div className="w-px h-8 bg-white/10"></div>
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-neon-red shadow-[0_0_5px_red]"></div>
+                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">Paris • Ibiza • Las Vegas</span>
+                    </div>
+                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.3em]">www.dropsiders.fr</p>
+                </div>
+            </div>
+        </div>
+    </div>
+);
 
 export function AdminEmails() {
     const navigate = useNavigate();
@@ -348,6 +392,9 @@ Ceci est un message automatique, merci de ne pas y répondre.`,
 
                                         <div className="bg-black/20 border border-white/5 rounded-3xl p-8 md:p-10 text-gray-300 leading-relaxed space-y-4 whitespace-pre-wrap font-medium">
                                             {selectedEmail.content}
+
+                                            {/* Ajout automatique de la signature sur les emails sortants ou prévisualisation */}
+                                            <EmailSignature />
                                         </div>
 
                                         <div className="mt-12 flex flex-wrap gap-4">
