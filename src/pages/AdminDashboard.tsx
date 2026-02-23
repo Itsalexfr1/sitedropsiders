@@ -74,6 +74,7 @@ export function AdminDashboard() {
         { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
         { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
         { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
+        { title: "Mails", description: "LWS Webmail", icon: "Mail", link: "/admin/emails", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "all", baseColor: "orange", columns: 1 },
         { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 1 }
     ];
 

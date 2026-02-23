@@ -23,8 +23,18 @@ export function Navbar() {
     const { language, setLanguage, t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
+        const checkAuth = () => {
+            const auth = localStorage.getItem('admin_auth');
+            setIsAdmin(auth === 'true');
+        };
+
+        checkAuth();
+        // Check periodically or on focus
+        window.addEventListener('focus', checkAuth);
+
         const fetchSettings = async () => {
             try {
                 const response = await fetch('/api/settings');
@@ -48,6 +58,7 @@ export function Navbar() {
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
+        ...(isAdmin ? [{ name: 'Admin', path: '/admin' }] : []),
     ];
 
     const toggleTheme = () => {
