@@ -20,9 +20,9 @@ export function Layout({ children }: LayoutProps) {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             </div>
 
-            <Navbar />
+            {!isMessagerie && <Navbar />}
 
-            <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-16'}`}>
+            <main className={`flex-grow relative ${isHome || isMessagerie ? 'pt-0' : 'pt-16'}`}>
                 {children}
             </main>
 

@@ -110,8 +110,8 @@ const parseAndCleanEmail = (raw: string) => {
                         body { 
                             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
                             line-height: 1.6; 
-                            color: #eee; 
-                            background: transparent;
+                            color: #333; 
+                            background: white;
                             margin: 0;
                             padding: 20px;
                         }
@@ -122,7 +122,11 @@ const parseAndCleanEmail = (raw: string) => {
                 <body>${content}</body>
             </html>
         `;
+    } else if (!content.toLowerCase().includes('<body')) {
+        // If it has <html> but no <body>, wrap it
+        content = content.replace(/<html[^>]*>/i, '$&<body style="background:white; color:#333; font-family:sans-serif; padding:20px;">').replace(/<\/html>/i, '</body>$0');
     }
+
 
     return content;
 };
@@ -382,10 +386,10 @@ export function AdminEmails() {
     }
 
     return (
-        <div className="h-[calc(100vh-64px)] bg-dark-bg flex flex-col overflow-hidden">
+        <div className="h-screen bg-dark-bg flex flex-col overflow-hidden">
             <div className="flex-1 flex flex-col h-full w-full">
                 {/* Header Dashboard Style */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 p-8 pb-0">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 p-6 pb-0">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={() => navigate('/admin')}
@@ -685,7 +689,7 @@ export function AdminEmails() {
 
                             <div className={`flex-1 overflow-y-auto overflow-x-hidden bg-black/40 ${!selectedEmail ? 'hidden md:flex items-center justify-center' : 'flex flex-col'}`} style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                                 {selectedEmail ? (
-                                    <div className="p-8 lg:p-12 animate-in fade-in slide-in-from-right-4 duration-300">
+                                    <div className="p-4 lg:p-8 animate-in fade-in slide-in-from-right-4 duration-300">
 
                                         {/* Reader Header */}
                                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
@@ -716,17 +720,21 @@ export function AdminEmails() {
                                             {selectedEmail.subject}
                                         </h2>
 
-                                        <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden text-gray-300 leading-relaxed font-medium max-w-full relative email-reader-content min-h-[400px]">
+                                        <div className="bg-white border border-white/10 rounded-3xl overflow-hidden text-gray-900 leading-relaxed font-medium max-w-full relative email-reader-content min-h-[400px]">
                                             {selectedEmail.content.toLowerCase().includes('<html') || selectedEmail.content.toLowerCase().includes('<body') || selectedEmail.content.includes('=3D') || selectedEmail.content.toLowerCase().includes('<div') ? (
                                                 <iframe
                                                     srcDoc={parseAndCleanEmail(selectedEmail.content)}
-                                                    className="w-full min-h-[600px] border-none"
+                                                    className="w-full min-h-[600px] border-none bg-white"
                                                     title="Email Content"
+                                                    sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
                                                     onLoad={(e) => {
                                                         const iframe = e.target as HTMLIFrameElement;
                                                         if (iframe.contentWindow) {
                                                             const body = iframe.contentWindow.document.body;
                                                             if (body) {
+                                                                // Set background to white explicitly if not set
+                                                                if (!body.style.backgroundColor) body.style.backgroundColor = 'white';
+                                                                if (!body.style.color) body.style.color = '#333';
                                                                 iframe.style.height = body.scrollHeight + 'px';
                                                             }
                                                         }
