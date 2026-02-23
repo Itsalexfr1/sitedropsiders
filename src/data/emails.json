@@ -1,4 +1,17 @@
 {
-  "alex": [],
+  "alex": [
+    {
+      "id": "1771870858018",
+      "from": "alexflex30@gmail.com",
+      "fromName": "alexflex30@gmail.com",
+      "subject": "Test",
+      "preview": "\r --Apple-Mail-072EE287-0710-4A79-BFA3-F2575138B49B\r Content-Type: text/html;\r \tcharset=utf-8\r Conte...",
+      "content": "\r\n--Apple-Mail-072EE287-0710-4A79-BFA3-F2575138B49B\r\nContent-Type: text/html;\r\n\tcharset=utf-8\r\nContent-Transfer-Encoding: quoted-printable\r\n\r\n<html class=3D\"apple-mail-supports-explicit-dark-mode\"><head><meta http-equi=\r\nv=3D\"content-type\" content=3D\"text/html; charset=3Dutf-8\"></head><body dir=3D=\r\n\"auto\">Test<br id=3D\"lineBreakAtBeginningOfSignature\"><div dir=3D\"ltr\"><div>=\r\n<span style=3D\"background-color: rgba(255, 255, 255, 0);\">----------------</=\r\nspan></div><div><span style=3D\"background-color: rgba(255, 255, 255, 0);\">Cu=\r\nenca Alexandre&nbsp;</span></div><div><span style=3D\"background-color: rgba(=\r\n255, 255, 255, 0);\">Dj &amp; Light Jockey&nbsp;</span></div><div><span style=\r\n=3D\"background-color: rgba(255, 255, 255, 0);\">Dropsiders</span></div><div><=\r\na href=3D\"https://dropsiders.fr/#/news/la-selection-du-20-fevrier-2026-175\" s=\r\ntyle=3D\"caret-color: rgb(255, 255, 255); background-color: rgba(255, 255, 25=\r\n5, 0);\"><font color=3D\"#ffffff\">https://dropsiders.fr/#/</font></a></div><di=\r\nv><span style=3D\"background-color: rgba(255, 255, 255, 0);\">0762054589</span=\r\n></div><span style=3D\"background-color: rgba(255, 255, 255, 0);\"><em></em></=\r\nspan><div><span style=3D\"background-color: rgba(255, 255, 255, 0);\"><br></sp=\r\nan></div></div></body></html>=\r\n\r\n--Apple-Mail-072EE287-0710-4A79-BFA3-F2575138B49B--\r\n",
+      "date": "2026-02-23T18:20:58.018Z",
+      "read": false,
+      "starred": false,
+      "labels": []
+    }
+  ],
   "contact": []
 }
