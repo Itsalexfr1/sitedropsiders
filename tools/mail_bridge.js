@@ -11,12 +11,15 @@ const CONFIG_PATH = path.join(ROOT, 'src/data/mail_setup.json');
 const EMAILS_PATH = path.join(ROOT, 'src/data/emails.json');
 const SENT_PATH = path.join(ROOT, 'src/data/emails_sent.json');
 
+// Mode auto si flag --watch présent
+const WATCH_MODE = process.argv.includes('--watch');
+
 // Charger la config
 const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
 
 async function syncAccount(accountKey) {
     const acc = config.accounts[accountKey];
-    console.log(`\n--- Synchronisation de ${acc.email} ---`);
+    console.log(`[${new Date().toLocaleTimeString()}] Synchronisation de ${acc.email}...`);
 
     const imap = new Imap({
         user: acc.user,
@@ -33,58 +36,100 @@ async function syncAccount(accountKey) {
             imap.openBox('INBOX', true, (err, box) => {
                 if (err) return reject(err);
 
-                // Récupérer les 20 derniers messages
+                if (box.messages.total === 0) {
+                    imap.end();
+                    return resolve([]);
+                }
+
                 const fetch = imap.seq.fetch(`${Math.max(1, box.messages.total - 19)}:${box.messages.total}`, {
                     bodies: '',
                     struct: true
                 });
 
                 const newEmails = [];
+                let completed = 0;
+                let total = 0;
 
                 fetch.on('message', (msg, seqno) => {
+                    total++;
                     msg.on('body', (stream, info) => {
                         simpleParser(stream, async (err, parsed) => {
-                            if (err) return;
-                            newEmails.push({
-                                id: parsed.messageId || seqno.toString(),
-                                from: parsed.from?.text || '',
-                                fromName: parsed.from?.value[0]?.name || parsed.from?.text.split('<')[0].trim() || 'Inconnu',
-                                subject: parsed.subject || '(Sans objet)',
-                                preview: parsed.text?.substring(0, 150).replace(/\n/g, ' ') + '...',
-                                content: parsed.text || parsed.html || '',
-                                date: parsed.date?.toISOString() || new Date().toISOString(),
-                                read: true,
-                                starred: false,
-                                labels: []
-                            });
+                            completed++;
+                            if (!err) {
+                                newEmails.push({
+                                    id: parsed.messageId || seqno.toString(),
+                                    from: parsed.from?.text || '',
+                                    fromName: parsed.from?.value[0]?.name || parsed.from?.text.split('<')[0].trim() || 'Inconnu',
+                                    subject: parsed.subject || '(Sans objet)',
+                                    preview: parsed.text?.substring(0, 150).replace(/\n/g, ' ') + '...',
+                                    content: parsed.text || parsed.html || '',
+                                    date: parsed.date?.toISOString() || new Date().toISOString(),
+                                    read: true,
+                                    starred: false,
+                                    labels: []
+                                });
+                            }
+                            if (completed === total) {
+                                imap.end();
+                            }
                         });
                     });
                 });
 
                 fetch.once('error', (err) => reject(err));
                 fetch.once('end', () => {
-                    imap.end();
-                    resolve(newEmails);
+                    if (total === 0) {
+                        imap.end();
+                        resolve([]);
+                    }
                 });
             });
         });
 
+        imap.once('close', () => resolve(newEmails));
         imap.once('error', (err) => reject(err));
         imap.connect();
     });
 }
 
+async function syncAllInbox() {
+    try {
+        const allData = JSON.parse(fs.readFileSync(EMAILS_PATH, 'utf8'));
+        let hasChanges = false;
+
+        for (const key of Object.keys(config.accounts)) {
+            try {
+                const fetched = await syncAccount(key);
+                const existingIds = new Set(allData[key].map(e => e.id));
+                const uniqueNew = fetched.filter(e => !existingIds.has(e.id));
+
+                if (uniqueNew.length > 0) {
+                    allData[key] = [...uniqueNew, ...allData[key]].slice(0, 50);
+                    console.log(`✅ ${uniqueNew.length} nouveaux messages pour ${key}`);
+                    hasChanges = true;
+                }
+            } catch (err) {
+                console.error(`❌ Échec IMAP pour ${key} : ${err.message}`);
+            }
+        }
+
+        if (hasChanges) {
+            fs.writeFileSync(EMAILS_PATH, JSON.stringify(allData, null, 4));
+        }
+    } catch (error) {
+        console.error('Erreur réception :', error.message);
+    }
+}
+
 async function sendPendingEmails() {
-    console.log('\n--- Envoi des messages en attente ---');
     if (!fs.existsSync(SENT_PATH)) return;
 
     let sentData = JSON.parse(fs.readFileSync(SENT_PATH, 'utf8'));
     const pending = sentData.filter(e => e.status === 'pending');
 
-    if (pending.length === 0) {
-        console.log('Aucun message en attente.');
-        return;
-    }
+    if (pending.length === 0) return;
+
+    console.log(`[${new Date().toLocaleTimeString()}] Envoi de ${pending.length} message(s)...`);
 
     for (const email of pending) {
         const acc = config.accounts[email.account];
@@ -94,10 +139,7 @@ async function sendPendingEmails() {
             host: acc.host,
             port: acc.smtp_port,
             secure: acc.smtp_port === 465,
-            auth: {
-                user: acc.user,
-                password: acc.pass
-            },
+            auth: { user: acc.user, pass: acc.pass },
             tls: { rejectUnauthorized: false }
         });
 
@@ -109,9 +151,9 @@ async function sendPendingEmails() {
                 text: email.content
             });
             email.status = 'sent';
-            console.log(`✅ Envoyé : ${email.subject} (à ${email.to})`);
+            console.log(`✅ Envoyé : ${email.subject} vers ${email.to}`);
         } catch (err) {
-            console.error(`❌ Échec envoi vers ${email.to} : ${err.message}`);
+            console.error(`❌ Échec SMTP vers ${email.to} : ${err.message}`);
         }
     }
 
@@ -119,33 +161,26 @@ async function sendPendingEmails() {
 }
 
 async function run() {
-    try {
-        // 1. Envoyer les mails sortants
+    if (!WATCH_MODE) {
+        console.log('--- Mode Manuel ---');
         await sendPendingEmails();
-
-        // 2. Récupérer les mails entrants
-        const allData = JSON.parse(fs.readFileSync(EMAILS_PATH, 'utf8'));
-
-        for (const key of Object.keys(config.accounts)) {
-            try {
-                const fetched = await syncAccount(key);
-                // Fusionner (garder les IDs uniques)
-                const existingIds = new Set(allData[key].map(e => e.id));
-                const uniqueNew = fetched.filter(e => !existingIds.has(e.id));
-
-                allData[key] = [...uniqueNew, ...allData[key]].slice(0, 50); // Garder 50 max
-                console.log(`✅ ${uniqueNew.length} nouveaux messages pour ${key}`);
-            } catch (err) {
-                console.error(`❌ Échec pour ${key} : ${err.message}`);
-            }
-        }
-
-        fs.writeFileSync(EMAILS_PATH, JSON.stringify(allData, null, 4));
-        console.log('\n--- Bilan de synchronisation terminé ---');
-        console.log('Vous pouvez rafraîchir votre interface Dropsiders.');
-    } catch (error) {
-        console.error('\n❌ Erreur critique :', error.message);
+        await syncAllInbox();
+        console.log('Terminé.');
+        process.exit(0);
     }
+
+    console.log('🚀 BOÎTE AUX LETTRES DROPSIDERS ACTIVÉE');
+    console.log('- Sortants : Surveillance en temps réel (5s)');
+    console.log('- Entrants : Synchronisation automatique (2 min)');
+    console.log('------------------------------------------');
+
+    // Premier passage
+    await sendPendingEmails();
+    await syncAllInbox();
+
+    // Boucles
+    setInterval(sendPendingEmails, 5000);
+    setInterval(syncAllInbox, 120000);
 }
 
 run();

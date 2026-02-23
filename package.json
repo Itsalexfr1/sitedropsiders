@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "fix:encoding": "node tools/clean_encoding.cjs",
     "migrate:images": "node tools/migrate_to_cloudinary.cjs",
-    "mail:sync": "node tools/mail_bridge.js"
+    "mail:sync": "node tools/mail_bridge.js --watch",
+    "mail:once": "node tools/mail_bridge.js"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",
