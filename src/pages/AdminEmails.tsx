@@ -139,7 +139,7 @@ export function AdminEmails() {
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [loginError, setLoginError] = useState('');
     const [isComposing, setIsComposing] = useState(false);
-    const [composeData, setComposeData] = useState({ from: 'contact' as 'alex' | 'contact', to: '', subject: '', content: '' });
+    const [composeData, setComposeData] = useState({ from: 'contact' as 'alex' | 'contact' | 'all', to: '', subject: '', content: '' });
     const [isSending, setIsSending] = useState(false);
     const [emails, setEmails] = useState<{ [key: string]: Email[] }>({});
 
@@ -302,21 +302,25 @@ export function AdminEmails() {
         e.preventDefault();
         setIsSending(true);
         try {
-            const res = await fetch('/api/emails/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...composeData,
-                    account: composeData.from,
-                    status: 'pending'
-                })
-            });
-            if (res.ok) {
-                setIsComposing(false);
-                setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
-                alert('E-mail envoyé avec succès !');
-                if (activeFolder === 'sent') handleRefresh();
+            const accounts = composeData.from === 'all' ? ['contact', 'alex'] : [composeData.from];
+
+            for (const account of accounts) {
+                const res = await fetch('/api/emails/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ...composeData,
+                        account,
+                        status: 'pending'
+                    })
+                });
+                if (!res.ok) throw new Error('Failed to send');
             }
+
+            setIsComposing(false);
+            setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
+            alert('E-mail(s) envoyé(s) avec succès !');
+            if (activeFolder === 'sent') handleRefresh();
         } catch (e) {
             alert('Erreur lors de l\'envoi');
         } finally {
@@ -803,6 +807,13 @@ export function AdminEmails() {
                                                     className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'alex' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
                                                 >
                                                     alex@dropsiders.fr
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setComposeData({ ...composeData, from: 'all' })}
+                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'all' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
+                                                >
+                                                    Les deux
                                                 </button>
                                             </div>
                                         </div>
