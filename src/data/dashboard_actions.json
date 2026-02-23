@@ -1,0 +1,122 @@
+[
+  {
+    "title": "Accueil",
+    "description": "Vues & Sections",
+    "icon": "LayoutDashboard",
+    "link": "/admin/home",
+    "baseColor": "#ffffff",
+    "permission": "publications",
+    "columns": 2
+  },
+  {
+    "title": "Statistiques",
+    "description": "Analyse du site",
+    "icon": "BarChart3",
+    "link": "/admin/stats",
+    "baseColor": "#000000",
+    "permission": "stats",
+    "columns": 1
+  },
+  {
+    "title": "Shop",
+    "description": "Gérer le shop",
+    "icon": "ShoppingBag",
+    "link": "/admin/shop",
+    "baseColor": "#fb1aff",
+    "permission": "shop"
+  },
+  {
+    "title": "Newsletter",
+    "description": "Studio de création",
+    "icon": "Mail",
+    "link": "/newsletter/studio",
+    "baseColor": "#1fc7ff",
+    "permission": "newsletter",
+    "columns": 2
+  },
+  {
+    "title": "News",
+    "description": "Gérer les actualités",
+    "icon": "FileText",
+    "link": "/admin/manage?tab=News",
+    "baseColor": "#ff0000",
+    "permission": "publications"
+  },
+  {
+    "title": "Récaps",
+    "description": "Gérer les reportages",
+    "icon": "Video",
+    "link": "/admin/manage?tab=Recaps",
+    "baseColor": "#be7f64",
+    "permission": "publications"
+  },
+  {
+    "title": "Agenda",
+    "description": "Gérer les dates",
+    "icon": "Calendar",
+    "link": "/admin/manage?tab=Agenda",
+    "baseColor": "#fff700",
+    "permission": "publications"
+  },
+  {
+    "title": "Spotify",
+    "description": "Playlists accueil",
+    "icon": "Music",
+    "link": "/admin/spotify",
+    "baseColor": "#00ff11",
+    "permission": "spotify",
+    "columns": 2
+  },
+  {
+    "title": "Musique",
+    "description": "Gérer les articles musique",
+    "icon": "Music",
+    "link": "/admin/manage?tab=Musique",
+    "baseColor": "#9e677d",
+    "permission": "publications",
+    "columns": 1
+  },
+  {
+    "title": "Interviews",
+    "description": "Gérer les interviews",
+    "icon": "Mic",
+    "link": "/admin/manage?tab=Interviews",
+    "baseColor": "#ff0088",
+    "permission": "publications"
+  },
+  {
+    "title": "Galeries",
+    "description": "Gérer les albums",
+    "icon": "ImageIcon",
+    "link": "/admin/manage?tab=Galeries",
+    "baseColor": "#ff7b24",
+    "permission": "publications",
+    "columns": 2
+  },
+  {
+    "title": "Abonnés",
+    "description": "Gérer la liste mail",
+    "icon": "Users",
+    "link": "/newsletter/admin",
+    "baseColor": "white",
+    "permission": "all",
+    "columns": 2
+  },
+  {
+    "title": "Éditeurs",
+    "description": "Gérer l'équipe",
+    "icon": "Lock",
+    "link": "/admin/editors",
+    "baseColor": "#ff2e2e",
+    "permission": "all"
+  },
+  {
+    "title": "Team",
+    "description": "La Dream Team",
+    "icon": "Users",
+    "link": "/admin/team",
+    "baseColor": "#000000",
+    "permission": "all",
+    "columns": 3
+  }
+]

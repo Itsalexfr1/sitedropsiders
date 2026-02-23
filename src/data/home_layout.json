@@ -1,0 +1,34 @@
+[
+  {
+    "id": "hero",
+    "enabled": true,
+    "accentColor": "red"
+  },
+  {
+    "id": "news_grid",
+    "enabled": true,
+    "accentColor": "red"
+  },
+  {
+    "id": "recap_agenda_grid",
+    "enabled": true,
+    "accentColor": "orange",
+    "maxAgendaItems": 8
+  },
+  {
+    "id": "interviews",
+    "enabled": true,
+    "accentColor": "purple"
+  },
+  {
+    "id": "social_grid",
+    "enabled": true,
+    "accentColor": "pink",
+    "accentColor2": "cyan"
+  },
+  {
+    "id": "spotify",
+    "enabled": true,
+    "accentColor": "green"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "ALEX",
+    "role": "FONDATEUR / REDACTEUR",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771785411716-cropped_image.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/itsalex.fr1/",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 2,
+    "name": "KEVIN ",
+    "role": "PHOTOGRAPHE & VIDÉASTE",
+    "image": "/images/team/kevin-m-.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/kevinmiralla",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 3,
+    "name": "TIFFANY ",
+    "role": "RÉDACTRICE",
+    "image": "/images/team/tiffany-d-.png",
+    "socials": {
+      "instagram": "https://www.instagram.com/tiffdreamgarrix",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 4,
+    "name": "JULIEN",
+    "role": "PHOTOGRAPHE",
+    "image": "/images/team/julien-b-.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/julien_b68",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 5,
+    "name": "TANGUY ",
+    "role": "RÉDACTEUR",
+    "image": "/images/team/tanguy-p-.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/tanguy_pllt",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 6,
+    "name": "GUILLAUME ",
+    "role": "VIDÉASTE",
+    "image": "/images/team/guillaume-d-.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/guiyoome",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 7,
+    "name": "QUENTIN ",
+    "role": "RÉDACTEUR",
+    "image": "/images/team/quentin-a-.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/quentin.asbert",
+      "tiktok": "#"
+    }
+  }
+]
