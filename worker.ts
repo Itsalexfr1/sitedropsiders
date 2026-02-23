@@ -1332,6 +1332,66 @@ export default {
         }
 
 
+        if (path === '/api/emails/action' && request.method === 'POST') {
+            const { action, emailId, fromFolder, toFolder, account } = await request.json();
+
+            const folderPaths: { [key: string]: string } = {
+                'inbox': 'src/data/emails.json',
+                'sent': 'src/data/emails_sent.json',
+                'archive': 'src/data/emails_archive.json',
+                'trash': 'src/data/emails_trash.json'
+            };
+
+            try {
+                const sourcePath = folderPaths[fromFolder];
+                const sourceFile = await fetchGitHubFile(sourcePath);
+                if (!sourceFile) return new Response(JSON.stringify({ error: 'Source not found' }), { status: 404, headers });
+
+                let emailToMove: any = null;
+                let updatedSource: any = null;
+
+                if (fromFolder === 'inbox') {
+                    emailToMove = sourceFile.content[account]?.find((e: any) => e.id === emailId);
+                    updatedSource = {
+                        ...sourceFile.content,
+                        [account]: sourceFile.content[account]?.filter((e: any) => e.id !== emailId)
+                    };
+                } else {
+                    emailToMove = sourceFile.content.find((e: any) => e.id === emailId);
+                    updatedSource = sourceFile.content.filter((e: any) => e.id !== emailId);
+                }
+
+                if (!emailToMove) return new Response(JSON.stringify({ error: 'Email not found' }), { status: 404, headers });
+
+                // Save updated source
+                await saveGitHubFile(sourcePath, updatedSource, `Action ${action} on email ${emailId} (remove from ${fromFolder})`, sourceFile.sha);
+
+                // Add to target folder if moving
+                if (toFolder) {
+                    const targetPath = folderPaths[toFolder];
+                    const targetFile = await fetchGitHubFile(targetPath) || { content: toFolder === 'inbox' ? { alex: [], contact: [] } : [], sha: null };
+
+                    let updatedTarget: any = null;
+                    const emailWithAccount = { ...emailToMove, account }; // Ensure account is tagged
+
+                    if (toFolder === 'inbox') {
+                        updatedTarget = {
+                            ...targetFile.content,
+                            [account]: [emailWithAccount, ...(targetFile.content[account] || [])]
+                        };
+                    } else {
+                        updatedTarget = [emailWithAccount, ...(Array.isArray(targetFile.content) ? targetFile.content : [])];
+                    }
+
+                    await saveGitHubFile(targetPath, updatedTarget, `Action ${action} on email ${emailId} (add to ${toFolder})`, targetFile.sha);
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         // --- API: GET NEWS CONTENT ---
         if (path === '/api/news/content' && request.method === 'GET') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });

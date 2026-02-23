@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
+import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, AlertCircle, MoreVertical, Star, Lock, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Email {
@@ -148,6 +148,68 @@ export function AdminEmails() {
         }
     };
 
+    const handleEmailAction = async (action: 'archive' | 'trash' | 'delete', emailId: string) => {
+        try {
+            const targetFolderMap: { [key: string]: string | null } = {
+                'archive': 'archive',
+                'trash': 'trash',
+                'delete': null
+            };
+
+            const toFolder = targetFolderMap[action];
+
+            const res = await fetch('/api/emails/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action,
+                    emailId,
+                    fromFolder: activeFolder,
+                    toFolder,
+                    account: activeAccount
+                })
+            });
+
+            if (res.ok) {
+                // Rafraîchir localement
+                handleRefresh();
+                setSelectedEmail(null);
+            }
+        } catch (e) {
+            console.error('Action failed');
+        }
+    };
+
+    const handleStarToggle = async (emailId: string) => {
+        // Logique simplifiée : mise à jour locale de l'état
+        setSelectedEmail(prev => prev ? { ...prev, starred: !prev.starred } : null);
+        setEmails(prev => {
+            const current = [...(prev[activeAccount] || [])];
+            const idx = current.findIndex(e => e.id === emailId);
+            if (idx !== -1) {
+                current[idx] = { ...current[idx], starred: !current[idx].starred };
+            }
+            return { ...prev, [activeAccount]: current };
+        });
+    };
+
+    const handleEmptyTrash = async () => {
+        if (!confirm('Voulez-vous vraiment vider la corbeille ?')) return;
+        try {
+            const res = await fetch('/api/emails/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'empty_trash', fromFolder: 'trash', account: activeAccount })
+            });
+            if (res.ok) {
+                handleRefresh();
+                setSelectedEmail(null);
+            }
+        } catch (e) {
+            console.error('Empty trash failed');
+        }
+    };
+
     const handleSendEmail = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSending(true);
@@ -235,7 +297,15 @@ export function AdminEmails() {
                             <h1 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-3">
                                 Messagerie <span className="text-neon-orange">Dropsiders</span>
                             </h1>
-                            <p className="text-[10px] font-black text-neon-orange uppercase tracking-[0.2em] italic">Outil de Communication Interne</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Outil de Communication Interne</p>
+                                <div className="group relative">
+                                    <AlertCircle className="w-3 h-3 text-neon-orange cursor-help" />
+                                    <div className="absolute left-0 top-full mt-2 w-64 p-3 bg-black/90 border border-neon-orange/20 rounded-xl text-[10px] text-gray-300 hidden group-hover:block z-50 backdrop-blur-xl">
+                                        🚀 Pour voir vos vrais mails LWS, lancez <strong>npm run mail:sync</strong> dans votre terminal.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -342,6 +412,14 @@ export function AdminEmails() {
                             </div>
 
                             <div className="flex items-center gap-2">
+                                {activeFolder === 'trash' && (filteredEmails || []).length > 0 && (
+                                    <button
+                                        onClick={handleEmptyTrash}
+                                        className="px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl text-[10px] font-black uppercase text-neon-red hover:bg-neon-red hover:text-white transition-all"
+                                    >
+                                        Vider la corbeille
+                                    </button>
+                                )}
                                 <button
                                     onClick={handleRefresh}
                                     disabled={isRefreshing}
@@ -434,8 +512,38 @@ export function AdminEmails() {
 
                                             <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-xl border border-white/5">
                                                 <button className="p-2.5 text-gray-400 hover:text-white transition-all"><Reply className="w-4 h-4" /></button>
-                                                <button className="p-2.5 text-gray-400 hover:text-white transition-all"><Star className={`w-4 h-4 ${selectedEmail.starred ? 'text-yellow-500 fill-yellow-500' : ''}`} /></button>
-                                                <button className="p-2.5 text-gray-400 hover:text-neon-red transition-all"><Trash2 className="w-4 h-4" /></button>
+                                                <button
+                                                    onClick={() => handleStarToggle(selectedEmail.id)}
+                                                    className="p-2.5 text-gray-400 hover:text-white transition-all"
+                                                >
+                                                    <Star className={`w-4 h-4 ${selectedEmail.starred ? 'text-yellow-500 fill-yellow-500' : ''}`} />
+                                                </button>
+                                                {activeFolder !== 'archive' && (
+                                                    <button
+                                                        onClick={() => handleEmailAction('archive', selectedEmail.id)}
+                                                        className="p-2.5 text-gray-400 hover:text-neon-cyan transition-all"
+                                                        title="Archiver"
+                                                    >
+                                                        <Archive className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                                {activeFolder === 'trash' ? (
+                                                    <button
+                                                        onClick={() => handleEmailAction('delete', selectedEmail.id)}
+                                                        className="p-2.5 text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
+                                                        title="Supprimer définitivement"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 fill-neon-red/20" />
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleEmailAction('trash', selectedEmail.id)}
+                                                        className="p-2.5 text-gray-400 hover:text-neon-red transition-all"
+                                                        title="Mettre à la corbeille"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
 
@@ -451,7 +559,17 @@ export function AdminEmails() {
                                         </div>
 
                                         <div className="mt-12 flex flex-wrap gap-4">
-                                            <button className="px-8 py-3.5 bg-neon-orange text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-neon-orange/20 flex items-center gap-3 hover:scale-105 transition-all active:scale-95">
+                                            <button
+                                                onClick={() => {
+                                                    setComposeData({
+                                                        to: selectedEmail.from || '',
+                                                        subject: `Re: ${selectedEmail.subject || ''}`,
+                                                        content: `\n\n-------------------\nLe ${new Date(selectedEmail.date).toLocaleString()}, ${selectedEmail.fromName} a écrit :\n\n${selectedEmail.content}`
+                                                    });
+                                                    setIsComposing(true);
+                                                }}
+                                                className="px-8 py-3.5 bg-neon-orange text-white rounded-xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-neon-orange/20 flex items-center gap-3 hover:scale-105 transition-all active:scale-95"
+                                            >
                                                 <Reply className="w-4 h-4" /> Répondre
                                             </button>
                                             <button className="px-8 py-3.5 bg-white/5 border border-white/10 text-white rounded-xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3 hover:bg-white/10 transition-all">
