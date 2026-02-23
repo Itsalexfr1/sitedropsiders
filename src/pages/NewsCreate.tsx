@@ -1403,6 +1403,34 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                 </div>
                                             </div>
                                         ))}
+                                        {youtubeId && (
+                                            <div className="mt-16 mb-16 px-4">
+                                                <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                                    <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
+                                                        <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
+                                                            width: '0',
+                                                            height: '0',
+                                                            borderTop: '8px solid transparent',
+                                                            borderBottom: '8px solid transparent',
+                                                            borderLeft: '12px solid currentColor',
+                                                            marginLeft: '4px'
+                                                        }} />
+                                                    </div>
+                                                    <div className="flex flex-col text-left">
+                                                        <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
+                                                        LA VIDÉO DE L'ARTICLE
+                                                    </div>
+                                                </h3>
+                                                <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
+                                                    <iframe
+                                                        src={`https://www.youtube.com/embed/${youtubeId}`}
+                                                        className="absolute top-0 left-0 w-full h-full"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <>
