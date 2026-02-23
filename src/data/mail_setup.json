@@ -7,14 +7,6 @@
             "host": "mail.lws.fr",
             "imap_port": 993,
             "smtp_port": 465
-        },
-        "contact": {
-            "email": "contact@dropsiders.fr",
-            "user": "contact@dropsiders.fr",
-            "pass": "alex2026",
-            "host": "mail.lws.fr",
-            "imap_port": 993,
-            "smtp_port": 465
         }
     },
     "provider": "LWS",

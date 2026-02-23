@@ -133,7 +133,7 @@ const parseAndCleanEmail = (raw: string) => {
 
 export function AdminEmails() {
     const navigate = useNavigate();
-    const [activeAccount, setActiveAccount] = useState<'alex' | 'contact' | 'all'>('all');
+    const [activeAccount, setActiveAccount] = useState<'alex'>('alex');
     const [activeFolder, setActiveFolder] = useState<'inbox' | 'sent' | 'archive' | 'trash'>('inbox');
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
@@ -143,7 +143,7 @@ export function AdminEmails() {
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [loginError, setLoginError] = useState('');
     const [isComposing, setIsComposing] = useState(false);
-    const [composeData, setComposeData] = useState({ from: 'contact' as 'alex' | 'contact' | 'all', to: '', subject: '', content: '' });
+    const [composeData, setComposeData] = useState({ from: 'alex' as 'alex', to: '', subject: '', content: '' });
     const [isSending, setIsSending] = useState(false);
     const [emails, setEmails] = useState<{ [key: string]: Email[] }>({});
 
@@ -208,7 +208,7 @@ export function AdminEmails() {
             // Déclencher le robot GitHub en arrière-plan
             fetch('/api/emails/sync', { method: 'POST' });
 
-            const accountsToFetch = activeAccount === 'all' ? ['contact', 'alex'] : [activeAccount];
+            const accountsToFetch = ['alex'];
 
             for (const acc of accountsToFetch) {
                 const res = await fetch(`/api/emails/list?account=${acc}&folder=${activeFolder}`);
@@ -231,15 +231,7 @@ export function AdminEmails() {
         }
 
         try {
-            // Trouver le compte associé si on est en mode 'all'
-            let accountToUse = activeAccount as string;
-            if (activeAccount === 'all') {
-                const email = currentEmails.find(e => e.id === emailId);
-                // On essaie de deviner le compte via son adresse 'to'
-                if (email?.to?.includes('alex')) accountToUse = 'alex';
-                else if (email?.to?.includes('contact')) accountToUse = 'contact';
-                else accountToUse = 'contact'; // Par défaut
-            }
+            let accountToUse = 'alex';
 
             const res = await fetch('/api/emails/action', {
                 method: 'POST',
@@ -267,7 +259,7 @@ export function AdminEmails() {
         setSelectedEmail(prev => prev ? { ...prev, starred: !prev.starred } : null);
         setEmails(prev => {
             const newEmailsState = { ...prev };
-            const accounts = ['contact', 'alex'];
+            const accounts = ['alex'];
 
             accounts.forEach(acc => {
                 const key = `${acc}_${activeFolder}`;
@@ -287,7 +279,7 @@ export function AdminEmails() {
     const handleEmptyTrash = async () => {
         if (!confirm('Voulez-vous vraiment vider la corbeille ?')) return;
         try {
-            const accounts = activeAccount === 'all' ? ['contact', 'alex'] : [activeAccount];
+            const accounts = ['alex'];
             for (const acc of accounts) {
                 await fetch('/api/emails/action', {
                     method: 'POST',
@@ -306,7 +298,7 @@ export function AdminEmails() {
         e.preventDefault();
         setIsSending(true);
         try {
-            const accounts = composeData.from === 'all' ? ['contact', 'alex'] : [composeData.from];
+            const accounts = ['alex'];
 
             for (const account of accounts) {
                 const res = await fetch('/api/emails/send', {
@@ -322,7 +314,7 @@ export function AdminEmails() {
             }
 
             setIsComposing(false);
-            setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
+            setComposeData({ from: 'alex', to: '', subject: '', content: '' });
             alert('E-mail(s) envoyé(s) avec succès !');
             if (activeFolder === 'sent') handleRefresh();
         } catch {
@@ -332,10 +324,7 @@ export function AdminEmails() {
         }
     };
 
-    const currentEmails = activeAccount === 'all'
-        ? [...(emails[`contact_${activeFolder}`] || []), ...(emails[`alex_${activeFolder}`] || [])]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        : (emails[`${activeAccount}_${activeFolder}`] || []);
+    const currentEmails = (emails[`alex_${activeFolder}`] || []);
 
     const filteredEmails = currentEmails.filter(email =>
         email.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -407,18 +396,6 @@ export function AdminEmails() {
 
                     <div className="flex items-center gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl overflow-x-auto no-scrollbar w-full md:w-auto">
                         <button
-                            onClick={() => setActiveAccount('all')}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeAccount === 'all' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            Tous
-                        </button>
-                        <button
-                            onClick={() => setActiveAccount('contact')}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeAccount === 'contact' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            {mailConfig?.accounts?.contact?.email?.split('@')[0] || 'contact'}
-                        </button>
-                        <button
                             onClick={() => setActiveAccount('alex')}
                             className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeAccount === 'alex' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white'}`}
                         >
@@ -434,7 +411,7 @@ export function AdminEmails() {
                     <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 space-y-8 overflow-y-auto no-scrollbar">
                         <button
                             onClick={() => {
-                                setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
+                                setComposeData({ from: 'alex', to: '', subject: '', content: '' });
                                 setIsComposing(true);
                             }}
                             className="w-full py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20 active:scale-95 text-xs flex items-center justify-center gap-2"
@@ -530,7 +507,7 @@ export function AdminEmails() {
                                         <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1.5 border border-white/10">
                                             <button
                                                 onClick={() => {
-                                                    const fromAcc = activeAccount === 'all' ? (selectedEmail.to?.includes('alex') ? 'alex' : 'contact') : activeAccount;
+                                                    const fromAcc = 'alex';
                                                     setComposeData({
                                                         from: fromAcc,
                                                         to: selectedEmail.from || '',
@@ -547,7 +524,7 @@ export function AdminEmails() {
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    const fromAcc = activeAccount === 'all' ? (selectedEmail.to?.includes('alex') ? 'alex' : 'contact') : activeAccount;
+                                                    const fromAcc = 'alex';
                                                     setComposeData({
                                                         from: fromAcc,
                                                         to: '',
@@ -620,11 +597,6 @@ export function AdminEmails() {
                                             <div className="flex justify-between items-start gap-2 mb-2">
                                                 <span className={`text-[11px] font-black uppercase tracking-tight truncate ${!email.read ? 'text-white' : 'text-gray-400'}`}>
                                                     {activeFolder === 'sent' ? `À: ${email.to}` : email.fromName}
-                                                    {activeAccount === 'all' && (
-                                                        <span className="ml-2 px-1.5 py-0.5 bg-white/5 rounded text-[8px] text-gray-500 border border-white/10 uppercase italic font-bold">
-                                                            {email.to?.includes('alex') || (email as any).account === 'alex' ? 'Alex' : 'Contact'}
-                                                        </span>
-                                                    )}
                                                 </span>
                                                 <span className="text-[9px] font-bold text-gray-500 flex-shrink-0">
                                                     {new Date(email.date).toLocaleDateString()}
@@ -707,7 +679,7 @@ export function AdminEmails() {
                                                         </span>
                                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                                             <User className="w-3.5 h-3.5" />
-                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || (activeAccount === 'all' ? 'Bureau' : activeAccount)}` : 'à moi'}
+                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || 'alex'}` : 'à moi'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -796,27 +768,9 @@ export function AdminEmails() {
                                         <div className="grid grid-cols-[80px_1fr] items-center gap-4">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">De :</span>
                                             <div className="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setComposeData({ ...composeData, from: 'contact' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'contact' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
-                                                >
-                                                    contact@dropsiders.fr
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setComposeData({ ...composeData, from: 'alex' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'alex' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
-                                                >
+                                                <span className="px-4 py-2 rounded-lg text-[10px] font-black uppercase bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]">
                                                     alex@dropsiders.fr
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setComposeData({ ...composeData, from: 'all' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'all' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
-                                                >
-                                                    Les deux
-                                                </button>
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-[80px_1fr] items-center gap-4">
