@@ -35,4 +35,5 @@ jobs:
           git config --global user.email "bot@dropsiders.fr"
           git add src/data/emails.json src/data/emails_sent.json
           git commit -m "Auto: Synchronisation des emails [CF-Pages-Skip]" || echo "No changes to commit"
-          git push
+          git pull --rebase origin main || true
+          git push origin main
