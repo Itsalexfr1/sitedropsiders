@@ -143,16 +143,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         // Specific iframe handling: only remove if they are NOT inside our premium wrappers
         // OR if they are from a trusted source (YouTube, Spotify, Beatport)
         doc.querySelectorAll('iframe').forEach(iframe => {
+            const src = iframe.src || '';
+            const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
+
+            // On laisse les vidéos YouTube dans le contenu si l'utilisateur en a ajouté
+            // Elles cohabiteront avec la vidéo principale de l'article.
+
             const isInsidePremium =
                 iframe.closest('.youtube-player-wrapper') ||
                 iframe.closest('.youtube-player-widget') ||
                 iframe.closest('.music-top-item-premium') ||
                 iframe.closest('.music-top-section');
 
-            const src = iframe.src || '';
             const isTrustedSource =
-                src.includes('youtube.com') ||
-                src.includes('youtu.be') ||
+                isYouTube ||
                 src.includes('spotify.com') ||
                 src.includes('beatport.com');
 
@@ -160,7 +164,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 // It's a manual link we want to keep. 
                 // Let's wrap it to make it look good and responsive
                 const wrapper = doc.createElement('div');
-                if (src.includes('youtube.com') || src.includes('youtu.be')) {
+                if (isYouTube) {
                     wrapper.className = 'youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12';
                     iframe.classList.add('absolute', 'top-0', 'left-0', 'w-full', 'h-full');
                 } else if (src.includes('spotify.com')) {
@@ -436,7 +440,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
             {/* --- MAIN CONTENT CONTAINER (8/4 GRID) --- */}
             <main className="relative z-20 pb-16 -mt-10">
-                <div className="max-w-[1400px] mx-auto px-6">
+                <div className="max-w-[1600px] mx-auto px-6">
                     <div className="bg-dark-card border border-white/5 rounded-[2rem] p-6 md:p-10 lg:p-12 shadow-2xl backdrop-blur-md">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 

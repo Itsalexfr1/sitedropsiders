@@ -200,6 +200,18 @@ export function NewsCreate() {
         isVisualEditor: false
     });
 
+    const [videoGroupModal, setVideoGroupModal] = useState<{
+        show: boolean;
+        urls: string[];
+        count: number;
+        widgetIndex?: number;
+        widgetId?: string;
+    }>({
+        show: false,
+        urls: ['', '', ''],
+        count: 2
+    });
+
     const [isDirty, setIsDirty] = useState(false);
     const initialDataLoaded = useRef(false);
 
@@ -609,6 +621,13 @@ export function NewsCreate() {
             url: srcMatch ? srcMatch[1] : '',
             ratio: aspectMatch ? aspectMatch[1] : 'auto'
         };
+    };
+
+    const extractVideoUrls = (html: string) => {
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        const iframes = doc.querySelectorAll('iframe');
+        const urls = Array.from(iframes).map(iframe => iframe.src);
+        return { urls, count: urls.length };
     };
 
     const fixWidgetEncoding = (id: string) => {
@@ -1264,6 +1283,14 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                                             widgetId: widget.id,
                                                                             aspectRatio: extracted.ratio
                                                                         });
+                                                                    } else if (widget.content.includes('video-group-premium')) {
+                                                                        const extracted = extractVideoUrls(widget.content);
+                                                                        setVideoGroupModal({
+                                                                            show: true,
+                                                                            urls: [...extracted.urls, '', ''].slice(0, 3),
+                                                                            count: extracted.count,
+                                                                            widgetId: widget.id
+                                                                        });
                                                                     } else if (widget.content.includes('youtube-player-widget')) {
                                                                         const val = prompt('Nouvelle URL YouTube ou ID');
                                                                         if (!val) return;
@@ -1390,6 +1417,14 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                         title="Ajouter une vidéo ici"
                                                     >
                                                         <Youtube className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setVideoGroupModal({ show: true, urls: ['', '', ''], count: 2, widgetIndex: index })}
+                                                        className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all font-bold text-[10px]"
+                                                        title="Ajouter un groupe de vidéos (1, 2 ou 3 en ligne)"
+                                                    >
+                                                        3x
                                                     </button>
                                                     <button
                                                         type="button"
@@ -1951,6 +1986,111 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                 setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
                                             }}
                                             className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
+                                        >
+                                            Confirmer
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {videoGroupModal.show && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative"
+                            >
+                                <button
+                                    onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
+                                    className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+
+                                <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Groupe de Vidéos en ligne</h3>
+
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre de vidéos par ligne</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {[1, 2, 3].map(n => (
+                                                <button
+                                                    key={n}
+                                                    type="button"
+                                                    onClick={() => setVideoGroupModal({ ...videoGroupModal, count: n })}
+                                                    className={`py-3 rounded-xl text-sm font-black transition-all border ${videoGroupModal.count === n ? 'bg-red-600 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                                >
+                                                    {n} VIDÉO{n > 1 ? 'S' : ''}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {[...Array(videoGroupModal.count)].map((_, i) => (
+                                            <div key={i}>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-neon-red">Vidéo {i + 1} (URL ou ID)</label>
+                                                <input
+                                                    type="text"
+                                                    value={videoGroupModal.urls[i] || ''}
+                                                    onChange={e => {
+                                                        const newUrls = [...videoGroupModal.urls];
+                                                        newUrls[i] = e.target.value;
+                                                        setVideoGroupModal({ ...videoGroupModal, urls: newUrls });
+                                                    }}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-red-600 transition-all text-sm"
+                                                    placeholder="Lien YouTube..."
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex gap-4 pt-4">
+                                        <button
+                                            onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
+                                            className="flex-1 py-4 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const validUrls = videoGroupModal.urls.slice(0, videoGroupModal.count).filter(u => u.trim());
+                                                if (validUrls.length === 0) return;
+
+                                                const processedUrls = validUrls.map(val => {
+                                                    let id = val;
+                                                    if (val.includes('youtube.com/watch?v=')) {
+                                                        id = val.split('v=')[1].split('&')[0];
+                                                    } else if (val.includes('youtu.be/')) {
+                                                        id = val.split('youtu.be/')[1];
+                                                    } else if (val.includes('youtube.com/embed/')) {
+                                                        id = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                    }
+                                                    return `https://www.youtube.com/embed/${id}`;
+                                                });
+
+                                                const videoItems = processedUrls.map(url => `
+    <div className="video-wrapper flex-1 relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">
+      <iframe src="${url}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>
+    </div>`).join('');
+
+                                                const videoWidget = `<div class="video-group-premium flex flex-col md:flex-row gap-4 my-12">\n${videoItems}\n</div>`;
+
+                                                if (videoGroupModal.widgetId) {
+                                                    updateWidget(videoGroupModal.widgetId, videoWidget);
+                                                } else if (videoGroupModal.widgetIndex !== undefined) {
+                                                    addWidget(videoGroupModal.widgetIndex, videoWidget);
+                                                } else {
+                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: videoWidget }]);
+                                                }
+                                                setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 });
+                                            }}
+                                            className="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
                                         >
                                             Confirmer
                                         </button>
