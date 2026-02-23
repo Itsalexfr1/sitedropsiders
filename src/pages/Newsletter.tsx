@@ -62,7 +62,7 @@ export function Newsletter() {
                             transition={{ delay: 0.2 }}
                             className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter"
                         >
-                            Rejoignez la <span className="text-neon-red">Wave</span>
+                            REJOIGNEZ <span className="text-neon-red">NOUS</span>
                         </motion.h1>
 
                         <motion.p

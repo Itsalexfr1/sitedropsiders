@@ -633,10 +633,12 @@ export function RecapCreate() {
                 setLocationInput('');
                 setYoutubeId('');
                 setIsFeatured(false);
+                setIsDirty(false); // Reset dirty state
                 // Clear status after a while
                 setTimeout(() => setStatus('idle'), 3000);
             } else {
                 // Redirect after edit
+                setIsDirty(false); // Reset dirty state
                 setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
@@ -1121,7 +1123,10 @@ export function RecapCreate() {
                                                     />
                                                 </div>
                                             ) : (
-                                                !widget.content.includes('youtube-player-widget') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && (
+                                                !widget.content.includes('youtube-player-widget') &&
+                                                    !widget.content.includes('image-premium-wrapper') &&
+                                                    !widget.content.includes('gallery-premium-grid') &&
+                                                    !widget.content.includes('duo-photos-premium') ? (
                                                     <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
                                                         <VisualEditor
                                                             content={widget.content}
@@ -1132,6 +1137,15 @@ export function RecapCreate() {
                                                                 if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
                                                             }}
                                                         />
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
+                                                        <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                                                            <div className="bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
+                                                                <ImageIcon className="w-8 h-8 text-white" />
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 )
                                             )}
@@ -1183,6 +1197,14 @@ export function RecapCreate() {
                                                     title="Ajouter une vidéo ici"
                                                 >
                                                     <Youtube className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index })}
+                                                    className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                                    title="Ajouter un Duo Photo ici"
+                                                >
+                                                    <Columns className="w-4 h-4" />
                                                 </button>
                                             </div>
                                             <div className="h-px flex-1 bg-white/10 group-hover/adder:bg-neon-cyan/30 transition-colors" />
@@ -1492,6 +1514,11 @@ export function RecapCreate() {
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 onUploadSuccess={(url) => {
+                    const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
+                    const mediaTag = isVideo
+                        ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
+                        : `<img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+
                     if (uploadTarget.type === 'main') {
                         setCoverImage(url);
                     } else if (uploadTarget.type === 'duo1' as any) {
@@ -1500,7 +1527,7 @@ export function RecapCreate() {
                         setDuoModal(prev => ({ ...prev, url2: url }));
                     } else {
                         // Create a new image widget
-                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  <img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />\n</div>`;
+                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
                         addWidget(uploadTarget.index, imgWidget);
                     }
                 }}
@@ -1581,7 +1608,19 @@ export function RecapCreate() {
                                     <button
                                         onClick={() => {
                                             if (!duoModal.url1 || !duoModal.url2) return;
-                                            const duoWidget = `<div class="duo-photos-premium grid grid-cols-2 gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    <img src="${duoModal.url1}" alt="Portrait 1" class="w-full aspect-[3/4] object-cover transform group-hover:scale-105 transition-transform duration-700" />\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    <img src="${duoModal.url2}" alt="Portrait 2" class="w-full aspect-[3/4] object-cover transform group-hover:scale-105 transition-transform duration-700" />\n  </div>\n</div>`;
+
+                                            const isV1 = duoModal.url1.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url1.includes('/video/upload/');
+                                            const isV2 = duoModal.url2.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url2.includes('/video/upload/');
+
+                                            const media1 = isV1
+                                                ? `<video src="${duoModal.url1}" autoplay loop muted playsinline class="w-full aspect-[3/4] object-cover"></video>`
+                                                : `<img src="${duoModal.url1}" alt="Portrait 1" class="w-full aspect-[3/4] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+
+                                            const media2 = isV2
+                                                ? `<video src="${duoModal.url2}" autoplay loop muted playsinline class="w-full aspect-[3/4] object-cover"></video>`
+                                                : `<img src="${duoModal.url2}" alt="Portrait 2" class="w-full aspect-[3/4] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+
+                                            const duoWidget = `<div class="duo-photos-premium grid grid-cols-2 gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media1}\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media2}\n  </div>\n</div>`;
 
                                             if (duoModal.widgetIndex !== undefined) {
                                                 addWidget(duoModal.widgetIndex, duoWidget);

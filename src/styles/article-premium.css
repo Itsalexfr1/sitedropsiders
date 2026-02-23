@@ -207,6 +207,47 @@
     box-shadow: 0 30px 60px -15px rgba(255, 0, 51, 0.2);
 }
 
+/* --- DUO PHOTOS & PREMIUM WRAPPERS --- */
+.duo-photos-premium {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin: 4rem 0 !important;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .duo-photos-premium {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem;
+    }
+}
+
+.image-premium-wrapper {
+    position: relative;
+    width: 100%;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.image-premium-wrapper img,
+.image-premium-wrapper video {
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+}
+
+.duo-photos-premium .image-premium-wrapper {
+    aspect-ratio: 3/4;
+}
+
+.image-premium-wrapper:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 30px 60px -10px rgba(255, 0, 51, 0.2) !important;
+    border-color: rgba(255, 0, 51, 0.4) !important;
+    z-index: 10;
+}
+
 /* --- HEADINGS (Inside content) --- */
 .article-premium-wrapper h2 {
     font-family: var(--font-display, 'Orbitron', monospace);
