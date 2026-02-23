@@ -106,8 +106,8 @@
     gap: 0.5rem;
   }
 
-  /* Force Zéro sur tous les conteneurs générés */
-  .article-body-premium div,
+  /* Force Zéro sur tous les conteneurs générés - SAUF DUO PHOTOS */
+  .article-body-premium div:not(.duo-photos-premium),
   .article-body-premium section,
   .article-body-premium article,
   .article-body-premium .jw-strip,
