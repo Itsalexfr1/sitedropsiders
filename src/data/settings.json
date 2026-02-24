@@ -8,6 +8,7 @@
   "announcement_banner": {
     "enabled": false,
     "text": "BIENVENUE SUR DROPSIDERS - L'ACTUALITÉ DES FESTIVALS EN DIRECT !",
-    "color": "#ff0033"
+    "color": "#ff0033",
+    "bgColor": "#0a0a0a"
   }
 }

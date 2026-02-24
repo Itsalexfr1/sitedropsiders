@@ -2,8 +2,15 @@ import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import settingsData from '../data/settings.json';
 
+interface BannerSettings {
+    enabled: boolean;
+    text: string;
+    color: string;
+    bgColor?: string;
+}
+
 export function AnnouncementBanner() {
-    const [settings, setSettings] = useState(settingsData.announcement_banner);
+    const [settings, setSettings] = useState<BannerSettings>(settingsData.announcement_banner);
 
     useEffect(() => {
         const fetchSettings = async () => {
