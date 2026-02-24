@@ -19,6 +19,7 @@ export function AdminSettings() {
     const [bannerEnabled, setBannerEnabled] = useState(false);
     const [bannerText, setBannerText] = useState('');
     const [bannerColor, setBannerColor] = useState('#ff0033');
+    const [bannerBgColor, setBannerBgColor] = useState('#0a0a0a');
 
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -45,6 +46,7 @@ export function AdminSettings() {
                         setBannerEnabled(data.announcement_banner.enabled || false);
                         setBannerText(data.announcement_banner.text || '');
                         setBannerColor(data.announcement_banner.color || '#ff0033');
+                        setBannerBgColor(data.announcement_banner.bgColor || '#0a0a0a');
                     }
                 }
 
@@ -76,7 +78,8 @@ export function AdminSettings() {
                 announcement_banner: {
                     enabled: bannerEnabled,
                     text: bannerText,
-                    color: bannerColor
+                    color: bannerColor,
+                    bgColor: bannerBgColor
                 }
             };
 
@@ -277,29 +280,54 @@ export function AdminSettings() {
                                     </div>
 
                                     <div className="flex flex-col md:flex-row gap-6 md:items-center">
-                                        <div className="flex-1">
-                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR DU BANDEAU</label>
-                                            <div className="flex items-center gap-4">
-                                                <div
-                                                    className="w-12 h-12 rounded-xl border border-white/20 relative"
-                                                    style={{ backgroundColor: bannerColor }}
-                                                >
+                                        <div className="flex-1 space-y-4">
+                                            <div className="flex-1">
+                                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR TEXTE</label>
+                                                <div className="flex items-center gap-4">
+                                                    <div
+                                                        className="w-12 h-12 rounded-xl border border-white/20 relative"
+                                                        style={{ backgroundColor: bannerColor }}
+                                                    >
+                                                        <input
+                                                            type="color"
+                                                            value={bannerColor}
+                                                            onChange={(e) => setBannerColor(e.target.value)}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                        />
+                                                    </div>
                                                     <input
-                                                        type="color"
+                                                        type="text"
                                                         value={bannerColor}
                                                         onChange={(e) => setBannerColor(e.target.value)}
-                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
                                                     />
                                                 </div>
-                                                <input
-                                                    type="text"
-                                                    value={bannerColor}
-                                                    onChange={(e) => setBannerColor(e.target.value)}
-                                                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
-                                                />
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR FOND</label>
+                                                <div className="flex items-center gap-4">
+                                                    <div
+                                                        className="w-12 h-12 rounded-xl border border-white/20 relative"
+                                                        style={{ backgroundColor: bannerBgColor }}
+                                                    >
+                                                        <input
+                                                            type="color"
+                                                            value={bannerBgColor}
+                                                            onChange={(e) => setBannerBgColor(e.target.value)}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                        />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={bannerBgColor}
+                                                        onChange={(e) => setBannerBgColor(e.target.value)}
+                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex-1 p-4 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden h-12 flex items-center">
+                                        <div className="flex-1 p-4 border border-white/5 rounded-2xl relative overflow-hidden h-12 flex items-center" style={{ backgroundColor: bannerBgColor }}>
                                             <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                                             <p
                                                 className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap animate-marquee"

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music, ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music, ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Palette, Type, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -18,6 +18,13 @@ export function AdminDashboard() {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [bannerEnabled, setBannerEnabled] = useState(false);
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
+    const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+    const [bannerState, setBannerState] = useState({
+        enabled: false,
+        text: '',
+        color: '#ffffff',
+        bgColor: '#ff0033'
+    });
     const navigate = useNavigate();
 
     const colors = [
@@ -61,11 +68,17 @@ export function AdminDashboard() {
             if (res.ok) {
                 const data = await res.json();
                 setBannerEnabled(data.announcement_banner?.enabled || false);
+                setBannerState({
+                    enabled: data.announcement_banner?.enabled || false,
+                    text: data.announcement_banner?.text || '',
+                    color: data.announcement_banner?.color || '#ffffff',
+                    bgColor: data.announcement_banner?.bgColor || '#ff0033'
+                });
             }
         } catch (e) { }
     };
 
-    const toggleBanner = async () => {
+    const saveBannerSettings = async () => {
         setIsUpdatingBanner(true);
         try {
             const res = await fetch('/api/settings');
@@ -74,8 +87,7 @@ export function AdminDashboard() {
             const newSettings = {
                 ...data,
                 announcement_banner: {
-                    ...(data.announcement_banner || {}),
-                    enabled: !bannerEnabled
+                    ...bannerState
                 }
             };
 
@@ -86,10 +98,11 @@ export function AdminDashboard() {
             });
 
             if (saveRes.ok) {
-                setBannerEnabled(!bannerEnabled);
+                setBannerEnabled(bannerState.enabled);
+                setIsBannerModalOpen(false);
             }
         } catch (e) {
-            console.error('Failed to toggle banner', e);
+            console.error('Failed to save banner settings', e);
         } finally {
             setIsUpdatingBanner(false);
         }
@@ -446,8 +459,7 @@ export function AdminDashboard() {
                                 </motion.button>
                             )}
                             <button
-                                onClick={toggleBanner}
-                                disabled={isUpdatingBanner}
+                                onClick={() => setIsBannerModalOpen(true)}
                                 className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${bannerEnabled ? 'bg-neon-orange border-transparent text-white shadow-[0_0_15px_rgba(255,165,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                             >
                                 <motion.div
@@ -455,7 +467,7 @@ export function AdminDashboard() {
                                     transition={{ repeat: bannerEnabled ? Infinity : 0, duration: 2 }}
                                     className={`w-2 h-2 rounded-full ${bannerEnabled ? 'bg-white' : 'bg-gray-600'}`}
                                 />
-                                {isUpdatingBanner ? '...' : (bannerEnabled ? 'Bandeau Actif' : 'Bandeau Inactif')}
+                                Bandeau
                             </button>
                             <button
                                 onClick={() => {
@@ -644,6 +656,153 @@ export function AdminDashboard() {
                         ))}
                     </AnimatePresence>
                 </div>
+                {/* Modal Gestion Bandeau */}
+                <AnimatePresence>
+                    {isBannerModalOpen && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsBannerModalOpen(false)}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-xl bg-[#111] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                            >
+                                <div className="p-8 md:p-10">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 bg-neon-orange/10 rounded-2xl border border-neon-orange/20">
+                                                <Activity className="w-6 h-6 text-neon-orange" />
+                                            </div>
+                                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                Gestion <span className="text-neon-orange">Bandeau</span>
+                                            </h2>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsBannerModalOpen(false)}
+                                            className="p-2 hover:bg-white/5 rounded-xl transition-colors text-gray-500 hover:text-white"
+                                        >
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-6">
+                                        {/* Status Toggle */}
+                                        <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-2 h-2 rounded-full ${bannerState.enabled ? 'bg-neon-green animate-pulse' : 'bg-gray-600'}`} />
+                                                <span className="text-sm font-black uppercase tracking-widest text-white">Statut du bandeau</span>
+                                            </div>
+                                            <button
+                                                onClick={() => setBannerState({ ...bannerState, enabled: !bannerState.enabled })}
+                                                className={`relative w-12 h-6 rounded-full transition-colors ${bannerState.enabled ? 'bg-neon-orange' : 'bg-gray-800'}`}
+                                            >
+                                                <motion.div
+                                                    animate={{ x: bannerState.enabled ? 24 : 4 }}
+                                                    className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-lg"
+                                                />
+                                            </button>
+                                        </div>
+
+                                        {/* Text Input */}
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                <Type className="w-3 h-3" /> Message Défilant
+                                            </label>
+                                            <textarea
+                                                value={bannerState.text}
+                                                onChange={(e) => setBannerState({ ...bannerState, text: e.target.value })}
+                                                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
+                                                placeholder="Tapez le message de votre bandeau ici..."
+                                            />
+                                        </div>
+
+                                        {/* Color Pickers */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                    <Palette className="w-3 h-3" /> Fond (Background)
+                                                </label>
+                                                <div className="relative group/color">
+                                                    <div
+                                                        className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
+                                                        style={{ borderLeft: `4px solid ${bannerState.bgColor}` }}
+                                                    >
+                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.bgColor }} />
+                                                        <span className="text-xs font-mono text-gray-400">{bannerState.bgColor}</span>
+                                                    </div>
+                                                    <input
+                                                        type="color"
+                                                        value={bannerState.bgColor}
+                                                        onChange={(e) => setBannerState({ ...bannerState, bgColor: e.target.value })}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                    <Palette className="w-3 h-3" /> Texte
+                                                </label>
+                                                <div className="relative">
+                                                    <div
+                                                        className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
+                                                        style={{ borderLeft: `4px solid ${bannerState.color}` }}
+                                                    >
+                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.color }} />
+                                                        <span className="text-xs font-mono text-gray-400">{bannerState.color}</span>
+                                                    </div>
+                                                    <input
+                                                        type="color"
+                                                        value={bannerState.color}
+                                                        onChange={(e) => setBannerState({ ...bannerState, color: e.target.value })}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Preview */}
+                                        <div className="pt-4 border-t border-white/5">
+                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct</div>
+                                            <div
+                                                className="h-8 rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative"
+                                                style={{ backgroundColor: bannerState.bgColor }}
+                                            >
+                                                <span
+                                                    className="text-[10px] font-black uppercase tracking-tighter italic whitespace-nowrap"
+                                                    style={{ color: bannerState.color }}
+                                                >
+                                                    {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."} • {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."}
+                                                </span>
+                                                {!bannerState.enabled && (
+                                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Bandeau Désactivé</div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={saveBannerSettings}
+                                            disabled={isUpdatingBanner}
+                                            className="w-full py-4 mt-4 bg-gradient-to-r from-neon-orange to-orange-600 text-white rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-neon-orange/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                        >
+                                            {isUpdatingBanner ? (
+                                                <Activity className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <Save className="w-5 h-5" />
+                                            )}
+                                            Enregistrer les modifications
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

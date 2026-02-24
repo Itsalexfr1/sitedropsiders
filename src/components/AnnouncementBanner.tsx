@@ -30,8 +30,11 @@ export function AnnouncementBanner() {
 
     return (
         <div
-            className="fixed top-20 left-0 right-0 z-[95] h-8 bg-dark-bg/80 backdrop-blur-xl border-b border-white/5 overflow-hidden flex items-center"
-            style={{ borderTop: `1px solid ${settings.color}33` }}
+            className="fixed top-20 left-0 right-0 z-[95] h-8 backdrop-blur-xl border-b border-white/5 overflow-hidden flex items-center shadow-lg"
+            style={{
+                backgroundColor: settings.bgColor || 'rgba(10, 10, 10, 0.8)',
+                borderTop: `1px solid ${settings.color}33`
+            }}
         >
             <div className="relative flex whitespace-nowrap">
                 <motion.div
