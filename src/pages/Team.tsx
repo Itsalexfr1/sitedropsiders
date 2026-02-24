@@ -27,7 +27,7 @@ export function Team() {
                         className="group relative"
                     >
                         <div className="relative block overflow-hidden rounded-2xl aspect-square mb-4 group-hover:shadow-[0_0_30px_rgba(255,0,51,0.3)] transition-all duration-500 max-w-[200px] mx-auto border border-white/5">
-                            <div className="absolute inset-0 bg-black/40 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 backdrop-blur-[2px]">
+                            <div className="absolute inset-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 backdrop-blur-[2px]">
                                 <a
                                     href={member.socials.instagram}
                                     target="_blank"

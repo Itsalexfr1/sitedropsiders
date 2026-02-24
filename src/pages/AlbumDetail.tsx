@@ -203,7 +203,7 @@ export function AlbumDetail() {
                             />
 
                             {/* Hover Overlay */}
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                 <div className="flex gap-3 scale-0 group-hover:scale-100 transition-transform duration-300">
                                     <div className="p-3 bg-white/10 backdrop-blur-md rounded-xl hover:bg-neon-red transition-colors text-white">
                                         <Maximize2 className="w-5 h-5" />

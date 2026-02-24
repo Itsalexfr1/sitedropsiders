@@ -76,194 +76,194 @@ export function Galerie() {
 
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-12"
-            >
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-neon-red/10 rounded-lg">
-                        <Camera className="w-6 h-6 text-neon-red" />
+            <div className="relative mt-12 px-4 md:p-10 bg-dark-card/20 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-12"
+                >
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-neon-red/10 rounded-lg">
+                            <Camera className="w-6 h-6 text-neon-red" />
+                        </div>
+                        <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
-                </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('galerie.title')} <span className="text-neon-red">{t('galerie.title_span')}</span>
-                </h1>
-            </motion.div>
+                    <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+                        {t('galerie.title')} <span className="text-neon-red">{t('galerie.title_span')}</span>
+                    </h1>
+                </motion.div>
 
-            {/* Category Filter */}
-            <div className="flex flex-wrap items-center gap-4 mb-12">
-                <div className="flex items-center gap-2 text-gray-400 mr-2">
-                    <Filter className="w-4 h-4" />
-                    <span className="text-sm font-bold uppercase tracking-wider">{t('galerie.filter_by')}</span>
-                </div>
-                {CATEGORIES.map((cat) => (
-                    <motion.button
-                        key={cat.id}
-                        onClick={() => setActiveCategory(cat.id)}
-                        whileHover={{ scale: 1.05 }}
-                        onMouseEnter={playHoverSound}
-                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
-                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
-                            }`}
-                    >
-                        {cat.label}
-                    </motion.button>
-                ))}
-            </div>
-
-            <div className="relative">
-                {/* Left Arrow */}
-                <AnimatePresence>
-                    {currentPage > 1 && (
+                {/* Category Filter */}
+                <div className="flex flex-wrap items-center gap-4 mb-12">
+                    <div className="flex items-center gap-2 text-gray-400 mr-2">
+                        <Filter className="w-4 h-4" />
+                        <span className="text-sm font-bold uppercase tracking-wider">{t('galerie.filter_by')}</span>
+                    </div>
+                    {CATEGORIES.map((cat) => (
                         <motion.button
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                            key={cat.id}
+                            onClick={() => setActiveCategory(cat.id)}
+                            whileHover={{ scale: 1.05 }}
+                            onMouseEnter={playHoverSound}
+                            className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
+                                ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
+                                : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
+                                }`}
                         >
-                            <ChevronLeft className="w-16 h-16" strokeWidth={1} />
+                            {cat.label}
                         </motion.button>
-                    )}
-                </AnimatePresence>
+                    ))}
+                </div>
 
-                <div className="overflow-hidden">
-                    <AnimatePresence mode="wait" custom={direction}>
-                        <motion.div
-                            key={currentPage}
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{
-                                x: { type: "spring", stiffness: 300, damping: 30 },
-                                opacity: { duration: 0.2 }
-                            }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
-                        >
-                            {currentAlbums.length > 0 ? (
-                                currentAlbums.map((album) => (
-                                    <motion.div
-                                        key={album.id}
-                                        whileHover={{ scale: 1.05 }}
-                                        onMouseEnter={playHoverSound}
-                                    >
-                                        <div className="relative group">
-                                            {isAdmin && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        navigate(`/galerie/create?id=${album.id}`, { state: { isEditing: true, item: album } });
-                                                    }}
-                                                    className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all"
-                                                    title="Modifier"
-                                                >
-                                                    <Edit2 className="w-3 h-3" />
-                                                </button>
-                                            )}
-                                            <Link
-                                                to={getGalleryLink(album)}
-                                                className="group relative block aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red transition-all duration-500 shadow-2xl"
-                                            >
-                                                {/* Album Cover */}
-                                                <img
-                                                    src={album.cover}
-                                                    alt={album.title}
-                                                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-100 group-hover:opacity-40"
-                                                />
+                <div className="relative">
+                    {/* Left Arrow */}
+                    <AnimatePresence>
+                        {currentPage > 1 && (
+                            <motion.button
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                            >
+                                <ChevronLeft className="w-16 h-16" strokeWidth={1} />
+                            </motion.button>
+                        )}
+                    </AnimatePresence>
 
-                                                {/* Overlay Gradient (Repos) */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
-
-                                                {/* Red Hover Overlay (Hover) */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-neon-red/90 via-neon-red/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                                {/* Hover Media (Video/Image) */}
-                                                {(album as any).hoverMedia && (
-                                                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-                                                        {((album as any).hoverMedia.toLowerCase().endsWith('.mp4') || (album as any).hoverMedia.toLowerCase().endsWith('.webm')) ? (
-                                                            <video
-                                                                src={(album as any).hoverMedia}
-                                                                autoPlay
-                                                                muted
-                                                                loop
-                                                                playsInline
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        ) : (
-                                                            <img
-                                                                src={(album as any).hoverMedia}
-                                                                alt=""
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        )}
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-neon-red/80 via-transparent to-transparent" />
-                                                    </div>
+                    <div className="overflow-hidden">
+                        <AnimatePresence mode="wait" custom={direction}>
+                            <motion.div
+                                key={currentPage}
+                                custom={direction}
+                                variants={variants}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.2 }
+                                }}
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                            >
+                                {currentAlbums.length > 0 ? (
+                                    currentAlbums.map((album) => (
+                                        <motion.div
+                                            key={album.id}
+                                            whileHover={{ scale: 1.05 }}
+                                            onMouseEnter={playHoverSound}
+                                        >
+                                            <div className="relative group">
+                                                {isAdmin && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            navigate(`/galerie/create?id=${album.id}`, { state: { isEditing: true, item: album } });
+                                                        }}
+                                                        className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all"
+                                                        title="Modifier"
+                                                    >
+                                                        <Edit2 className="w-3 h-3" />
+                                                    </button>
                                                 )}
+                                                <Link
+                                                    to={getGalleryLink(album)}
+                                                    className="group relative block aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red transition-all duration-500 shadow-2xl"
+                                                >
+                                                    {/* Album Cover */}
+                                                    <img
+                                                        src={album.cover}
+                                                        alt={album.title}
+                                                        className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-100 group-hover:opacity-40"
+                                                    />
 
-                                                {/* Content */}
-                                                <div className="absolute inset-0 p-8 flex flex-col justify-end transform transition-all duration-500">
-                                                    <div className="flex items-center gap-2 mb-3">
-                                                        <span className="px-2 py-0.5 bg-neon-red text-white text-[9px] font-black uppercase tracking-wider rounded">
-                                                            {album.category}
-                                                        </span>
-                                                        <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">
-                                                            {album.images.length}+ PHOTOS
-                                                        </span>
-                                                    </div>
+                                                    {/* Overlay Gradient (Repos) */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
 
-                                                    <h3 className="text-xl font-display font-black text-white group-hover:text-white transition-colors duration-300 leading-tight uppercase italic tracking-tighter">
-                                                        {album.title}
-                                                    </h3>
+                                                    {/* Red Hover Overlay (Hover) */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-neon-red/90 via-neon-red/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                                                    <div className="mt-4 flex items-center justify-between opacity-60 group-hover:opacity-100 transition-all duration-500">
-                                                        <div className="flex items-center gap-2 text-white/80">
-                                                            <Calendar className="w-3 h-3" />
-                                                            <span className="text-[10px] font-bold uppercase tracking-widest">{album.date}</span>
+                                                    {/* Hover Media (Video/Image) */}
+                                                    {(album as any).hoverMedia && (
+                                                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                                                            {((album as any).hoverMedia.toLowerCase().endsWith('.mp4') || (album as any).hoverMedia.toLowerCase().endsWith('.webm')) ? (
+                                                                <video
+                                                                    src={(album as any).hoverMedia}
+                                                                    autoPlay
+                                                                    muted
+                                                                    loop
+                                                                    playsInline
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            ) : (
+                                                                <img
+                                                                    src={(album as any).hoverMedia}
+                                                                    alt=""
+                                                                    className="w-full h-full object-cover"
+                                                                />
+                                                            )}
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-neon-red/80 via-transparent to-transparent" />
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-white font-black text-[10px] uppercase tracking-widest">
-                                                            {t('galerie.view_album')} <ArrowRight className="w-4 h-4" />
+                                                    )}
+
+                                                    {/* Content */}
+                                                    <div className="absolute inset-0 p-8 flex flex-col justify-end transform transition-all duration-500">
+                                                        <div className="flex items-center gap-2 mb-3">
+                                                            <span className="px-2 py-0.5 bg-neon-red text-white text-[9px] font-black uppercase tracking-wider rounded">
+                                                                {album.category}
+                                                            </span>
+                                                            <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">
+                                                                {album.images.length}+ PHOTOS
+                                                            </span>
+                                                        </div>
+
+                                                        <h3 className="text-xl font-display font-black text-white group-hover:text-white transition-colors duration-300 leading-tight uppercase italic tracking-tighter">
+                                                            {album.title}
+                                                        </h3>
+
+                                                        <div className="mt-4 flex items-center justify-between opacity-60 group-hover:opacity-100 transition-all duration-500">
+                                                            <div className="flex items-center gap-2 text-white/80">
+                                                                <Calendar className="w-3 h-3" />
+                                                                <span className="text-[10px] font-bold uppercase tracking-widest">{album.date}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 text-white font-black text-[10px] uppercase tracking-widest">
+                                                                {t('galerie.view_album')} <ArrowRight className="w-4 h-4" />
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </Link>
-                                        </div>
-                                    </motion.div>
-                                ))
-                            ) : (
-                                <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
-                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('galerie.no_albums')}</p>
-                                </div>
-                            )}
-                        </motion.div>
+                                                </Link>
+                                            </div>
+                                        </motion.div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
+                                        <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('galerie.no_albums')}</p>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Right Arrow */}
+                    <AnimatePresence>
+                        {currentPage < totalPages && (
+                            <motion.button
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                            >
+                                <ChevronRight className="w-16 h-16" strokeWidth={1} />
+                            </motion.button>
+                        )}
                     </AnimatePresence>
                 </div>
 
-                {/* Right Arrow */}
-                <AnimatePresence>
-                    {currentPage < totalPages && (
-                        <motion.button
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
-                        >
-                            <ChevronRight className="w-16 h-16" strokeWidth={1} />
-                        </motion.button>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            {/* Pagination Controls */}
-            {
-                totalPages > 1 && (
-                    <div className="mt-16 flex justify-center items-center gap-4">
+                {/* Pagination Controls inside the block */}
+                {totalPages > 1 && (
+                    <div className="mt-12 border-t border-white/5 pt-10 flex justify-center items-center gap-4">
                         <button
                             onClick={() => handlePageChange(currentPage - 1)}
                             disabled={currentPage === 1}
@@ -298,8 +298,8 @@ export function Galerie() {
                             <ChevronRight className="w-5 h-5 text-white" />
                         </button>
                     </div>
-                )
-            }
+                )}
+            </div>
         </div>
     );
 }

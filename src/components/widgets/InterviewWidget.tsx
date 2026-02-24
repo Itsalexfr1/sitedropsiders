@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 
-export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
+export function InterviewWidget({ accentColor = 'purple', resolvedColor, hideHeader = false }: { accentColor?: string, resolvedColor?: string, hideHeader?: boolean }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
 
@@ -19,25 +19,27 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { acc
 
     return (
         <div className="h-full flex flex-col space-y-6">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                    <span
-                        className="w-2 h-2 rounded-full animate-pulse"
-                        style={{
-                            backgroundColor: color,
-                            boxShadow: `0 0 10px ${color}`
-                        }}
-                    />
-                    {t('home.latest_interviews')}
-                </h3>
-                <Link
-                    to="/interviews"
-                    className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
-                    style={{ color: color }}
-                >
-                    {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
-                </Link>
-            </div>
+            {!hideHeader && (
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <span
+                            className="w-2 h-2 rounded-full animate-pulse"
+                            style={{
+                                backgroundColor: color,
+                                boxShadow: `0 0 10px ${color}`
+                            }}
+                        />
+                        {t('home.latest_interviews')}
+                    </h3>
+                    <Link
+                        to="/interviews"
+                        className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
+                        style={{ color: color }}
+                    >
+                        {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
+                    </Link>
+                </div>
+            )}
 
             {latestInterviews.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md min-h-[400px]">
@@ -62,7 +64,7 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { acc
                                     alt={item.title}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-transparent group-hover:bg-white/5 transition-colors duration-300 flex items-center justify-center">
                                     <div
                                         className="w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center border group-hover:scale-110 transition-all duration-300"
                                         style={{

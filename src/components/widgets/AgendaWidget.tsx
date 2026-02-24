@@ -7,7 +7,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getAgendaLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
 
-export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor }: { maxItems?: number, accentColor?: string, resolvedColor?: string }) {
+export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor, hideHeader = false }: { maxItems?: number, accentColor?: string, resolvedColor?: string, hideHeader?: boolean }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
     const today = new Date();
@@ -63,25 +63,27 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                    <span
-                        className="w-2 h-2 rounded-full animate-pulse"
-                        style={{
-                            backgroundColor: color,
-                            boxShadow: `0 0 10px ${color}`
-                        }}
-                    />
-                    {t('home.agenda')}
-                </h3>
-                <Link
-                    to="/agenda"
-                    className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
-                    style={{ color: color }}
-                >
-                    {t('home.view_all_agenda')} <MapPin className="w-4 h-4" />
-                </Link>
-            </div>
+            {!hideHeader && (
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                        <span
+                            className="w-2 h-2 rounded-full animate-pulse"
+                            style={{
+                                backgroundColor: color,
+                                boxShadow: `0 0 10px ${color}`
+                            }}
+                        />
+                        {t('home.agenda')}
+                    </h3>
+                    <Link
+                        to="/agenda"
+                        className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
+                        style={{ color: color }}
+                    >
+                        {t('home.view_all_agenda')} <MapPin className="w-4 h-4" />
+                    </Link>
+                </div>
+            )}
 
             <div className="pr-2 space-y-3 mb-4">
                 {upcomingEvents.map((event: any, index: number) => {
