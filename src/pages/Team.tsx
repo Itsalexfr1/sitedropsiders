@@ -17,7 +17,7 @@ export function Team() {
                 </h1>
             </motion.div>
 
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-4 md:gap-8">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6 md:gap-10">
                 {teamData.map((member, index) => (
                     <motion.div
                         key={member.id}
@@ -26,7 +26,7 @@ export function Team() {
                         transition={{ delay: index * 0.1 }}
                         className="group relative"
                     >
-                        <div className="relative block overflow-hidden rounded-2xl aspect-square mb-4 group-hover:shadow-[0_0_30px_rgba(255,0,51,0.3)] transition-all duration-500 max-w-[150px] mx-auto border border-white/5">
+                        <div className="relative block overflow-hidden rounded-2xl aspect-square mb-4 group-hover:shadow-[0_0_30px_rgba(255,0,51,0.3)] transition-all duration-500 max-w-[200px] mx-auto border border-white/5">
                             <div className="absolute inset-0 bg-black/40 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 backdrop-blur-[2px]">
                                 <a
                                     href={member.socials.instagram}
