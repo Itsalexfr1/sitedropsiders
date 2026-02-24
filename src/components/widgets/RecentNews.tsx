@@ -76,7 +76,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     const playHoverSound = useHoverSound();
 
     return (
-        <div className="h-auto md:h-[750px] flex flex-col">
+        <div className="h-auto flex flex-col">
             <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
                 <span
                     className="w-2 h-2 rounded-full animate-pulse"
@@ -88,10 +88,10 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 {t('home.latest_news').toUpperCase()}
             </h3>
 
-            <div className="flex-1 flex flex-col gap-6 overflow-hidden">
-                <div className="flex flex-col gap-6 flex-1 h-full relative">
+            <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-6 md:h-[680px] relative">
                     {recentNews.slice(0, 2).map((item, index) => (
-                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:min-h-0 md:h-full">
+                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:min-h-0">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -99,21 +99,11 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
                                 className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${accentColor}`}
-                                style={{
-                                    boxShadow: `0 0 20px ${color}1A`
-                                }}
                             >
-                                <div
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
-                                    style={{
-                                        background: `radial-gradient(circle at center, ${color}33 0%, transparent 70%)`,
-                                        filter: 'blur(30px)'
-                                    }}
-                                />
                                 <div
                                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
                                     style={{
-                                        background: `radial-gradient(circle at center, ${color}4D 0%, transparent 70%)`,
+                                        background: `radial-gradient(circle at center, ${color}33 0%, transparent 70%)`,
                                         filter: 'blur(40px)'
                                     }}
                                 />
@@ -131,7 +121,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                         <span>•</span>
                                         <span>{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                                     </div>
-                                    <h4 className="text-white font-display font-bold text-lg leading-tight transition-colors group-hover:text-white line-clamp-2 uppercase italic tracking-tight">
+                                    <h4 className="text-white font-display font-bold text-sm md:text-lg leading-tight transition-colors group-hover:text-white line-clamp-2 uppercase italic tracking-tight">
                                         {translatedTitles[item.id] || item.title}
                                     </h4>
                                 </div>
@@ -150,7 +140,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
 
                 <Link
                     to="/news"
-                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group shrink-0 mt-4 md:mt-2"
+                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group mt-4 h-14"
                     style={{
                         borderColor: `${color}4D`,
                     }}

@@ -22,7 +22,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
 
     const latestRecaps = useMemo(() => {
         return (recapsData as any[])
-            .slice(0, isMobile ? 4 : 6);
+            .slice(0, isMobile ? 4 : 8);
     }, [isMobile]);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});
@@ -72,7 +72,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                     <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('home.no_recap')}</p>
                 </div>
             ) : (
-                <div className="flex-1 grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {latestRecaps.map((item: any, index: number) => (
                         <Link to={getRecapLink(item)} key={item.id} className="block group">
                             <motion.div
@@ -81,10 +81,17 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                 whileHover={{ scale: 1.05 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className="relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/50 transition-all duration-300 shadow-xl flex items-stretch"
+                                className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/50 transition-all duration-300 shadow-xl flex items-stretch glow-card-${accentColor}`}
                                 onMouseOver={(e) => e.currentTarget.style.borderColor = color}
                                 onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                             >
+                                <div
+                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
+                                    style={{
+                                        background: `radial-gradient(circle at center, ${color}33 0%, transparent 70%)`,
+                                        filter: 'blur(20px)'
+                                    }}
+                                />
                                 <img
                                     src={item.image}
                                     alt={item.title}
