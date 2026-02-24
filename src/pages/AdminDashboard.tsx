@@ -36,7 +36,18 @@ export function AdminDashboard() {
         if (auth === 'true') {
             setIsAuthenticated(true);
             const storedUser = localStorage.getItem('admin_user');
-            if (storedUser) setUsername(storedUser);
+            if (storedUser) {
+                setUsername(storedUser);
+
+                // EMERGENCY FIX: If user is alex, force 'all' permissions
+                if (storedUser.toLowerCase() === 'alex' || storedUser.toLowerCase() === 'contact@dropsiders.fr') {
+                    const perms = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+                    if (!perms.includes('all')) {
+                        const newPerms = [...new Set([...perms, 'all'])];
+                        localStorage.setItem('admin_permissions', JSON.stringify(newPerms));
+                    }
+                }
+            }
             fetchActions();
         }
     }, []);
@@ -97,12 +108,14 @@ export function AdminDashboard() {
         e.preventDefault();
         setError('');
 
+        const loginUsername = username.toLowerCase().trim();
+
         try {
             // Tentative de connexion via l'API (Production / Cloudflare)
             const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
+                body: JSON.stringify({ username: loginUsername, password })
             });
 
             if (response.ok) {
@@ -111,7 +124,7 @@ export function AdminDashboard() {
                     setIsAuthenticated(true);
                     localStorage.setItem('admin_auth', 'true');
                     localStorage.setItem('admin_password', password);
-                    localStorage.setItem('admin_user', data.user || username);
+                    localStorage.setItem('admin_user', data.user || loginUsername);
                     localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
                     fetchActions();
                     return;
