@@ -44,7 +44,7 @@ export function Recap() {
             setLoadingEditId(null);
         }
     };
-    const articlesPerPage = 9; // 3 rows of 3 items per page
+    const articlesPerPage = 8; // 2 rows of 4 items per page
 
     const recaps = recapsData as any[];
     const totalPages = Math.ceil(recaps.length / articlesPerPage);
@@ -164,7 +164,7 @@ export function Recap() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                         >
                             {currentArticles.length > 0 ? (
                                 currentArticles.map((item: any) => (

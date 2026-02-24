@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import teamData from '../data/team.json';
 import { useLanguage } from '../context/LanguageContext';
+import { Link } from 'react-router-dom';
 
 export function Team() {
     const { t } = useLanguage();
@@ -82,12 +83,12 @@ export function Team() {
                     <p className="text-gray-400 max-w-xl mx-auto mb-10 text-lg">
                         {t('team.join_desc')}
                     </p>
-                    <a
-                        href="mailto:contact@dropsiders.fr"
+                    <Link
+                        to="/contact"
                         className="inline-flex items-center px-8 py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-neon-red transition-all duration-300 transform hover:scale-105"
                     >
                         {t('team.contact_btn')}
-                    </a>
+                    </Link>
                 </div>
             </motion.div>
         </div >
