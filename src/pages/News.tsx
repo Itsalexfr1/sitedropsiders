@@ -153,7 +153,7 @@ export function News() {
                     )}
                 </AnimatePresence>
 
-                <div className="min-h-[600px] overflow-hidden">
+                <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentPage}
@@ -195,7 +195,7 @@ export function News() {
                                             </button>
                                         )}
                                         <Link to={getArticleLink(item)}>
-                                            <div className="h-72 overflow-hidden bg-black/40 flex items-center justify-center">
+                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center">
                                                 <img
                                                     src={item.image}
                                                     alt={item.title}

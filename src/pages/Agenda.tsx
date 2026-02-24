@@ -394,7 +394,7 @@ export function Agenda() {
                 </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 w-[90%] mx-auto">
                 <AnimatePresence mode="popLayout">
                     {filteredEvents.length > 0 ? (
                         filteredEvents.map((event: any, index: number) => {

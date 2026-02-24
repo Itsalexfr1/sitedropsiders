@@ -88,8 +88,8 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 {t('home.latest_news').toUpperCase()}
             </h3>
 
-            <div className="flex flex-col gap-6">
-                <div className="flex flex-col gap-6 md:h-[680px] relative">
+            <div className="flex-1 flex flex-col gap-6">
+                <div className="flex flex-col gap-6 md:h-[calc(750px-56px)] relative">
                     {recentNews.slice(0, 2).map((item, index) => (
                         <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:min-h-0">
                             <motion.div

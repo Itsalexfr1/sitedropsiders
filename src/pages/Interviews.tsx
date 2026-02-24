@@ -166,7 +166,7 @@ export function Interviews() {
                     )}
                 </AnimatePresence>
 
-                <div className="min-h-[600px] overflow-hidden">
+                <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentPage}

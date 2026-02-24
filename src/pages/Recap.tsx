@@ -151,7 +151,7 @@ export function Recap() {
                     )}
                 </AnimatePresence>
 
-                <div className="min-h-[600px] overflow-hidden">
+                <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentPage}
@@ -193,7 +193,7 @@ export function Recap() {
                                             </button>
                                         )}
                                         <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                                            <div className="h-72 overflow-hidden bg-black/40 relative">
+                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
                                                 <img
                                                     src={item.coverImage || item.image}
                                                     alt={item.title}
