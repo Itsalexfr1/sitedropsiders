@@ -92,16 +92,18 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 <Link
                     to="/news"
                     className="flex items-center gap-2 px-4 py-2 rounded-xl border font-black text-[10px] uppercase tracking-[0.15em] transition-all duration-300 group"
-                    style={{ borderColor: `${color}4D`, color: color }}
+                    style={{ borderColor: `${color}66`, color: 'white', backgroundColor: 'rgba(255, 255, 255, 0.05)' }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = color;
-                        e.currentTarget.style.boxShadow = `0 0 20px ${color}33`;
-                        e.currentTarget.style.backgroundColor = `${color}1A`;
+                        e.currentTarget.style.boxShadow = `0 0 20px ${color}4D`;
+                        e.currentTarget.style.backgroundColor = `${color}26`;
+                        e.currentTarget.style.color = 'white';
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = `${color}4D`;
+                        e.currentTarget.style.borderColor = `${color}66`;
                         e.currentTarget.style.boxShadow = 'none';
                         e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.color = 'white';
                     }}
                 >
                     <span className="hidden sm:inline">{t('home.all_news')}</span>
