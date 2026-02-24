@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import teamData from '../data/team.json';
 import { useLanguage } from '../context/LanguageContext';
-import { Link } from 'react-router-dom';
+import { TeamContactModal } from '../components/widgets/TeamContactModal';
 
 export function Team() {
     const { t } = useLanguage();
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
@@ -83,14 +85,19 @@ export function Team() {
                     <p className="text-gray-400 max-w-xl mx-auto mb-10 text-lg">
                         {t('team.join_desc')}
                     </p>
-                    <Link
-                        to="/contact"
+                    <button
+                        onClick={() => setIsModalOpen(true)}
                         className="inline-flex items-center px-8 py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-xl hover:bg-white hover:text-neon-red transition-all duration-300 transform hover:scale-105"
                     >
                         {t('team.contact_btn')}
-                    </Link>
+                    </button>
                 </div>
             </motion.div>
+
+            <TeamContactModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div >
     );
 }
