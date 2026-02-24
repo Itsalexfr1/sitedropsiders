@@ -309,7 +309,7 @@ const KitMedia = () => {
                     </motion.div>
                 </header>
 
-                <section className="py-24 px-6 max-w-7xl mx-auto border-b border-white/5">
+                <section className="py-24 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-b border-white/5">
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
                         {stats.map((stat, idx) => {
                             const Content = (
@@ -346,7 +346,7 @@ const KitMedia = () => {
                     </div>
                 </section>
 
-                <section className="py-32 px-6 max-w-7xl mx-auto">
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
                         <div className="lg:col-span-12 mb-8">
                             <h2 className="text-3xl font-display font-black mb-12 uppercase tracking-tight flex items-center gap-4">
@@ -462,7 +462,7 @@ const KitMedia = () => {
 
                 <section className="py-32 bg-neon-red/[0.03] border-y border-neon-red/10 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-neon-red/[0.02] to-transparent pointer-events-none"></div>
-                    <div className="max-w-7xl mx-auto px-6">
+                    <div className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-4">
                             <h2 className="text-4xl md:text-6xl font-display font-black uppercase tracking-tighter text-neon-red">
                                 GALLERY<span className="text-neon-red italic font-serif">.</span>
@@ -506,7 +506,7 @@ const KitMedia = () => {
                     </div>
                 </section>
 
-                <section className="py-32 px-6 max-w-7xl mx-auto">
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full">
                     <div className="text-center mb-16">
                         <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">What we do</p>
                         <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">
@@ -541,7 +541,7 @@ const KitMedia = () => {
                     </div>
                 </section>
 
-                <section className="py-32 px-6 max-w-7xl mx-auto border-t border-white/5">
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full border-t border-white/5">
                     <div className="text-center mb-16">
                         <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">Let's build something</p>
                         <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter">

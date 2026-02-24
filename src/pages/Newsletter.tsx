@@ -34,12 +34,12 @@ export function Newsletter() {
             {/* Hero Section */}
             <section className="relative min-h-[60vh] flex flex-col items-center justify-center px-6 overflow-hidden">
                 {/* Background Effects */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl mx-auto pointer-events-none">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-full mx-auto pointer-events-none">
                     <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-neon-red/10 blur-[120px] rounded-full mix-blend-screen" />
                     <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-neon-purple/10 blur-[120px] rounded-full mix-blend-screen" />
                 </div>
 
-                <div className="relative z-10 max-w-4xl mx-auto w-full text-center space-y-12">
+                <div className="relative z-10 w-full px-6 lg:px-12 xl:px-16 2xl:px-24 text-center space-y-12">
                     {/* Logo */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
@@ -89,7 +89,7 @@ export function Newsletter() {
 
             {/* Benefits Section */}
             <section className="py-20 px-6">
-                <div className="max-w-6xl mx-auto">
+                <div className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24">
                     <div className="text-center mb-16">
                         <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
                             {t('newsletter.benefits.title')}
@@ -135,7 +135,7 @@ export function Newsletter() {
                 {/* Background Effect */}
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-neon-red/5 to-transparent" />
 
-                <div className="max-w-4xl mx-auto text-center relative z-10">
+                <div className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24 text-center relative z-10">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}

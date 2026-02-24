@@ -322,7 +322,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             </AnimatePresence>
 
             {/* --- HERO HEADER (Interview Style) --- */}
-            <div className="relative h-[70vh] flex items-end justify-center overflow-hidden">
+            <div className="relative h-[50vh] md:h-[70vh] flex items-end justify-center overflow-hidden">
                 {/* Background Image */}
                 {article.image && (
                     <motion.div
@@ -342,7 +342,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 )}
 
                 {/* Content Overlay */}
-                <div className="relative z-10 max-w-7xl mx-auto px-6 pb-16 w-full">
+                <div className="relative z-10 max-w-full mx-auto px-6 lg:px-12 pb-16 w-full">
                     <div className="flex justify-between items-end mb-8">
                         {/* Navigation Back */}
                         <Link
@@ -479,7 +479,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
             {/* --- MAIN CONTENT CONTAINER (8/4 GRID) --- */}
             <main className="relative z-20 pb-16 -mt-10">
-                <div className="max-w-[1600px] mx-auto px-6">
+                <div className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24">
                     <div className="bg-dark-card border border-white/5 rounded-[2rem] p-6 md:p-10 lg:p-12 shadow-2xl backdrop-blur-md">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 

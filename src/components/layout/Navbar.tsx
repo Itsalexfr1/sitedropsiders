@@ -129,7 +129,7 @@ export function Navbar() {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-bg/40 backdrop-blur-md border-b border-white/10">
-            <div className="max-w-full mx-auto px-4 md:px-12">
+            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2 shrink-0">

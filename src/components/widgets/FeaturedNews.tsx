@@ -36,7 +36,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
 
     if (!heroNews) {
         return (
-            <div className="h-[750px] flex flex-col">
+            <div className="h-auto lg:h-[750px] flex flex-col overflow-hidden">
                 <h3 className="text-xl font-display font-bold text-white flex items-center gap-3 mb-6">
                     <span
                         className="w-2 h-2 rounded-full animate-pulse"
@@ -57,7 +57,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
     const playHoverSound = useHoverSound();
 
     return (
-        <div className="h-[750px] flex flex-col">
+        <div className="h-[450px] md:h-[750px] flex flex-col">
             <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
                 <span
                     className="w-2 h-2 rounded-full animate-pulse"

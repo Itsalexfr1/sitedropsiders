@@ -1265,6 +1265,7 @@ export default {
                 if (BREVO_KEY) {
                     ctx.waitUntil((async () => {
                         try {
+                            // 1. Notif Admin
                             await fetch('https://api.brevo.com/v3/smtp/email', {
                                 method: 'POST',
                                 headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
@@ -1287,8 +1288,65 @@ export default {
                                     `
                                 })
                             });
+
+                            // 2. Confirmation Utilisateur
+                            await fetch('https://api.brevo.com/v3/smtp/email', {
+                                method: 'POST',
+                                headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                                body: JSON.stringify({
+                                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
+                                    to: [{ email: email, name: name }],
+                                    subject: `Confirmation de réception : ${subject}`,
+                                    htmlContent: `
+                                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
+                                            <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
+                                                <div style="padding:40px 20px;">
+                                                    <div style="text-align:center; margin-bottom:30px;">
+                                                        <img src="https://dropsiders.fr/Logo.png" width="120" alt="Dropsiders">
+                                                    </div>
+                                                    
+                                                    <h2 style="color:#ff0033; font-size:20px; font-weight:900; text-transform:uppercase; margin-bottom:20px; text-align:center;">Merci pour votre message !</h2>
+                                                    
+                                                    <div style="color:#ffffff; font-size:15px; line-height:1.6; margin-bottom:30px; padding:0 10px;">
+                                                        Bonjour <strong>${name}</strong>,<br><br>
+                                                        Nous avons bien reçu votre demande concernant "<strong>${subject}</strong>".<br>
+                                                        Notre équipe va l'étudier avec attention et vous répondra dans les plus brefs délais.
+                                                    </div>
+
+                                                    <div style="background:#080808; border-left:3px solid #ff0033; border-radius:12px; padding:20px; margin-bottom:30px;">
+                                                        <p style="color:#666; font-size:11px; font-weight:bold; text-transform:uppercase; margin-top:0; margin-bottom:10px;">Rappel de votre message :</p>
+                                                        <div style="color:#aaa; font-size:13px; line-height:1.5; font-style:italic;">"${message}"</div>
+                                                    </div>
+                                                    
+                                                    <!-- SIGNATURE BLOCK -->
+                                                    <div style="margin-top:40px; background:#000000; border:1px solid #333333; border-top:4px solid #ff0033; border-radius:18px; overflow:hidden;">
+                                                        <div style="padding:25px 10px; text-align:center;">
+                                                            <div style="color:#ffffff; font-size:14px; font-weight:900; text-transform:uppercase; margin-bottom:15px;">
+                                                                L'équipe <span style="color:#ff0033;">Dropsiders</span>
+                                                            </div>
+                                                            <div style="color:#ff0033; font-size:7px; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:15px; opacity:0.8;">
+                                                                NEWS · RÉCAPS · INTERVIEWS · CONCOURS
+                                                            </div>
+                                                            <table width="100%" cellpadding="0" cellspacing="4" border="0">
+                                                                <tr>
+                                                                    <td align="center"><a href="https://dropsiders.fr" style="display:block; background:#111; color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:8px; font-weight:800; border-bottom:2px solid #ff0033;">SITE WEB</a></td>
+                                                                    <td align="center"><a href="https://dropsiders.fr/shop" style="display:block; background:#111; color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:8px; font-weight:800; border-bottom:2px solid #00ffd5;">BOUTIQUE</a></td>
+                                                                </tr>
+                                                            </table>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div style="background:#000000; padding:15px; text-align:center; border-top:1px solid #222;">
+                                                    <p style="color:#333; font-size:8px; margin:0; font-weight:bold; letter-spacing:1px;">DROPSIDERS · TOUTE L'ACTU DES FESTIVALS</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `,
+                                    replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
+                                })
+                            });
                         } catch (e) {
-                            console.error('Failed to send admin notification:', e);
+                            console.error('Failed to send notification emails:', e);
                         }
                     })());
                 }

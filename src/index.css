@@ -125,7 +125,7 @@
 
   /* Paragraphes Centrés - Petit espace constant */
   .article-body-premium p {
-    @apply text-center text-gray-300 leading-[1.8] text-base md:text-lg font-light max-w-4xl mx-auto;
+    @apply text-center text-gray-300 leading-[1.8] text-base md:text-lg font-light mx-auto;
     margin-bottom: 45px !important;
     padding: 0 !important;
     clear: both !important;
@@ -518,4 +518,84 @@
 .gallery-card-container:hover .gallery-event-name {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* --- MOBILE PERFORMANCE OPTIMIZATIONS --- */
+@media (max-width: 1024px) {
+  /* Disable heavy visual effects on mobile to maintain 60FPS */
+
+  /* Backdrop blur is extremely expensive on mobile GPUs */
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* Use a semi-transparent background as fallback */
+    background-color: rgba(10, 10, 10, 0.85) !important;
+  }
+
+  /* Reduce shadow complexity */
+  .shadow-2xl,
+  .shadow-xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Simplify or disable background animations */
+  .animate-float-slow,
+  .animate-float-delayed,
+  .animate-pulse-slow,
+  .animate-glow,
+  .animate-gradient-x {
+    animation: none !important;
+  }
+
+  /* Disable the heavy global filter for light mode on mobile if it exists */
+  /* This is a major source of lag on mobile devices */
+  html.light-mode {
+    filter: none !important;
+    background-color: #f0f0f0 !important;
+    color: #1a1a1a !important;
+  }
+
+  html.light-mode body {
+    background-color: #f0f0f0 !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Optimize scrolling and touch */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent layout shifts from images */
+  img {
+    content-visibility: auto;
+  }
+
+  /* Reduce glassmorphism intensity in specific widgets */
+  .gallery-red-overlay {
+    backdrop-filter: none !important;
+    background-color: rgba(255, 0, 51, 0.9) !important;
+  }
+
+  /* Article specific mobile adjustments */
+  .article-body-premium p {
+    margin-bottom: 25px !important;
+    /* Smaller spacing for mobile */
+  }
+
+  .drop-cap {
+    font-size: 5rem !important;
+    padding-top: 0 !important;
+  }
+
+  /* Spotify & Social widgets optimization */
+  .spotify-playlist-container,
+  [class*="snap-center"] {
+    backdrop-filter: none !important;
+    background-color: #121212 !important;
+  }
 }

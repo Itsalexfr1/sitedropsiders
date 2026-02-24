@@ -83,7 +83,7 @@ export function AlbumDetail() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/60 to-transparent" />
 
-                <div className="absolute inset-x-0 bottom-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
+                <div className="absolute inset-x-0 bottom-0 w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pb-12">
                     <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -184,7 +184,7 @@ export function AlbumDetail() {
             </div>
 
             {/* Photo Grid */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {album.images.map((img, index) => (
                         <motion.div
@@ -248,7 +248,7 @@ export function AlbumDetail() {
                 )}
             </AnimatePresence>
             {/* Newsletter Section */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 border-t border-white/5">
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-20 border-t border-white/5">
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}

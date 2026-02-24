@@ -24,7 +24,7 @@
 
 .article-premium-wrapper .jw-strip__content-container {
     width: 100%;
-    max-width: 1200px;
+    max-width: none;
     /* Centered container */
     margin: 0 auto;
 }
@@ -93,7 +93,7 @@
 
 /* --- CONTENT CONTAINER --- */
 .article-premium-wrapper .news-page-content-container {
-    max-width: 800px;
+    max-width: none;
     margin: 0 auto;
     padding: 0 1.5rem 6rem;
     /* text-align: center; REMOVED - Default to left for standard layout */
@@ -341,7 +341,7 @@
     margin: 3rem auto;
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 0 30px rgba(255, 0, 51, 0.1);
-    max-width: 900px;
+    max-width: none;
 }
 
 .article-premium-wrapper .video-wrapper iframe {
@@ -365,7 +365,7 @@
 
 /* --- MUSIC TOP LIST --- */
 .music-top-section {
-    max-width: 900px;
+    max-width: none;
     margin: 4rem auto;
 }
 
@@ -436,4 +436,47 @@
     margin-right: 0.75rem;
     text-shadow: 0 0 10px rgba(255, 0, 51, 0.6);
     font-family: var(--font-display, 'Orbitron', monospace);
+}
+
+/* --- MOBILE OPTIMIZATIONS --- */
+@media (max-width: 768px) {
+    .article-premium-wrapper .news-page-content-container {
+        padding: 0 1rem 4rem;
+    }
+
+    .article-body-premium p {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 25px !important;
+    }
+
+    .article-premium-wrapper h1.premium-h1 {
+        font-size: 2.5rem !important;
+    }
+
+    .article-premium-wrapper .drop-cap,
+    .article-body-premium .drop-cap {
+        font-size: 60px;
+        line-height: 1;
+        padding-top: 4px;
+    }
+
+    .article-premium-wrapper .bg-dark-card {
+        padding: 1.5rem !important;
+        border-radius: 1.5rem !important;
+        margin-top: -2rem !important;
+    }
+
+    .article-premium-wrapper .grid-cols-12 {
+        gap: 2rem !important;
+    }
+
+    /* Disable scale transforms on hover for mobile to improve fluidity */
+    .article-premium-wrapper img:hover {
+        transform: none !important;
+    }
+
+    .image-premium-wrapper:hover {
+        transform: none !important;
+    }
 }

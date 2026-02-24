@@ -1,10 +1,11 @@
 
-import { Mail, ExternalLink, Lock, Globe } from 'lucide-react';
+import { Mail, Lock, Globe } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
+import { NewsletterForm } from '../widgets/NewsletterForm';
 
 export function Footer() {
     const { t } = useLanguage();
@@ -70,7 +71,7 @@ export function Footer() {
             {/* Background Decorative Element */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent" />
 
-            <div className="max-w-full mx-auto px-4 md:px-12 py-20 pb-12">
+            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24 py-20 pb-12">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 lg:gap-16 mb-20">
                     {/* Brand Section */}
                     <motion.div
@@ -128,16 +129,23 @@ export function Footer() {
                                     </motion.a>
                                 ))}
                             </div>
-                            <Link
-                                to="/newsletter"
-                                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                                className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-neon-red/10 transition-colors"
-                            >
-                                <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                                    <ZoomText text={t('footer.subscribe')} />
-                                </span>
-                                <ExternalLink className="w-4 h-4 text-neon-red group-hover:translate-x-1 transition-transform" />
-                            </Link>
+                            <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl px-5 py-6 text-center space-y-4 relative overflow-hidden group/form">
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full" />
+                                <div className="relative z-10 space-y-2">
+                                    <div className="w-10 h-10 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30 group-hover/form:scale-110 transition-transform">
+                                        <Mail className="w-5 h-5 text-neon-red" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
+                                        <p className="text-[9px] text-gray-400 uppercase tracking-wide leading-relaxed">
+                                            {t('article_detail.newsletter_subtitle')}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <NewsletterForm variant="compact" />
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
 

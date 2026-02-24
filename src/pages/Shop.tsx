@@ -178,8 +178,8 @@ export function Shop() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-dark-bg py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
+            <div className="w-full">
                 <div className="mb-20 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
@@ -302,7 +302,7 @@ export function Shop() {
                     </div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }
 
