@@ -22,7 +22,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
 
     const latestRecaps = useMemo(() => {
         return (recapsData as any[])
-            .slice(0, isMobile ? 4 : 9);
+            .slice(0, isMobile ? 4 : 6);
     }, [isMobile]);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});

@@ -257,9 +257,7 @@ export function AlbumDetail() {
                 >
                     <div className="relative z-10 max-w-xl mx-auto">
                         <Mail className="w-10 h-10 text-neon-red mx-auto mb-6" />
-                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic mb-4">
-                            {t('article_detail.newsletter_title')}
-                        </h2>
+                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic mb-4" dangerouslySetInnerHTML={{ __html: t('article_detail.newsletter_title') }} />
                         <p className="text-gray-400 mb-8">
                             {t('article_detail.newsletter_subtitle')}
                         </p>

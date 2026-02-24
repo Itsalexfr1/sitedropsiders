@@ -136,7 +136,7 @@ export function Footer() {
                                         <Mail className="w-5 h-5 text-neon-red" />
                                     </div>
                                     <div className="space-y-0.5">
-                                        <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight">{t('article_detail.newsletter_title')}</h4>
+                                        <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight" dangerouslySetInnerHTML={{ __html: t('article_detail.newsletter_title') }} />
                                         <p className="text-[9px] text-gray-400 uppercase tracking-wide leading-relaxed">
                                             {t('article_detail.newsletter_subtitle')}
                                         </p>
