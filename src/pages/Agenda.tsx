@@ -280,7 +280,7 @@ export function Agenda() {
                             className="flex items-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)]"
                         >
                             <Plus className="w-5 h-5" />
-                            <span className="hidden sm:inline">Ajouter</span>
+                            <span className="hidden sm:inline">{t('admin.add')}</span>
                         </button>
                     )}
                 </div>
@@ -308,13 +308,13 @@ export function Agenda() {
                                 className="flex items-center gap-2 px-4 py-2 bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg text-xs font-black uppercase tracking-widest transition-all"
                             >
                                 <Trash2 className="w-4 h-4" />
-                                Supprimer
+                                {t('admin.delete')}
                             </button>
                             <button
                                 onClick={() => setSelectedEvents(new Set())}
                                 className="px-4 py-2 bg-white/5 text-gray-400 hover:text-white rounded-lg text-xs font-black uppercase tracking-widest transition-all"
                             >
-                                Annuler
+                                {t('admin.cancel')}
                             </button>
                         </div>
                     </motion.div>
@@ -526,7 +526,7 @@ export function Agenda() {
                                                             {event.title}
                                                         </h3>
                                                         <p className="text-gray-400 leading-relaxed text-lg italic">
-                                                            {event.description || "Aucune description disponible pour cet événement."}
+                                                            {event.description || t('agenda.no_desc')}
                                                         </p>
                                                         <div className="flex flex-wrap gap-4 pt-4">
                                                             <a
@@ -535,7 +535,7 @@ export function Agenda() {
                                                                 rel="noopener noreferrer"
                                                                 className="px-8 py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)]"
                                                             >
-                                                                Réserver mes tickets
+                                                                {t('agenda.book_tickets')}
                                                             </a>
                                                             {isAdmin && (
                                                                 <button
@@ -547,7 +547,7 @@ export function Agenda() {
                                                                     className="flex items-center gap-3 px-8 py-4 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 rounded-xl font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all"
                                                                 >
                                                                     <Edit2 className="w-5 h-5" />
-                                                                    Modifier
+                                                                    {t('admin.modify')}
                                                                 </button>
                                                             )}
                                                         </div>

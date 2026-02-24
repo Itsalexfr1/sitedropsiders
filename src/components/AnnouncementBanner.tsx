@@ -1,17 +1,22 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import settingsData from '../data/settings.json';
+import { useLanguage } from '../context/LanguageContext';
+import { Link } from 'react-router-dom';
 
 interface BannerSettings {
     enabled: boolean;
     text: string;
+    text_en?: string;
     color: string;
     bgColor?: string;
     opacity?: number;
     size?: 'small' | 'medium' | 'large';
+    link?: string;
 }
 
 export function AnnouncementBanner() {
+    const { language } = useLanguage();
     const [settings, setSettings] = useState<BannerSettings>(settingsData.announcement_banner as BannerSettings);
 
     useEffect(() => {
@@ -35,7 +40,9 @@ export function AnnouncementBanner() {
         return () => window.removeEventListener('focus', fetchSettings);
     }, []);
 
-    if (!settings?.enabled || !settings?.text) return null;
+    const bannerText = language === 'en' && settings.text_en ? settings.text_en : settings.text;
+
+    if (!settings?.enabled || !bannerText) return null;
 
     const getHeight = () => {
         switch (settings.size) {
@@ -45,18 +52,26 @@ export function AnnouncementBanner() {
         }
     };
 
-    const hexToRgba = (hex: string, opacity: number) => {
-        const r = parseInt(hex.slice(1, 3), 16);
-        const g = parseInt(hex.slice(3, 5), 16);
-        const b = parseInt(hex.slice(5, 7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${opacity / 100})`;
+    const getBgStyle = () => {
+        if (!settings.bgColor) return { backgroundColor: 'rgba(10, 10, 10, 0.8)' };
+
+        // Fixed opacity to match Navbar (0.8)
+        const opacity = 0.8;
+
+        if (settings.bgColor.startsWith('#')) {
+            const r = parseInt(settings.bgColor.slice(1, 3), 16);
+            const g = parseInt(settings.bgColor.slice(3, 5), 16);
+            const b = parseInt(settings.bgColor.slice(5, 7), 16);
+            return { backgroundColor: `rgba(${r}, ${g}, ${b}, ${opacity})` };
+        }
+        return { backgroundColor: settings.bgColor };
     };
 
-    return (
+    const bannerContent = (
         <div
-            className={`fixed top-20 left-0 right-0 z-[95] ${getHeight()} backdrop-blur-xl border-b border-white/5 overflow-hidden flex items-center shadow-lg`}
+            className={`fixed top-20 left-0 right-0 z-[95] ${getHeight()} backdrop-blur-xl border-b border-white/5 overflow-hidden flex items-center shadow-lg transition-all duration-300`}
             style={{
-                backgroundColor: settings.bgColor ? hexToRgba(settings.bgColor, settings.opacity ?? 100) : 'rgba(10, 10, 10, 0.8)',
+                ...getBgStyle(),
                 borderTop: `1px solid ${settings.color}33`
             }}
         >
@@ -81,7 +96,7 @@ export function AnnouncementBanner() {
                                 className="text-[10px] font-black uppercase tracking-[0.2em]"
                                 style={{ color: settings.color }}
                             >
-                                {settings.text}
+                                {bannerText}
                             </span>
                             <div className="w-1 h-1 rounded-full bg-white/20" />
                         </div>
@@ -108,7 +123,7 @@ export function AnnouncementBanner() {
                                 className="text-[10px] font-black uppercase tracking-[0.2em]"
                                 style={{ color: settings.color }}
                             >
-                                {settings.text}
+                                {bannerText}
                             </span>
                             <div className="w-1 h-1 rounded-full bg-white/20" />
                         </div>
@@ -117,4 +132,22 @@ export function AnnouncementBanner() {
             </div>
         </div>
     );
+
+    if (settings.link) {
+        const isExternal = settings.link.startsWith('http');
+        if (isExternal) {
+            return (
+                <a href={settings.link} target="_blank" rel="noopener noreferrer" className="block cursor-pointer">
+                    {bannerContent}
+                </a>
+            );
+        }
+        return (
+            <Link to={settings.link} className="block cursor-pointer">
+                {bannerContent}
+            </Link>
+        );
+    }
+
+    return bannerContent;
 }

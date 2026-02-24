@@ -131,7 +131,7 @@ export function Recap() {
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('nav.recaps')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
-                    LES <span className="text-neon-red">RECAPS</span>
+                    {t('recaps.title')}<span className="text-neon-red">{t('recaps.title_span')}</span>
                 </h1>
                 <p className="text-gray-400 max-w-2xl text-lg">
                     {t('news.subtitle')}
@@ -312,9 +312,7 @@ export function Recap() {
                         <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8">
                             <Mail className="w-8 h-8 text-neon-red" />
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-                            S'INSCRIRE À LA <span className="text-neon-red">NEWSLETTER</span>
-                        </h2>
+                        <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4" dangerouslySetInnerHTML={{ __html: t('recap.newsletter_title') }} />
                         <p className="text-gray-400 mb-10 text-lg">
                             {t('article_detail.newsletter_subtitle')}
                         </p>

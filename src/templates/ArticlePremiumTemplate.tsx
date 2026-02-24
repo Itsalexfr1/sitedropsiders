@@ -362,7 +362,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     className="flex items-center gap-2 px-4 py-3 bg-neon-cyan/20 hover:bg-neon-cyan/30 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan font-bold text-[10px] transition-all group"
                                 >
                                     <Edit2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
-                                    <span>MODIFIER</span>
+                                    <span>{t('admin.modify')}</span>
                                 </button>
                             )}
 
@@ -411,12 +411,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     {copied ? (
                                         <>
                                             <Check className="w-3.5 h-3.5 text-green-400" />
-                                            <span className="text-green-400">COPIÉ</span>
+                                            <span className="text-green-400">{t('article_detail.copied_btn')}</span>
                                         </>
                                     ) : (
                                         <>
                                             <Share2 className="w-3.5 h-3.5 group-hover:text-neon-red transition-colors" />
-                                            <span>PARTAGER</span>
+                                            <span>{t('article_detail.share_btn')}</span>
                                         </>
                                     )}
                                 </button>
@@ -503,7 +503,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                 <Play className="w-6 h-6 text-neon-red fill-neon-red animate-pulse" />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.video_subtitle') || 'A NE PAS MANQUER'}</span>
+                                                <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.must_watch')}</span>
                                                 {t('article_detail.video_title')}
                                             </div>
                                         </h3>

@@ -251,7 +251,7 @@ export function Navbar() {
                                         >
                                             <p className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] mb-4 ml-1 flex items-center gap-2">
                                                 <Filter className="w-3 h-3" />
-                                                Explorer par styles
+                                                {t('nav.explore_styles')}
                                             </p>
                                             <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
                                                 {[

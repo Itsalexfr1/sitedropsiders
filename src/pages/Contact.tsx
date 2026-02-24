@@ -2,7 +2,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Send, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 
+import { useLanguage } from '../context/LanguageContext';
+
 export function Contact() {
+    const { t } = useLanguage();
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -25,7 +28,7 @@ export function Contact() {
         // Validation manuelle rigoureuse
         if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
             setStatus('error');
-            setErrorMessage('Veuillez remplir tous les champs obligatoires.');
+            setErrorMessage(t('contact.error_fields'));
             return;
         }
 
@@ -42,7 +45,7 @@ export function Contact() {
             });
 
             if (!response.ok) {
-                throw new Error('Erreur lors de l\'envoi du message');
+                throw new Error(t('contact.error_send'));
             }
 
             setStatus('success');
@@ -50,7 +53,7 @@ export function Contact() {
             setTimeout(() => setStatus('idle'), 5000);
         } catch (error: any) {
             setStatus('error');
-            setErrorMessage(error.message || 'Une erreur est survenue. Veuillez réessayer.');
+            setErrorMessage(error.message || t('newsletter_form.error_server'));
             setTimeout(() => setStatus('idle'), 5000);
         }
     };
@@ -72,10 +75,10 @@ export function Contact() {
                         <div className="absolute inset-0 bg-neon-red/20 blur-xl rounded-2xl" />
                     </div>
                     <h1 className="text-4xl md:text-6xl font-display font-black text-white italic tracking-tighter uppercase mb-6 drop-shadow-lg">
-                        Nous <span className="text-neon-red">Contacter</span>
+                        {t('contact.title')}<span className="text-neon-red">{t('contact.title_span')}</span>
                     </h1>
                     <p className="text-gray-400 text-lg sm:text-xl font-medium tracking-wide max-w-xl mx-auto">
-                        Une question, une suggestion, un partenariat ou l'envie de rejoindre l'aventure et d'intégrer l'équipe ? Envoyez-nous un message, nous vous répondrons dans les plus brefs délais !
+                        {t('contact.subtitle')}
                     </p>
                 </motion.div>
 
@@ -90,7 +93,7 @@ export function Contact() {
                     <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre Nom <span className="text-neon-red">*</span></label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">{t('contact.name')} <span className="text-neon-red">*</span></label>
                                 <input
                                     required
                                     type="text"
@@ -98,11 +101,11 @@ export function Contact() {
                                     value={formData.name}
                                     onChange={handleChange}
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium"
-                                    placeholder="Ex: John Doe"
+                                    placeholder={t('contact.name_placeholder')}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre E-mail <span className="text-neon-red">*</span></label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">{t('contact.email')} <span className="text-neon-red">*</span></label>
                                 <input
                                     required
                                     type="email"
@@ -110,13 +113,13 @@ export function Contact() {
                                     value={formData.email}
                                     onChange={handleChange}
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium"
-                                    placeholder="Ex: john@example.com"
+                                    placeholder={t('contact.email_placeholder')}
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Sujet du Message <span className="text-neon-red">*</span></label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">{t('contact.subject')} <span className="text-neon-red">*</span></label>
                             <div className="relative">
                                 <select
                                     required
@@ -125,11 +128,11 @@ export function Contact() {
                                     onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium appearance-none cursor-pointer"
                                 >
-                                    <option value="" disabled className="bg-dark-bg text-gray-500">Choisir un sujet...</option>
-                                    <option value="Question" className="bg-dark-bg text-white">Question</option>
-                                    <option value="Suggestion" className="bg-dark-bg text-white">Suggestion</option>
-                                    <option value="Partenariat" className="bg-dark-bg text-white">Partenariat</option>
-                                    <option value="Recrutement" className="bg-dark-bg text-white">Recrutement</option>
+                                    <option value="" disabled className="bg-dark-bg text-gray-500">{t('contact.subject_placeholder')}</option>
+                                    <option value="Question" className="bg-dark-bg text-white">{t('contact.subject_question')}</option>
+                                    <option value="Suggestion" className="bg-dark-bg text-white">{t('contact.subject_suggestion')}</option>
+                                    <option value="Partenariat" className="bg-dark-bg text-white">{t('contact.subject_partnership')}</option>
+                                    <option value="Recrutement" className="bg-dark-bg text-white">{t('contact.subject_recruitment')}</option>
                                 </select>
                                 <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -140,7 +143,7 @@ export function Contact() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre Message <span className="text-neon-red">*</span></label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">{t('contact.message')} <span className="text-neon-red">*</span></label>
                             <textarea
                                 required
                                 name="message"
@@ -148,7 +151,7 @@ export function Contact() {
                                 onChange={handleChange}
                                 rows={6}
                                 className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium resize-none"
-                                placeholder="Rédigez votre message ici..."
+                                placeholder={t('contact.message_placeholder')}
                             />
                         </div>
 
@@ -173,7 +176,7 @@ export function Contact() {
                                     className="bg-green-500/10 border border-green-500/20 text-green-500 rounded-2xl p-4 flex items-center gap-3 text-sm font-medium"
                                 >
                                     <CheckCircle className="w-5 h-5 shrink-0" />
-                                    Votre message a été envoyé avec succès ! Nous y répondrons rapidement.
+                                    {t('contact.success')}
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -190,7 +193,7 @@ export function Contact() {
                             ) : (
                                 <Send className="w-5 h-5" />
                             )}
-                            {status === 'loading' ? 'Envoi en cours...' : 'Envoyer le message'}
+                            {status === 'loading' ? t('contact.sending') : t('contact.send')}
                         </motion.button>
                     </form>
                 </motion.div>

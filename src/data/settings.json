@@ -8,9 +8,10 @@
   "announcement_banner": {
     "enabled": true,
     "text": "BIENVENUE SUR DROPSIDERS - RECRUTEMENT OUVERT",
+    "text_en": "WELCOME TO DROPSIDERS - RECRUITMENT OPEN",
     "color": "#ffffff",
-    "bgColor": "#000000",
-    "opacity": 40,
-    "size": "medium"
+    "bgColor": "#ff0000",
+    "size": "medium",
+    "link": ""
   }
 }

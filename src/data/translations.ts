@@ -3,7 +3,7 @@ export type TranslationKey =
     | 'nav.news' | 'nav.recaps' | 'nav.galerie' | 'nav.interviews' | 'nav.agenda' | 'nav.team' | 'nav.shop' | 'nav.contact'
     | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.legal' | 'footer.admin' | 'footer.rights'
     | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.all_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_full_agenda' | 'home.agenda' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge' | 'home.all_events'
-    | 'news.badge' | 'news.title' | 'news.subtitle' | 'news.no_news'
+    | 'news.badge' | 'news.title' | 'news.title_span' | 'news.subtitle' | 'news.no_news'
     | 'recaps.badge' | 'recaps.title' | 'recaps.title_span' | 'recaps.subtitle' | 'recaps.no_recaps'
     | 'interviews.badge' | 'interviews.title' | 'interviews.title_span' | 'interviews.read_more' | 'interviews.no_interviews' | 'interviews.no_interviews_subtitle'
     | 'team.title' | 'team.join_title' | 'team.join_desc' | 'team.contact_btn'
@@ -16,8 +16,12 @@ export type TranslationKey =
     | 'home.playlists_title' | 'home.follow' | 'recaps.no_recaps_subtitle'
     | 'newsletter.hero.badge' | 'newsletter.hero.title' | 'newsletter.hero.title_span' | 'newsletter.hero.desc' | 'newsletter.stats.subscribers' | 'newsletter.stats.frequency' | 'newsletter.stats.coverage' | 'newsletter.form.title' | 'newsletter.form.subtitle' | 'newsletter.benefits.title' | 'newsletter.benefits.subtitle' | 'newsletter.benefits.exclusive_news' | 'newsletter.benefits.exclusive_news_desc' | 'newsletter.benefits.recaps' | 'newsletter.benefits.recaps_desc' | 'newsletter.benefits.alerts' | 'newsletter.benefits.alerts_desc' | 'newsletter.benefits.content' | 'newsletter.benefits.content_desc' | 'newsletter.community.title' | 'newsletter.community.desc' | 'newsletter.community.free' | 'newsletter.community.no_spam' | 'newsletter.community.easy_unsubscribe'
     | 'newsletter_form.email_label' | 'newsletter_form.email_placeholder' | 'newsletter_form.first_name_label' | 'newsletter_form.first_name_placeholder' | 'newsletter_form.last_name_label' | 'newsletter_form.last_name_placeholder' | 'newsletter_form.submit_btn' | 'newsletter_form.submitting_btn' | 'newsletter_form.success_msg' | 'newsletter_form.error_required' | 'newsletter_form.error_invalid' | 'newsletter_form.error_server' | 'newsletter_form.privacy_notice' | 'newsletter_form.privacy_link'
-    | 'article_detail.link_copied' | 'article_detail.share' | 'article_detail.focus' | 'article_detail.previous' | 'article_detail.next'
-    | 'admin.featured'
+    | 'article_detail.link_copied' | 'article_detail.share' | 'article_detail.focus' | 'article_detail.previous' | 'article_detail.next' | 'article_detail.must_watch' | 'article_detail.share_btn' | 'article_detail.copied_btn'
+    | 'admin.featured' | 'admin.add' | 'admin.delete' | 'admin.cancel' | 'admin.modify'
+    | 'nav.explore_styles' | 'recap.newsletter_title' | 'agenda.no_desc' | 'agenda.book_tickets'
+    | 'contact.title' | 'contact.title_span' | 'contact.subtitle' | 'contact.name' | 'contact.email' | 'contact.subject' | 'contact.subject_placeholder' | 'contact.message' | 'contact.message_placeholder' | 'contact.send' | 'contact.sending' | 'contact.success' | 'contact.error_fields' | 'contact.error_send' | 'contact.subject_question' | 'contact.subject_suggestion' | 'contact.subject_partnership' | 'contact.subject_recruitment'
+    | 'contact.name_placeholder' | 'contact.email_placeholder'
+    | 'interviews.title_prefix' | 'recaps.title_prefix' | 'galerie.title_prefix' | 'news.title_prefix'
     | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
@@ -80,19 +84,23 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'home.interview_badge': { fr: 'INTERVIEW', en: 'INTERVIEW' },
 
     'news.badge': { fr: 'Actualités', en: 'News' },
-    'news.title': { fr: 'NEWS', en: 'NEWS' },
+    'news.title': { fr: 'ACTUALITÉ ', en: 'LATEST ' },
+    'news.title_span': { fr: 'NEWS', en: 'NEWS' },
+    'news.title_prefix': { fr: 'ACTUALITÉ ', en: '' },
     'news.subtitle': { fr: 'Restez informé des dernières nouvelles, des sorties d\'albums et des événements majeurs de la scène électronique mondiale.', en: 'Stay informed about the latest news, album releases, and major events in the global electronic scene.' },
     'news.no_news': { fr: 'Aucune actualité pour le moment', en: 'No news for now' },
 
     'recaps.badge': { fr: 'Couvertures Festivals', en: 'Festival Coverages' },
-    'recaps.title': { fr: 'RÉCAPS', en: 'RECAPS' },
-    'recaps.title_span': { fr: 'EVENTS', en: 'EVENTS' },
+    'recaps.title': { fr: 'LES ', en: 'THE ' },
+    'recaps.title_span': { fr: 'RÉCAPS', en: 'RECAPS' },
+    'recaps.title_prefix': { fr: 'LES ', en: '' },
     'recaps.subtitle': { fr: 'Revivez les moments forts des plus grands festivals et événements électroniques à travers nos reportages photos et vidéos exclusifs.', en: 'Relive the highlights of the biggest electronic festivals and events through our exclusive photo and video reports.' },
     'recaps.no_recaps': { fr: 'Aucun récap disponible', en: 'No recap available' },
 
     'interviews.badge': { fr: 'Exclusivités', en: 'Exclusives' },
-    'interviews.title': { fr: 'INTERVIEWS', en: 'ARTIST' },
-    'interviews.title_span': { fr: 'ARTISTES', en: 'INTERVIEWS' },
+    'interviews.title': { fr: 'LES ', en: 'THE ' },
+    'interviews.title_span': { fr: 'INTERVIEWS', en: 'INTERVIEWS' },
+    'interviews.title_prefix': { fr: 'LES ', en: '' },
     'interviews.read_more': { fr: 'LIRE L\'INTERVIEW', en: 'READ INTERVIEW' },
     'interviews.no_interviews': { fr: 'Aucune interview trouvée', en: 'No interviews found' },
     'interviews.no_interviews_subtitle': { fr: 'Revenez plus tard pour de nouveaux contenus exclusifs.', en: 'Check back later for new exclusive content.' },
@@ -103,8 +111,9 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'team.contact_btn': { fr: 'Nous Contacter', en: 'Contact Us' },
 
     'galerie.badge': { fr: 'Photos & Albums', en: 'Photos & Albums' },
-    'galerie.title': { fr: 'GALERIES', en: 'PHOTO' },
-    'galerie.title_span': { fr: 'PHOTO', en: 'GALLERIES' },
+    'galerie.title': { fr: 'LES ', en: 'THE ' },
+    'galerie.title_span': { fr: 'GALERIES', en: 'GALLERIES' },
+    'galerie.title_prefix': { fr: 'LES ', en: 'THE ' },
     'galerie.filter_by': { fr: 'Filtrer par :', en: 'Filter by:' },
     'galerie.view_album': { fr: 'VOIR L\'ALBUM', en: 'VIEW ALBUM' },
     'galerie.no_albums': { fr: 'Aucun album trouvé', en: 'No album found' },
@@ -222,6 +231,37 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'newsletter_form.privacy_notice': { fr: 'En vous inscrivant, vous acceptez de recevoir nos newsletters. Vous pouvez vous désinscrire à tout moment. Vos données sont protégées conformément à notre ', en: 'By subscribing, you agree to receive our newsletters. You can unsubscribe at any time. Your data is protected in accordance with our ' },
     'newsletter_form.privacy_link': { fr: 'politique de confidentialité', en: 'privacy policy' },
     'admin.featured': { fr: 'Mettre à la une', en: 'Feature this article' },
+    'article_detail.must_watch': { fr: 'À NE PAS MANQUER', en: 'MUST WATCH' },
+    'article_detail.share_btn': { fr: 'PARTAGER', en: 'SHARE' },
+    'article_detail.copied_btn': { fr: 'COPIÉ', en: 'COPIED' },
+    'admin.add': { fr: 'AJOUTER', en: 'ADD' },
+    'admin.delete': { fr: 'SUPPRIMER', en: 'DELETE' },
+    'admin.cancel': { fr: 'ANNULER', en: 'CANCEL' },
+    'admin.modify': { fr: 'MODIFIER', en: 'MODIFY' },
+    'nav.explore_styles': { fr: 'Explorer par styles', en: 'Explore by styles' },
+    'recap.newsletter_title': { fr: "S'INSCRIRE À LA <span class=\"text-neon-red\">NEWSLETTER</span>", en: "SUBSCRIBE TO THE <span class=\"text-neon-red\">NEWSLETTER</span>" },
+    'agenda.no_desc': { fr: "Aucune description disponible pour cet événement.", en: "No description available for this event." },
+    'agenda.book_tickets': { fr: "Réserver mes tickets", en: "Book my tickets" },
+    'contact.title': { fr: 'Nous ', en: 'Contact ' },
+    'contact.title_span': { fr: 'Contacter', en: 'Us' },
+    'contact.subtitle': { fr: "Une question, une suggestion, un partenariat ou l'envie de rejoindre l'aventure et d'intégrer l'équipe ? Envoyez-nous un message, nous vous répondrons dans les plus brefs délais !", en: "A question, a suggestion, a partnership, or the desire to join the adventure and the team? Send us a message, we'll get back to you as soon as possible!" },
+    'contact.name': { fr: 'Votre Nom', en: 'Your Name' },
+    'contact.email': { fr: 'Votre E-mail', en: 'Your E-mail' },
+    'contact.subject': { fr: 'Sujet du Message', en: 'Message Subject' },
+    'contact.subject_placeholder': { fr: 'Choisir un sujet...', en: 'Choose a subject...' },
+    'contact.message': { fr: 'Votre Message', en: 'Your Message' },
+    'contact.message_placeholder': { fr: 'Rédigez votre message ici...', en: 'Write your message here...' },
+    'contact.send': { fr: 'Envoyer le message', en: 'Send message' },
+    'contact.sending': { fr: 'Envoi en cours...', en: 'Sending...' },
+    'contact.success': { fr: 'Votre message a été envoyé avec succès ! Nous y répondrons rapidement.', en: 'Your message has been sent successfully! We will get back to you shortly.' },
+    'contact.error_fields': { fr: 'Veuillez remplir tous les champs obligatoires.', en: 'Please fill in all required fields.' },
+    'contact.error_send': { fr: "Erreur lors de l'envoi du message", en: "Error sending message" },
+    'contact.subject_question': { fr: 'Question', en: 'Question' },
+    'contact.subject_suggestion': { fr: 'Suggestion', en: 'Suggestion' },
+    'contact.subject_partnership': { fr: 'Partenariat', en: 'Partnership' },
+    'contact.subject_recruitment': { fr: 'Recrutement', en: 'Recruitment' },
+    'contact.name_placeholder': { fr: 'Ex: John Doe', en: 'e.g. John Doe' },
+    'contact.email_placeholder': { fr: 'Ex: john@example.com', en: 'e.g. john@example.com' },
     'cookies.title': { fr: 'Cookies & Confidentialité', en: 'Cookies & Privacy' },
     'cookies.desc': {
         fr: 'Nous utilisons des cookies pour assurer le bon fonctionnement du site et analyser notre trafic, conformément au RGPD et aux réglementations européennes.',

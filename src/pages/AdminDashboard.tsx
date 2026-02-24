@@ -22,10 +22,11 @@ export function AdminDashboard() {
     const [bannerState, setBannerState] = useState({
         enabled: false,
         text: '',
+        text_en: '',
         color: '#ffffff',
         bgColor: '#ff0033',
-        opacity: 100,
-        size: 'medium'
+        size: 'medium',
+        link: ''
     });
     const navigate = useNavigate();
 
@@ -73,10 +74,11 @@ export function AdminDashboard() {
                 setBannerState({
                     enabled: data.announcement_banner?.enabled || false,
                     text: data.announcement_banner?.text || '',
+                    text_en: data.announcement_banner?.text_en || '',
                     color: data.announcement_banner?.color || '#ffffff',
                     bgColor: data.announcement_banner?.bgColor || '#ff0033',
-                    opacity: data.announcement_banner?.opacity || 100,
-                    size: data.announcement_banner?.size || 'medium'
+                    size: data.announcement_banner?.size || 'medium',
+                    link: data.announcement_banner?.link || ''
                 });
             }
         } catch (e) { }
@@ -713,17 +715,67 @@ export function AdminDashboard() {
                                             </button>
                                         </div>
 
-                                        {/* Text Input */}
-                                        <div className="space-y-2">
+                                        {/* Text Inputs (FR & EN) */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                    <Type className="w-3 h-3" /> Message (FR)
+                                                </label>
+                                                <textarea
+                                                    value={bannerState.text}
+                                                    onChange={(e) => setBannerState({ ...bannerState, text: e.target.value.toUpperCase() })}
+                                                    className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
+                                                    placeholder="Message en Français..."
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                    <Type className="w-3 h-3" /> Message (EN)
+                                                </label>
+                                                <textarea
+                                                    value={bannerState.text_en}
+                                                    onChange={(e) => setBannerState({ ...bannerState, text_en: e.target.value.toUpperCase() })}
+                                                    className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
+                                                    placeholder="Message in English..."
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Link Selection */}
+                                        <div className="p-5 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
                                             <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                <Type className="w-3 h-3" /> Message Défilant
+                                                <ArrowRight className="w-3 h-3 text-neon-orange" /> Redirection au clic (Lien)
                                             </label>
-                                            <textarea
-                                                value={bannerState.text}
-                                                onChange={(e) => setBannerState({ ...bannerState, text: e.target.value })}
-                                                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
-                                                placeholder="Tapez le message de votre bandeau ici..."
-                                            />
+                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                                                {[
+                                                    { label: 'Aucun (Désactivé)', val: '' },
+                                                    { label: 'Accueil', val: '/' },
+                                                    { label: 'News', val: '/news' },
+                                                    { label: 'Agenda', val: '/agenda' },
+                                                    { label: 'Shop (Boutique)', val: '/shop' },
+                                                    { label: 'Contact', val: '/contact' }
+                                                ].map(link => (
+                                                    <button
+                                                        key={link.val}
+                                                        onClick={() => setBannerState({ ...bannerState, link: link.val })}
+                                                        className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all border ${bannerState.link === link.val ? 'bg-neon-orange text-white border-neon-orange shadow-[0_0_15px_rgba(255,165,0,0.3)]' : 'bg-black/40 border-white/10 text-gray-500 hover:text-white hover:border-white/20'}`}
+                                                    >
+                                                        {link.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="relative">
+                                                <input
+                                                    type="text"
+                                                    placeholder="URL personnalisée ou lien externe (https://...)"
+                                                    value={bannerState.link}
+                                                    onChange={(e) => setBannerState({ ...bannerState, link: e.target.value })}
+                                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-[11px] focus:outline-none focus:border-neon-orange transition-all font-mono"
+                                                />
+                                                {bannerState.link && !['/', '/news', '/agenda', '/shop', '/contact', ''].includes(bannerState.link) && (
+                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-neon-orange animate-pulse" />
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* Color & Opacity Pickers */}
@@ -750,20 +802,6 @@ export function AdminDashboard() {
                                                     </div>
                                                 </div>
 
-                                                <div className="space-y-2">
-                                                    <label className="flex items-center justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                        <span>Opacité du fond</span>
-                                                        <span className="text-neon-orange">{bannerState.opacity}%</span>
-                                                    </label>
-                                                    <input
-                                                        type="range"
-                                                        min="0"
-                                                        max="100"
-                                                        value={bannerState.opacity}
-                                                        onChange={(e) => setBannerState({ ...bannerState, opacity: parseInt(e.target.value) })}
-                                                        className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-neon-orange"
-                                                    />
-                                                </div>
                                             </div>
 
                                             <div className="space-y-4">
@@ -811,7 +849,8 @@ export function AdminDashboard() {
                                             <div
                                                 className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
                                                 style={{
-                                                    backgroundColor: `rgba(${parseInt(bannerState.bgColor.slice(1, 3), 16)}, ${parseInt(bannerState.bgColor.slice(3, 5), 16)}, ${parseInt(bannerState.bgColor.slice(5, 7), 16)}, ${bannerState.opacity / 100})`
+                                                    backgroundColor: bannerState.bgColor,
+                                                    opacity: 0.8
                                                 }}
                                             >
                                                 <span

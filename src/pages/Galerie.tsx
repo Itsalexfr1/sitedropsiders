@@ -88,7 +88,7 @@ export function Galerie() {
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
-                    LES <span className="text-neon-red">GALERIES</span>
+                    {t('galerie.title')}<span className="text-neon-red">{t('galerie.title_span')}</span>
                 </h1>
             </motion.div>
 
@@ -212,7 +212,7 @@ export function Galerie() {
                                                             {album.category}
                                                         </span>
                                                         <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">
-                                                            {album.images.length}+ PHOTOS
+                                                            {album.images.length}+ {t('galerie.photos_suffix').toUpperCase()}
                                                         </span>
                                                     </div>
 
