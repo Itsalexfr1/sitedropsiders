@@ -6,7 +6,7 @@
     "subject": "test",
     "message": "test",
     "date": "2026-02-24T03:09:05.577Z",
-    "read": false,
+    "read": true,
     "replied": false
   }
 ]
