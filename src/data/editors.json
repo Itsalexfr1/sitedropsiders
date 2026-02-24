@@ -46,5 +46,15 @@
       "publications"
     ],
     "created": "2026-02-24T03:41:19.585Z"
+  },
+  {
+    "username": "guillaume",
+    "password": "TMLibiza2026",
+    "name": "Guillaume",
+    "permissions": [
+      "publications",
+      "messages"
+    ],
+    "created": "2026-02-24T11:46:06.615Z"
   }
 ]
