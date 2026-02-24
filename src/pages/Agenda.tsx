@@ -9,6 +9,7 @@ import { AgendaModal } from '../components/AgendaModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
 import { extractIdFromSlug } from '../utils/slugify';
+import agendaDataLocal from '../data/agenda.json';
 import { trackPageView } from '../utils/analytics';
 import { FlagIcon } from '../components/ui/FlagIcon';
 
@@ -32,9 +33,13 @@ export function Agenda() {
             if (response.ok) {
                 const data = await response.json();
                 setAgendaData(data);
+            } else {
+                // API unavailable (preview/dev without worker), fallback to local JSON
+                setAgendaData(agendaDataLocal as any[]);
             }
         } catch (error) {
-            console.error('Failed to fetch agenda:', error);
+            console.error('Failed to fetch agenda, using local data:', error);
+            setAgendaData(agendaDataLocal as any[]);
         } finally {
             setIsLoading(false);
         }
