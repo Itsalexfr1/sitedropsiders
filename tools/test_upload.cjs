@@ -8,7 +8,7 @@ async function testUpload() {
     // Load credentials from .dev.vars or use the ones we know
     const CLOUD_NAME = 'djnvjsmvr';
     const UPLOAD_PRESET = 'dropsiders_unsigned';
-    const ADMIN_PASSWORD = '2026alexC';
+    const ADMIN_PASSWORD = '2026';
 
     // Create a tiny dummy image (1x1 pixel black PNG)
     const dummyBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';

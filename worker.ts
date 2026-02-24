@@ -216,7 +216,7 @@ export default {
         };
 
         // --- AUTH CHECK ---
-        const adminPassword = env.ADMIN_PASSWORD || 'alex2026';
+        const adminPassword = env.ADMIN_PASSWORD || '2026';
         const requestPassword = request.headers.get('X-Admin-Password');
         let requestUsername = request.headers.get('X-Admin-Username') || '';
 
@@ -1335,9 +1335,9 @@ export default {
         }
 
         if (path === '/api/emails/sync' && request.method === 'POST') {
-            const result = await triggerMailSync();
-            return new Response(JSON.stringify(result), {
-                status: result.success ? 200 : 500,
+            // const result = await triggerMailSync();
+            return new Response(JSON.stringify({ success: true, message: 'Sync disabled' }), {
+                status: 200,
                 headers
             });
         }
@@ -1367,7 +1367,7 @@ export default {
                 emails.contact = [newEmail, ...emails.contact];
 
                 await saveGitHubFile(EMAILS_PATH, emails, `Nouveau message de contact de ${name || email} [skip ci] [CF-Pages-Skip]`, file.sha);
-                await triggerMailSync();
+                // await triggerMailSync();
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
@@ -1377,22 +1377,41 @@ export default {
 
         if (path === '/api/emails/send' && request.method === 'POST') {
             const SEND_LOG_PATH = 'src/data/emails_sent.json';
-            const { to, subject, content, account, status } = await request.json();
+            const { to, subject, content, account } = await request.json();
 
             try {
+                // 1. Send via Brevo
+                const BREVO_KEY = env.BREVO_API_KEY;
+                if (BREVO_KEY) {
+                    const brevoUrl = 'https://api.brevo.com/v3/smtp/email';
+                    const payload = {
+                        sender: { name: "Dropsiders", email: "contact@dropsiders.fr" },
+                        to: [{ email: to }],
+                        subject: subject,
+                        htmlContent: content,
+                        replyTo: { email: "contact@dropsiders.fr", name: "Dropsiders" }
+                    };
+
+                    await fetch(brevoUrl, {
+                        method: 'POST',
+                        headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                // 2. Log in GitHub
                 const file = await fetchGitHubFile(SEND_LOG_PATH) || { content: [], sha: null };
                 const newEmail = {
                     id: Date.now().toString(),
                     to,
                     subject,
                     content,
-                    account,
-                    status: status || 'sent',
+                    account: account || 'contact',
+                    status: 'sent',
                     date: new Date().toISOString()
                 };
-                const updated = [...file.content, newEmail];
-                await saveGitHubFile(SEND_LOG_PATH, updated, `Send email from ${account} to ${to} [skip ci] [CF-Pages-Skip]`, file.sha);
-                await triggerMailSync();
+                const updated = [...(Array.isArray(file.content) ? file.content : []), newEmail];
+                await saveGitHubFile(SEND_LOG_PATH, updated, `Send message to ${to} [skip ci] [CF-Pages-Skip]`, file.sha);
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {

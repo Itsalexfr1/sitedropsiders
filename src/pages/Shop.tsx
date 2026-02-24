@@ -47,7 +47,7 @@ export function Shop() {
 
     const handlePasswordSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (passwordInput.toUpperCase() === 'DROPSHOP') {
+        if (passwordInput.toUpperCase() === '2026') {
             setIsAuthenticated(true);
             setPasswordError(false);
         } else {

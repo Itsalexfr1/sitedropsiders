@@ -389,7 +389,7 @@ export function AdminShop() {
                                             <div>
                                                 <p className="text-gray-500 text-[9px] font-black uppercase mb-1">ACCÈS PRIVÉ (CODE)</p>
                                                 <p className={`text-sm font-bold uppercase ${shopPasswordProtected ? 'text-neon-red' : 'text-gray-600'}`}>
-                                                    {shopPasswordProtected ? 'DROPSHOP' : 'Désactivé'}
+                                                    {shopPasswordProtected ? '2026' : 'Désactivé'}
                                                 </p>
                                             </div>
                                             <button
@@ -403,7 +403,7 @@ export function AdminShop() {
                                             </button>
                                         </div>
                                         <p className="text-[9px] text-gray-500 leading-relaxed uppercase font-medium">
-                                            Si activé, le shop ne sera plus visible dans le menu et nécessitera le code <span className="text-neon-red font-black">DROPSHOP</span> pour y accéder.
+                                            Si activé, le shop ne sera plus visible dans le menu et nécessitera le code <span className="text-neon-red font-black">2026</span> pour y accéder.
                                         </p>
 
                                         {shopPasswordProtected && (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, Star, Lock, Plus, X } from 'lucide-react';
+import { Mail, Inbox, Send, Trash2, RefreshCcw, Search, Reply, Forward, ArrowLeft, Calendar, User, ExternalLink, Globe, Archive, Star, Plus, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface Email {
@@ -19,39 +19,51 @@ interface Email {
 
 const EmailSignature = ({ password = '2026' }: { password?: string }) => (
     <div className="mt-12 pt-8 border-t border-white/10">
-        <div className="flex items-center gap-4 mb-4">
-            <div className="w-12 h-12 bg-black rounded-xl flex items-center justify-center border border-white/10 shadow-lg overflow-hidden">
-                <img src="/logo_presentation.png" alt="Dropsiders" className="w-full h-full object-contain p-1" />
+        <div className="flex items-center gap-5 mb-6">
+            <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-neon-red to-red-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative w-14 h-14 bg-black rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl overflow-hidden">
+                    <img src="/logo_presentation.png" alt="Dropsiders" className="w-full h-full object-contain p-2" />
+                </div>
             </div>
             <div>
-                <p className="text-sm font-black text-white uppercase tracking-widest italic">L'Équipe <span className="text-neon-red">Dropsiders</span></p>
-                <div className="flex flex-col mt-0.5">
-                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em]">Média Festivals</p>
-                    <p className="text-[7px] font-black text-gray-600 uppercase tracking-[0.1em]">News - Récaps Events - Interviews - Concours</p>
+                <p className="text-base font-black text-white uppercase tracking-[0.2em] italic leading-none mb-1">
+                    Direction <span className="text-neon-red">Dropsiders</span>
+                </p>
+                <div className="flex flex-col">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.3em]">Official Media Portal</p>
+                    <p className="text-[8px] font-black text-neon-red/60 uppercase tracking-[0.15em] animate-pulse">2026 Season • Worldwide</p>
                 </div>
             </div>
         </div>
 
         <div className="flex flex-wrap gap-4 items-center">
             <a
-                href="/kit-media"
+                href="https://dropsiders.fr/#/kit-media"
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 transition-all hover:bg-white/10 group/km"
+                className="flex items-center gap-4 bg-white/[0.03] border border-white/10 rounded-2xl px-5 py-3 transition-all hover:bg-white/[0.08] hover:border-neon-red/50 hover:shadow-lg hover:shadow-neon-red/5 group/km"
             >
-                <Globe className="w-3.5 h-3.5 text-neon-red group-hover/km:scale-110 transition-transform" />
+                <div className="w-8 h-8 rounded-full bg-neon-red/10 flex items-center justify-center group-hover/km:scale-110 transition-transform">
+                    <Globe className="w-4 h-4 text-neon-red" />
+                </div>
                 <div className="flex flex-col">
-                    <span className="text-[8px] font-black text-white uppercase tracking-widest">Kit Média 2026</span>
-                    <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-1 transition-colors">
-                        Accès : <span className="text-neon-red font-black uppercase">{password}</span>
+                    <span className="text-[9px] font-black text-white uppercase tracking-widest">Kit Média Presse</span>
+                    <span className="text-[7px] font-bold text-gray-500 uppercase flex items-center gap-1.5">
+                        Code Privé : <span className="text-neon-red font-black tracking-widest">{password}</span>
                     </span>
                 </div>
             </a>
 
-            <div className="flex items-center gap-3">
-                <div className="w-px h-8 bg-white/10"></div>
+            <div className="flex items-center gap-4 ml-2">
+                <div className="w-1 h-10 bg-gradient-to-b from-neon-red/50 to-transparent rounded-full opacity-50"></div>
                 <div className="space-y-1">
-                    <p className="text-[8px] font-bold text-gray-600 uppercase tracking-[0.3em] hover:text-white cursor-default">www.dropsiders.fr</p>
+                    <p className="text-[9px] font-black text-white/40 uppercase tracking-[0.4em] hover:text-neon-red transition-colors cursor-pointer">Dropsiders.fr</p>
+                    <div className="flex gap-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red opacity-80 shadow-[0_0_8px_#ff0000]"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-white opacity-20"></div>
+                        <div className="w-1.5 h-1.5 rounded-full bg-white opacity-20"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -133,89 +145,28 @@ const parseAndCleanEmail = (raw: string) => {
 
 export function AdminEmails() {
     const navigate = useNavigate();
-    const [activeAccount, setActiveAccount] = useState<'alex' | 'contact' | 'all'>('all');
     const [activeFolder, setActiveFolder] = useState<'inbox' | 'sent' | 'archive' | 'trash'>('inbox');
     const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    // No extra login needed as we are already in the admin dashboard.
+    // Simplifying the experience by keeping the internal center consistent.
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [emailPassword, setEmailPassword] = useState('');
-    const [savedPassword, setSavedPassword] = useState('2026');
-    const [isAuthorized, setIsAuthorized] = useState(false);
-    const [loginError, setLoginError] = useState('');
     const [isComposing, setIsComposing] = useState(false);
-    const [composeData, setComposeData] = useState({ from: 'contact' as 'alex' | 'contact' | 'all', to: '', subject: '', content: '' });
+    const [composeData, setComposeData] = useState({ from: 'contact', to: '', subject: '', content: '' });
     const [isSending, setIsSending] = useState(false);
     const [emails, setEmails] = useState<{ [key: string]: Email[] }>({});
 
-    const [mailConfig, setMailConfig] = useState<any>(null);
-
     useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                // Fetch general settings for password
-                const res = await fetch('/api/settings');
-                if (res.ok) {
-                    const data = await res.json();
-                    const savedPass = data.email_password || '2026';
-                    setSavedPassword(savedPass);
-                    if (sessionStorage.getItem('email_auth') === savedPass) {
-                        setIsAuthorized(true);
-                    }
-                }
-
-                // Fetch mail configuration
-                const mailRes = await fetch('/api/emails/config');
-                if (mailRes.ok) {
-                    const mailData = await mailRes.json();
-                    setMailConfig(mailData);
-                }
-            } catch (e) {
-                console.error('Failed to fetch settings');
-            }
-        };
-        fetchSettings();
-    }, []);
-
-    useEffect(() => {
-        if (isAuthorized) {
-            handleRefresh();
-        }
-    }, [isAuthorized, activeAccount, activeFolder]);
-
-    const handleLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const res = await fetch('/api/settings');
-            const data = res.ok ? await res.json() : {};
-            const correctPass = data.email_password || '2026';
-
-            if (emailPassword === correctPass) {
-                setIsAuthorized(true);
-                sessionStorage.setItem('email_auth', correctPass);
-                setLoginError('');
-            } else {
-                setLoginError('Code d\'accès incorrect');
-                setEmailPassword('');
-            }
-        } catch {
-            setLoginError('Erreur de connexion');
-        }
-    };
+        handleRefresh();
+    }, [activeFolder]);
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
         try {
-            // Déclencher le robot GitHub en arrière-plan
-            fetch('/api/emails/sync', { method: 'POST' });
-
-            const accountsToFetch = activeAccount === 'all' ? ['contact', 'alex'] : [activeAccount];
-
-            for (const acc of accountsToFetch) {
-                const res = await fetch(`/api/emails/list?account=${acc}&folder=${activeFolder}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setEmails(prev => ({ ...prev, [`${acc}_${activeFolder}`]: data.emails }));
-                }
+            const res = await fetch(`/api/emails/list?account=contact&folder=${activeFolder}`);
+            if (res.ok) {
+                const data = await res.json();
+                setEmails(prev => ({ ...prev, [activeFolder]: data.emails }));
             }
         } catch {
             console.error('Refresh failed');
@@ -231,16 +182,6 @@ export function AdminEmails() {
         }
 
         try {
-            // Trouver le compte associé si on est en mode 'all'
-            let accountToUse = activeAccount as string;
-            if (activeAccount === 'all') {
-                const email = currentEmails.find(e => e.id === emailId);
-                // On essaie de deviner le compte via son adresse 'to'
-                if (email?.to?.includes('alex')) accountToUse = 'alex';
-                else if (email?.to?.includes('contact')) accountToUse = 'contact';
-                else accountToUse = 'contact'; // Par défaut
-            }
-
             const res = await fetch('/api/emails/action', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -249,7 +190,7 @@ export function AdminEmails() {
                     emailId,
                     fromFolder: activeFolder,
                     toFolder: action === 'archive' ? 'archive' : (action === 'trash' ? 'trash' : null),
-                    account: accountToUse
+                    account: 'contact'
                 })
             });
 
@@ -267,18 +208,14 @@ export function AdminEmails() {
         setSelectedEmail(prev => prev ? { ...prev, starred: !prev.starred } : null);
         setEmails(prev => {
             const newEmailsState = { ...prev };
-            const accounts = ['contact', 'alex'];
-
-            accounts.forEach(acc => {
-                const key = `${acc}_${activeFolder}`;
-                if (newEmailsState[key]) {
-                    const idx = newEmailsState[key].findIndex(e => e.id === emailId);
-                    if (idx !== -1) {
-                        newEmailsState[key] = [...newEmailsState[key]];
-                        newEmailsState[key][idx] = { ...newEmailsState[key][idx], starred: !newEmailsState[key][idx].starred };
-                    }
+            const key = activeFolder;
+            if (newEmailsState[key]) {
+                const idx = newEmailsState[key].findIndex(e => e.id === emailId);
+                if (idx !== -1) {
+                    newEmailsState[key] = [...newEmailsState[key]];
+                    newEmailsState[key][idx] = { ...newEmailsState[key][idx], starred: !newEmailsState[key][idx].starred };
                 }
-            });
+            }
 
             return newEmailsState;
         });
@@ -287,14 +224,11 @@ export function AdminEmails() {
     const handleEmptyTrash = async () => {
         if (!confirm('Voulez-vous vraiment vider la corbeille ?')) return;
         try {
-            const accounts = activeAccount === 'all' ? ['contact', 'alex'] : [activeAccount];
-            for (const acc of accounts) {
-                await fetch('/api/emails/action', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'empty_trash', fromFolder: 'trash', account: acc })
-                });
-            }
+            await fetch('/api/emails/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'empty_trash', fromFolder: 'trash', account: 'contact' })
+            });
             handleRefresh();
             setSelectedEmail(null);
         } catch {
@@ -306,24 +240,19 @@ export function AdminEmails() {
         e.preventDefault();
         setIsSending(true);
         try {
-            const accounts = composeData.from === 'all' ? ['contact', 'alex'] : [composeData.from];
-
-            for (const account of accounts) {
-                const res = await fetch('/api/emails/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        ...composeData,
-                        account,
-                        status: 'pending'
-                    })
-                });
-                if (!res.ok) throw new Error('Failed to send');
-            }
+            const res = await fetch('/api/emails/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...composeData,
+                    account: 'contact'
+                })
+            });
+            if (!res.ok) throw new Error('Failed to send');
 
             setIsComposing(false);
-            setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
-            alert('E-mail(s) envoyé(s) avec succès !');
+            setComposeData({ from: 'contact', to: '', subject: '', content: '' });
+            alert('Message envoyé avec succès via Brevo !');
             if (activeFolder === 'sent') handleRefresh();
         } catch {
             alert('Erreur lors de l\'envoi');
@@ -332,10 +261,7 @@ export function AdminEmails() {
         }
     };
 
-    const currentEmails = activeAccount === 'all'
-        ? [...(emails[`contact_${activeFolder}`] || []), ...(emails[`alex_${activeFolder}`] || [])]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        : (emails[`${activeAccount}_${activeFolder}`] || []);
+    const currentEmails = emails[activeFolder] || [];
 
     const filteredEmails = currentEmails.filter(email =>
         email.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -343,47 +269,6 @@ export function AdminEmails() {
         (email.fromName?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
         (email.to?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     );
-
-    if (!isAuthorized) {
-        return (
-            <div className="min-h-screen bg-dark-bg flex items-center justify-center px-4">
-                <div className="max-w-md w-full">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 backdrop-blur-xl shadow-2xl text-center"
-                    >
-                        <div className="w-20 h-20 bg-neon-red/10 rounded-3xl flex items-center justify-center border border-neon-red/20 mx-auto mb-8">
-                            <Lock className="w-8 h-8 text-neon-red" />
-                        </div>
-                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                            Accès <span className="text-neon-red">Sécurisé</span>
-                        </h2>
-                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-10">
-                            Veuillez entrer le code d'accès à la messagerie
-                        </p>
-
-                        <form onSubmit={handleLogin} className="space-y-6">
-                            <input
-                                type="password"
-                                value={emailPassword}
-                                onChange={(e) => setEmailPassword(e.target.value)}
-                                placeholder="MOT DE PASSE"
-                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-red transition-all"
-                            />
-                            {loginError && <p className="text-neon-red text-[10px] font-black uppercase tracking-widest">{loginError}</p>}
-                            <button
-                                type="submit"
-                                className="w-full py-5 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20 active:scale-95 text-xs"
-                            >
-                                Se connecter
-                            </button>
-                        </form>
-                    </motion.div>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <div className="h-screen bg-dark-bg flex flex-col overflow-hidden">
@@ -399,31 +284,20 @@ export function AdminEmails() {
                         </button>
                         <div>
                             <h1 className="text-2xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-red">Mails</span>
+                                Centre <span className="text-neon-red">Messages</span>
                             </h1>
-                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Outil de Communication Directe</p>
+                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-2">Console de Direction • Dropsiders</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl overflow-x-auto no-scrollbar w-full md:w-auto">
-                        <button
-                            onClick={() => setActiveAccount('all')}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeAccount === 'all' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            Tous
-                        </button>
-                        <button
-                            onClick={() => setActiveAccount('contact')}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeAccount === 'contact' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,165,0,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            {mailConfig?.accounts?.contact?.email?.split('@')[0] || 'contact'}
-                        </button>
-                        <button
-                            onClick={() => setActiveAccount('alex')}
-                            className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeAccount === 'alex' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                        >
-                            {mailConfig?.accounts?.alex?.email?.split('@')[0] || 'alex'}
-                        </button>
+                    <div className="hidden md:flex items-center gap-4">
+                        <div className="flex flex-col items-end">
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Opérateur</span>
+                            <span className="text-[9px] font-bold text-neon-red uppercase tracking-widest">Admin Dropsiders</span>
+                        </div>
+                        <div className="w-12 h-12 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/20 shadow-lg shadow-neon-red/10">
+                            <User className="w-5 h-5 text-neon-red" />
+                        </div>
                     </div>
                 </div>
 
@@ -434,7 +308,7 @@ export function AdminEmails() {
                     <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-white/5 p-6 space-y-8 overflow-y-auto no-scrollbar">
                         <button
                             onClick={() => {
-                                setComposeData({ from: activeAccount === 'all' ? 'contact' : activeAccount, to: '', subject: '', content: '' });
+                                setComposeData({ from: 'contact', to: '', subject: '', content: '' });
                                 setIsComposing(true);
                             }}
                             className="w-full py-4 bg-neon-red text-white font-black uppercase tracking-widest rounded-2xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20 active:scale-95 text-xs flex items-center justify-center gap-2"
@@ -530,9 +404,8 @@ export function AdminEmails() {
                                         <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1.5 border border-white/10">
                                             <button
                                                 onClick={() => {
-                                                    const fromAcc = activeAccount === 'all' ? (selectedEmail.to?.includes('alex') ? 'alex' : 'contact') : activeAccount;
                                                     setComposeData({
-                                                        from: fromAcc,
+                                                        from: 'contact',
                                                         to: selectedEmail.from || '',
                                                         subject: `Re: ${selectedEmail.subject || ''}`,
                                                         content: `\n\n-------------------\nLe ${new Date(selectedEmail.date).toLocaleString()}, ${selectedEmail.fromName} a écrit :\n\n${selectedEmail.content}`
@@ -547,9 +420,8 @@ export function AdminEmails() {
                                             </button>
                                             <button
                                                 onClick={() => {
-                                                    const fromAcc = activeAccount === 'all' ? (selectedEmail.to?.includes('alex') ? 'alex' : 'contact') : activeAccount;
                                                     setComposeData({
-                                                        from: fromAcc,
+                                                        from: 'contact',
                                                         to: '',
                                                         subject: `Fwd: ${selectedEmail.subject || ''}`,
                                                         content: `\n\n---------- Message transféré ----------\nDe : ${selectedEmail.fromName} <${selectedEmail.from}>\nDate : ${new Date(selectedEmail.date).toLocaleString()}\nObjet : ${selectedEmail.subject}\n\n${selectedEmail.content}`
@@ -620,11 +492,6 @@ export function AdminEmails() {
                                             <div className="flex justify-between items-start gap-2 mb-2">
                                                 <span className={`text-[11px] font-black uppercase tracking-tight truncate ${!email.read ? 'text-white' : 'text-gray-400'}`}>
                                                     {activeFolder === 'sent' ? `À: ${email.to}` : email.fromName}
-                                                    {activeAccount === 'all' && (
-                                                        <span className="ml-2 px-1.5 py-0.5 bg-white/5 rounded text-[8px] text-gray-500 border border-white/10 uppercase italic font-bold">
-                                                            {email.to?.includes('alex') || (email as any).account === 'alex' ? 'Alex' : 'Contact'}
-                                                        </span>
-                                                    )}
                                                 </span>
                                                 <span className="text-[9px] font-bold text-gray-500 flex-shrink-0">
                                                     {new Date(email.date).toLocaleDateString()}
@@ -707,7 +574,7 @@ export function AdminEmails() {
                                                         </span>
                                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                                             <User className="w-3.5 h-3.5" />
-                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || (activeAccount === 'all' ? 'Bureau' : activeAccount)}` : 'à moi'}
+                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || activeAccount}` : 'à moi'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -796,27 +663,11 @@ export function AdminEmails() {
                                         <div className="grid grid-cols-[80px_1fr] items-center gap-4">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">De :</span>
                                             <div className="flex items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setComposeData({ ...composeData, from: 'contact' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'contact' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
-                                                >
-                                                    contact@dropsiders.fr
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setComposeData({ ...composeData, from: 'alex' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'alex' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
-                                                >
-                                                    alex@dropsiders.fr
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setComposeData({ ...composeData, from: 'all' })}
-                                                    className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${composeData.from === 'all' ? 'bg-neon-red text-white border border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.2)]' : 'bg-white/5 text-gray-400 border border-white/10 hover:text-white'}`}
-                                                >
-                                                    Les deux
-                                                </button>
+                                                <input
+                                                    readOnly
+                                                    value={`${activeAccount}@dropsiders.fr`}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-neon-red text-[10px] font-black uppercase tracking-widest outline-none cursor-default"
+                                                />
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-[80px_1fr] items-center gap-4">
@@ -854,7 +705,7 @@ export function AdminEmails() {
                                         />
 
                                         {/* Preview Signature in Compose */}
-                                        <EmailSignature password={savedPassword} />
+                                        <EmailSignature password="2026" />
                                     </div>
 
                                     <div className="flex justify-end gap-4 pt-4">
