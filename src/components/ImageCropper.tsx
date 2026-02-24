@@ -14,6 +14,7 @@ interface ImageCropperProps {
 export const getCroppedImg = (imageSrc: string, pixelCrop: Area): Promise<string> => {
     return new Promise((resolve, reject) => {
         const image = new Image();
+        image.crossOrigin = 'anonymous';
         image.src = imageSrc;
         image.onload = () => {
             const canvas = document.createElement('canvas');

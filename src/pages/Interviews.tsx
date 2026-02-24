@@ -130,164 +130,161 @@ export function Interviews() {
 
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
-            <div className="relative mt-12 px-4 md:p-10 bg-dark-card/20 backdrop-blur-xl border border-white/10 rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mb-16"
-                >
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-neon-red/10 rounded-lg">
-                            <svg className="w-6 h-6 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                            </svg>
-                        </div>
-                        <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('interviews.badge')}</span>
+            {/* Header Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-16"
+            >
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-neon-red/10 rounded-lg">
+                        <svg className="w-6 h-6 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                        </svg>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                        {t('interviews.title')} <span className="text-neon-red">{t('interviews.title_span')}</span>
-                    </h1>
-                </motion.div>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('interviews.badge')}</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+                    {t('interviews.title')} <span className="text-neon-red">{t('interviews.title_span')}</span>
+                </h1>
+            </motion.div>
 
-                {/* Grid Section */}
-                <div className="relative">
-                    {/* Left Arrow */}
-                    <AnimatePresence>
-                        {currentPage > 1 && (
-                            <motion.button
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                onClick={() => paginate(currentPage - 1)}
-                                className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
-                            >
-                                <ChevronLeft className="w-16 h-16" strokeWidth={1} />
-                            </motion.button>
-                        )}
-                    </AnimatePresence>
+            {/* Grid Section */}
+            <div className="relative">
+                {/* Left Arrow */}
+                <AnimatePresence>
+                    {currentPage > 1 && (
+                        <motion.button
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            onClick={() => paginate(currentPage - 1)}
+                            className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                        >
+                            <ChevronLeft className="w-16 h-16" strokeWidth={1} />
+                        </motion.button>
+                    )}
+                </AnimatePresence>
 
-                    <div className="min-h-[600px] overflow-hidden">
-                        <AnimatePresence mode="wait" custom={direction}>
-                            <motion.div
-                                key={currentPage}
-                                custom={direction}
-                                variants={variants}
-                                initial="enter"
-                                animate="center"
-                                exit="exit"
-                                transition={{
-                                    x: { type: "spring", stiffness: 300, damping: 30 },
-                                    opacity: { duration: 0.2 }
-                                }}
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"
-                            >
-                                {currentArticles.length > 0 ? (
-                                    currentArticles.map((item: any) => (
-                                        <motion.article
-                                            key={item.id}
-                                            whileHover={{ scale: 1.05 }}
-                                            onMouseEnter={playHoverSound}
-                                            className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300 shadow-2xl flex flex-col"
-                                        >
-                                            {isAdmin && (
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.preventDefault();
-                                                        e.stopPropagation();
-                                                        handleEdit(item);
-                                                    }}
-                                                    disabled={loadingEditId === item.id}
-                                                    className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
-                                                    title="Modifier"
-                                                >
-                                                    {loadingEditId === item.id ? (
-                                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                                    ) : (
-                                                        <Edit2 className="w-3 h-3" />
-                                                    )}
-                                                </button>
-                                            )}
-                                            <Link to={getArticleLink(item)} className="flex-1 flex flex-col">
-                                                <div className="relative aspect-[16/9] overflow-hidden">
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.title}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                    />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-60" />
-                                                    <div className="absolute top-4 left-4">
-                                                        <span className="px-3 py-1 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(255,0,51,0.5)]">
-                                                            {t('home.interview_badge')}
-                                                        </span>
+                <div className="min-h-[600px] overflow-hidden">
+                    <AnimatePresence mode="wait" custom={direction}>
+                        <motion.div
+                            key={currentPage}
+                            custom={direction}
+                            variants={variants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{
+                                x: { type: "spring", stiffness: 300, damping: 30 },
+                                opacity: { duration: 0.2 }
+                            }}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"
+                        >
+                            {currentArticles.length > 0 ? (
+                                currentArticles.map((item: any) => (
+                                    <motion.article
+                                        key={item.id}
+                                        whileHover={{ scale: 1.05 }}
+                                        onMouseEnter={playHoverSound}
+                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300 shadow-2xl flex flex-col"
+                                    >
+                                        {isAdmin && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    handleEdit(item);
+                                                }}
+                                                disabled={loadingEditId === item.id}
+                                                className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                title="Modifier"
+                                            >
+                                                {loadingEditId === item.id ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    <Edit2 className="w-3 h-3" />
+                                                )}
+                                            </button>
+                                        )}
+                                        <Link to={getArticleLink(item)} className="flex-1 flex flex-col">
+                                            <div className="relative aspect-[16/9] overflow-hidden">
+                                                <img
+                                                    src={item.image}
+                                                    alt={item.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-60" />
+                                                <div className="absolute top-4 left-4">
+                                                    <span className="px-3 py-1 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                                                        {t('home.interview_badge')}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-8 flex flex-col flex-1">
+                                                <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar className="w-3.5 h-3.5 text-neon-red" />
+                                                        {formatDate(item.date)}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <User className="w-3.5 h-3.5 text-neon-red" />
+                                                        {item.author}
                                                     </div>
                                                 </div>
 
-                                                <div className="p-8 flex flex-col flex-1">
-                                                    <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Calendar className="w-3.5 h-3.5 text-neon-red" />
-                                                            {formatDate(item.date)}
-                                                        </div>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <User className="w-3.5 h-3.5 text-neon-red" />
-                                                            {item.author}
-                                                        </div>
-                                                    </div>
+                                                <h2 className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors duration-300 line-clamp-2 uppercase italic tracking-tight leading-tight">
+                                                    {translatedTitles[item.id] || item.title}
+                                                </h2>
 
-                                                    <h2 className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors duration-300 line-clamp-2 uppercase italic tracking-tight leading-tight">
-                                                        {translatedTitles[item.id] || item.title}
-                                                    </h2>
+                                                <p className="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                                                    {translatedSummaries[item.id] || item.summary}
+                                                </p>
 
-                                                    <p className="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
-                                                        {translatedSummaries[item.id] || item.summary}
-                                                    </p>
-
-                                                    <div className="mt-auto flex items-center gap-2 text-white font-black text-[10px] uppercase tracking-widest group-hover:text-neon-red transition-colors">
-                                                        {t('interviews.read_more')}
-                                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                    </div>
+                                                <div className="mt-auto flex items-center gap-2 text-white font-black text-[10px] uppercase tracking-widest group-hover:text-neon-red transition-colors">
+                                                    {t('interviews.read_more')}
+                                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                 </div>
-                                            </Link>
-                                        </motion.article>
-                                    ))
-                                ) : (
-                                    <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/5 rounded-[40px] bg-white/[0.02] backdrop-blur-3xl">
-                                        <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
-                                            <Calendar className="w-10 h-10 text-neon-red opacity-50" />
-                                        </div>
-                                        <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
-                                        <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
+                                            </div>
+                                        </Link>
+                                    </motion.article>
+                                ))
+                            ) : (
+                                <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/5 rounded-[40px] bg-white/[0.02] backdrop-blur-3xl">
+                                    <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
+                                        <Calendar className="w-10 h-10 text-neon-red opacity-50" />
                                     </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
-                    </div>
-
-                    {/* Right Arrow */}
-                    <AnimatePresence>
-                        {currentPage < totalPages && (
-                            <motion.button
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                onClick={() => paginate(currentPage + 1)}
-                                className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
-                            >
-                                <ChevronRight className="w-16 h-16" strokeWidth={1} />
-                            </motion.button>
-                        )}
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
+                                    <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
+                                </div>
+                            )}
+                        </motion.div>
                     </AnimatePresence>
                 </div>
 
-                {/* Pagination */}
-                <div className="mt-12 border-t border-white/5 pt-10">
-                    <Pagination
-                        currentPage={currentPage}
-                        totalPages={totalPages}
-                        onPageChange={paginate}
-                    />
-                </div>
+                {/* Right Arrow */}
+                <AnimatePresence>
+                    {currentPage < totalPages && (
+                        <motion.button
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            onClick={() => paginate(currentPage + 1)}
+                            className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                        >
+                            <ChevronRight className="w-16 h-16" strokeWidth={1} />
+                        </motion.button>
+                    )}
+                </AnimatePresence>
             </div>
+
+            {/* Pagination */}
+            <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={paginate}
+            />
             {/* Newsletter Section */}
             <motion.section
                 initial={{ opacity: 0, y: 30 }}
