@@ -71,19 +71,19 @@ export function Footer() {
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent" />
 
             <div className="max-w-7xl mx-auto px-6 py-20 pb-12">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 mb-20">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 lg:gap-16 mb-20">
                     {/* Brand Section */}
                     <motion.div
-                        className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 group/brand"
+                        className="lg:col-span-5 flex flex-col items-center lg:items-start text-center lg:text-left space-y-8 group/brand w-full"
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                     >
-                        <div className="flex flex-col gap-6 items-center lg:items-start">
-                            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                                <img src="/Logo.png" alt="DROPSIDERS" className="logo-img h-16 w-auto object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
+                        <div className="flex flex-col gap-6 items-center lg:items-start w-full">
+                            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="block">
+                                <img src="/Logo.png" alt="DROPSIDERS" className="logo-img h-12 md:h-16 w-auto max-w-[200px] md:max-w-none object-contain logo-footer cursor-pointer hover:opacity-80 transition-opacity" />
                             </Link>
                             <motion.h2
-                                className="text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight transition-all duration-300"
+                                className="text-2xl md:text-3xl font-display font-black text-white italic tracking-tighter uppercase leading-tight transition-all duration-300 w-full max-w-lg md:max-w-none px-4 md:px-0"
                                 dangerouslySetInnerHTML={{ __html: t('footer.slogan') }}
                                 whileHover={{
                                     scale: 1.08,

@@ -132,11 +132,11 @@ export function Navbar() {
             <div className="max-w-full mx-auto px-4 md:px-12">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
-                    <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2">
+                    <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2 shrink-0">
                         <img
                             src="/Logo.png"
                             alt="DROPSIDERS"
-                            className="logo-img h-14 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
+                            className="logo-img h-12 md:h-14 w-auto max-w-[180px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
                         />
                     </Link>
 

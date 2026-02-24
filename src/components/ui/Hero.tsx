@@ -3,7 +3,7 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
 
     return (
-        <section className="relative h-[65vh] w-full flex items-center overflow-hidden bg-black">
+        <section className="relative h-[50vh] md:h-[65vh] min-h-[400px] w-full flex items-center overflow-hidden bg-black">
             {/* Background Video */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-dark-bg/40 to-transparent z-10" />
