@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, Wand2, X, Youtube } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
+import editorsData from '../data/editors.json';
 import '../styles/article-premium.css';
 
 
@@ -54,6 +55,7 @@ export function RecapCreate() {
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
+    const [author, setAuthor] = useState(localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
 
 
 
@@ -129,6 +131,7 @@ export function RecapCreate() {
                                 setLocationInput(localItem.location || '');
                                 setYoutubeId(localItem.youtubeId || '');
                                 setIsFeatured(localItem.isFeatured || false);
+                                if (localItem.author) setAuthor(localItem.author);
                             }
                             setWidgets([{ id: 'legacy-1', content: data.content }]);
                         }
@@ -643,9 +646,9 @@ export function RecapCreate() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     id: isEditing ? id : undefined,
-                    title,
-                    summary,
-                    content: finalContent,
+                    title: fixEncoding(title),
+                    summary: fixEncoding(summary),
+                    content: fixEncoding(finalContent),
                     image: coverImage,
                     date,
                     festival,
@@ -653,7 +656,7 @@ export function RecapCreate() {
                     youtubeId,
                     category: 'Recaps',
                     isFeatured,
-                    author: localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || ''
+                    author: author
                 }),
             });
 
@@ -831,7 +834,9 @@ export function RecapCreate() {
                                             if (val.includes('youtube.com/watch?v=')) {
                                                 id = val.split('v=')[1].split('&')[0];
                                             } else if (val.includes('youtu.be/')) {
-                                                id = val.split('youtu.be/')[1];
+                                                id = val.split('youtu.be/')[1].split('?')[0];
+                                            } else if (val.includes('youtube.com/embed/')) {
+                                                id = val.split('youtube.com/embed/')[1].split('?')[0];
                                             }
                                             setYoutubeId(id);
                                         }}
@@ -868,6 +873,31 @@ export function RecapCreate() {
                                         placeholder="Ex: Boom"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Author Select */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                                <User className="w-4 h-4" /> Auteur <span className="text-neon-red">*</span>
+                            </label>
+                            <div className="relative group">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors pointer-events-none" />
+                                <select
+                                    value={author}
+                                    onChange={(e) => setAuthor(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-10 text-white focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all appearance-none cursor-pointer"
+                                    required
+                                >
+                                    {(editorsData as any[]).map((editor: any) => (
+                                        <option key={editor.username} value={editor.name} className="bg-dark-bg text-white">
+                                            {editor.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                 </div>
                             </div>
                         </div>
@@ -1329,6 +1359,44 @@ export function RecapCreate() {
                             </div>
 
                             <div className="bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]">
+                                {/* Header Preview */}
+                                <div className="mb-12 border-b border-white/10 pb-12">
+                                    <div className="flex flex-wrap gap-3 mb-8">
+                                        <span className="px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full text-neon-cyan font-bold text-[9px] uppercase tracking-widest">
+                                            Recaps
+                                        </span>
+                                        <span className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                            <Clock className="w-3 h-3" />
+                                            {date}
+                                        </span>
+                                        <span className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                            <User className="w-3 h-3 text-neon-red" />
+                                            {author || 'Alex'}
+                                        </span>
+                                        {festival && (
+                                            <span className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                                <PartyPopper className="w-3 h-3 text-neon-cyan" />
+                                                {festival}
+                                            </span>
+                                        )}
+                                        {locationInput && (
+                                            <span className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                                <MapPin className="w-3 h-3 text-neon-purple" />
+                                                {locationInput}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] mb-8">
+                                        {title || "TITRE DU RÉCAP"}
+                                    </h1>
+
+                                    {summary && (
+                                        <div className="text-xl md:text-2xl text-white/60 font-medium leading-relaxed italic border-l-4 border-neon-cyan/30 pl-8 py-2">
+                                            {summary}
+                                        </div>
+                                    )}
+                                </div>
                                 {
                                     widgets.map(w => (
                                         <div key={w.id} className="article-section">

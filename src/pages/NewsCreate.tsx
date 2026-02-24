@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -788,12 +788,12 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 
             const payload = {
                 id: isEditing ? id : undefined,
-                title,
-                summary,
+                title: fixEncoding(title),
+                summary: fixEncoding(summary),
                 date,
                 image: imageUrl,
                 category: finalCategory,
-                content: finalContent,
+                content: fixEncoding(finalContent),
                 youtubeId,
                 isFocus,
                 isFeatured,
@@ -1076,9 +1076,19 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                 <input
                                     type="text"
                                     value={youtubeId}
-                                    onChange={(e) => setYoutubeId(e.target.value)}
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+                                        if (val.includes('youtube.com/watch?v=')) {
+                                            val = val.split('v=')[1].split('&')[0];
+                                        } else if (val.includes('youtu.be/')) {
+                                            val = val.split('youtu.be/')[1].split('?')[0];
+                                        } else if (val.includes('youtube.com/embed/')) {
+                                            val = val.split('youtube.com/embed/')[1].split('?')[0];
+                                        }
+                                        setYoutubeId(val);
+                                    }}
                                     className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                    placeholder="ID ou URL"
+                                    placeholder="ID ou URL YouTube"
                                 />
                             </div>
                         </div>
@@ -1545,6 +1555,29 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                             </div>
 
                             <div className="bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]">
+                                {/* Aperçu de l'En-tête */}
+                                <div className="mb-12 border-b border-white/10 pb-8">
+                                    <div className="flex flex-wrap gap-2 mb-6">
+                                        <span className={`px-4 py-1.5 rounded-full text-white font-black text-[9px] uppercase tracking-widest shadow-lg ${activeTab === 'Focus' ? 'bg-yellow-500 shadow-yellow-500/20' : activeTab === 'Musique' ? 'bg-neon-green shadow-neon-green/20' : 'bg-neon-red shadow-neon-red/20'}`}>
+                                            {activeTab === 'Focus' ? 'FOCUS' : activeTab === 'Musique' ? 'MUSIQUE' : (category || 'NEWS')}
+                                        </span>
+                                        <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                            <Clock className="w-3 h-3 text-neon-red" />
+                                            LECTURE RAPIDE
+                                        </span>
+                                        <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                            {new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                        </span>
+                                        <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                            <User className="w-3 h-3 text-neon-red" />
+                                            {author || 'Alex'}
+                                        </span>
+                                    </div>
+                                    <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(title || 'TITRE DE L\'ARTICLE') }} />
+                                    {summary && (
+                                        <p className="article-body-premium text-gray-400 text-lg md:text-xl leading-relaxed italic" dangerouslySetInnerHTML={{ __html: standardizeContent(summary) }} />
+                                    )}
+                                </div>
                                 {activeTab === 'Musique' ? (
                                     <div className="music-top-section">
                                         {musicItems.map((item) => (
