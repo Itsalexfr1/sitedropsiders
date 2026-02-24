@@ -1319,42 +1319,42 @@ export default {
                     to: [{ email: to, name: name || to }],
                     subject: subject,
                     htmlContent: `
-                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:40px 20px; text-align:center;">
-                            <div style="max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
-                                <div style="padding:40px 30px;">
-                                    <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px;">
+                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">
+                            <div style="width:100%; max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
+                                <div style="padding:40px 15px;">
+                                    <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px; padding:0 10px;">
                                         ${message.replace(/\n/g, '<br>')}
                                     </div>
                                     
                                     <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
-                                    <div style="margin-top:40px; background:#000000; border:1px solid #333333; border-top:4px solid #ff0033; border-radius:20px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
-                                        <div style="padding:30px 20px; text-align:center;">
-                                            <div style="color:#ffffff; font-size:16px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:10px; letter-spacing:-0.5px;">
+                                    <div style="margin-top:40px; background:#000000; border:1px solid #333333; border-top:4px solid #ff0033; border-radius:18px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                                        <div style="padding:25px 10px; text-align:center;">
+                                            <div style="color:#ffffff; font-size:15px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:8px; letter-spacing:-0.5px;">
                                                 Cordialement,<br>
                                                 L'équipe <span style="color:#ff0033;">Dropsiders</span>
                                             </div>
                                             
                                             <!-- CATEGORIES BAR -->
-                                            <div style="color:#ff0033; font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px; line-height:1.4;">
-                                                NEWS&nbsp;&nbsp;·&nbsp;&nbsp;RÉCAPS&nbsp;EVENTS&nbsp;&nbsp;·&nbsp;&nbsp;INTERVIEWS&nbsp;&nbsp;·&nbsp;&nbsp;CONCOURS
+                                            <div style="color:#ff0033; font-size:7.5px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:12px; line-height:1.4; white-space: nowrap;">
+                                                NEWS&nbsp;·&nbsp;RÉCAPS&nbsp;·&nbsp;INTERVIEWS&nbsp;·&nbsp;CONCOURS
                                             </div>
                                             
                                             <!-- ACTIONS GRID -->
-                                            <table width="100%" cellpadding="0" cellspacing="5" border="0" style="table-layout: fixed;">
+                                            <table width="100%" cellpadding="0" cellspacing="4" border="0" style="table-layout: fixed;">
                                                 <tr>
                                                     <td align="center">
-                                                        <a href="https://dropsiders.fr" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:10px 2px; border-radius:10px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #ff0033; white-space: nowrap;">
+                                                        <a href="https://dropsiders.fr" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:9px; font-weight:800; text-transform:uppercase; border-bottom:2px solid #ff0033; white-space: nowrap;">
                                                             🌐 SITE
                                                         </a>
                                                     </td>
                                                     <td align="center">
-                                                        <a href="https://dropsiders.fr/shop" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:10px 2px; border-radius:10px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #00ffd5; white-space: nowrap;">
+                                                        <a href="https://dropsiders.fr/shop" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:9px; font-weight:800; text-transform:uppercase; border-bottom:2px solid #00ffd5; white-space: nowrap;">
                                                             🛍️ SHOP
                                                         </a>
                                                     </td>
                                                     <td align="center">
-                                                        <a href="https://dropsiders.fr/newsletter" style="display:block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#fff; text-decoration:none; padding:10px 2px; border-radius:10px; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; box-shadow: 0 4px 10px rgba(255,0,51,0.2); white-space: nowrap;">
-                                                            📩 NEWSLETTER
+                                                        <a href="https://dropsiders.fr/newsletter" style="display:block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#fff; text-decoration:none; padding:8px 0; border-radius:8px; font-size:9px; font-weight:900; text-transform:uppercase; box-shadow: 0 4px 10px rgba(255,0,51,0.2); white-space: nowrap;">
+                                                            📩 NEWS
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -1362,12 +1362,12 @@ export default {
                                         </div>
                                         
                                         <!-- FOOTER STRIP -->
-                                        <div style="background:#080808; padding:12px; text-align:center;">
-                                            <img src="https://dropsiders.fr/Logo.png" width="70" alt="Logo" style="opacity:0.4; filter:grayscale(1);">
+                                        <div style="background:#080808; padding:10px; text-align:center;">
+                                            <img src="https://dropsiders.fr/Logo.png" width="60" alt="Logo" style="opacity:0.4; filter:grayscale(1);">
                                         </div>
                                     </div>
                                 </div>
-                                <div style="background:#000000; padding:20px; text-align:center; border-top:1px solid #222;">
+                                <div style="background:#000000; padding:18px; text-align:center; border-top:1px solid #222;">
                                     <p style="color:#333; font-size:8px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
                                         DROPSIDERS · TOUTE L'ACTU DES FESTIVALS
                                     </p>
