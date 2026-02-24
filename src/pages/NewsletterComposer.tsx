@@ -800,20 +800,32 @@ export function NewsletterComposer() {
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-white/10 bg-black/50 flex flex-col md:flex-row gap-4">
+                            <div className="p-6 border-t border-white/10 bg-black/50 flex flex-col gap-3">
                                 <button
-                                    onClick={handleCopyEmails}
-                                    className="flex-1 py-3 bg-neon-cyan text-black font-black uppercase tracking-widest rounded-xl hover:bg-neon-cyan/80 transition-all flex items-center justify-center gap-2 text-sm"
+                                    onClick={() => {
+                                        setShowSubscribersModal(false);
+                                        setAlertModal({ isOpen: true, isError: false, message: `✅ ${selectedSubscribers.length} destinataire(s) sélectionné(s) pour l'envoi.` });
+                                    }}
+                                    className="w-full py-4 bg-gradient-to-r from-neon-red to-neon-pink text-white font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-sm"
                                 >
-                                    <Copy size={16} />
-                                    Copier tous les emails
+                                    <Send size={16} />
+                                    Valider la sélection ({selectedSubscribers.length} dest.)
                                 </button>
-                                <button
-                                    onClick={() => setShowSubscribersModal(false)}
-                                    className="px-6 py-3 bg-white/5 text-white font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all text-sm"
-                                >
-                                    Fermer
-                                </button>
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={handleCopyEmails}
+                                        className="flex-1 py-3 bg-white/5 text-gray-300 font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-xs"
+                                    >
+                                        <Copy size={14} />
+                                        Copier les emails
+                                    </button>
+                                    <button
+                                        onClick={() => setShowSubscribersModal(false)}
+                                        className="px-6 py-3 bg-white/5 text-gray-500 font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all text-xs"
+                                    >
+                                        Fermer
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
