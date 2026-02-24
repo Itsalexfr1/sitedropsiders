@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Video } from 'lucide-react';
 import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -12,7 +12,12 @@ import { FlagIcon } from '../components/ui/FlagIcon';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
-import { Loader2 } from 'lucide-react';
+
+type TabKey = 'all' | 'reportage';
+
+const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
+    { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
+];
 
 
 export function Recap() {
@@ -121,18 +126,44 @@ export function Recap() {
             >
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-neon-red/10 rounded-lg">
-                        <svg className="w-6 h-6 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                        </svg>
+                        <Video className="w-6 h-6 text-neon-red" />
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('recaps.badge')}</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('nav.recaps')}</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 uppercase tracking-tight">
-                    {t('recaps.title')} <span className="text-neon-red">{t('recaps.title_span')}</span>
+                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
+                    LES <span className="text-neon-red">RECAPS</span>
                 </h1>
-                <p className="text-gray-400 max-w-3xl text-lg leading-relaxed">
-                    {t('recaps.subtitle')}
+                <p className="text-gray-400 max-w-2xl text-lg">
+                    {t('news.subtitle')}
                 </p>
+            </motion.div>
+
+            {/* ── Category Tabs ── */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mb-10"
+            >
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2 text-gray-500 mr-2">
+                        <Filter className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
+                    </div>
+                    {TABS.map((tab) => {
+                        return (
+                            <motion.button
+                                key={tab.key}
+                                onClick={() => { }}
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
+                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]`}
+                            >
+                                {tab.label}
+                            </motion.button>
+                        );
+                    })}
+                </div>
             </motion.div>
 
             <div className="relative">
@@ -151,7 +182,7 @@ export function Recap() {
                     )}
                 </AnimatePresence>
 
-                <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
+                <div className="min-h-[600px] w-full overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentPage}
@@ -171,7 +202,7 @@ export function Recap() {
                                     <motion.article
                                         key={item.id}
                                         onMouseEnter={playHoverSound}
-                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-all duration-300 shadow-2xl hover:shadow-neon-red/20 relative"
+                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative flex flex-col"
                                     >
                                         {isAdmin && (
                                             <button
@@ -191,7 +222,7 @@ export function Recap() {
                                                 )}
                                             </button>
                                         )}
-                                        <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                                        <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-1 flex flex-col">
                                             <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
                                                 <img
                                                     src={item.coverImage || item.image}
@@ -211,7 +242,7 @@ export function Recap() {
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="p-6">
+                                            <div className="p-6 flex flex-col flex-1">
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
                                                     <div className="flex flex-col items-end">

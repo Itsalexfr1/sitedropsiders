@@ -322,9 +322,9 @@ export function Agenda() {
             </AnimatePresence>
 
             <div className="flex flex-wrap items-center gap-4 mb-12">
-                <div className="flex items-center gap-2 text-gray-400 mr-2">
+                <div className="flex items-center gap-2 text-gray-500 mr-2">
                     <Filter className="w-4 h-4" />
-                    <span className="text-sm font-bold uppercase tracking-wider">{t('agenda.filter_by')}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('agenda.filter_by')}</span>
                 </div>
                 {CATEGORIES.map((cat) => (
                     <motion.button
@@ -333,8 +333,8 @@ export function Agenda() {
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
                         className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 border ${activeCategory === cat.id
-                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-neon-red'
+                            ? 'bg-neon-red border-transparent text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]'
+                            : 'bg-white/5 border-white/10 text-white/40 hover:border-neon-red/40 hover:text-neon-red'
                             } uppercase`}
                     >
                         {cat.label}
@@ -407,7 +407,7 @@ export function Agenda() {
                 </div>
             )}
 
-            <div className="space-y-4 w-[90%] mx-auto">
+            <div className="space-y-4 w-full">
                 <AnimatePresence mode="popLayout">
                     {months.length > 0 && filteredEvents.length > 0 ? (
                         filteredEvents.map((event: any, index: number) => {

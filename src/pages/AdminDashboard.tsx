@@ -16,6 +16,8 @@ export function AdminDashboard() {
     const [editMode, setEditMode] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [openMenu, setOpenMenu] = useState<string | null>(null);
+    const [bannerEnabled, setBannerEnabled] = useState(false);
+    const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const navigate = useNavigate();
 
     const colors = [
@@ -49,8 +51,49 @@ export function AdminDashboard() {
                 }
             }
             fetchActions();
+            fetchSettings();
         }
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('/api/settings');
+            if (res.ok) {
+                const data = await res.json();
+                setBannerEnabled(data.announcement_banner?.enabled || false);
+            }
+        } catch (e) { }
+    };
+
+    const toggleBanner = async () => {
+        setIsUpdatingBanner(true);
+        try {
+            const res = await fetch('/api/settings');
+            const data = res.ok ? await res.json() : {};
+
+            const newSettings = {
+                ...data,
+                announcement_banner: {
+                    ...(data.announcement_banner || {}),
+                    enabled: !bannerEnabled
+                }
+            };
+
+            const saveRes = await fetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(newSettings)
+            });
+
+            if (saveRes.ok) {
+                setBannerEnabled(!bannerEnabled);
+            }
+        } catch (e) {
+            console.error('Failed to toggle banner', e);
+        } finally {
+            setIsUpdatingBanner(false);
+        }
+    };
 
     const fetchActions = async () => {
         try {
@@ -402,6 +445,18 @@ export function AdminDashboard() {
                                     {isSaving ? 'Déploiement...' : 'Enregistrer & Déployer'}
                                 </motion.button>
                             )}
+                            <button
+                                onClick={toggleBanner}
+                                disabled={isUpdatingBanner}
+                                className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${bannerEnabled ? 'bg-neon-orange border-transparent text-white shadow-[0_0_15px_rgba(255,165,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                            >
+                                <motion.div
+                                    animate={bannerEnabled ? { scale: [1, 1.2, 1] } : {}}
+                                    transition={{ repeat: bannerEnabled ? Infinity : 0, duration: 2 }}
+                                    className={`w-2 h-2 rounded-full ${bannerEnabled ? 'bg-white' : 'bg-gray-600'}`}
+                                />
+                                {isUpdatingBanner ? '...' : (bannerEnabled ? 'Bandeau Actif' : 'Bandeau Inactif')}
+                            </button>
                             <button
                                 onClick={() => {
                                     setEditMode(!editMode);

@@ -15,6 +15,11 @@ export function AdminSettings() {
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
     const [showEmailPassword, setShowEmailPassword] = useState(false);
 
+    // Announcement Banner
+    const [bannerEnabled, setBannerEnabled] = useState(false);
+    const [bannerText, setBannerText] = useState('');
+    const [bannerColor, setBannerColor] = useState('#ff0033');
+
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
 
@@ -36,6 +41,11 @@ export function AdminSettings() {
                     if (data.email_password) setEmailPassword(data.email_password);
                     if (data.shop_password) setShopPassword(data.shop_password);
                     if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
+                    if (data.announcement_banner) {
+                        setBannerEnabled(data.announcement_banner.enabled || false);
+                        setBannerText(data.announcement_banner.text || '');
+                        setBannerColor(data.announcement_banner.color || '#ff0033');
+                    }
                 }
 
                 const resAuth = await fetch('/api/editors');
@@ -62,7 +72,12 @@ export function AdminSettings() {
                 ...data,
                 email_password: emailPassword,
                 shop_password: shopPassword,
-                kit_media_password: kitMediaPassword
+                kit_media_password: kitMediaPassword,
+                announcement_banner: {
+                    enabled: bannerEnabled,
+                    text: bannerText,
+                    color: bannerColor
+                }
             };
 
             const saveRes = await fetch('/api/settings/update', {
@@ -233,6 +248,68 @@ export function AdminSettings() {
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
                                 </p>
+                            </div>
+
+                            {/* Announcement Banner Section */}
+                            <div className="pb-8 border-b border-white/5">
+                                <div className="flex items-center justify-between mb-6">
+                                    <label className="block text-[10px] font-black text-neon-orange uppercase tracking-widest ml-1">
+                                        BANDEAU D'ANNONCE DÉFILANT
+                                    </label>
+                                    <button
+                                        onClick={() => setBannerEnabled(!bannerEnabled)}
+                                        className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${bannerEnabled ? 'bg-neon-orange border-transparent text-white shadow-[0_0_15px_rgba(255,165,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                                    >
+                                        {bannerEnabled ? 'Activé' : 'Désactivé'}
+                                    </button>
+                                </div>
+
+                                <div className={`space-y-6 transition-all duration-300 ${bannerEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
+                                    <div>
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">TEXTE DE L'ANNONCE</label>
+                                        <input
+                                            type="text"
+                                            value={bannerText}
+                                            onChange={(e) => setBannerText(e.target.value.toUpperCase())}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-wide focus:outline-none focus:border-neon-orange transition-all placeholder:text-gray-700"
+                                            placeholder="EX: BIENVENUE SUR DROPSIDERS..."
+                                        />
+                                    </div>
+
+                                    <div className="flex flex-col md:flex-row gap-6 md:items-center">
+                                        <div className="flex-1">
+                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR DU BANDEAU</label>
+                                            <div className="flex items-center gap-4">
+                                                <div
+                                                    className="w-12 h-12 rounded-xl border border-white/20 relative"
+                                                    style={{ backgroundColor: bannerColor }}
+                                                >
+                                                    <input
+                                                        type="color"
+                                                        value={bannerColor}
+                                                        onChange={(e) => setBannerColor(e.target.value)}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                    />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={bannerColor}
+                                                    onChange={(e) => setBannerColor(e.target.value)}
+                                                    className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 p-4 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden h-12 flex items-center">
+                                            <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                                            <p
+                                                className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap animate-marquee"
+                                                style={{ color: bannerColor }}
+                                            >
+                                                APPERÇU : {bannerText || 'VOTRE TEXTE ICI...'} — {bannerText || 'VOTRE TEXTE ICI...'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
 
                             {/* Mail Section Password */}

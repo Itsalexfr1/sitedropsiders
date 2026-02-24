@@ -1,7 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,7 +8,6 @@ import { standardizeContent } from '../utils/standardizer';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
-import { Loader2 } from 'lucide-react';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
@@ -165,8 +161,8 @@ export function News() {
                     </div>
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('news.badge')}</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('news.title')}
+                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
+                    ACTUALITÉ <span className="text-neon-red">NEWS</span>
                 </h1>
                 <p className="text-gray-400 max-w-2xl text-lg">
                     {t('news.subtitle')}
@@ -180,7 +176,11 @@ export function News() {
                 transition={{ delay: 0.1 }}
                 className="mb-10"
             >
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2 text-gray-500 mr-2">
+                        <Filter className="w-4 h-4" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
+                    </div>
                     {TABS.map((tab) => {
                         const isActive = activeTab === tab.key;
                         return (

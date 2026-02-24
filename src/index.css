@@ -553,6 +553,21 @@
   transform: translateY(0);
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 30s linear infinite;
+}
+
 /* --- MOBILE PERFORMANCE OPTIMIZATIONS --- */
 @media (max-width: 1024px) {
   /* Disable heavy visual effects on mobile to maintain 60FPS */

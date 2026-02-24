@@ -1,6 +1,8 @@
+import { AnnouncementBanner } from '../AnnouncementBanner';
 import { Navbar } from './Navbar';
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -8,11 +10,29 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
+    const [bannerEnabled, setBannerEnabled] = useState(false);
+
+    useEffect(() => {
+        const checkBanner = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    setBannerEnabled(data.announcement_banner?.enabled || false);
+                }
+            } catch (e) { }
+        };
+        checkBanner();
+    }, [location.pathname]);
+
     const isHome = location.pathname === '/';
     const isAdminPage = location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.includes('/create');
+
+    const ptClass = isAdminPage ? 'pt-0' :
+        (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'));
 
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white">
@@ -24,8 +44,9 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             {!isAdminPage && <Navbar />}
+            {!isAdminPage && <AnnouncementBanner />}
 
-            <main className={`flex-grow relative ${isHome || isAdminPage ? 'pt-0' : 'pt-16'}`}>
+            <main className={`flex-grow relative ${ptClass}`}>
                 {children}
             </main>
 

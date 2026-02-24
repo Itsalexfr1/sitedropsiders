@@ -87,16 +87,16 @@ export function Galerie() {
                     </div>
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('galerie.title')} <span className="text-neon-red">{t('galerie.title_span')}</span>
+                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
+                    LES <span className="text-neon-red">GALERIES</span>
                 </h1>
             </motion.div>
 
             {/* Category Filter */}
             <div className="flex flex-wrap items-center gap-4 mb-12">
-                <div className="flex items-center gap-2 text-gray-400 mr-2">
+                <div className="flex items-center gap-2 text-gray-500 mr-2">
                     <Filter className="w-4 h-4" />
-                    <span className="text-sm font-bold uppercase tracking-wider">{t('galerie.filter_by')}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
                 </div>
                 {CATEGORIES.map((cat) => (
                     <motion.button
@@ -104,9 +104,9 @@ export function Galerie() {
                         onClick={() => setActiveCategory(cat.id)}
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
-                        className={`px-6 py-2 rounded-full text-xs font-bold tracking-widest transition-all duration-300 border ${activeCategory === cat.id
-                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.5)]'
-                            : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30 hover:text-white'
+                        className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 border uppercase ${activeCategory === cat.id
+                            ? 'bg-neon-red border-transparent text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]'
+                            : 'bg-white/5 border-white/10 text-white/40 hover:border-neon-red/40 hover:text-white'
                             }`}
                     >
                         {cat.label}
@@ -130,7 +130,7 @@ export function Galerie() {
                     )}
                 </AnimatePresence>
 
-                <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
+                <div className="min-h-[600px] w-full overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={currentPage}
@@ -143,7 +143,7 @@ export function Galerie() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
                         >
                             {currentAlbums.length > 0 ? (
                                 currentAlbums.map((album) => (
