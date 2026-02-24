@@ -4,7 +4,7 @@
     "description": "Vues & Sections",
     "icon": "LayoutDashboard",
     "link": "/admin/home",
-    "baseColor": "#ffffff",
+    "baseColor": "#ff0000",
     "permission": "publications",
     "columns": 1
   },
@@ -13,8 +13,19 @@
     "description": "Analyse du site",
     "icon": "BarChart3",
     "link": "/admin/stats",
-    "baseColor": "#000000",
+    "baseColor": "#ff00ae",
     "permission": "stats",
+    "columns": 1
+  },
+  {
+    "title": "Messages",
+    "description": "Formulaire contact",
+    "icon": "Mail",
+    "link": "/admin/messages",
+    "color": "border-neon-orange/20 hover:border-neon-orange",
+    "bg": "bg-neon-orange/5",
+    "permission": "all",
+    "baseColor": "#4c00ff",
     "columns": 1
   },
   {
@@ -22,7 +33,7 @@
     "description": "Gérer le shop",
     "icon": "ShoppingBag",
     "link": "/admin/shop",
-    "baseColor": "#fb1aff",
+    "baseColor": "#00ffd5",
     "permission": "shop"
   },
   {
@@ -30,7 +41,7 @@
     "description": "Gérer les actualités",
     "icon": "FileText",
     "link": "/admin/manage?tab=News",
-    "baseColor": "#ff0000",
+    "baseColor": "#00ff6e",
     "permission": "publications"
   },
   {
@@ -38,7 +49,7 @@
     "description": "Gérer les reportages",
     "icon": "Video",
     "link": "/admin/manage?tab=Recaps",
-    "baseColor": "#be7f64",
+    "baseColor": "#d4ff00",
     "permission": "publications"
   },
   {
@@ -46,7 +57,7 @@
     "description": "Gérer les dates",
     "icon": "Calendar",
     "link": "/admin/manage?tab=Agenda",
-    "baseColor": "#fff700",
+    "baseColor": "#ff7b00",
     "permission": "publications"
   },
   {
@@ -54,7 +65,7 @@
     "description": "Gérer les articles musique",
     "icon": "Music",
     "link": "/admin/manage?tab=Musique",
-    "baseColor": "#9e677d",
+    "baseColor": "#c65381",
     "permission": "publications",
     "columns": 1
   },
@@ -63,7 +74,7 @@
     "description": "Gérer les interviews",
     "icon": "Mic",
     "link": "/admin/manage?tab=Interviews",
-    "baseColor": "#ff0088",
+    "baseColor": "#3b6d68",
     "permission": "publications"
   },
   {
@@ -71,7 +82,7 @@
     "description": "Gérer les albums",
     "icon": "ImageIcon",
     "link": "/admin/manage?tab=Galeries",
-    "baseColor": "#ff7b24",
+    "baseColor": "#ededed",
     "permission": "publications",
     "columns": 1
   },
@@ -85,20 +96,11 @@
     "columns": 2
   },
   {
-    "title": "Team",
-    "description": "Gérer l'équipe (Menu)",
-    "icon": "Users",
-    "link": "/admin/team",
-    "baseColor": "#000000",
-    "permission": "all",
-    "columns": 1
-  },
-  {
     "title": "Abonnés",
     "description": "Gérer la liste mail",
     "icon": "Users",
     "link": "/newsletter/admin",
-    "baseColor": "white",
+    "baseColor": "#af2c97",
     "permission": "all",
     "columns": 1
   },
@@ -112,13 +114,13 @@
     "columns": 2
   },
   {
-    "title": "Éditeurs",
-    "description": "Gérer l'équipe",
-    "icon": "Lock",
-    "link": "/admin/editors",
-    "baseColor": "#ff2e2e",
+    "title": "Team",
+    "description": "Gérer l'équipe (Menu)",
+    "icon": "Users",
+    "link": "/admin/team",
+    "baseColor": "#474d6b",
     "permission": "all",
-    "columns": 2
+    "columns": 1
   },
   {
     "title": "Mots de passe",
@@ -128,7 +130,16 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "all",
-    "baseColor": "purple",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
+  {
+    "title": "Éditeurs",
+    "description": "Gérer l'équipe",
+    "icon": "Lock",
+    "link": "/admin/editors",
+    "baseColor": "#d24b4b",
+    "permission": "all",
     "columns": 1
   }
 ]
