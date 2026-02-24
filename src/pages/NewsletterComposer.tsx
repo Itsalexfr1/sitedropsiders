@@ -48,6 +48,10 @@ export function NewsletterComposer() {
     const [showSubscribersModal, setShowSubscribersModal] = useState(false);
     const [subSearch, setSubSearch] = useState('');
 
+    // Modales de notification / confirmation
+    const [confirmSendModal, setConfirmSendModal] = useState(false);
+    const [alertModal, setAlertModal] = useState<{ isOpen: boolean, isError: boolean, message: string }>({ isOpen: false, isError: false, message: '' });
+
     const [isDirty, setIsDirty] = useState(false);
 
     // Track changes
@@ -346,19 +350,22 @@ export function NewsletterComposer() {
         alert(`${subscribers.length} emails copiés !`);
     };
 
-    const handleSend = async () => {
+    const handleSendClick = () => {
         if (!subject || !mainArticle.title) {
-            return alert('Erreur : Le SUJET et le TITRE PRINCIPAL sont obligatoires.');
-        }
-
-        if (subscribers.length === 0) {
-            return alert('Erreur : Aucun abonné trouvé dans la liste.');
-        }
-
-        if (!confirm(`Êtes-vous sûr de vouloir envoyer cette newsletter à ${subscribers.length} abonnés ?\nCette action est irréversible.`)) {
+            setAlertModal({ isOpen: true, isError: true, message: 'Erreur : Le SUJET et le TITRE PRINCIPAL sont obligatoires.' });
             return;
         }
 
+        if (subscribers.length === 0) {
+            setAlertModal({ isOpen: true, isError: true, message: 'Erreur : Aucun abonné trouvé dans la liste.' });
+            return;
+        }
+
+        setConfirmSendModal(true);
+    };
+
+    const executeSend = async () => {
+        setConfirmSendModal(false);
         setSending(true);
         try {
             const response = await fetch('/api/newsletter/send', {
@@ -372,15 +379,15 @@ export function NewsletterComposer() {
             });
 
             if (response.ok) {
-                alert('✅ Newsletter envoyée avec succès !');
+                setAlertModal({ isOpen: true, isError: false, message: '✅ Newsletter envoyée avec succès !' });
                 setIsDirty(false);
             } else {
                 const err = await response.json().catch(() => ({}));
-                alert(`❌ Erreur lors de l'envoi : ${err.error || response.statusText}`);
+                setAlertModal({ isOpen: true, isError: true, message: `❌ Erreur lors de l'envoi : ${err.error || response.statusText}` });
             }
         } catch (e) {
             console.error(e);
-            alert('❌ Erreur réseau critique.');
+            setAlertModal({ isOpen: true, isError: true, message: '❌ Erreur réseau critique.' });
         } finally {
             setSending(false);
         }
@@ -424,7 +431,7 @@ export function NewsletterComposer() {
                     </button>
 
                     <button
-                        onClick={handleSend}
+                        onClick={handleSendClick}
                         disabled={sending || subscribers.length === 0}
                         className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wide transition-all
                             ${sending
@@ -795,6 +802,29 @@ export function NewsletterComposer() {
                 onCancel={() => blocker.reset?.()}
                 accentColor="neon-red"
             />
+
+            <ConfirmationModal
+                isOpen={confirmSendModal}
+                title="Envoi Définitif"
+                message={`Êtes-vous sûr de vouloir envoyer cette newsletter à ${subscribers.length} abonnés ?\nCette action est irréversible !`}
+                confirmLabel="Envoyer la Newsletter"
+                cancelLabel="Annuler"
+                onConfirm={executeSend}
+                onCancel={() => setConfirmSendModal(false)}
+                accentColor="neon-blue"
+            />
+
+            {alertModal.isOpen && (
+                <ConfirmationModal
+                    isOpen={alertModal.isOpen}
+                    title={alertModal.isError ? "Erreur" : "Succès"}
+                    message={alertModal.message}
+                    confirmLabel="Fermer"
+                    onConfirm={() => setAlertModal({ ...alertModal, isOpen: false })}
+                    onCancel={() => setAlertModal({ ...alertModal, isOpen: false })}
+                    accentColor={alertModal.isError ? "neon-red" : "neon-cyan"}
+                />
+            )}
 
             <ImageUploadModal
                 isOpen={isUploadModalOpen}
