@@ -10,8 +10,8 @@
     "text": "BIENVENUE SUR DROPSIDERS - RECRUTEMENT OUVERT",
     "text_en": "WELCOME TO DROPSIDERS - RECRUITMENT OPEN",
     "color": "#ffffff",
-    "bgColor": "#ff0000",
+    "bgColor": "#000000",
     "size": "medium",
-    "link": ""
+    "link": "/contact"
   }
 }
