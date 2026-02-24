@@ -17,11 +17,11 @@ interface Editor {
 const PERMISSION_CATEGORIES = [
     {
         id: 'actions',
-        label: 'Droits d'Actions(Global)',
+        label: "Droits d'Actions(Global)",
         permissions: [
             { id: 'create', label: 'Créer', description: 'Autoriser la création de nouveaux éléments.' },
             { id: 'edit', label: 'Modifier', description: 'Autoriser la modification des éléments existants.' },
-            { id: 'delete', label: 'Supprimer', description: 'Autoriser la suppression définitive d'éléments.' }
+            { id: 'delete', label: 'Supprimer', description: "Autoriser la suppression définitive d'éléments." }
         ]
     },
     {
@@ -46,8 +46,9 @@ const PERMISSION_CATEGORIES = [
         label: 'Outils & Dashboard',
         permissions: [
             {
-                id: 'banner', label: 'Bandeau d'annonce', description: 'Gérer le message défilant du site.' },
-            { id: 'spotify', label: 'Playlists Spotify', description: 'Gérer les playlists de la page d\'accueil.' },
+                id: 'banner', label: "Bandeau d'annonce", description: 'Gérer le message défilant du site.'
+            },
+            { id: 'spotify', label: 'Playlists Spotify', description: "Gérer les playlists de la page d'accueil." },
             { id: 'team', label: 'Gestion Team', description: 'Gérer les membres de la Dream Team.' }
         ]
     },

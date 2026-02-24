@@ -38,7 +38,6 @@ export function Agenda() {
         return false;
     };
 
-    const isAdmin = hasPermission('all');
     const canCreate = hasPermission('create');
     const canEdit = hasPermission('edit');
     const canDelete = hasPermission('delete');

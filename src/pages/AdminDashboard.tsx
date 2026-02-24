@@ -22,7 +22,6 @@ export function AdminDashboard() {
     const [editMode, setEditMode] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
     const [openMenu, setOpenMenu] = useState<string | null>(null);
-    const [bannerEnabled, setBannerEnabled] = useState(false);
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
@@ -38,7 +37,6 @@ export function AdminDashboard() {
 
     // --- DEPLOY STATE ---
     const [deployStatus, setDeployStatus] = useState<'idle' | 'loading' | 'queued' | 'in_progress' | 'success' | 'failure'>('idle');
-    const [deployRunId, setDeployRunId] = useState<string | null>(null);
     const [deployRunUrl, setDeployRunUrl] = useState<string | null>(null);
     const deployPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -82,7 +80,7 @@ export function AdminDashboard() {
             const res = await fetch('/api/settings');
             if (res.ok) {
                 const data = await res.json();
-                setBannerEnabled(data.announcement_banner?.enabled || false);
+                // setBannerEnabled not needed as bannerState has it
                 setBannerState({
                     enabled: data.announcement_banner?.enabled || false,
                     text: data.announcement_banner?.text || '',
@@ -116,7 +114,6 @@ export function AdminDashboard() {
             });
 
             if (saveRes.ok) {
-                setBannerEnabled(bannerState.enabled);
                 setIsBannerModalOpen(false);
             }
         } catch (e) {
@@ -350,7 +347,6 @@ export function AdminDashboard() {
 
         return false;
     };
-    const isAdmin = storedPermissions.includes('all');
 
     const getIcon = (iconName: string, baseColor: string = 'white') => {
         const isHex = baseColor.startsWith('#');
@@ -421,9 +417,6 @@ export function AdminDashboard() {
 
             setHasChanges(false);
             setEditMode(false);
-
-            // Note: The actual "build on github" happens when the AI (me) pushes the code changes
-            // after the user confirms. I will simulate the process path.
         } catch (e) {
             console.error("Error saving config:", e);
         } finally {
@@ -431,9 +424,11 @@ export function AdminDashboard() {
         }
     };
 
+    const isAdminAcc = storedPermissions.includes('all');
+    const isAlex = localStorage.getItem('admin_user') === 'alex';
+
     const deployToProduction = async () => {
         setDeployStatus('loading');
-        setDeployRunId(null);
         setDeployRunUrl(null);
         if (deployPollRef.current) clearInterval(deployPollRef.current);
 
@@ -454,7 +449,6 @@ export function AdminDashboard() {
             }
 
             setDeployStatus(data.status === 'in_progress' ? 'in_progress' : 'queued');
-            if (data.runId) setDeployRunId(String(data.runId));
             if (data.runUrl) setDeployRunUrl(data.runUrl);
 
             // Poll for status every 5s
@@ -509,17 +503,54 @@ export function AdminDashboard() {
                             </h1>
                         </div>
                         <p className="text-gray-400 text-lg max-w-2xl">
-                            Bienvenue dans votre espace d'administration. {isAdmin && "Déplacez les cartes pour réorganiser."}
+                            Bienvenue dans votre espace d'administration. {isAdminAcc && "Déplacez les cartes pour réorganiser."}
                         </p>
-                        <div className="mt-4">
+                        <div className="mt-4 flex flex-wrap items-center gap-6">
                             <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group">
                                 <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                                 Retour au site
                             </Link>
+                            <button
+                                onClick={handleLogout}
+                                className="text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all"
+                            >
+                                Déconnexion
+                            </button>
                         </div>
                     </div>
 
                     <div className="flex flex-col gap-4 w-full md:w-auto">
+                        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 mb-2">
+                            {isAdminAcc && (
+                                <>
+                                    {editMode ? (
+                                        <>
+                                            <button
+                                                onClick={() => { setEditMode(false); fetchActions(); }}
+                                                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400"
+                                            >
+                                                Annuler
+                                            </button>
+                                            <button
+                                                onClick={deployConfig}
+                                                disabled={isSaving || !hasChanges}
+                                                className="px-6 py-2 bg-neon-red text-white border border-neon-red rounded-xl text-[10px] font-black uppercase shadow-lg shadow-neon-red/20 disabled:opacity-50"
+                                            >
+                                                {isSaving ? "Enregistrement..." : "Enregistrer la config"}
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <button
+                                            onClick={() => setEditMode(true)}
+                                            className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"
+                                        >
+                                            <Paintbrush className="w-3.5 h-3.5" />
+                                            Mode Édition
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
                         <div className="relative w-full md:w-80">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                             <input
@@ -552,8 +583,18 @@ export function AdminDashboard() {
                                 <RefreshCw className="w-4 h-4" />
                                 Mise à jour
                             </button>
+                            {/* Bouton Bandeau - Admin */}
+                            {isAdminAcc && (
+                                <button
+                                    onClick={() => setIsBannerModalOpen(true)}
+                                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${bannerState.enabled ? 'bg-neon-orange/10 border-neon-orange/40 text-neon-orange hover:bg-neon-orange hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                >
+                                    <Megaphone className="w-4 h-4" />
+                                    Bandeau
+                                </button>
+                            )}
                             {/* Bouton Mise en ligne - Alex uniquement */}
-                            {localStorage.getItem('admin_user') === 'alex' && (
+                            {isAlex && (
                                 <motion.button
                                     whileHover={deployStatus === 'idle' ? { scale: 1.03 } : {}}
                                     whileTap={deployStatus === 'idle' ? { scale: 0.97 } : {}}
@@ -589,170 +630,185 @@ export function AdminDashboard() {
                                     <ExternalLink className="w-4 h-4" />
                                 </a>
                             )}
-                            transition={{ type: "spring", stiffness: 400, damping: 40 }}
-                            className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
-                                action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
-                                    action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
-                                }`}
-                >
-                            {editMode && (
-                                <>
-                                    {/* D-Pad Controls (Replacement for GripVertical) */}
-                                    <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-                                        <div />
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'up'); }}
-                                            disabled={index === 0}
-                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                        >
-                                            <ChevronUp className="w-4 h-4" />
-                                        </button>
-                                        <div />
+                        </div>
+                    </div>
+                </motion.div>
 
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
-                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'down'); }}
-                                            disabled={index === actions.length - 1}
-                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                        >
-                                            <ChevronDown className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
-                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-
-                                    <div className="absolute top-4 right-4 z-[60]">
-                                        <button
-                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
-                                            className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
-                                        >
-                                            <Settings2 className="w-5 h-5" />
-                                        </button>
-
-                                        {openMenu === action.title && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
-                                            >
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
-                                                    <div className="flex gap-1">
-                                                        {[1, 2, 3, 4].map(n => (
-                                                            <button
-                                                                key={n}
-                                                                onClick={(e) => {
-                                                                    e.preventDefault(); e.stopPropagation();
-                                                                    updateActionProp(action.title, { columns: n });
-                                                                }}
-                                                                className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                                            >
-                                                                x{n}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
-                                                    <div className="grid grid-cols-5 gap-1.5">
-                                                        {colors.map(c => (
-                                                            <button
-                                                                key={c.value}
-                                                                onClick={(e) => {
-                                                                    e.preventDefault(); e.stopPropagation();
-                                                                    updateActionProp(action.title, { baseColor: c.value });
-                                                                }}
-                                                                className={`w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-125 ${action.baseColor === c.value ? 'scale-125 ring-2 ring-white/50' : ''}`}
-                                                                style={{ backgroundColor: c.value === 'white' ? '#ffffff' : `var(--color-neon-${c.value})` }}
-                                                                title={c.name}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                                                    <label className="text-[9px] font-black uppercase text-gray-400">Roue Perso</label>
-                                                    <div className="relative group/brush">
-                                                        <button
-                                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red transition-colors relative"
-                                                            style={action.baseColor?.startsWith('#') ? { backgroundColor: `${action.baseColor}33`, borderColor: action.baseColor } : {}}
-                                                        >
-                                                            <Paintbrush className="w-5 h-5 text-white" />
-                                                            <input
-                                                                type="color"
-                                                                value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
-                                                                onChange={(e) => updateActionProp(action.title, { baseColor: e.target.value })}
-                                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </div>
-                                </>
-                            )}
-                            <Link
-                                to={editMode ? "#" : action.link}
-                                onClick={(e) => {
-                                    if (editMode) {
-                                        e.preventDefault();
-                                    } else if (action.title === 'Bandeau') {
-                                        e.preventDefault();
-                                        setIsBannerModalOpen(true);
-                                    }
-                                }}
-                                className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
-                                style={{
-                                    borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                        action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                            `var(--color-neon-${action.baseColor}33)`,
-                                    backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
-                                        action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
-                                            `var(--color-neon-${action.baseColor}0D)`,
-                                }}
-                                onMouseEnter={(e) => {
-                                    if (!editMode) {
-                                        e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
-                                            action.baseColor?.startsWith('#') ? action.baseColor :
-                                                `var(--color-neon-${action.baseColor})`;
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                        action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                            `var(--color-neon-${action.baseColor}33)`;
-                                }}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                    <AnimatePresence>
+                        {filteredActions.map((action, index) => (
+                            <motion.div
+                                key={action.title}
+                                layout
+                                initial={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.9 }}
+                                transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                                className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
+                                    action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
+                                        action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
+                                    }`}
                             >
-                                <div className="flex justify-between items-start mb-4">
-                                    <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors">
-                                        {getIcon(action.icon, action.baseColor)}
+                                {editMode && (
+                                    <>
+                                        {/* D-Pad Controls (Replacement for GripVertical) */}
+                                        <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+                                            <div />
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'up'); }}
+                                                disabled={index === 0}
+                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                            >
+                                                <ChevronUp className="w-4 h-4" />
+                                            </button>
+                                            <div />
+
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
+                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                            >
+                                                <ChevronLeft className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'down'); }}
+                                                disabled={index === actions.length - 1}
+                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                            >
+                                                <ChevronDown className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
+                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                            >
+                                                <ChevronRight className="w-4 h-4" />
+                                            </button>
+                                        </div>
+
+                                        <div className="absolute top-4 right-4 z-[60]">
+                                            <button
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
+                                                className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
+                                            >
+                                                <Settings2 className="w-5 h-5" />
+                                            </button>
+
+                                            {openMenu === action.title && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                    className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
+                                                >
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
+                                                        <div className="flex gap-1">
+                                                            {[1, 2, 3, 4].map(n => (
+                                                                <button
+                                                                    key={n}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault(); e.stopPropagation();
+                                                                        updateActionProp(action.title, { columns: n });
+                                                                    }}
+                                                                    className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                                >
+                                                                    x{n}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
+                                                        <div className="grid grid-cols-5 gap-1.5">
+                                                            {colors.map(c => (
+                                                                <button
+                                                                    key={c.value}
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault(); e.stopPropagation();
+                                                                        updateActionProp(action.title, { baseColor: c.value });
+                                                                    }}
+                                                                    className={`w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-125 ${action.baseColor === c.value ? 'scale-125 ring-2 ring-white/50' : ''}`}
+                                                                    style={{ backgroundColor: c.value === 'white' ? '#ffffff' : `var(--color-neon-${c.value})` }}
+                                                                    title={c.name}
+                                                                />
+                                                            ))}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                                        <label className="text-[9px] font-black uppercase text-gray-400">Roue Perso</label>
+                                                        <div className="relative group/brush">
+                                                            <button
+                                                                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red transition-colors relative"
+                                                                style={action.baseColor?.startsWith('#') ? { backgroundColor: `${action.baseColor}33`, borderColor: action.baseColor } : {}}
+                                                            >
+                                                                <Paintbrush className="w-5 h-5 text-white" />
+                                                                <input
+                                                                    type="color"
+                                                                    value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
+                                                                    onChange={(e) => updateActionProp(action.title, { baseColor: e.target.value })}
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </div>
+                                    </>
+                                )}
+                                <Link
+                                    to={editMode ? "#" : action.link}
+                                    onClick={(e) => {
+                                        if (editMode) {
+                                            e.preventDefault();
+                                        } else if (action.title === 'Bandeau') {
+                                            e.preventDefault();
+                                            setIsBannerModalOpen(true);
+                                        }
+                                    }}
+                                    className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
+                                    style={{
+                                        borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                            action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                                `var(--color-neon-${action.baseColor}33)`,
+                                        backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
+                                            action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
+                                                `var(--color-neon-${action.baseColor}0D)`,
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!editMode) {
+                                            e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
+                                                action.baseColor?.startsWith('#') ? action.baseColor :
+                                                    `var(--color-neon-${action.baseColor})`;
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                            action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                                `var(--color-neon-${action.baseColor}33)`;
+                                    }}
+                                >
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors">
+                                            {getIcon(action.icon, action.baseColor)}
+                                        </div>
+                                        <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Plus className="w-4 h-4 text-white" />
+                                        </div>
                                     </div>
-                                    <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Plus className="w-4 h-4 text-white" />
-                                    </div>
-                                </div>
-                                <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
-                                    {action.title}
-                                </h3>
-                                <p className="text-gray-400 font-medium">
-                                    {action.description}
-                                </p>
-                            </Link>
-                        </motion.div>
-            ))}
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
+                                        {action.title}
+                                    </h3>
+                                    <p className="text-gray-400 font-medium">
+                                        {action.description}
+                                    </p>
+                                </Link>
+                            </motion.div>
+                        ))}
                     </AnimatePresence>
+                </div>
             </div>
+
             {/* Modal Gestion Bandeau */}
             <AnimatePresence>
                 {isBannerModalOpen && (
@@ -948,33 +1004,34 @@ export function AdminDashboard() {
                                                 className="text-[10px] font-black uppercase tracking-tighter italic whitespace-nowrap"
                                                 style={{ color: bannerState.color }}
                                             >
-                                                {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."} • {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."}
+                                                {bannerState.text || 'MESSAGE DU BANDEAU'}
                                             </span>
-                                            {!bannerState.enabled && (
-                                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Bandeau Désactivé</div>
-                                            )}
                                         </div>
                                     </div>
 
-                                    <button
-                                        onClick={saveBannerSettings}
-                                        disabled={isUpdatingBanner}
-                                        className="w-full py-4 mt-4 bg-gradient-to-r from-neon-orange to-orange-600 text-white rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-neon-orange/20 flex items-center justify-center gap-3 disabled:opacity-50"
-                                    >
-                                        {isUpdatingBanner ? (
-                                            <Activity className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <Save className="w-5 h-5" />
-                                        )}
-                                        Enregistrer les modifications
-                                    </button>
+                                    {/* Action Buttons */}
+                                    <div className="flex gap-4 pt-4">
+                                        <button
+                                            onClick={() => setIsBannerModalOpen(false)}
+                                            className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all border border-white/10"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            onClick={saveBannerSettings}
+                                            disabled={isUpdatingBanner}
+                                            className="flex-1 py-4 bg-neon-orange shadow-[0_0_20px_rgba(255,165,0,0.3)] hover:shadow-[0_0_30px_rgba(255,165,0,0.5)] text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                        >
+                                            {isUpdatingBanner ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                            Enregistrer
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
-        </div >
-        </div >
+        </div>
     );
 }
