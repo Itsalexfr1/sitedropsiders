@@ -76,7 +76,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     const playHoverSound = useHoverSound();
 
     return (
-        <div className="h-auto lg:h-[750px] flex flex-col">
+        <div className="h-auto md:h-[750px] flex flex-col">
             <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
                 <span
                     className="w-2 h-2 rounded-full animate-pulse"
@@ -91,7 +91,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
             <div className="flex-1 flex flex-col gap-6 overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 flex-1">
                     {recentNews.slice(0, 2).map((item, index) => (
-                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[180px] lg:h-auto overflow-hidden">
+                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:h-auto overflow-hidden">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -148,7 +148,8 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                         e.currentTarget.style.backgroundColor = 'rgba(10, 10, 10, 0.4)';
                     }}
                 >
-                    {t('home.all_news')}
+                    <span className="hidden sm:inline">{t('home.all_news')}</span>
+                    <span className="sm:hidden">{t('home.view_all')}</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </Link>
             </div>
