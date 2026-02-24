@@ -128,7 +128,7 @@ export function Navbar() {
     };
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-bg/40 backdrop-blur-md border-b border-white/10">
+        <nav className="fixed top-0 left-0 right-0 z-[100] bg-dark-bg/80 backdrop-blur-xl border-b border-white/10">
             <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
@@ -136,7 +136,7 @@ export function Navbar() {
                         <img
                             src="/Logo.png"
                             alt="DROPSIDERS"
-                            className="logo-img h-12 md:h-14 w-auto max-w-[180px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
+                            className="logo-img h-10 md:h-14 w-auto max-w-[150px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
                         />
                     </Link>
 
@@ -177,14 +177,14 @@ export function Navbar() {
                                 className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black transition-all ${language === 'fr' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
                             >
                                 <FlagIcon location="France" className="w-3.5 h-2.5" />
-                                <span>FR</span>
+                                <span className="hidden sm:block">FR</span>
                             </button>
                             <button
                                 onClick={() => setLanguage('en')}
                                 className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black transition-all ${language === 'en' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
                             >
                                 <FlagIcon location="USA" className="w-3.5 h-2.5" />
-                                <span>EN</span>
+                                <span className="hidden sm:block">EN</span>
                             </button>
                         </div>
 
@@ -363,7 +363,7 @@ export function Navbar() {
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
-                        className="md:hidden bg-dark-bg/95 border-b border-white/10 overflow-hidden"
+                        className="md:hidden bg-dark-bg/98 backdrop-blur-2xl border-b border-white/10 overflow-hidden shadow-2xl relative z-[100]"
                     >
                         <div className="px-4 pt-2 pb-6 space-y-1">
                             {navItems.map((item) => {
