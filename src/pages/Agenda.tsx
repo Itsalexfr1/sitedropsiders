@@ -554,11 +554,11 @@ export function Agenda() {
                                 </motion.div>
                             );
                         })
-                    ) : (
+                    ) : months.length > 0 ? (
                         <div className="text-center py-20 bg-white/5 border border-white/10 rounded-2xl border-dashed">
-                            <p className="text-gray-400 text-lg uppercase font-bold tracking-widest">Aucun événement trouvé pour cette sélection</p>
+                            <p className="text-gray-400 text-lg uppercase font-bold tracking-widest">{t('agenda.no_events_selection')}</p>
                         </div>
-                    )}
+                    ) : null}
                 </AnimatePresence>
             </div>
 
