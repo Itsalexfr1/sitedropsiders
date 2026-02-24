@@ -9,8 +9,8 @@
     "columns": 1
   },
   {
-    "title": "Mails",
-    "description": "LWS Webmail",
+    "title": "Messages",
+    "description": "Mails & Contact",
     "icon": "Mail",
     "link": "/admin/emails",
     "baseColor": "#ff6600",
@@ -113,7 +113,7 @@
   },
   {
     "title": "Team",
-    "description": "La Dream Team",
+    "description": "Gérer l'équipe (Menu)",
     "icon": "Users",
     "link": "/admin/team",
     "baseColor": "#000000",
