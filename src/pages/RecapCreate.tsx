@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, Twitter } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, Twitter, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -390,6 +390,20 @@ export function RecapCreate() {
 
     const updateWidget = (id: string, newContent: string) => {
         setWidgets(widgets.map(w => w.id === id ? { ...w, content: newContent } : w));
+    };
+
+    const moveWidgetUp = (index: number) => {
+        if (index === 0) return;
+        const newWidgets = [...widgets];
+        [newWidgets[index - 1], newWidgets[index]] = [newWidgets[index], newWidgets[index - 1]];
+        setWidgets(newWidgets);
+    };
+
+    const moveWidgetDown = (index: number) => {
+        if (index === widgets.length - 1) return;
+        const newWidgets = [...widgets];
+        [newWidgets[index + 1], newWidgets[index]] = [newWidgets[index], newWidgets[index + 1]];
+        setWidgets(newWidgets);
     };
 
     const extractDuoUrls = (html: string) => {
@@ -1111,6 +1125,28 @@ export function RecapCreate() {
                                                                 widget.content.includes('image-premium-wrapper') ? 'Bloc Image' :
                                                                     widget.content.includes('gallery-premium-grid') ? 'Bloc Galerie' : 'Bloc Texte'}
                                                     </span>
+
+                                                    {/* Movement Arrows */}
+                                                    <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveWidgetUp(index)}
+                                                            className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                            disabled={index === 0}
+                                                            title="Monter"
+                                                        >
+                                                            <ChevronUp className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveWidgetDown(index)}
+                                                            className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                            disabled={index === widgets.length - 1}
+                                                            title="Descendre"
+                                                        >
+                                                            <ChevronDown className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
                                                     <button

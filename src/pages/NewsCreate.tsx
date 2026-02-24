@@ -1,7 +1,7 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, Twitter, PartyPopper } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, Twitter, PartyPopper, ChevronUp, ChevronDown } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -95,11 +95,12 @@ export function NewsCreate() {
         id: string,
         type: 'qa' | 'image' | 'video',
         artistName?: string,
+        artistColor?: string,
         question?: string,
         answer?: string,
         mediaUrl?: string
     }[]>([
-        { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', question: '', answer: '' }
+        { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
     ]);
 
     const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(type === 'Musique' ? 'Musique' : 'News');
@@ -558,6 +559,34 @@ export function NewsCreate() {
 
     const updateWidget = (id: string, newContent: string) => {
         setWidgets(widgets.map(w => w.id === id ? { ...w, content: newContent } : w));
+    };
+
+    const moveWidgetUp = (index: number) => {
+        if (index === 0) return;
+        const newWidgets = [...widgets];
+        [newWidgets[index - 1], newWidgets[index]] = [newWidgets[index], newWidgets[index - 1]];
+        setWidgets(newWidgets);
+    };
+
+    const moveWidgetDown = (index: number) => {
+        if (index === widgets.length - 1) return;
+        const newWidgets = [...widgets];
+        [newWidgets[index + 1], newWidgets[index]] = [newWidgets[index], newWidgets[index + 1]];
+        setWidgets(newWidgets);
+    };
+
+    const moveInterviewQuestionUp = (index: number) => {
+        if (index === 0) return;
+        const newQuestions = [...interviewQuestions];
+        [newQuestions[index - 1], newQuestions[index]] = [newQuestions[index], newQuestions[index - 1]];
+        setInterviewQuestions(newQuestions);
+    };
+
+    const moveInterviewQuestionDown = (index: number) => {
+        if (index === interviewQuestions.length - 1) return;
+        const newQuestions = [...interviewQuestions];
+        [newQuestions[index + 1], newQuestions[index]] = [newQuestions[index], newQuestions[index + 1]];
+        setInterviewQuestions(newQuestions);
     };
 
     const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-2xl' | 'text-5xl') => {
@@ -1405,7 +1434,7 @@ ${generateFestivalSocialsHtml()}
                                     </label>
                                     <div className="flex flex-wrap gap-2">
                                         <button
-                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: interviewQuestions.find(q => q.type === 'qa')?.artistName || '', question: '', answer: '' }])}
+                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: interviewQuestions.find(q => q.type === 'qa')?.artistName || '', artistColor: interviewQuestions.find(q => q.type === 'qa')?.artistColor || '#ff1241', question: '', answer: '' }])}
                                             className="flex items-center gap-2 px-4 py-2 bg-neon-purple text-white rounded-full hover:bg-neon-purple/80 transition-all font-black uppercase tracking-widest text-[9px] shadow-lg shadow-neon-purple/20"
                                         >
                                             <Plus className="w-3.5 h-3.5" /> Question
@@ -1427,125 +1456,212 @@ ${generateFestivalSocialsHtml()}
 
                                 <div className="space-y-6">
                                     {interviewQuestions.map((q, idx) => (
-                                        <div key={q.id} className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
-                                            <div className="flex items-center gap-3 mb-6">
-                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
-                                                    {idx + 1}
-                                                </span>
-                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : 'Bloc Vidéo'}
-                                                </h4>
-                                            </div>
+                                        <Fragment key={q.id}>
+                                            <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
+                                                        {idx + 1}
+                                                    </span>
+                                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                                        {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : 'Bloc Vidéo'}
+                                                    </h4>
 
-                                            <div className="space-y-6">
-                                                {q.type === 'qa' ? (
-                                                    <div className="grid grid-cols-1 gap-4">
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between px-1">
-                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
-                                                                    DROPSIDERS (Question)
-                                                                </label>
-                                                                <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré</span>
-                                                            </div>
-                                                            <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                                                                <VisualEditor
-                                                                    content={q.question || ''}
-                                                                    onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: html } : item))}
-                                                                    className="visual-editor-content p-6 min-h-[80px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
-                                                                    widgetId={q.id + '-question'}
-                                                                />
-                                                            </div>
-                                                        </div>
+                                                    {/* Movement Arrows */}
+                                                    <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveInterviewQuestionUp(idx)}
+                                                            className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                            disabled={idx === 0}
+                                                            title="Monter"
+                                                        >
+                                                            <ChevronUp className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => moveInterviewQuestionDown(idx)}
+                                                            className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                            disabled={idx === interviewQuestions.length - 1}
+                                                            title="Descendre"
+                                                        >
+                                                            <ChevronDown className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    </div>
+                                                </div>
 
-                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                <div className="space-y-6">
+                                                    {q.type === 'qa' ? (
+                                                        <div className="grid grid-cols-1 gap-4">
                                                             <div className="space-y-2">
-                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
-                                                                    NOM ARTISTE
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={q.artistName}
-                                                                    onChange={(e) => {
-                                                                        const newName = e.target.value;
-                                                                        setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistName: newName } : item));
-                                                                    }}
-                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none uppercase font-bold"
-                                                                    placeholder="Ex: ANYMA"
-                                                                />
-                                                            </div>
-                                                            <div className="md:col-span-3 space-y-2">
                                                                 <div className="flex items-center justify-between px-1">
                                                                     <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
-                                                                        RÉPONSE (Artiste)
+                                                                        DROPSIDERS (Question)
                                                                     </label>
-                                                                    <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré ({(q.artistName || 'ARTISTE').toUpperCase()} :)</span>
+                                                                    <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré</span>
                                                                 </div>
                                                                 <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
                                                                     <VisualEditor
-                                                                        content={q.answer || ''}
-                                                                        onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: html } : item))}
-                                                                        className="visual-editor-content p-6 min-h-[120px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
-                                                                        widgetId={q.id + '-answer'}
+                                                                        content={q.question || ''}
+                                                                        onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: html } : item))}
+                                                                        className="visual-editor-content p-6 min-h-[80px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
+                                                                        widgetId={q.id + '-question'}
                                                                     />
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    </div>
-                                                ) : q.type === 'image' ? (
-                                                    <div className="flex gap-4 items-center">
-                                                        <div className="flex-1 space-y-2">
-                                                            <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest ml-1">URL de l'image</label>
-                                                            <div className="flex gap-2">
-                                                                <input
-                                                                    type="text"
-                                                                    value={q.mediaUrl}
-                                                                    onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: e.target.value } : item))}
-                                                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-neon-cyan"
-                                                                    placeholder="https://..."
-                                                                />
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setUploadTarget({ type: 'interview-media', interviewBlockId: q.id });
-                                                                        setShowUploadModal(true);
-                                                                    }}
-                                                                    className="px-4 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl font-bold text-[10px] uppercase hover:bg-neon-cyan/30 transition-all"
-                                                                >
-                                                                    Upload
-                                                                </button>
+
+                                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                                <div className="space-y-4">
+                                                                    <div className="space-y-2">
+                                                                        <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
+                                                                            NOM ARTISTE
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            value={q.artistName}
+                                                                            onChange={(e) => {
+                                                                                const newName = e.target.value;
+                                                                                setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistName: newName } : item));
+                                                                            }}
+                                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none uppercase font-bold"
+                                                                            placeholder="Ex: ANYMA"
+                                                                            style={{ color: q.artistColor || '#ff1241' }}
+                                                                        />
+                                                                    </div>
+
+                                                                    <div className="space-y-2">
+                                                                        <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                                            COULEUR ARTISTE
+                                                                        </label>
+                                                                        <div className="flex flex-wrap bg-black/40 rounded-xl border border-white/5 p-2 gap-1.5">
+                                                                            {[
+                                                                                '#ffffff', '#ff1241', '#7c3aed', '#00fff3', '#bef264', '#facc15', '#fb923c', '#ff00ff'
+                                                                            ].map(color => (
+                                                                                <button
+                                                                                    key={color}
+                                                                                    type="button"
+                                                                                    onClick={() => setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistColor: color } : item))}
+                                                                                    className={`w-5 h-5 rounded-full border transition-all ${q.artistColor === color ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'border-white/10 hover:scale-110'}`}
+                                                                                    style={{ backgroundColor: color }}
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="md:col-span-3 space-y-2">
+                                                                    <div className="flex items-center justify-between px-1">
+                                                                        <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
+                                                                            RÉPONSE (Artiste)
+                                                                        </label>
+                                                                        <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré (<span style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()}</span> :)</span>
+                                                                    </div>
+                                                                    <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                                                                        <VisualEditor
+                                                                            content={q.answer || ''}
+                                                                            onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: html } : item))}
+                                                                            className="visual-editor-content p-6 min-h-[120px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
+                                                                            widgetId={q.id + '-answer'}
+                                                                        />
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        {q.mediaUrl && (
-                                                            <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                                                                <img src={q.mediaUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                    ) : q.type === 'image' ? (
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="flex-1 space-y-2">
+                                                                <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest ml-1">URL de l'image</label>
+                                                                <div className="flex gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={q.mediaUrl}
+                                                                        onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: e.target.value } : item))}
+                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-neon-cyan"
+                                                                        placeholder="https://..."
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setUploadTarget({ type: 'interview-media', interviewBlockId: q.id });
+                                                                            setShowUploadModal(true);
+                                                                        }}
+                                                                        className="px-4 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl font-bold text-[10px] uppercase hover:bg-neon-cyan/30 transition-all"
+                                                                    >
+                                                                        Upload
+                                                                    </button>
+                                                                </div>
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div className="space-y-2">
-                                                        <label className="text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">Lien ou ID YouTube</label>
-                                                        <input
-                                                            type="text"
-                                                            value={q.mediaUrl}
-                                                            onChange={(e) => {
-                                                                let val = e.target.value;
-                                                                if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
-                                                                else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
-                                                                setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
-                                                            }}
-                                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-red-600"
-                                                            placeholder="Ex: dQw4w9WgXcQ"
-                                                        />
-                                                    </div>
-                                                )}
+                                                            {q.mediaUrl && (
+                                                                <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
+                                                                    <img src={q.mediaUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">Lien ou ID YouTube</label>
+                                                            <input
+                                                                type="text"
+                                                                value={q.mediaUrl}
+                                                                onChange={(e) => {
+                                                                    let val = e.target.value;
+                                                                    if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
+                                                                    else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
+                                                                    setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+                                                                }}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-red-600"
+                                                                placeholder="Ex: dQw4w9WgXcQ"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <button
+                                                    onClick={() => setInterviewQuestions(interviewQuestions.filter(item => item.id !== q.id))}
+                                                    className="absolute top-6 right-6 p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all bg-white/5 rounded-xl hover:bg-neon-red/10 border border-transparent hover:border-neon-red/20"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
 
-                                            <button
-                                                onClick={() => setInterviewQuestions(interviewQuestions.filter(item => item.id !== q.id))}
-                                                className="absolute top-6 right-6 p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all bg-white/5 rounded-xl hover:bg-neon-red/10 border border-transparent hover:border-neon-red/20"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
+                                            {/* Quick Insert Buttons BELOW each block */}
+                                            <div className="flex justify-center -my-2 opacity-0 hover:opacity-100 transition-opacity relative z-10">
+                                                <div className="flex items-center bg-black/80 backdrop-blur-md border border-white/10 rounded-full p-1 gap-1 shadow-2xl">
+                                                    <button
+                                                        onClick={() => {
+                                                            const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: q.artistName || '', artistColor: q.artistColor || '#ff1241', question: '', answer: '' };
+                                                            const updated = [...interviewQuestions];
+                                                            updated.splice(idx + 1, 0, newBlock as any);
+                                                            setInterviewQuestions(updated);
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neon-purple/20 text-neon-purple rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
+                                                    >
+                                                        <Plus className="w-3 h-3" /> Q&A
+                                                    </button>
+                                                    <div className="w-px h-3 bg-white/10" />
+                                                    <button
+                                                        onClick={() => {
+                                                            const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' };
+                                                            const updated = [...interviewQuestions];
+                                                            updated.splice(idx + 1, 0, newBlock as any);
+                                                            setInterviewQuestions(updated);
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neon-cyan/20 text-neon-cyan rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
+                                                    >
+                                                        <ImageIcon className="w-3 h-3" /> Photo
+                                                    </button>
+                                                    <div className="w-px h-3 bg-white/10" />
+                                                    <button
+                                                        onClick={() => {
+                                                            const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' };
+                                                            const updated = [...interviewQuestions];
+                                                            updated.splice(idx + 1, 0, newBlock as any);
+                                                            setInterviewQuestions(updated);
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-red-600/20 text-red-600 rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
+                                                    >
+                                                        <Youtube className="w-3 h-3" /> Vidéo
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </Fragment>
                                     ))}
                                 </div>
                             </div>
@@ -1623,6 +1739,28 @@ ${generateFestivalSocialsHtml()}
                                                                     widget.content.includes('image-premium-wrapper') ? 'Image' :
                                                                         widget.content.includes('gallery-premium-grid') ? 'Galerie' : 'Texte'}
                                                         </span>
+
+                                                        {/* Movement Arrows */}
+                                                        <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveWidgetUp(index)}
+                                                                className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                                disabled={index === 0}
+                                                                title="Monter"
+                                                            >
+                                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => moveWidgetDown(index)}
+                                                                className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                                disabled={index === widgets.length - 1}
+                                                                title="Descendre"
+                                                            >
+                                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-2">
                                                         <button
@@ -2085,7 +2223,7 @@ ${generateFestivalSocialsHtml()}
                                                 {q.type === 'qa' ? (
                                                     <div className="space-y-4">
                                                         <p className="article-body-premium mb-4"><strong style={{ color: '#ff1241' }}>DROPSIDERS :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.question || '') }} /></p>
-                                                        <p className="article-body-premium"><strong style={{ color: '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
+                                                        <p className="article-body-premium"><strong style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
                                                     </div>
                                                 ) : q.type === 'image' ? (
                                                     <div className="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
