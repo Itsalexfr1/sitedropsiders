@@ -1441,15 +1441,20 @@ ${generateFestivalSocialsHtml()}
                                                 {q.type === 'qa' ? (
                                                     <div className="grid grid-cols-1 gap-4">
                                                         <div className="space-y-2">
-                                                            <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
-                                                                DROPSIDERS (Question)
-                                                            </label>
-                                                            <textarea
-                                                                value={q.question}
-                                                                onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: e.target.value } : item))}
-                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none transition-all min-h-[80px]"
-                                                                placeholder="Écrivez votre question ici..."
-                                                            />
+                                                            <div className="flex items-center justify-between px-1">
+                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
+                                                                    DROPSIDERS (Question)
+                                                                </label>
+                                                                <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré</span>
+                                                            </div>
+                                                            <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                                                                <VisualEditor
+                                                                    content={q.question || ''}
+                                                                    onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: html } : item))}
+                                                                    className="visual-editor-content p-6 min-h-[80px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
+                                                                    widgetId={q.id + '-question'}
+                                                                />
+                                                            </div>
                                                         </div>
 
                                                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -1469,15 +1474,20 @@ ${generateFestivalSocialsHtml()}
                                                                 />
                                                             </div>
                                                             <div className="md:col-span-3 space-y-2">
-                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
-                                                                    RÉPONSE
-                                                                </label>
-                                                                <textarea
-                                                                    value={q.answer}
-                                                                    onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: e.target.value } : item))}
-                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none transition-all min-h-[120px]"
-                                                                    placeholder="La réponse de l'artiste..."
-                                                                />
+                                                                <div className="flex items-center justify-between px-1">
+                                                                    <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
+                                                                        RÉPONSE (Artiste)
+                                                                    </label>
+                                                                    <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré ({(q.artistName || 'ARTISTE').toUpperCase()} :)</span>
+                                                                </div>
+                                                                <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                                                                    <VisualEditor
+                                                                        content={q.answer || ''}
+                                                                        onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: html } : item))}
+                                                                        className="visual-editor-content p-6 min-h-[120px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
+                                                                        widgetId={q.id + '-answer'}
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1541,8 +1551,8 @@ ${generateFestivalSocialsHtml()}
                             </div>
                         )}
 
-                        {/* WIDGET EDITOR SECTION (News & Focus) */}
-                        {((activeTab === 'News' || activeTab === 'Focus') && type !== 'Interview') && (
+                        {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
+                        {((activeTab === 'News' || activeTab === 'Focus' || type === 'Interview')) && (
                             <div className="pt-8 border-t border-white/10">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                     <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -2039,7 +2049,7 @@ ${generateFestivalSocialsHtml()}
                                             </div>
                                         ))}
                                         {youtubeId && (
-                                            <div className="mt-16 mb-16 px-4">
+                                            <div className="mt-16 mb-16">
                                                 <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
                                                     <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
                                                         <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
@@ -2069,11 +2079,33 @@ ${generateFestivalSocialsHtml()}
                                     </div>
                                 ) : (
                                     <>
+                                        {/* Interview Content Rendering in Preview */}
+                                        {type === 'Interview' && interviewSubtype === 'written' && interviewQuestions.map((q) => (
+                                            <div key={q.id} className="article-section">
+                                                {q.type === 'qa' ? (
+                                                    <div className="space-y-4">
+                                                        <p className="article-body-premium mb-4"><strong style={{ color: '#ff1241' }}>DROPSIDERS :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.question || '') }} /></p>
+                                                        <p className="article-body-premium"><strong style={{ color: '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
+                                                    </div>
+                                                ) : q.type === 'image' ? (
+                                                    <div className="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+                                                        <img src={q.mediaUrl} alt="Interview Image" className="w-full h-auto object-cover" />
+                                                    </div>
+                                                ) : q.type === 'video' ? (
+                                                    <div className="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+                                                        <iframe src={`https://www.youtube.com/embed/${q.mediaUrl}`} className="absolute inset-0 w-full h-full" allowFullScreen />
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        ))}
+
+                                        {/* Widgets Content Rendering in Preview */}
                                         {widgets.map(w => (
                                             <div key={w.id} className="article-section">
                                                 <div dangerouslySetInnerHTML={{ __html: standardizeContent(w.content) }} />
                                             </div>
                                         ))}
+
                                         {youtubeId && (
                                             <div className="mt-16 mb-16">
                                                 <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
@@ -2132,7 +2164,7 @@ ${generateFestivalSocialsHtml()}
                         </div>
 
                     </div>
-                </div>
+                </div >
                 <style>{`
                 .admin-editor-container .w-md-editor {
                     border: 1px solid rgba(255,255,255,0.1) !important;
