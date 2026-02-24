@@ -1,14 +1,5 @@
 [
   {
-    "username": "team",
-    "password": "2026",
-    "name": "Team",
-    "created": "2026-02-18T17:18:43.809Z",
-    "permissions": [
-      "publications"
-    ]
-  },
-  {
     "username": "alex",
     "password": "01061988",
     "name": "Alex",
