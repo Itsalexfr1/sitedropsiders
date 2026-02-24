@@ -201,7 +201,7 @@ export function AdminMessages() {
                                                     {msg.subject}
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-gray-700 truncate mt-1">{msg.message}</p>
+                                            <p className={`text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
                                             {msg.replied && (
                                                 <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black text-neon-cyan/70 mt-1">
                                                     <Reply className="w-3 h-3" /> Répondu
