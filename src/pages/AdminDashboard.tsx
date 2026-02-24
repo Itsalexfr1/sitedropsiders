@@ -47,9 +47,24 @@ export function AdminDashboard() {
             if (resp.ok) {
                 const data = await resp.json();
                 if (data && data.length > 0) {
-                    setActions(data);
+                    // Merge missing fallback actions
+                    const defaultActions = getFallbackActions();
+                    const mergedActions = [...data];
+
+                    defaultActions.forEach(defaultAction => {
+                        const exists = mergedActions.find(a => a.title === defaultAction.title);
+                        if (!exists) {
+                            mergedActions.push(defaultAction);
+                        }
+                    });
+
+                    // Also filter out deleted actions (like 'Messages') that might be in the saved layout
+                    const cleanedActions = mergedActions.filter(savedAction =>
+                        defaultActions.some(def => def.title === savedAction.title)
+                    );
+
+                    setActions(cleanedActions);
                 } else {
-                    // Fallback to hardcoded list if API empty
                     setActions(getFallbackActions());
                 }
             } else {
