@@ -341,13 +341,16 @@ export function NewsletterComposer() {
 
     const handleCopyHTML = () => {
         navigator.clipboard.writeText(generateHTML(false));
-        alert('Code HTML copié dans le presse-papier !');
+        setAlertModal({ isOpen: true, isError: false, message: '✅ Code HTML copié dans le presse-papier !' });
     };
 
     const handleCopyEmails = () => {
-        if (selectedSubscribers.length === 0) return alert('Aucun abonné sélectionné à copier.');
+        if (selectedSubscribers.length === 0) {
+            setAlertModal({ isOpen: true, isError: true, message: '❌ Aucun abonné sélectionné à copier.' });
+            return;
+        }
         navigator.clipboard.writeText(selectedSubscribers.join(', '));
-        alert(`${selectedSubscribers.length} emails copiés !`);
+        setAlertModal({ isOpen: true, isError: false, message: `✅ ${selectedSubscribers.length} emails copiés !` });
     };
 
     const handleSendClick = () => {
