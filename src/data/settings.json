@@ -6,7 +6,7 @@
   "shop_password": "DROPSHOP",
   "kit_media_password": "DROPSIDERS",
   "announcement_banner": {
-    "enabled": false,
+    "enabled": true,
     "text": "BIENVENUE SUR DROPSIDERS - L'ACTUALITÉ DES FESTIVALS EN DIRECT !",
     "color": "#ff0033"
   }
