@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2, Instagram, Facebook, Twitter, Globe, Music, Youtube, Link2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2, Instagram, Facebook, Twitter, Globe, Youtube, Link2 } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
