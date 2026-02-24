@@ -29,7 +29,7 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
                 </div>
             </div>
 
-            <div className="relative z-20 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="relative z-20 w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                 {/* Overlay content removed as requested */}
             </div>
 

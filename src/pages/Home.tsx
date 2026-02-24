@@ -43,7 +43,7 @@ export function Home() {
                 return <Hero key="hero" videoId={item.videoId} videoUrl={item.videoUrl} accentColor={accentColor} resolvedColor={color} />;
             case 'news_grid':
                 return (
-                    <section key="news_grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section key="news_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
@@ -58,7 +58,7 @@ export function Home() {
                 );
             case 'recap_agenda_grid':
                 return (
-                    <section key="recap_agenda_grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section key="recap_agenda_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
@@ -73,13 +73,13 @@ export function Home() {
                 );
             case 'interviews':
                 return (
-                    <section key="interviews" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    <section key="interviews" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-8">
                         <InterviewWidget accentColor={accentColor} resolvedColor={color} />
                     </section>
                 );
             case 'social_grid':
                 return (
-                    <section key="social_grid" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section key="social_grid" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <div
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
@@ -94,20 +94,20 @@ export function Home() {
                 );
             case 'instagram':
                 return (
-                    <section key="instagram" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section key="instagram" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <InstagramWidget accentColor={accentColor} resolvedColor={color} />
                     </section>
                 );
             case 'tiktok':
                 return (
-                    <section key="tiktok" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                         <TikTokWidget accentColor={accentColor} resolvedColor={color} />
                     </section>
                 );
             case 'spotify':
                 return (
                     <section key="spotify" className="bg-dark-bg/5 py-8 relative z-10">
-                        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                             <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
                         </div>
                     </section>

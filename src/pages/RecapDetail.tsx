@@ -25,7 +25,7 @@ export function RecapDetail() {
 
     if (!recap) {
         return (
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-dark-bg min-h-screen">
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-20 bg-dark-bg min-h-screen">
                 <div className="text-center py-20">
                     <h1 className="text-4xl font-display font-black text-white mb-4">{t('recap_detail.not_found_title')}</h1>
                     <Link

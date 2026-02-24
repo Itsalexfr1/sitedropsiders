@@ -76,7 +76,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     const playHoverSound = useHoverSound();
 
     return (
-        <div className="h-auto lg:h-[750px] flex flex-col overflow-hidden">
+        <div className="h-auto lg:h-[750px] flex flex-col">
             <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
                 <span
                     className="w-2 h-2 rounded-full animate-pulse"
@@ -88,55 +88,44 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 {t('home.latest_news').toUpperCase()}
             </h3>
 
-            <div className="flex-1 bg-dark-bg/40 border border-white/10 rounded-3xl p-4 md:p-5 backdrop-blur-md shadow-xl flex flex-col justify-between overflow-hidden">
-                <div className="divide-y divide-white/5">
-                    {recentNews.map((item, index) => (
-                        <Link to={getArticleLink(item)} key={item.id} className="block group py-2 md:py-2.5 first:pt-0 last:pb-0">
+            <div className="flex-1 flex flex-col gap-6 overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 flex-1">
+                    {recentNews.slice(0, 2).map((item, index) => (
+                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[180px] lg:h-auto overflow-hidden">
                             <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                whileHover={{ scale: 1.05 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                whileHover={{ scale: 1.02 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className="flex gap-4 items-center origin-left"
+                                className="h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl"
                             >
-                                <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 border border-white/5 relative bg-black/40 flex items-center justify-center">
-                                    <img
-                                        src={item.image}
-                                        alt={item.title}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    />
-                                    <div className="absolute top-1 left-1">
-                                        <span
-                                            className="px-1.5 py-0.5 bg-dark-bg/60 backdrop-blur-md border text-[7px] font-black rounded"
-                                            style={{
-                                                borderColor: color,
-                                                color: color
-                                            }}
-                                        >
-                                            {t('home.new')}
-                                        </span>
+                                <img
+                                    src={item.image}
+                                    alt=""
+                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
+
+                                {/* Content Overlay */}
+                                <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
+                                    <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                                        <span style={{ color: color }}>{item.category}</span>
+                                        <span>•</span>
+                                        <span>{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                                     </div>
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <span
-                                        className="text-[8px] md:text-[9px] font-bold tracking-[0.2em] uppercase mb-1 block leading-none"
-                                        style={{ color: color }}
-                                    >
-                                        {new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                    </span>
-                                    <h4
-                                        className="text-white font-display font-bold text-[12px] md:text-sm leading-tight transition-colors line-clamp-2 uppercase italic tracking-tight"
-                                        onMouseEnter={(e) => e.currentTarget.style.color = color}
-                                        onMouseLeave={(e) => e.currentTarget.style.color = 'white'}
-                                    >
+                                    <h4 className="text-white font-display font-bold text-lg leading-tight transition-colors group-hover:text-white line-clamp-2 uppercase italic tracking-tight">
                                         {translatedTitles[item.id] || item.title}
                                     </h4>
                                 </div>
-                                <ArrowUpRight
-                                    className="w-4 h-4 text-gray-700 transition-all"
-                                    onMouseOver={(e) => e.currentTarget.style.color = color}
-                                />
+
+                                <div className="absolute top-4 right-4">
+                                    <div
+                                        className="w-8 h-8 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 group-hover:bg-white group-hover:border-white transition-all duration-300"
+                                    >
+                                        <ArrowUpRight className="w-4 h-4 text-white group-hover:text-black transition-colors" />
+                                    </div>
+                                </div>
                             </motion.div>
                         </Link>
                     ))}
@@ -144,17 +133,19 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
 
                 <Link
                     to="/news"
-                    className="w-full mt-6 py-4 border bg-dark-bg text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group"
+                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group shrink-0"
                     style={{
                         borderColor: `${color}4D`,
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = color;
                         e.currentTarget.style.boxShadow = `0 0 30px ${color}33`;
+                        e.currentTarget.style.backgroundColor = `${color}1A`;
                     }}
                     onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor = `${color}4D`;
                         e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'rgba(10, 10, 10, 0.4)';
                     }}
                 >
                     {t('home.all_news')}
