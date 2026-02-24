@@ -46,13 +46,18 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { acc
             ) : (
                 <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
                     {latestInterviews.map((item: any, index: number) => (
-                        <Link to={`/interviews/${item.id}`} key={item.id} className="block group">
+                        <Link to={`/interviews/${item.id}`} key={item.id} className="block group relative">
+                            {/* Lueur externe derrière la carte */}
+                            <div
+                                className="absolute -inset-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none blur-[25px] rounded-3xl z-0"
+                                style={{ background: `${color}50` }}
+                            />
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className="h-full group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-300 shadow-xl"
+                                className="h-full relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-300 shadow-xl z-10"
                                 onMouseOver={(e) => {
                                     e.currentTarget.style.borderColor = color;
                                     e.currentTarget.style.boxShadow = `0 0 30px ${color}60`;

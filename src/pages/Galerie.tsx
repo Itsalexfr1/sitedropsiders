@@ -149,7 +149,6 @@ export function Galerie() {
                                 currentAlbums.map((album) => (
                                     <motion.div
                                         key={album.id}
-                                        whileHover={{ scale: 1.05 }}
                                         onMouseEnter={playHoverSound}
                                     >
                                         <div className="relative group">
@@ -168,7 +167,7 @@ export function Galerie() {
                                             )}
                                             <Link
                                                 to={getGalleryLink(album)}
-                                                className="group relative block aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red transition-all duration-500 shadow-2xl"
+                                                className="group relative block aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red hover:shadow-[0_0_35px_rgba(255,17,17,0.4)] transition-all duration-500 shadow-2xl"
                                             >
                                                 {/* Album Cover */}
                                                 <img
