@@ -131,17 +131,17 @@ export function Navbar() {
         <nav className="fixed top-0 left-0 right-0 z-[100] bg-dark-bg/80 backdrop-blur-xl border-b border-white/10">
             <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24">
                 <div className="flex items-center justify-between h-20">
-                    <div className="flex items-center gap-6 shrink-0">
-                        {/* Desktop Social Icons - Left Side */}
-                        <div className="hidden lg:flex items-center gap-5 border-r border-white/10 pr-6 mr-1">
-                            <a href="https://instagram.com/dropsiders.eu" target="_blank" rel="noopener noreferrer" className="opacity-30 hover:opacity-100 transition-all hover:scale-110">
-                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-3.5 h-3.5 brightness-0 invert" />
+                    <div className="flex items-center gap-4 shrink-0">
+                        {/* Desktop Social Icons - Left Side Stacked */}
+                        <div className="hidden lg:flex flex-col items-center gap-1.5 border-r border-white/10 pr-4 mr-1">
+                            <a href="https://instagram.com/dropsiders.eu" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-3 h-3 brightness-0 invert" />
                             </a>
-                            <a href="https://tiktok.com/@dropsiders.eu" target="_blank" rel="noopener noreferrer" className="opacity-30 hover:opacity-100 transition-all hover:scale-110">
-                                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-3.5 h-3.5 brightness-0 invert" />
+                            <a href="https://tiktok.com/@dropsiders.eu" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
+                                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-3 h-3 brightness-0 invert" />
                             </a>
-                            <a href="https://www.facebook.com/dropsidersfr" target="_blank" rel="noopener noreferrer" className="opacity-30 hover:opacity-100 transition-all hover:scale-110">
-                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-3.5 h-3.5 brightness-0 invert" />
+                            <a href="https://www.facebook.com/dropsidersfr" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
+                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-3 h-3 brightness-0 invert" />
                             </a>
                         </div>
 
