@@ -1259,6 +1259,40 @@ export default {
                 };
                 contacts.push(newMsg);
                 await saveGitHubFile(CONTACTS_PATH, contacts, `New contact: ${name} [skip ci] [CF-Pages-Skip]`, file.sha);
+
+                // --- SEND NOTIFICATION EMAIL TO ADMIN ---
+                const BREVO_KEY = env.BREVO_API_KEY;
+                if (BREVO_KEY) {
+                    ctx.waitUntil((async () => {
+                        try {
+                            await fetch('https://api.brevo.com/v3/smtp/email', {
+                                method: 'POST',
+                                headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                                body: JSON.stringify({
+                                    sender: { name: 'Dropsiders System', email: 'bot@dropsiders.fr' },
+                                    to: [{ email: 'contact@dropsiders.fr', name: 'Alex' }],
+                                    subject: `[NOUVEAU MESSAGE] ${name} : ${subject}`,
+                                    htmlContent: `
+                                        <div style="font-family: sans-serif; padding: 20px; background: #f9f9f9; color: #333;">
+                                            <div style="max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 10px; border: 1px solid #eee;">
+                                                <h2 style="color: #ff0033; margin-top: 0;">Nouveau message reçu !</h2>
+                                                <p><strong>De :</strong> ${name} (${email})</p>
+                                                <p><strong>Sujet :</strong> ${subject}</p>
+                                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                                                <div style="white-space: pre-wrap; line-height: 1.6;">${message}</div>
+                                                <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+                                                <a href="https://dropsiders.fr/admin" style="display: inline-block; background: #000; color: #fff; text-decoration: none; padding: 12px 25px; border-radius: 5px; font-weight: bold; font-size: 14px;">Répondre via l'Admin</a>
+                                            </div>
+                                        </div>
+                                    `
+                                })
+                            });
+                        } catch (e) {
+                            console.error('Failed to send admin notification:', e);
+                        }
+                    })());
+                }
+
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
