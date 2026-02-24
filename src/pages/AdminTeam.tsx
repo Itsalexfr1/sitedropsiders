@@ -200,7 +200,7 @@ export function AdminTeam() {
                         <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                         <AnimatePresence>
                             {members.map((member) => (
                                 <motion.div
@@ -210,7 +210,7 @@ export function AdminTeam() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
                                     onClick={() => openEditModal(member)}
-                                    className="bg-white/5 border border-white/10 rounded-3xl p-6 group hover:border-neon-red/30 transition-all cursor-pointer relative"
+                                    className="bg-white/5 border border-white/10 rounded-[2rem] p-4 group hover:border-neon-red/30 transition-all cursor-pointer relative"
                                 >
                                     <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-6 bg-black/40 border border-white/5">
                                         <img src={member.image} alt={member.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
@@ -218,9 +218,9 @@ export function AdminTeam() {
                                     </div>
 
                                     <div className="space-y-1">
-                                        <label className="block text-[10px] font-black text-neon-red uppercase tracking-[0.2em] mb-1">Membre</label>
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">{member.name}</h3>
-                                        <p className="text-gray-400 text-sm font-medium uppercase tracking-widest">{member.role}</p>
+                                        <label className="block text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-0.5">Membre</label>
+                                        <h3 className="text-base font-display font-black text-white uppercase italic tracking-tighter line-clamp-1">{member.name}</h3>
+                                        <p className="text-gray-400 text-[10px] font-medium uppercase tracking-widest line-clamp-1">{member.role}</p>
 
                                         <div className="flex gap-3 pt-4 border-t border-white/5 mt-4">
                                             {member.socials.instagram && <Instagram className="w-4 h-4 text-gray-500" />}
