@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, User, ArrowRight, Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter } from 'lucide-react';
+import { Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Calendar } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
@@ -125,14 +125,6 @@ export function Interviews() {
             x: direction < 0 ? 1000 : -1000,
             opacity: 0
         })
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric'
-        });
     };
 
     return (
