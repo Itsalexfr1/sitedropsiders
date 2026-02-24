@@ -13,12 +13,22 @@ import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
 import { Loader2 } from 'lucide-react';
 
+type TabKey = 'all' | 'news' | 'musique' | 'focus';
+
+const TABS: { key: TabKey; label: string; color: string; borderColor: string; glowColor: string }[] = [
+    { key: 'all', label: 'Toutes', color: 'text-white', borderColor: 'border-white/40', glowColor: 'shadow-white/10' },
+    { key: 'news', label: 'News', color: 'text-neon-red', borderColor: 'border-neon-red/60', glowColor: 'shadow-neon-red/20' },
+    { key: 'musique', label: 'Musiques', color: 'text-neon-green', borderColor: 'border-neon-green/60', glowColor: 'shadow-neon-green/20' },
+    { key: 'focus', label: 'Focus de la semaine', color: 'text-yellow-400', borderColor: 'border-yellow-400/60', glowColor: 'shadow-yellow-400/20' },
+];
+
 export function News() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [activeTab, setActiveTab] = useState<TabKey>('all');
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
@@ -47,12 +57,33 @@ export function News() {
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
     const [translatedSummaries, setTranslatedSummaries] = useState<Record<number, string>>({});
 
-    const filteredNews = useMemo(() => {
+    // All news/musique/focus articles (base pool)
+    const baseNews = useMemo(() => {
         return (newsData as any[]).filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music');
+            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
         });
     }, []);
+
+    // Filter based on current tab
+    const filteredNews = useMemo(() => {
+        if (activeTab === 'all') return baseNews;
+        if (activeTab === 'news') return baseNews.filter((item: any) => {
+            const cat = (item.category || '').toLowerCase();
+            return (cat.includes('news') || cat === 'actualité' || cat === 'actualite') && !item.isFocus;
+        });
+        if (activeTab === 'musique') return baseNews.filter((item: any) => {
+            const cat = (item.category || '').toLowerCase();
+            return cat.includes('musique') || cat.includes('music');
+        });
+        if (activeTab === 'focus') return baseNews.filter((item: any) => item.isFocus);
+        return baseNews;
+    }, [activeTab, baseNews]);
+
+    // Reset page when tab changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [activeTab]);
 
     useEffect(() => {
         if (language === 'en') {
@@ -97,6 +128,11 @@ export function News() {
         setCurrentPage(newPage);
     };
 
+    const handleTabChange = (tab: TabKey) => {
+        setDirection(0);
+        setActiveTab(tab);
+    };
+
     const variants = {
         enter: (direction: number) => ({
             x: direction > 0 ? 1000 : -1000,
@@ -119,7 +155,7 @@ export function News() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-12"
+                className="mb-8"
             >
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-neon-red/10 rounded-lg">
@@ -135,6 +171,41 @@ export function News() {
                 <p className="text-gray-400 max-w-2xl text-lg">
                     {t('news.subtitle')}
                 </p>
+            </motion.div>
+
+            {/* ── Category Tabs ── */}
+            <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+                className="mb-10"
+            >
+                <div className="flex flex-wrap gap-3">
+                    {TABS.map((tab) => {
+                        const isActive = activeTab === tab.key;
+                        return (
+                            <motion.button
+                                key={tab.key}
+                                onClick={() => handleTabChange(tab.key)}
+                                whileHover={{ scale: 1.04 }}
+                                whileTap={{ scale: 0.96 }}
+                                className={`relative px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs transition-all duration-300 border
+                                    ${isActive
+                                        ? `${tab.color} ${tab.borderColor} bg-white/10 shadow-lg ${tab.glowColor}`
+                                        : 'text-gray-500 border-white/10 bg-white/5 hover:bg-white/10 hover:text-gray-300'
+                                    }`}
+                            >
+                                {tab.label}
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="tabUnderline"
+                                        className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${tab.color.replace('text-', 'bg-')}`}
+                                    />
+                                )}
+                            </motion.button>
+                        );
+                    })}
+                </div>
             </motion.div>
 
             <div className="relative">
@@ -156,7 +227,7 @@ export function News() {
                 <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
-                            key={currentPage}
+                            key={`${activeTab}-${currentPage}`}
                             custom={direction}
                             variants={variants}
                             initial="enter"
@@ -204,10 +275,10 @@ export function News() {
                                             <div className="p-6">
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className={`text-xs font-bold px-2 py-1 rounded-full border ${item.isFocus
-                                                            ? 'text-yellow-400 border-yellow-400/30'
-                                                            : (item.category || '').toLowerCase() === 'musique'
-                                                                ? 'text-neon-green border-neon-green/30'
-                                                                : 'text-neon-red border-neon-red/30'
+                                                        ? 'text-yellow-400 border-yellow-400/30'
+                                                        : (item.category || '').toLowerCase() === 'musique'
+                                                            ? 'text-neon-green border-neon-green/30'
+                                                            : 'text-neon-red border-neon-red/30'
                                                         }`}>
                                                         {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
                                                     </span>
@@ -230,8 +301,13 @@ export function News() {
                                     </motion.article>
                                 ))
                             ) : (
-                                <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
-                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('news.no_news')}</p>
+                                <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md gap-4">
+                                    <span className={`text-4xl`}>
+                                        {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
+                                    </span>
+                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
+                                        {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
+                                    </p>
                                 </div>
                             )}
                         </motion.div>

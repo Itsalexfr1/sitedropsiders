@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, ExternalLink, Image as ImageIcon, Loader2, CheckCircle2, Film } from 'lucide-react';
+import { Upload, X, ExternalLink, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 
 interface ImageUploadModalProps {
@@ -29,7 +29,10 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
     }
 
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isCropOpen, setIsCropOpen] = useState(false);
+    // Step: 'idle' | 'preview' (image selected, awaiting crop/direct choice)
+    const [step, setStep] = useState<'idle' | 'preview'>('idle');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -39,12 +42,13 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
             // Bypass cropper for videos, upload directly
             handleUpload(file);
         } else {
-            // Image logic (with cropper)
+            // Load the image and show the crop/direct choice
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = () => {
                 setSelectedImage(reader.result as string);
-                setIsCropOpen(true);
+                setSelectedFile(file);
+                setStep('preview');
             };
         }
     };
@@ -52,6 +56,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
     const handleUpload = async (base64OrFile: string | File) => {
         setIsUploading(true);
         setStatus('idle');
+        setStep('idle');
         try {
             // Direct Cloudinary Upload (Unsigned)
             const CLOUD_NAME = 'djnvjsmvr';
@@ -74,6 +79,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                     onClose();
                     setStatus('idle');
                     setSelectedImage(null);
+                    setSelectedFile(null);
                 }, 1500);
             } else {
                 setStatus('error');
@@ -86,6 +92,12 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
         } finally {
             setIsUploading(false);
         }
+    };
+
+    const handleCancel = () => {
+        setStep('idle');
+        setSelectedImage(null);
+        setSelectedFile(null);
     };
 
     return (
@@ -126,6 +138,66 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                     <p className="font-bold text-white uppercase tracking-widest">Upload Terminé !</p>
                                     <p className="text-xs text-gray-500">L'image a été ajoutée à votre contenu.</p>
                                 </div>
+                            ) : step === 'preview' && selectedImage ? (
+                                /* ── Image selected: choose crop or direct upload ── */
+                                <motion.div
+                                    key="preview"
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="flex flex-col gap-5"
+                                >
+                                    {/* Preview */}
+                                    <div className="w-full h-48 rounded-2xl overflow-hidden border border-white/10 bg-black/40">
+                                        <img src={selectedImage} alt="preview" className="w-full h-full object-cover" />
+                                    </div>
+                                    <p className="text-center text-xs text-gray-400 font-bold uppercase tracking-widest">
+                                        Que souhaitez-vous faire avec cette image ?
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {/* Crop option */}
+                                        <button
+                                            onClick={() => setIsCropOpen(true)}
+                                            className="flex flex-col items-center gap-3 p-6 bg-white/5 border border-neon-red/30 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/60 transition-all group"
+                                        >
+                                            <div className="p-3 bg-neon-red/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                <Crop className="w-6 h-6 text-neon-red" />
+                                            </div>
+                                            <span className="text-xs font-black text-white uppercase tracking-widest">Rogner</span>
+                                            <span className="text-[10px] text-gray-500 text-center">Recadrer avant l'upload</span>
+                                        </button>
+                                        {/* Direct upload option */}
+                                        <button
+                                            onClick={() => selectedFile && handleUpload(selectedFile)}
+                                            disabled={isUploading}
+                                            className="flex flex-col items-center gap-3 p-6 bg-white/5 border border-neon-blue/30 rounded-2xl hover:bg-neon-blue/10 hover:border-neon-blue/60 transition-all group disabled:opacity-50"
+                                        >
+                                            <div className="p-3 bg-neon-blue/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                {isUploading ? (
+                                                    <Loader2 className="w-6 h-6 text-neon-blue animate-spin" />
+                                                ) : (
+                                                    <Zap className="w-6 h-6 text-neon-blue" />
+                                                )}
+                                            </div>
+                                            <span className="text-xs font-black text-white uppercase tracking-widest">
+                                                {isUploading ? 'Envoi...' : 'Direct'}
+                                            </span>
+                                            <span className="text-[10px] text-gray-500 text-center">Uploader sans recadrer</span>
+                                        </button>
+                                    </div>
+                                    {/* Cancel preview */}
+                                    <button
+                                        onClick={handleCancel}
+                                        className="w-full py-3 text-xs text-gray-500 hover:text-white font-bold uppercase tracking-widest transition-colors"
+                                    >
+                                        ← Changer d'image
+                                    </button>
+
+                                    {status === 'error' && (
+                                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold text-center">
+                                            {message}
+                                        </div>
+                                    )}
+                                </motion.div>
                             ) : (
                                 <>
                                     <label className={`block group cursor-pointer`}>
@@ -182,7 +254,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                     }}
                     onCancel={() => {
                         setIsCropOpen(false);
-                        setSelectedImage(null);
+                        // Go back to preview step (don't clear image)
                     }}
                 />
             )}

@@ -77,16 +77,38 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
 
     return (
         <div className="h-auto flex flex-col">
-            <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
-                <span
-                    className="w-2 h-2 rounded-full animate-pulse"
-                    style={{
-                        backgroundColor: color,
-                        boxShadow: `0 0 10px ${color}`
+            {/* Header with title + "Toutes les actualités" link */}
+            <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <span
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{
+                            backgroundColor: color,
+                            boxShadow: `0 0 10px ${color}`
+                        }}
+                    />
+                    {t('home.latest_news').toUpperCase()}
+                </h3>
+                <Link
+                    to="/news"
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border font-black text-[10px] uppercase tracking-[0.15em] transition-all duration-300 group"
+                    style={{ borderColor: `${color}4D`, color: color }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = color;
+                        e.currentTarget.style.boxShadow = `0 0 20px ${color}33`;
+                        e.currentTarget.style.backgroundColor = `${color}1A`;
                     }}
-                />
-                {t('home.latest_news').toUpperCase()}
-            </h3>
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.borderColor = `${color}4D`;
+                        e.currentTarget.style.boxShadow = 'none';
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                >
+                    <span className="hidden sm:inline">{t('home.all_news')}</span>
+                    <span className="sm:hidden">{t('home.view_all')}</span>
+                    <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                </Link>
+            </div>
 
             <div className="flex-1 flex flex-col gap-6">
                 <div className="flex flex-col gap-6 md:h-[calc(750px-56px)] relative">
@@ -137,28 +159,6 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                         </Link>
                     ))}
                 </div>
-
-                <Link
-                    to="/news"
-                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group mt-4 h-14"
-                    style={{
-                        borderColor: `${color}4D`,
-                    }}
-                    onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = color;
-                        e.currentTarget.style.boxShadow = `0 0 30px ${color}33`;
-                        e.currentTarget.style.backgroundColor = `${color}1A`;
-                    }}
-                    onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = `${color}4D`;
-                        e.currentTarget.style.boxShadow = 'none';
-                        e.currentTarget.style.backgroundColor = 'rgba(10, 10, 10, 0.4)';
-                    }}
-                >
-                    <span className="hidden sm:inline">{t('home.all_news')}</span>
-                    <span className="sm:hidden">{t('home.view_all')}</span>
-                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
             </div>
         </div>
     );
