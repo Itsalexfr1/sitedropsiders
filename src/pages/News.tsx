@@ -172,7 +172,6 @@ export function News() {
                                 currentArticles.map((item: any) => (
                                     <motion.article
                                         key={item.id}
-                                        whileHover={{ scale: 1.05 }}
                                         onMouseEnter={playHoverSound}
                                         className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300 relative"
                                     >

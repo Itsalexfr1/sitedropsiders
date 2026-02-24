@@ -170,7 +170,6 @@ export function Recap() {
                                 currentArticles.map((item: any) => (
                                     <motion.article
                                         key={item.id}
-                                        whileHover={{ scale: 1.02 }}
                                         onMouseEnter={playHoverSound}
                                         className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-all duration-300 shadow-2xl hover:shadow-neon-red/20 relative"
                                     >
