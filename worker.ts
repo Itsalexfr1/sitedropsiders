@@ -88,8 +88,7 @@ export default {
         async function fetchGitHubFile(filePath) {
             const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
             const response = await fetch(getUrl, {
-                headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
-                cache: 'no-store'
+                headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
             });
             if (!response.ok) {
                 if (response.status === 404) return { content: [], sha: null };
