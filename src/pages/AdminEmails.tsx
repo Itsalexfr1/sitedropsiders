@@ -574,7 +574,7 @@ export function AdminEmails() {
                                                         </span>
                                                         <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                                             <User className="w-3.5 h-3.5" />
-                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || activeAccount}` : 'à moi'}
+                                                            {activeFolder === 'sent' ? `de ${selectedEmail.from || 'contact'}` : 'à moi'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -606,7 +606,7 @@ export function AdminEmails() {
                                             )}
 
                                             <div className="p-8 md:p-10 border-t border-white/5 bg-black/20">
-                                                <EmailSignature password={savedPassword} />
+                                                <EmailSignature password="2026" />
                                             </div>
                                         </div>
 
@@ -665,7 +665,7 @@ export function AdminEmails() {
                                             <div className="flex items-center gap-2">
                                                 <input
                                                     readOnly
-                                                    value={`${activeAccount}@dropsiders.fr`}
+                                                    value="contact@dropsiders.fr"
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-neon-red text-[10px] font-black uppercase tracking-widest outline-none cursor-default"
                                                 />
                                             </div>
