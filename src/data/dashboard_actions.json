@@ -26,15 +26,6 @@
     "permission": "shop"
   },
   {
-    "title": "Newsletter",
-    "description": "Studio de création",
-    "icon": "Mail",
-    "link": "/newsletter/studio",
-    "baseColor": "#1fc7ff",
-    "permission": "newsletter",
-    "columns": 2
-  },
-  {
     "title": "News",
     "description": "Gérer les actualités",
     "icon": "FileText",
@@ -68,15 +59,6 @@
     "columns": 1
   },
   {
-    "title": "Spotify",
-    "description": "Playlists accueil",
-    "icon": "Music",
-    "link": "/admin/spotify",
-    "baseColor": "#00ff11",
-    "permission": "spotify",
-    "columns": 2
-  },
-  {
     "title": "Interviews",
     "description": "Gérer les interviews",
     "icon": "Mic",
@@ -91,6 +73,15 @@
     "link": "/admin/manage?tab=Galeries",
     "baseColor": "#ff7b24",
     "permission": "publications",
+    "columns": 1
+  },
+  {
+    "title": "Spotify",
+    "description": "Playlists accueil",
+    "icon": "Music",
+    "link": "/admin/spotify",
+    "baseColor": "#00ff11",
+    "permission": "spotify",
     "columns": 2
   },
   {
@@ -109,16 +100,16 @@
     "link": "/newsletter/admin",
     "baseColor": "white",
     "permission": "all",
-    "columns": 2
+    "columns": 1
   },
   {
-    "title": "Paramètres",
-    "description": "Config système",
-    "icon": "Settings2",
-    "link": "/admin/settings",
-    "baseColor": "#9d00ff",
-    "permission": "alex_only",
-    "columns": 1
+    "title": "Newsletter",
+    "description": "Studio de création",
+    "icon": "Mail",
+    "link": "/newsletter/studio",
+    "baseColor": "#1fc7ff",
+    "permission": "newsletter",
+    "columns": 2
   },
   {
     "title": "Éditeurs",
@@ -128,5 +119,16 @@
     "baseColor": "#ff2e2e",
     "permission": "all",
     "columns": 2
+  },
+  {
+    "title": "Mots de passe",
+    "description": "Accès & Sécurité",
+    "icon": "Lock",
+    "link": "/admin/settings",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "all",
+    "baseColor": "purple",
+    "columns": 1
   }
 ]
