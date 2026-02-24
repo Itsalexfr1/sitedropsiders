@@ -1186,6 +1186,24 @@ export default {
                     if (response.ok) results.push({ success: true, chunk: chunk.length });
                     else results.push({ success: false, error: await response.text() });
                 }
+
+                // --- LOG NEWSLETTER ---
+                try {
+                    const logPath = 'src/data/newsletters_sent.json';
+                    const file = await fetchGitHubFile(logPath) || { content: [], sha: null };
+                    const newLog = {
+                        id: Date.now().toString(),
+                        subject,
+                        date: new Date().toISOString(),
+                        recipientsCount: recipients.length,
+                        fromAccount
+                    };
+                    const updated = [...(Array.isArray(file.content) ? file.content : []), newLog];
+                    await saveGitHubFile(logPath, updated, `Newsletter sent: ${subject} [skip ci] [CF-Pages-Skip]`, file.sha);
+                } catch (logErr) {
+                    console.error('Log Newsletter Error:', logErr);
+                }
+
                 return new Response(JSON.stringify({ success: true, details: results }), { status: 200, headers });
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
