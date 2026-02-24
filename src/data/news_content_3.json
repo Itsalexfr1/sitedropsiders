@@ -278,5 +278,9 @@
   {
     "id": 184,
     "content": "<div class=\"article-section\">\n\n<h2 class=\"premium-section-title\">TITRE DE L'ARTICLE</h2>\n\n</div>"
+  },
+  {
+    "id": 185,
+    "content": "<div class=\"article-section\">\n\n<h2 class=\"premium-section-title\"></h2>\n\n</div>"
   }
 ]
