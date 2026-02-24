@@ -19,5 +19,12 @@
     "date": "2026-02-24T02:05:45.897Z",
     "recipientsCount": 2,
     "fromAccount": "contact@dropsiders.fr"
+  },
+  {
+    "id": "1771901324891",
+    "subject": "Test",
+    "date": "2026-02-24T02:48:44.891Z",
+    "recipientsCount": 1,
+    "fromAccount": "contact@dropsiders.fr"
   }
 ]
