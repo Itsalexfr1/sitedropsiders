@@ -1327,34 +1327,34 @@ export default {
                                     </div>
                                     
                                     <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
-                                    <div style="margin-top:50px; background:#000000; border:2px solid #333333; border-top:4px solid #ff0033; border-radius:24px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
-                                        <div style="padding:35px 30px; text-align:center;">
-                                            <div style="color:#ffffff; font-size:18px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:10px; letter-spacing:-0.5px;">
+                                    <div style="margin-top:40px; background:#000000; border:1px solid #333333; border-top:4px solid #ff0033; border-radius:20px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                                        <div style="padding:30px 20px; text-align:center;">
+                                            <div style="color:#ffffff; font-size:16px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:10px; letter-spacing:-0.5px;">
                                                 Cordialement,<br>
                                                 L'équipe <span style="color:#ff0033;">Dropsiders</span>
                                             </div>
                                             
                                             <!-- CATEGORIES BAR -->
-                                            <div style="color:#ff0033; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:3px; margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px;">
-                                                NEWS · RÉCAPS EVENTS · INTERVIEWS · CONCOURS
+                                            <div style="color:#ff0033; font-size:8px; font-weight:900; text-transform:uppercase; letter-spacing:1px; margin-bottom:25px; border-bottom:1px solid #222; padding-bottom:15px; line-height:1.4;">
+                                                NEWS&nbsp;&nbsp;·&nbsp;&nbsp;RÉCAPS&nbsp;EVENTS&nbsp;&nbsp;·&nbsp;&nbsp;INTERVIEWS&nbsp;&nbsp;·&nbsp;&nbsp;CONCOURS
                                             </div>
                                             
                                             <!-- ACTIONS GRID -->
-                                            <table width="100%" cellpadding="0" cellspacing="10" border="0">
+                                            <table width="100%" cellpadding="0" cellspacing="5" border="0" style="table-layout: fixed;">
                                                 <tr>
-                                                    <td align="center" width="33%">
-                                                        <a href="https://dropsiders.fr" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:12px 5px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; transition: all 0.3s; border-bottom:3px solid #ff0033;">
-                                                            🌐 Le Site
+                                                    <td align="center">
+                                                        <a href="https://dropsiders.fr" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:10px 2px; border-radius:10px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #ff0033; white-space: nowrap;">
+                                                            🌐 SITE
                                                         </a>
                                                     </td>
-                                                    <td align="center" width="33%">
-                                                        <a href="https://dropsiders.fr/shop" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:12px 5px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; border-bottom:3px solid #00ffd5;">
-                                                            🛍️ Le Shop
+                                                    <td align="center">
+                                                        <a href="https://dropsiders.fr/shop" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:10px 2px; border-radius:10px; font-size:9px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; border-bottom:2px solid #00ffd5; white-space: nowrap;">
+                                                            🛍️ SHOP
                                                         </a>
                                                     </td>
-                                                    <td align="center" width="33%">
-                                                        <a href="https://dropsiders.fr/newsletter" style="display:block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#fff; text-decoration:none; padding:12px 5px; border-radius:12px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(255,0,51,0.3);">
-                                                            📩 Newsletter
+                                                    <td align="center">
+                                                        <a href="https://dropsiders.fr/newsletter" style="display:block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#fff; text-decoration:none; padding:10px 2px; border-radius:10px; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; box-shadow: 0 4px 10px rgba(255,0,51,0.2); white-space: nowrap;">
+                                                            📩 NEWSLETTER
                                                         </a>
                                                     </td>
                                                 </tr>
@@ -1362,13 +1362,13 @@ export default {
                                         </div>
                                         
                                         <!-- FOOTER STRIP -->
-                                        <div style="background:#080808; padding:15px; text-align:center;">
-                                            <img src="https://dropsiders.fr/Logo.png" width="80" alt="Logo" style="opacity:0.5; filter:grayscale(1);">
+                                        <div style="background:#080808; padding:12px; text-align:center;">
+                                            <img src="https://dropsiders.fr/Logo.png" width="70" alt="Logo" style="opacity:0.4; filter:grayscale(1);">
                                         </div>
                                     </div>
                                 </div>
                                 <div style="background:#000000; padding:20px; text-align:center; border-top:1px solid #222;">
-                                    <p style="color:#333; font-size:9px; margin:0; font-weight:bold; letter-spacing:2px; text-transform:uppercase;">
+                                    <p style="color:#333; font-size:8px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
                                         DROPSIDERS · TOUTE L'ACTU DES FESTIVALS
                                     </p>
                                 </div>
