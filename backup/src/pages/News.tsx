@@ -166,7 +166,7 @@ export function News() {
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('news.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('news.title')} <span className="text-[10px] text-white/20">v2.1</span>
+                    {t('news.title')}
                 </h1>
                 <p className="text-gray-400 max-w-2xl text-lg">
                     {t('news.subtitle')}

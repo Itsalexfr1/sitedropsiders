@@ -1,0 +1,61 @@
+[
+  {
+    "username": "alex",
+    "password": "01061988",
+    "name": "Alex",
+    "created": "2026-02-24T03:54:00.000Z",
+    "permissions": [
+      "all"
+    ]
+  },
+  {
+    "username": "tanguy",
+    "password": "2026",
+    "name": "Tanguy",
+    "permissions": [
+      "publications",
+      "messages"
+    ],
+    "created": "2026-02-24T03:38:19.957Z"
+  },
+  {
+    "username": "tiffany",
+    "password": "2026",
+    "name": "Tiffany",
+    "permissions": [
+      "publications",
+      "messages"
+    ],
+    "created": "2026-02-24T03:40:00.617Z"
+  },
+  {
+    "username": "julien",
+    "password": "2026",
+    "name": "Julien",
+    "permissions": [
+      "publications",
+      "messages"
+    ],
+    "created": "2026-02-24T03:40:20.933Z"
+  },
+  {
+    "username": "kevin",
+    "password": "2026",
+    "name": "Kevin",
+    "permissions": [
+      "publications",
+      "messages"
+    ],
+    "created": "2026-02-24T03:41:19.585Z"
+  },
+  {
+    "username": "guillaume",
+    "password": "TMLibiza2026",
+    "name": "Guillaume",
+    "permissions": [
+      "publications",
+      "messages"
+    ],
+    "created": "2026-02-24T11:46:06.615Z"
+  }
+]

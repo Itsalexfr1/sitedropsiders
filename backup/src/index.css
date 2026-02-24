@@ -1,0 +1,634 @@
+@import "tailwindcss";
+
+@theme {
+  --color-neon-cyan: #00f0ff;
+  --color-neon-red: #ff0033;
+  --color-neon-purple: #bd00ff;
+  --color-neon-pink: #ff0099;
+  --color-neon-green: #39ff14;
+  --color-neon-orange: #ff6600;
+  --color-neon-yellow: #ffcc00;
+  --color-neon-blue: #0070ff;
+  --color-dark-bg: #0a0a0a;
+  --color-dark-card: rgba(255, 255, 255, 0.05);
+
+  --font-sans: 'Montserrat', sans-serif;
+  --font-display: 'Orbitron', 'sans-serif';
+}
+
+@layer base {
+  body {
+    background-color: var(--color-dark-bg);
+    color: white;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  a {
+    @apply transition-colors duration-300;
+  }
+
+  a:hover {
+    color: var(--color-neon-red) !important;
+  }
+
+  /* Light Mode */
+  /* Light Mode - Negative Filter Approach */
+  html.light-mode {
+    filter: invert(1) hue-rotate(180deg);
+  }
+
+  /* Re-invert media to keep them looking normal (Original Colors) */
+  html.light-mode img:not(.logo-img),
+  html.light-mode video,
+  html.light-mode iframe,
+  html.light-mode [style*="background-image"] {
+    filter: invert(1) hue-rotate(180deg) !important;
+  }
+
+  /* Logos stay inverted (negative) in light mode */
+  html.light-mode .logo-img {
+    filter: none !important;
+  }
+
+  /* Don't re-invert icons or specific decorative elements if needed */
+  html.light-mode .lucide {
+    filter: none !important;
+  }
+
+  /* Ensure background stays dark initially so it inverts to light */
+  html.light-mode body {
+    background-color: var(--color-dark-bg);
+    color: white;
+  }
+
+  /* Make the native calendar picker icon neon yellow */
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23ffcc00" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>') center/contain no-repeat;
+    cursor: pointer;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ff0033;
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* --- REFINED PREMIUM MAGAZINE SYSTEM --- */
+
+  .article-body-premium {
+    @apply max-w-none text-white;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  /* Force Zéro sur tous les conteneurs générés - SAUF DUO PHOTOS */
+  .article-body-premium div:not(.duo-photos-premium),
+  .article-body-premium section,
+  .article-body-premium article,
+  .article-body-premium .jw-strip,
+  .article-body-premium .jw-strip__content,
+  .article-body-premium .news-page-content-container,
+  .article-body-premium .jw-block-element {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Paragraphes Centrés - Petit espace constant */
+  .article-body-premium p {
+    @apply text-center text-gray-300 leading-[1.8] text-base md:text-lg font-light mx-auto;
+    margin-bottom: 45px !important;
+    padding: 0 !important;
+    clear: both !important;
+  }
+
+  /* Custom Font Size Overrides */
+  .article-body-premium .text-sm p {
+    font-size: 0.875rem !important;
+  }
+
+  .article-body-premium .text-2xl p {
+    font-size: 1.5rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .article-body-premium .text-5xl p {
+    font-size: 3rem !important;
+    line-height: 1.1 !important;
+    font-weight: 800 !important;
+  }
+
+  .article-body-premium .text-center {
+    text-align: center !important;
+  }
+
+  .article-body-premium strong {
+    @apply font-bold text-white;
+  }
+
+  /* Lettrine Manuelle - Style par Span .drop-cap */
+  .drop-cap {
+    font-family: var(--font-display);
+    @apply float-left text-7xl md:text-8xl leading-[0.7] pr-4 pt-2 font-black text-neon-red uppercase;
+    text-shadow: 0 0 30px rgba(255, 0, 51, 0.4);
+  }
+
+  /* Lueurs pour les cartes */
+  .glow-card-blue:hover {
+    box-shadow: 0 0 50px rgba(0, 112, 255, 0.25) !important;
+  }
+
+  .glow-card-red:hover {
+    box-shadow: 0 0 50px rgba(255, 0, 51, 0.25) !important;
+  }
+
+  .glow-card-orange:hover {
+    box-shadow: 0 0 50px rgba(255, 102, 0, 0.25) !important;
+  }
+
+  .glow-card-purple:hover {
+    box-shadow: 0 0 50px rgba(189, 0, 255, 0.25) !important;
+  }
+
+  .glow-card-cyan:hover {
+    box-shadow: 0 0 50px rgba(0, 240, 255, 0.25) !important;
+  }
+
+  .glow-card-green:hover {
+    box-shadow: 0 0 50px rgba(57, 255, 20, 0.25) !important;
+  }
+
+  .glow-card-yellow:hover {
+    box-shadow: 0 0 50px rgba(255, 204, 0, 0.25) !important;
+  }
+
+  .glow-card-pink:hover {
+    box-shadow: 0 0 50px rgba(255, 0, 153, 0.25) !important;
+  }
+
+  /* Titres Internes - Force compacité */
+  .article-body-premium h1 {
+    display: none !important;
+  }
+
+  /* Cacher les H1 doublons */
+  .premium-h1::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 4px;
+    background-color: var(--color-neon-red, #ff0033);
+    margin: 1rem auto 0;
+    border-radius: 2px;
+    box-shadow: 0 0 10px var(--color-neon-red, #ff0033);
+  }
+
+  .article-body-premium h2,
+  .article-body-premium h3,
+  .article-body-premium h4 {
+    @apply font-display font-black text-neon-red uppercase text-center tracking-tight italic;
+    margin: 2rem 0 !important;
+    padding: 0 !important;
+  }
+
+  .article-body-premium h2 {
+    @apply text-2xl md:text-4xl;
+  }
+
+  .article-body-premium h3 {
+    @apply text-xl md:text-3xl uppercase font-black;
+  }
+
+  .premium-text-bold {
+    @apply font-bold uppercase;
+    color: var(--color-neon-red);
+  }
+
+  /* Support for manual colors in the editor */
+  [style*="color"] .premium-text-bold,
+  [style*="color"] .premium-link,
+  [style*="color"] h2,
+  [style*="color"] h3 {
+    color: inherit !important;
+  }
+
+  .premium-link {
+    @apply text-neon-red font-black transition-colors hover:text-white uppercase;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+
+  /* Finition des Images - SEULE SUR SA LIGNE avec espace - SANS BORDURES */
+
+  .article-body-premium img,
+  .article-body-premium .jw-element-image,
+  .article-body-premium picture {
+    @apply shadow-2xl mx-auto block;
+    margin: 4rem auto !important;
+    display: block !important;
+    float: none !important;
+    clear: both !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto;
+    border-radius: 12px !important;
+    position: relative !important;
+    padding: 0 !important;
+    object-fit: cover !important;
+  }
+
+  .article-body-premium .aspect-square img,
+  .article-body-premium .grid {
+    justify-content: center !important;
+    justify-items: center !important;
+  }
+
+  /* Global Article Images - Single blocks (News/Recaps content) */
+  .article-body-premium img:not(.absolute):not([class*="aspect-"]) {
+    max-width: 100% !important;
+    height: auto !important;
+    display: block !important;
+    margin: 3.5rem auto !important;
+    border-radius: 20px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Images that have the aspect-ratio class on THEMSELVES (like in grids) */
+  .article-body-premium img[class*="aspect-"],
+  .article-body-premium .grid img,
+  .article-body-premium div[class*="aspect-"] img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+    margin: 0 !important;
+    border-radius: inherit !important;
+    position: absolute !important;
+    inset: 0 !important;
+  }
+
+  .image-premium-wrapper img {
+    margin: 0 !important;
+  }
+
+
+  /* Fixed aspect-ratio containers (where the CONTAINER has the class, e.g. cover photos or special widgets) */
+  .article-body-premium [class*="aspect-"] img,
+  .article-body-premium img.absolute {
+    position: absolute !important;
+    inset: 0 !important;
+    height: 100% !important;
+    width: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+    margin: 0 !important;
+    border-radius: inherit !important;
+  }
+
+  .article-body-premium picture {
+    width: 100% !important;
+    height: auto;
+    display: block;
+    margin: 2.5rem auto;
+  }
+
+
+
+  .article-body-premium .jw-element-image-is-left,
+  .article-body-premium .jw-element-image-is-right {
+    margin: 4rem auto !important;
+    float: none !important;
+    width: 100% !important;
+  }
+
+  /* Forcer la largeur des colonnes à 100% pour éviter le côte à côte */
+  .article-body-premium .jw-columns,
+  .article-body-premium .jw-column {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Interview Q&A Layout */
+  .interview-q {
+    @apply block text-neon-red font-display font-black text-2xl uppercase mt-8 mb-2 text-center tracking-tighter italic;
+  }
+
+  /* Blockquotes */
+  .article-body-premium blockquote {
+    @apply font-display text-2xl md:text-4xl font-black text-white italic text-center py-8 px-6 border-y border-white/10 my-4 relative uppercase leading-tight tracking-tight bg-white/[0.02];
+  }
+
+  /* Glown Animation for Video */
+  @keyframes glow {
+    0% {
+      box-shadow: 0 0 20px rgba(255, 0, 51, 0.1);
+    }
+
+    50% {
+      box-shadow: 0 0 40px rgba(255, 0, 51, 0.3);
+    }
+
+    100% {
+      box-shadow: 0 0 20px rgba(255, 0, 51, 0.1);
+    }
+  }
+
+  .animate-glow {
+    animation: glow 4s infinite ease-in-out;
+  }
+
+  .animate-gradient-x {
+    background-size: 200% auto;
+    animation: gradient-x 3s linear infinite;
+  }
+
+  @keyframes gradient-x {
+    0% {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* --- EDITOR PREVIEW FIXES --- */
+  .wmde-markdown-var .youtube-player-widget {
+    max-width: 600px !important;
+    margin: 2rem auto !important;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+
+  .admin-editor-container .wmde-markdown {
+    background-color: transparent !important;
+    color: inherit !important;
+  }
+
+  /* --- NEUTRALIZING STYLES FOR INFO SECTIONS --- */
+  .no-lettrage,
+  .no-lettrage p {
+    font-family: var(--font-sans) !important;
+    text-transform: none !important;
+    font-weight: 300 !important;
+    color: #9ca3af !important;
+    text-align: left !important;
+    margin-bottom: 20px !important;
+    clear: both !important;
+  }
+
+  .no-lettrage .premium-text-bold,
+  .no-lettrage strong,
+  .no-lettrage b,
+  .no-lettrage .premium-link {
+    font-weight: 600 !important;
+    text-transform: none !important;
+    color: #d1d5db !important;
+    background: none !important;
+    text-decoration: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* Animations for KitMedia */
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-5px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+@keyframes pulse-slow {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 8s ease-in-out infinite;
+}
+
+@keyframes float-slow {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(20px, -20px);
+  }
+}
+
+.animate-float-slow {
+  animation: float-slow 15s ease-in-out infinite;
+}
+
+@keyframes float-delayed {
+
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  50% {
+    transform: translate(-20px, 20px);
+  }
+}
+
+.animate-float-delayed {
+  animation: float-delayed 18s ease-in-out infinite;
+  animation-delay: 2s;
+}
+
+/* Gallery Hover Effects */
+.gallery-card-container {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.gallery-red-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-neon-red);
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out, background-color 0.4s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  text-align: center;
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.gallery-card-container:hover .gallery-red-overlay {
+  opacity: 0.85;
+}
+
+.gallery-card-container:hover .gallery-red-overlay:hover {
+  background-color: #99001f;
+  /* Darkened red */
+}
+
+.gallery-event-name {
+  color: white;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 1.5rem;
+  letter-spacing: -0.02em;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+}
+
+.gallery-card-container:hover .gallery-event-name {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- MOBILE PERFORMANCE OPTIMIZATIONS --- */
+@media (max-width: 1024px) {
+  /* Disable heavy visual effects on mobile to maintain 60FPS */
+
+  /* Backdrop blur is extremely expensive on mobile GPUs */
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  [class*="backdrop-blur"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    /* Use a semi-transparent background as fallback */
+    background-color: rgba(10, 10, 10, 0.85) !important;
+  }
+
+  /* Reduce shadow complexity */
+  .shadow-2xl,
+  .shadow-xl {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Simplify or disable background animations */
+  .animate-float-slow,
+  .animate-float-delayed,
+  .animate-pulse-slow,
+  .animate-glow,
+  .animate-gradient-x {
+    animation: none !important;
+  }
+
+  /* Disable the heavy global filter for light mode on mobile if it exists */
+  /* This is a major source of lag on mobile devices */
+  html.light-mode {
+    filter: none !important;
+    background-color: #f0f0f0 !important;
+    color: #1a1a1a !important;
+  }
+
+  html.light-mode body {
+    background-color: #f0f0f0 !important;
+    color: #1a1a1a !important;
+  }
+
+  /* Optimize scrolling and touch */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Prevent layout shifts from images */
+  img {
+    content-visibility: auto;
+  }
+
+  /* Reduce glassmorphism intensity in specific widgets */
+  .gallery-red-overlay {
+    backdrop-filter: none !important;
+    background-color: rgba(255, 0, 51, 0.9) !important;
+  }
+
+  /* Article specific mobile adjustments */
+  .article-body-premium p {
+    margin-bottom: 25px !important;
+    /* Smaller spacing for mobile */
+  }
+
+  .drop-cap {
+    font-size: 5rem !important;
+    padding-top: 0 !important;
+  }
+
+  /* Spotify & Social widgets optimization */
+  .spotify-playlist-container,
+  [class*="snap-center"] {
+    backdrop-filter: none !important;
+    background-color: #121212 !important;
+  }
+}

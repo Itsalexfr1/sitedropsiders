@@ -1,34 +1,26 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
-import newsData from '../data/news.json';
+import recapsData from '../data/recaps.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
-import { getArticleLink } from '../utils/slugify';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
+import { getRecapLink } from '../utils/slugify';
 import { standardizeContent } from '../utils/standardizer';
+import { FlagIcon } from '../components/ui/FlagIcon';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
 import { Loader2 } from 'lucide-react';
 
-type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
-const TABS: { key: TabKey; label: string; color: string; borderColor: string; glowColor: string }[] = [
-    { key: 'all', label: 'Toutes', color: 'text-white', borderColor: 'border-white/40', glowColor: 'shadow-white/10' },
-    { key: 'news', label: 'News', color: 'text-neon-red', borderColor: 'border-neon-red/60', glowColor: 'shadow-neon-red/20' },
-    { key: 'musique', label: 'Musiques', color: 'text-neon-green', borderColor: 'border-neon-green/60', glowColor: 'shadow-neon-green/20' },
-    { key: 'focus', label: 'Focus de la semaine', color: 'text-yellow-400', borderColor: 'border-yellow-400/60', glowColor: 'shadow-yellow-400/20' },
-];
-
-export function News() {
+export function Recap() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [activeTab, setActiveTab] = useState<TabKey>('all');
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
@@ -38,57 +30,32 @@ export function News() {
     const handleEdit = async (item: any) => {
         setLoadingEditId(item.id);
         try {
-            const res = await fetch(`/api/news/content?id=${item.id}`, { headers: getAuthHeaders() });
+            const res = await fetch(`/api/recaps/content?id=${item.id}`, { headers: getAuthHeaders() });
             let fullItem = { ...item };
             if (res.ok) {
                 const data = await res.json();
                 fullItem.content = data.content || '';
             }
-            navigate(`/news/create?id=${item.id}`, { state: { isEditing: true, item: fullItem } });
+            navigate(`/recaps/create?id=${item.id}`, { state: { isEditing: true, item: fullItem } });
         } catch (e) {
             console.error('Error fetching content:', e);
-            navigate(`/news/create?id=${item.id}`, { state: { isEditing: true, item: item } });
+            navigate(`/recaps/create?id=${item.id}`, { state: { isEditing: true, item: item } });
         } finally {
             setLoadingEditId(null);
         }
     };
-    const articlesPerPage = 8;
+    const articlesPerPage = 8; // 2 rows of 4 items per page
+
+    const recaps = recapsData as any[];
+    const totalPages = Math.ceil(recaps.length / articlesPerPage);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
     const [translatedSummaries, setTranslatedSummaries] = useState<Record<number, string>>({});
 
-    // All news/musique/focus articles (base pool)
-    const baseNews = useMemo(() => {
-        return (newsData as any[]).filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
-        });
-    }, []);
-
-    // Filter based on current tab
-    const filteredNews = useMemo(() => {
-        if (activeTab === 'all') return baseNews;
-        if (activeTab === 'news') return baseNews.filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return (cat.includes('news') || cat === 'actualité' || cat === 'actualite') && !item.isFocus;
-        });
-        if (activeTab === 'musique') return baseNews.filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('musique') || cat.includes('music');
-        });
-        if (activeTab === 'focus') return baseNews.filter((item: any) => item.isFocus);
-        return baseNews;
-    }, [activeTab, baseNews]);
-
-    // Reset page when tab changes
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [activeTab]);
-
     useEffect(() => {
         if (language === 'en') {
             const startIndex = (currentPage - 1) * articlesPerPage;
-            const currentArticles = filteredNews.slice(startIndex, startIndex + articlesPerPage);
+            const currentArticles = recaps.slice(startIndex, startIndex + articlesPerPage);
 
             Promise.all(
                 currentArticles.map((item: any) =>
@@ -114,23 +81,16 @@ export function News() {
                 setTranslatedSummaries(summaryMap);
             });
         }
-    }, [language, currentPage, filteredNews]);
-
-    const totalPages = Math.ceil(filteredNews.length / articlesPerPage);
+    }, [language, currentPage, recaps]);
 
     const startIndex = (currentPage - 1) * articlesPerPage;
-    const currentArticles = filteredNews.slice(startIndex, startIndex + articlesPerPage);
+    const currentArticles = recaps.slice(startIndex, startIndex + articlesPerPage);
 
     const playHoverSound = useHoverSound();
 
     const handlePageChange = (newPage: number) => {
         setDirection(newPage > currentPage ? 1 : -1);
         setCurrentPage(newPage);
-    };
-
-    const handleTabChange = (tab: TabKey) => {
-        setDirection(0);
-        setActiveTab(tab);
     };
 
     const variants = {
@@ -150,62 +110,29 @@ export function News() {
         })
     };
 
+    const locale = language === 'fr' ? 'fr-FR' : 'en-US';
+
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
+                className="mb-12"
             >
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-neon-red/10 rounded-lg">
                         <svg className="w-6 h-6 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                         </svg>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('news.badge')}</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('recaps.badge')}</span>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('news.title')} <span className="text-[10px] text-white/20">v2.1</span>
+                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-6 uppercase tracking-tight">
+                    {t('recaps.title')} <span className="text-neon-red">{t('recaps.title_span')}</span>
                 </h1>
-                <p className="text-gray-400 max-w-2xl text-lg">
-                    {t('news.subtitle')}
+                <p className="text-gray-400 max-w-3xl text-lg leading-relaxed">
+                    {t('recaps.subtitle')}
                 </p>
-            </motion.div>
-
-            {/* ── Category Tabs ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="mb-10"
-            >
-                <div className="flex flex-wrap gap-3">
-                    {TABS.map((tab) => {
-                        const isActive = activeTab === tab.key;
-                        return (
-                            <motion.button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                className={`relative px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs transition-all duration-300 border
-                                    ${isActive
-                                        ? `${tab.color} ${tab.borderColor} bg-white/10 shadow-lg ${tab.glowColor}`
-                                        : 'text-gray-500 border-white/10 bg-white/5 hover:bg-white/10 hover:text-gray-300'
-                                    }`}
-                            >
-                                {tab.label}
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="tabUnderline"
-                                        className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${tab.color.replace('text-', 'bg-')}`}
-                                    />
-                                )}
-                            </motion.button>
-                        );
-                    })}
-                </div>
             </motion.div>
 
             <div className="relative">
@@ -227,7 +154,7 @@ export function News() {
                 <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
-                            key={`${activeTab}-${currentPage}`}
+                            key={currentPage}
                             custom={direction}
                             variants={variants}
                             initial="enter"
@@ -244,7 +171,7 @@ export function News() {
                                     <motion.article
                                         key={item.id}
                                         onMouseEnter={playHoverSound}
-                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative"
+                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-all duration-300 shadow-2xl hover:shadow-neon-red/20 relative"
                                     >
                                         {isAdmin && (
                                             <button
@@ -264,50 +191,55 @@ export function News() {
                                                 )}
                                             </button>
                                         )}
-                                        <Link to={getArticleLink(item)}>
-                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center">
+                                        <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
                                                 <img
-                                                    src={item.image}
+                                                    src={item.coverImage || item.image}
                                                     alt={item.title}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
+                                                {item.festival && (
+                                                    <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full">
+                                                        <span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span>
+                                                    </div>
+                                                )}
+                                                {item.location && (
+                                                    <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2">
+                                                        <span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span>
+                                                        <FlagIcon location={item.location} className="w-3.5 h-2.5" />
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="p-6">
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded-full border ${item.isFocus
-                                                        ? 'text-yellow-400 border-yellow-400/30'
-                                                        : (item.category || '').toLowerCase() === 'musique'
-                                                            ? 'text-neon-green border-neon-green/30'
-                                                            : 'text-neon-red border-neon-red/30'
-                                                        }`}>
-                                                        {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
-                                                    </span>
+                                                    <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
                                                     <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.date}</span>
+                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                                            {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
+                                                        </span>
                                                         <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
                                                     </div>
                                                 </div>
                                                 <h2
-                                                    className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors"
+                                                    className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                 />
                                                 <p
                                                     className="text-gray-400 text-sm line-clamp-3"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
                                                 />
-
                                             </div>
                                         </Link>
                                     </motion.article>
                                 ))
                             ) : (
-                                <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md gap-4">
-                                    <span className={`text-4xl`}>
-                                        {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
-                                    </span>
-                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
-                                        {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
-                                    </p>
+                                <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
+                                    <svg className="w-16 h-16 text-gray-600 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    </svg>
+                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg mb-2">{t('recaps.no_recaps')}</p>
+                                    <p className="text-gray-600 text-sm">{t('recaps.no_recaps_subtitle')}</p>
                                 </div>
                             )}
                         </motion.div>
@@ -362,3 +294,4 @@ export function News() {
         </div>
     );
 }
+

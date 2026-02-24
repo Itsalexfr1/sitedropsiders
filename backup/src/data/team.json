@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "name": "ALEX",
+    "role": "FONDATEUR / REDACTEUR",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818220/dropsiders/wcyxatveeurgu5s1fi3s.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/itsalex.fr1/",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 2,
+    "name": "KEVIN ",
+    "role": "PHOTOGRAPHE & VIDÉASTE",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818310/dropsiders/e2nt8hmtt0gyvmlxb2fu.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/kevinmiralla",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 3,
+    "name": "TIFFANY ",
+    "role": "RÉDACTRICE",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818347/dropsiders/txunljvoqbpi1k49nt2w.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/tiffdreamgarrix",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 4,
+    "name": "JULIEN",
+    "role": "PHOTOGRAPHE",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818449/dropsiders/daus7k4zpjneubdjfdw9.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/julien_b68",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 5,
+    "name": "TANGUY ",
+    "role": "RÉDACTEUR",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818490/dropsiders/ihz3zw9dcgn0bwtcftn9.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/tanguy_pllt",
+      "tiktok": "#"
+    }
+  },
+  {
+    "id": 6,
+    "name": "GUILLAUME ",
+    "role": "VIDÉASTE",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771818551/dropsiders/iu8hxmmrcts4cigtuosz.jpg",
+    "socials": {
+      "instagram": "https://www.instagram.com/guiyoome",
+      "tiktok": "#"
+    }
+  }
+]

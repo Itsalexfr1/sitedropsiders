@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1771898187946",
+    "subject": "test",
+    "date": "2026-02-24T01:56:27.946Z",
+    "recipientsCount": 3,
+    "fromAccount": "contact@dropsiders.fr"
+  },
+  {
+    "id": "1771898474776",
+    "subject": "NEWSLETTER TEST",
+    "date": "2026-02-24T02:01:14.776Z",
+    "recipientsCount": 2,
+    "fromAccount": "contact@dropsiders.fr"
+  },
+  {
+    "id": "1771898745897",
+    "subject": "test NEWSLETTER",
+    "date": "2026-02-24T02:05:45.897Z",
+    "recipientsCount": 2,
+    "fromAccount": "contact@dropsiders.fr"
+  },
+  {
+    "id": "1771901324891",
+    "subject": "Test",
+    "date": "2026-02-24T02:48:44.891Z",
+    "recipientsCount": 1,
+    "fromAccount": "contact@dropsiders.fr"
+  }
+]

@@ -1,0 +1,36 @@
+[
+  {
+    "id": "hero",
+    "enabled": true,
+    "accentColor": "red",
+    "videoUrl": "https://res.cloudinary.com/djnvjsmvr/video/upload/v1771818933/dropsiders/c4ffei18wcyyda4lyhmz.mp4"
+  },
+  {
+    "id": "news_grid",
+    "enabled": true,
+    "accentColor": "red"
+  },
+  {
+    "id": "recap_agenda_grid",
+    "enabled": true,
+    "accentColor": "orange",
+    "maxAgendaItems": 6,
+    "accentColor2": "#e1ff00"
+  },
+  {
+    "id": "interviews",
+    "enabled": true,
+    "accentColor": "purple"
+  },
+  {
+    "id": "social_grid",
+    "enabled": true,
+    "accentColor": "pink",
+    "accentColor2": "cyan"
+  },
+  {
+    "id": "spotify",
+    "enabled": true,
+    "accentColor": "green"
+  }
+]

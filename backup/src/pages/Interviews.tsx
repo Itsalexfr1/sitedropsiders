@@ -1,39 +1,27 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { Calendar, User, ArrowRight, Mail, ChevronLeft, ChevronRight, Edit2, Loader2 } from 'lucide-react';
+import { getAuthHeaders } from '../utils/auth';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
-import { getArticleLink } from '../utils/slugify';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
-import { standardizeContent } from '../utils/standardizer';
+import { getArticleLink } from '../utils/slugify';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
-import { getAuthHeaders } from '../utils/auth';
-import { Loader2 } from 'lucide-react';
 
-type TabKey = 'all' | 'news' | 'musique' | 'focus';
-
-const TABS: { key: TabKey; label: string; color: string; borderColor: string; glowColor: string }[] = [
-    { key: 'all', label: 'Toutes', color: 'text-white', borderColor: 'border-white/40', glowColor: 'shadow-white/10' },
-    { key: 'news', label: 'News', color: 'text-neon-red', borderColor: 'border-neon-red/60', glowColor: 'shadow-neon-red/20' },
-    { key: 'musique', label: 'Musiques', color: 'text-neon-green', borderColor: 'border-neon-green/60', glowColor: 'shadow-neon-green/20' },
-    { key: 'focus', label: 'Focus de la semaine', color: 'text-yellow-400', borderColor: 'border-yellow-400/60', glowColor: 'shadow-yellow-400/20' },
-];
-
-export function News() {
+export function Interviews() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
-    const [activeTab, setActiveTab] = useState<TabKey>('all');
+    const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
     }, []);
-    const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
     const handleEdit = async (item: any) => {
         setLoadingEditId(item.id);
@@ -44,62 +32,46 @@ export function News() {
                 const data = await res.json();
                 fullItem.content = data.content || '';
             }
-            navigate(`/news/create?id=${item.id}`, { state: { isEditing: true, item: fullItem } });
+            navigate(`/news/create?type=Interview&id=${item.id}`, { state: { isEditing: true, item: fullItem } });
         } catch (e) {
             console.error('Error fetching content:', e);
-            navigate(`/news/create?id=${item.id}`, { state: { isEditing: true, item: item } });
+            navigate(`/news/create?type=Interview&id=${item.id}`, { state: { isEditing: true, item: item } });
         } finally {
             setLoadingEditId(null);
         }
     };
+
     const articlesPerPage = 8;
+
+    const allInterviews = useMemo(() => {
+        return (newsData as any[])
+            .filter((item: any) => {
+                const cat = (item.category || '').toLowerCase();
+                return cat.includes('interview');
+            })
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, []);
+
+    const totalPages = Math.ceil(allInterviews.length / articlesPerPage);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
     const [translatedSummaries, setTranslatedSummaries] = useState<Record<number, string>>({});
 
-    // All news/musique/focus articles (base pool)
-    const baseNews = useMemo(() => {
-        return (newsData as any[]).filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
-        });
-    }, []);
-
-    // Filter based on current tab
-    const filteredNews = useMemo(() => {
-        if (activeTab === 'all') return baseNews;
-        if (activeTab === 'news') return baseNews.filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return (cat.includes('news') || cat === 'actualité' || cat === 'actualite') && !item.isFocus;
-        });
-        if (activeTab === 'musique') return baseNews.filter((item: any) => {
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('musique') || cat.includes('music');
-        });
-        if (activeTab === 'focus') return baseNews.filter((item: any) => item.isFocus);
-        return baseNews;
-    }, [activeTab, baseNews]);
-
-    // Reset page when tab changes
     useEffect(() => {
-        setCurrentPage(1);
-    }, [activeTab]);
+        const startIndex = (currentPage - 1) * articlesPerPage;
+        const currentArticles = allInterviews.slice(startIndex, startIndex + articlesPerPage);
 
-    useEffect(() => {
         if (language === 'en') {
-            const startIndex = (currentPage - 1) * articlesPerPage;
-            const currentArticles = filteredNews.slice(startIndex, startIndex + articlesPerPage);
-
             Promise.all(
                 currentArticles.map((item: any) =>
                     translateText(item.title, 'en').then(translated => ({ id: item.id, title: translated }))
                 )
             ).then(results => {
-                const titleMap: Record<number, string> = { ...translatedTitles };
+                const titleMap: Record<number, string> = {}; // Reset map for current page
                 results.forEach((res: any) => {
                     titleMap[res.id] = res.title;
                 });
-                setTranslatedTitles(titleMap);
+                setTranslatedTitles(prev => ({ ...prev, ...titleMap })); // Merge with previous translations
             });
 
             Promise.all(
@@ -107,30 +79,28 @@ export function News() {
                     translateText(item.summary, 'en').then(translated => ({ id: item.id, summary: translated }))
                 )
             ).then(results => {
-                const summaryMap: Record<number, string> = { ...translatedSummaries };
+                const summaryMap: Record<number, string> = {}; // Reset map for current page
                 results.forEach((res: any) => {
                     summaryMap[res.id] = res.summary;
                 });
-                setTranslatedSummaries(summaryMap);
+                setTranslatedSummaries(prev => ({ ...prev, ...summaryMap })); // Merge with previous translations
             });
+        } else {
+            // Clear translations if language is not English
+            setTranslatedTitles({});
+            setTranslatedSummaries({});
         }
-    }, [language, currentPage, filteredNews]);
+    }, [language, currentPage, allInterviews, articlesPerPage]);
 
-    const totalPages = Math.ceil(filteredNews.length / articlesPerPage);
-
-    const startIndex = (currentPage - 1) * articlesPerPage;
-    const currentArticles = filteredNews.slice(startIndex, startIndex + articlesPerPage);
+    const indexOfLastArticle = currentPage * articlesPerPage;
+    const indexOfFirstArticle = indexOfLastArticle - articlesPerPage;
+    const currentArticles = allInterviews.slice(indexOfFirstArticle, indexOfLastArticle);
 
     const playHoverSound = useHoverSound();
 
-    const handlePageChange = (newPage: number) => {
-        setDirection(newPage > currentPage ? 1 : -1);
-        setCurrentPage(newPage);
-    };
-
-    const handleTabChange = (tab: TabKey) => {
-        setDirection(0);
-        setActiveTab(tab);
+    const paginate = (pageNumber: number) => {
+        setDirection(pageNumber > currentPage ? 1 : -1);
+        setCurrentPage(pageNumber);
     };
 
     const variants = {
@@ -150,64 +120,36 @@ export function News() {
         })
     };
 
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+        });
+    };
+
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
+            {/* Header Section */}
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-8"
+                className="mb-16"
             >
                 <div className="flex items-center gap-3 mb-4">
                     <div className="p-2 bg-neon-red/10 rounded-lg">
                         <svg className="w-6 h-6 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
                         </svg>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('news.badge')}</span>
+                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('interviews.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('news.title')} <span className="text-[10px] text-white/20">v2.1</span>
+                    {t('interviews.title')} <span className="text-neon-red">{t('interviews.title_span')}</span>
                 </h1>
-                <p className="text-gray-400 max-w-2xl text-lg">
-                    {t('news.subtitle')}
-                </p>
             </motion.div>
 
-            {/* ── Category Tabs ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="mb-10"
-            >
-                <div className="flex flex-wrap gap-3">
-                    {TABS.map((tab) => {
-                        const isActive = activeTab === tab.key;
-                        return (
-                            <motion.button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                className={`relative px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs transition-all duration-300 border
-                                    ${isActive
-                                        ? `${tab.color} ${tab.borderColor} bg-white/10 shadow-lg ${tab.glowColor}`
-                                        : 'text-gray-500 border-white/10 bg-white/5 hover:bg-white/10 hover:text-gray-300'
-                                    }`}
-                            >
-                                {tab.label}
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="tabUnderline"
-                                        className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${tab.color.replace('text-', 'bg-')}`}
-                                    />
-                                )}
-                            </motion.button>
-                        );
-                    })}
-                </div>
-            </motion.div>
-
+            {/* Grid Section */}
             <div className="relative">
                 {/* Left Arrow */}
                 <AnimatePresence>
@@ -216,7 +158,7 @@ export function News() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            onClick={() => handlePageChange(currentPage - 1)}
+                            onClick={() => paginate(currentPage - 1)}
                             className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
                         >
                             <ChevronLeft className="w-16 h-16" strokeWidth={1} />
@@ -227,7 +169,7 @@ export function News() {
                 <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
-                            key={`${activeTab}-${currentPage}`}
+                            key={currentPage}
                             custom={direction}
                             variants={variants}
                             initial="enter"
@@ -237,14 +179,14 @@ export function News() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"
                         >
                             {currentArticles.length > 0 ? (
                                 currentArticles.map((item: any) => (
                                     <motion.article
                                         key={item.id}
                                         onMouseEnter={playHoverSound}
-                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative"
+                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 shadow-2xl flex flex-col"
                                     >
                                         {isAdmin && (
                                             <button
@@ -264,50 +206,56 @@ export function News() {
                                                 )}
                                             </button>
                                         )}
-                                        <Link to={getArticleLink(item)}>
-                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center">
+                                        <Link to={getArticleLink(item)} className="flex-1 flex flex-col">
+                                            <div className="relative aspect-[16/9] overflow-hidden">
                                                 <img
                                                     src={item.image}
                                                     alt={item.title}
-                                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded-full border ${item.isFocus
-                                                        ? 'text-yellow-400 border-yellow-400/30'
-                                                        : (item.category || '').toLowerCase() === 'musique'
-                                                            ? 'text-neon-green border-neon-green/30'
-                                                            : 'text-neon-red border-neon-red/30'
-                                                        }`}>
-                                                        {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-60" />
+                                                <div className="absolute top-4 left-4">
+                                                    <span className="px-3 py-1 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                                                        {t('home.interview_badge')}
                                                     </span>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.date}</span>
-                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="p-8 flex flex-col flex-1">
+                                                <div className="flex items-center gap-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-4">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Calendar className="w-3.5 h-3.5 text-neon-red" />
+                                                        {formatDate(item.date)}
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <User className="w-3.5 h-3.5 text-neon-red" />
+                                                        {item.author}
                                                     </div>
                                                 </div>
-                                                <h2
-                                                    className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                />
-                                                <p
-                                                    className="text-gray-400 text-sm line-clamp-3"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                />
 
+                                                <h2 className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors duration-300 line-clamp-2 uppercase italic tracking-tight leading-tight">
+                                                    {translatedTitles[item.id] || item.title}
+                                                </h2>
+
+                                                <p className="text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                                                    {translatedSummaries[item.id] || item.summary}
+                                                </p>
+
+                                                <div className="mt-auto flex items-center gap-2 text-white font-black text-[10px] uppercase tracking-widest group-hover:text-neon-red transition-colors">
+                                                    {t('interviews.read_more')}
+                                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                </div>
                                             </div>
                                         </Link>
                                     </motion.article>
                                 ))
                             ) : (
-                                <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md gap-4">
-                                    <span className={`text-4xl`}>
-                                        {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
-                                    </span>
-                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
-                                        {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
-                                    </p>
+                                <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/5 rounded-[40px] bg-white/[0.02] backdrop-blur-3xl">
+                                    <div className="w-20 h-20 rounded-full bg-neon-red/10 flex items-center justify-center mb-6">
+                                        <Calendar className="w-10 h-10 text-neon-red opacity-50" />
+                                    </div>
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">{t('interviews.no_interviews')}</h3>
+                                    <p className="text-gray-500 font-medium">{t('interviews.no_interviews_subtitle')}</p>
                                 </div>
                             )}
                         </motion.div>
@@ -321,7 +269,7 @@ export function News() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            onClick={() => handlePageChange(currentPage + 1)}
+                            onClick={() => paginate(currentPage + 1)}
                             className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
                         >
                             <ChevronRight className="w-16 h-16" strokeWidth={1} />
@@ -330,11 +278,11 @@ export function News() {
                 </AnimatePresence>
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination */}
             <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                onPageChange={handlePageChange}
+                onPageChange={paginate}
             />
             {/* Newsletter Section */}
             <motion.section

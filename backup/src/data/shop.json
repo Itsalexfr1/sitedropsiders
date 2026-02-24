@@ -1,0 +1,430 @@
+{
+  "products": [
+    {
+      "name": "Sacoche Dropsiders",
+      "price": "21.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771724160004-image_2026-02-22_023537913.png",
+      "description": "Where Is The Drop ?",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/sacoche-dropsiders",
+      "colors": [
+        "#ffffff"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771724172613-image_2026-02-22_023550560.png",
+      "id": 22,
+      "createdAt": "2026-02-22T01:36:27.951Z"
+    },
+    {
+      "name": "Bonnet Dropsiders (Logo Noir)",
+      "price": "17.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722808378-image_2026-02-22_021306269.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/bonnet-dropsiders-logo-noir",
+      "colors": [
+        "#f5f5dc",
+        "#6b7280",
+        "#000000"
+      ],
+      "colorImages": {
+        "#f5f5dc": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722846398-image_2026-02-22_021344304.png",
+        "#6b7280": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722862473-image_2026-02-22_021400398.png",
+        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722876357-image_2026-02-22_021414289.png"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722819529-image_2026-02-22_021317444.png",
+      "id": 21,
+      "createdAt": "2026-02-22T01:14:48.956Z"
+    },
+    {
+      "name": "Bonnet Dropsiders (Logo Blanc)",
+      "price": "17.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722722855-image_2026-02-22_021140681.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/bonnet-dropsiders",
+      "colors": [
+        "#000000",
+        "#2b65ec",
+        "#f5f5dc"
+      ],
+      "colorImages": {
+        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722753678-image_2026-02-22_021211599.png",
+        "#2b65ec": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722770771-image_2026-02-22_021228697.png",
+        "#f5f5dc": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722783149-image_2026-02-22_021241088.png"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771722733961-image_2026-02-22_021151893.png",
+      "id": 20,
+      "createdAt": "2026-02-22T01:13:08.456Z"
+    },
+    {
+      "name": "Coque Iphone Guetta Troll",
+      "price": "13.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721532426-image_2026-02-22_015150326.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-guetta-troll",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721549235-image_2026-02-22_015207147.png",
+      "id": 19,
+      "createdAt": "2026-02-22T00:52:33.414Z"
+    },
+    {
+      "name": "Coque Iphone Red/Black",
+      "price": "13.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721446027-image_2026-02-22_015023984.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-red-black",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721486830-image_2026-02-22_015104693.png",
+      "id": 18,
+      "createdAt": "2026-02-22T00:51:37.187Z"
+    },
+    {
+      "name": "Coque Iphone Red/Orange",
+      "price": "13.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721374298-image_2026-02-22_014912206.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-red-orange",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721387778-image_2026-02-22_014925745.png",
+      "id": 17,
+      "createdAt": "2026-02-22T00:49:52.338Z"
+    },
+    {
+      "name": "Gobelet Dropsiders Red 2",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721050554-image_2026-02-22_014348466.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-red-2",
+      "colors": [
+        "#7f1d1d"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721061780-image_2026-02-22_014359746.png",
+      "id": 16,
+      "createdAt": "2026-02-22T00:45:49.925Z",
+      "updatedAt": "2026-02-22T04:10:19.519Z"
+    },
+    {
+      "name": "Gobelet Dropsiders Yellow",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720900532-image_2026-02-22_014118451.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-yellow",
+      "colors": [
+        "#fde047"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720928846-image_2026-02-22_014146804.png",
+      "id": 15,
+      "createdAt": "2026-02-22T00:43:37.721Z"
+    },
+    {
+      "name": "Gobelet Dropsiders Blue",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720678745-image_2026-02-22_013736668.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-blue",
+      "colors": [
+        "#2b65ec"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720811720-image_2026-02-22_013949595.png",
+      "id": 14,
+      "createdAt": "2026-02-22T00:40:17.894Z"
+    },
+    {
+      "name": "Gobelet Dropsiders Red",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720620801-image_2026-02-22_013638722.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-red",
+      "colors": [
+        "#dc2626"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720631985-image_2026-02-22_013649955.png",
+      "id": 13,
+      "createdAt": "2026-02-22T00:37:23.197Z"
+    },
+    {
+      "name": "Gobelet Dropsiders White",
+      "price": "€12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720526796-image_2026-02-22_013504699.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-white",
+      "colors": [
+        "#ffffff"
+      ],
+      "colorImages": {
+        "#ffffff": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720562310-image_2026-02-22_013540258.png"
+      },
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720543016-image_2026-02-22_013520990.png",
+      "id": 12,
+      "createdAt": "2026-02-22T00:36:31.101Z"
+    },
+    {
+      "name": "Protection Airpods",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771716237323-image_2026-02-22_002335230.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/protection-airpods",
+      "colors": [
+        "#000000"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771716247682-image_2026-02-22_002345649.png",
+      "id": 11,
+      "createdAt": "2026-02-21T23:25:09.634Z"
+    },
+    {
+      "name": "Tee Shirt Logo White - Where Is The Drop ?",
+      "price": "17.50",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714745249-image_2026-02-21_235843172.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-where-is-the-drop",
+      "colors": [
+        "#000000",
+        "#dc2626",
+        "#bd00ff",
+        "#7c3aed",
+        "#38bdf8",
+        "#f472b6"
+      ],
+      "colorImages": {
+        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714796065-image_2026-02-21_235934036.png",
+        "#dc2626": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714811002-image_2026-02-21_235948946.png",
+        "#7c3aed": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714851437-image_2026-02-22_000029392.png",
+        "#bd00ff": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714868597-image_2026-02-22_000046560.png",
+        "#38bdf8": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714881080-image_2026-02-22_000059040.png",
+        "#f472b6": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714896682-image_2026-02-22_000114643.png"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714765991-image_2026-02-21_235903943.png",
+      "id": 10,
+      "createdAt": "2026-02-21T23:01:42.642Z",
+      "updatedAt": "2026-02-21T23:47:31.442Z"
+    },
+    {
+      "name": "Gourde Dropsiders White",
+      "price": "21.50",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713964862-image_2026-02-21_234542805.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gourde-dropsiders-white",
+      "colors": [
+        "#ffffff"
+      ],
+      "colorImages": {
+        "#ffffff": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713954955-image_2026-02-21_234532856.png"
+      },
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "",
+      "id": 9,
+      "createdAt": "2026-02-21T22:46:08.085Z"
+    },
+    {
+      "name": "Gourde Dropsiders Black",
+      "price": "21.50",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713886807-image_2026-02-21_234424754.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gourde-dropsiders-black",
+      "colors": [
+        "#000000"
+      ],
+      "colorImages": {
+        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713877213-image_2026-02-21_234415089.png"
+      },
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "",
+      "id": 8,
+      "createdAt": "2026-02-21T22:44:52.346Z"
+    },
+    {
+      "name": "Mug Dropsiders White x Couleurs",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713760922-image_2026-02-21_234218889.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white-x-couleurs",
+      "colors": [
+        "#000000",
+        "#7c3aed",
+        "#16a34a",
+        "#ff1241",
+        "#fb923c",
+        "#2dd4bf",
+        "#fde047"
+      ],
+      "colorImages": {
+        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713648646-image_2026-02-21_234026547.png",
+        "#7c3aed": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713665165-image_2026-02-21_234043122.png",
+        "#16a34a": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713679727-image_2026-02-21_234057694.png",
+        "#ff1241": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713694043-image_2026-02-21_234112005.png",
+        "#fb923c": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713706994-image_2026-02-21_234124964.png",
+        "#2dd4bf": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713725424-image_2026-02-21_234143396.png",
+        "#fde047": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713738802-image_2026-02-21_234156778.png"
+      },
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "",
+      "id": 7,
+      "createdAt": "2026-02-21T22:42:46.305Z"
+    },
+    {
+      "name": "Mug Dropsiders Full Black",
+      "price": "12.00",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712282965-image_2026-02-21_231740919.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712299138-image_2026-02-21_231757066.png",
+      "id": 6,
+      "createdAt": "2026-02-21T22:18:40.136Z",
+      "updatedAt": "2026-02-21T22:25:07.737Z"
+    },
+    {
+      "name": "Mug Dropsiders Full White ",
+      "price": "9.50",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712367270-image_2026-02-21_231905178.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white",
+      "colors": [
+        "#ffffff"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712405629-image_2026-02-21_231943508.png",
+      "id": 5,
+      "createdAt": "2026-02-21T22:15:09.859Z",
+      "updatedAt": "2026-02-21T22:25:18.098Z"
+    },
+    {
+      "name": "Tee Shirt Logo White Simple",
+      "price": "12.50",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711236632-image_2026-02-21_230014602.png",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-simple",
+      "colors": [
+        "#000000",
+        "#7c3aed",
+        "#c084fc",
+        "#6b7280",
+        "#ff1241",
+        "#db2777",
+        "#22c55e"
+      ],
+      "colorImages": {
+        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711719638-image_2026-02-21_230817532.png",
+        "#7c3aed": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711685363-image_2026-02-21_230743231.png",
+        "#c084fc": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711793522-image_2026-02-21_230931410.png",
+        "#6b7280": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711839993-image_2026-02-21_231017873.png",
+        "#ff1241": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711909298-image_2026-02-21_231127183.png",
+        "#db2777": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711926815-image_2026-02-21_231144755.png",
+        "#22c55e": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711946888-image_2026-02-21_231204855.png"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711252212-image_2026-02-21_230030175.png",
+      "id": 4,
+      "createdAt": "2026-02-21T22:00:54.017Z",
+      "updatedAt": "2026-02-21T22:25:28.457Z"
+    },
+    {
+      "name": "Tee Shirt Logo Black Simple",
+      "price": "12.50",
+      "image": "https://imgproxy.fourthwall.com/5iipO9qGbSnlVHmroZgCjA5Y82rAx28MZCQMVSDOBqI/w:1920/sm:1/enc/5VFeIYYkTx_WhvUS/YGYb0AS42ToocsGa/e1bef5_2UArmxW9G/FyvujxNxEj7vYlpX/53ecsmj15ozvxR69/4SmmyUCWHvNbDdNT/ckLmYJcjHbrqiaqF/Prx_sEwmueT5OOzS/De_3MQEap5ZRlk1a/G7zg9vkvbMUfDaUi/Vrwojg0abGouQyw4/p1oxM-hdrq2_e-_Y/MLR_r5EyyNqYZ3rZ/rLYXWqUgFZ8o9NKt/4lpqNuyiJAo",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-black-simple",
+      "colors": [
+        "#ffffff",
+        "#2dd4bf",
+        "#22c55e",
+        "#00fff3",
+        "#fca5a5",
+        "#99f6e4",
+        "#fde047",
+        "#f5f5dc"
+      ],
+      "colorImages": {
+        "#2dd4bf": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810935/dropsiders/uploads/vhpyrl7qbngqmvuwiqhp.jpg",
+        "#22c55e": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810935/dropsiders/uploads/nmusfah5wdu89tyd65s9.png",
+        "#ffffff": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810936/dropsiders/uploads/ead9fg4msl38sbdxbrdb.png",
+        "#00fff3": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810937/dropsiders/uploads/vgaov6dylqnfbiedshhc.png",
+        "#fca5a5": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711267595-Tee SHirt Saumon.png",
+        "#99f6e4": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711285702-Tee SHirt cyan foncé.png",
+        "#fde047": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711290739-Tee SHirt Jaune.png",
+        "#f5f5dc": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711296239-Tee SHirt blan creme.png"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://imgproxy.fourthwall.com/UodTuXtCt6KGMLqdxVu4l1Tzcn4OptyHlCv8bK24obA/w:1920/sm:1/enc/B2PNE0rO-2U2GBiD/cdAlg361v3viQq5n/TC370c78odi58kPW/VKVo-vS6JUquyTj3/SAo4jtk1ZQygRbHL/Y87Q0gn0AxxGGKxm/ADQvcP34A7gqzERB/hJf83wzS9TC9A-IG/J2vlQuAhQiJmyjT-/XcYILnTbYTjMSWzA/Ffo9dUiOc1EobY_D/ufKNgjmE7SkL7pcX/zAWWZJe14EIklJ-W/4aNOj_S66ZCBlwha/BBrqeAmpfcI",
+      "id": 3,
+      "createdAt": "2026-02-21T21:56:53.390Z",
+      "updatedAt": "2026-02-21T22:25:55.258Z"
+    },
+    {
+      "name": "Casquette Dropsiders (White)",
+      "price": "12.95",
+      "image": "https://imgproxy.fourthwall.com/EpTYdnxw-KNciozPkH7S1nxMaCTN8XzKtacooz3IVQ8/w:1920/sm:1/enc/wPbR3wBeAxJQyZVP/6DAa4Br21Pa37ZJi/OA0NUZPmRVohlGgy/O7M9NQYgOQmR-VGW/gYe1Yv4NIUEfWuC0/tGBrHD7Pz7ZV1Vy7/cogA1zHnplmcvZe1/wo2PeT57zUPDTeBU/NXdWZN1uVyY0tPuR/NQ9xEdW_XufgWytS/NdvzIjfwa9ElXrx9/ufDJh8LC_EDkrNrh/6k5I010OUh1uyQJQ/PWaOwPzRgsZ9eaWx/MSqrEeoyZHE",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/casquette-dropsiders-white",
+      "colors": [
+        "#ffffff"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://imgproxy.fourthwall.com/c5U0Z-I4SlTQS_UEIoWChCzl4YTvRYMihTLaBVWvguU/w:1920/sm:1/enc/hY4y6jn3ZovIgwYf/YIy2Fta6teAH-Cqb/ggYMpH5bCizOzTY_/SK5ewpSBKf1MjW63/5fIIW4rlXU2LPDGh/WmJFJtW_SLX22HdV/5DnWI8fG-l-bE9WW/KM_A36W6zg0dSGI7/-6RMRHMxAUFPENLr/NeIHyBHLYrLhrKfa/3RdHP6DVwFjjuq9P/oWvCuogoA960He2k/z-NGVKhgW7R5MiRz/CDkrlsrtt3-jsdkl/Dno9XRlz1Vk",
+      "id": 2,
+      "createdAt": "2026-02-21T21:45:24.464Z",
+      "updatedAt": "2026-02-21T22:25:42.528Z"
+    },
+    {
+      "name": "Casquette Dropsiders (Black)",
+      "price": "12.95",
+      "image": "https://imgproxy.fourthwall.com/YQStVTnJwa2r--q_gyShr1HC1FjbAqI2vqjPTREawGo/w:1920/sm:1/enc/Urdv5YiyQOIU9P5P/LMPbKV1EKvn5upbS/378mtd8AyGu_x-2m/zNMzW-bkLsGB-pGs/OfzQCpQFM4vHmBc2/PoJvKm25Es0XRjs9/XL1qWdpafp-L-WOx/evGEWBOqbtZsGcwI/QRAlVZgOUNBJST_5/ZmvOlUFVWSfyW9Fd/pF1FFCqouYL3XoCT/gwizLgT4YgBVADdL/Suj-8nATq0P4kAVm/wB0clB5WrzF9aYZT/cfmmWw-dL7o",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/casquette-dropsiders-black",
+      "colors": [
+        "#000000"
+      ],
+      "colorImages": {},
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://imgproxy.fourthwall.com/iwCBX1Yb1YXTFd1YisDML8uTBfL3C4bHvGpeK5eLUWE/w:1920/sm:1/enc/5cUG4ilGJoscs6UQ/Vdu7F_ttVZhjBxdK/A7drPjwAYLbWVVuI/SaON5MIXfqCNYKFm/xV9HiSc_Ut_7FBK8/IfDTb-VGjc1R7RhN/eNrf5_FLp535z0Mv/ZJGSzH1sSPru5mT8/y8qgU1V1al9cmKEN/HFvwvPXI3MGuoeIk/_mWSt-vj9_30rKEE/W0PSz90iJaEN63sx/UvuoEydrh4CWVS_r/xvomXGGIjC5h84we/hz7QGBEmLNE",
+      "id": 1,
+      "createdAt": "2026-02-21T21:43:49.291Z",
+      "updatedAt": "2026-02-21T22:25:36.028Z"
+    }
+  ]
+}
