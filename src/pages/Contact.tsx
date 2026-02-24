@@ -21,6 +21,14 @@ export function Contact() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validation manuelle rigoureuse
+        if (!formData.name.trim() || !formData.email.trim() || !formData.subject.trim() || !formData.message.trim()) {
+            setStatus('error');
+            setErrorMessage('Veuillez remplir tous les champs obligatoires.');
+            return;
+        }
+
         setStatus('loading');
         setErrorMessage('');
 
@@ -67,7 +75,7 @@ export function Contact() {
                         Nous <span className="text-neon-red">Contacter</span>
                     </h1>
                     <p className="text-gray-400 text-lg sm:text-xl font-medium tracking-wide max-w-xl mx-auto">
-                        Une question, une suggestion ou l'envie de rejoindre l'aventure et d'intégrer l'équipe ? Envoyez-nous un message, nous vous répondrons dans les plus brefs délais !
+                        Une question, une suggestion, un partenariat ou l'envie de rejoindre l'aventure et d'intégrer l'équipe ? Envoyez-nous un message, nous vous répondrons dans les plus brefs délais !
                     </p>
                 </motion.div>
 

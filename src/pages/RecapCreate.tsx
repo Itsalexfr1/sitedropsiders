@@ -620,16 +620,6 @@ export function RecapCreate() {
 
     const handleSubmit = async (e: React.FormEvent | MouseEvent) => {
         e.preventDefault();
-
-        // Validation stricte
-        const emptyWidgets = widgets.filter(w => !w.content || !w.content.replace(/<[^>]*>/g, '').trim());
-        if (!title || !coverImage || !summary || !date || emptyWidgets.length > 0) {
-            setStatus('error');
-            setMessage('Veuillez remplir TOUS les champs et blocs de texte obligatoires.');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            return;
-        }
-
         setStatus('loading');
         setMessage('Publication en cours...');
 
