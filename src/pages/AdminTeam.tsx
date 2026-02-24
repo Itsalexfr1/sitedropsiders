@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Music, Trash2 } from 'lucide-react';
+import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Trash2 } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -224,7 +224,13 @@ export function AdminTeam() {
 
                                         <div className="flex gap-3 pt-4 border-t border-white/5 mt-4">
                                             {member.socials.instagram && <Instagram className="w-4 h-4 text-gray-500" />}
-                                            {member.socials.tiktok && <Music className="w-4 h-4 text-gray-500" />}
+                                            {member.socials.tiktok && (
+                                                <img
+                                                    src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"
+                                                    alt="TikTok"
+                                                    className="w-4 h-4 object-contain opacity-50 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all invert"
+                                                />
+                                            )}
                                         </div>
                                     </div>
 
@@ -331,7 +337,7 @@ export function AdminTeam() {
                                         </div>
                                         <div>
                                             <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">
-                                                <Music className="w-3 h-3 text-neon-cyan" /> TikTok
+                                                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-3 h-3 object-contain invert" /> TikTok
                                             </label>
                                             <input
                                                 type="text"

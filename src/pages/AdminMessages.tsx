@@ -235,7 +235,7 @@ export function AdminMessages() {
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <button
                                         onClick={() => {
-                                            const sig = `\n\n\nCordialement,\nL'équipe Dropsiders\n\n——\nDROPSIDERS | News · Récaps Events · Interviews · Concours\n🌐 https://dropsiders.fr`;
+                                            const sig = `\n\n\n`;
                                             const quote = `\n\n---\n✉ Message original de ${selected.name}\nObjet : ${selected.subject}\n\n${selected.message}`;
                                             setReplyBody(sig + quote);
                                             setReplyModal(true);

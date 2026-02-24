@@ -1318,7 +1318,35 @@ export default {
                     sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
                     to: [{ email: to, name: name || to }],
                     subject: subject,
-                    htmlContent: `<div style="font-family:sans-serif;color:#fff;background:#111;padding:24px;border-radius:12px;max-width:600px">${message.replace(/\n/g, '<br>')}<br><br><hr style="border-color:#333"><p style="color:#888;font-size:12px">Dropsiders · contact@dropsiders.fr</p></div>`,
+                    htmlContent: `
+                        <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:40px 20px; text-align:center;">
+                            <div style="max-width:600px; margin:0 auto; background:#111111; border:1px solid #333333; border-radius:24px; overflow:hidden; text-align:left; box-shadow: 0 0 30px rgba(255,0,51,0.1);">
+                                <div style="padding:40px 30px;">
+                                    <div style="color:#ffffff; font-size:16px; line-height:1.6; margin-bottom:40px;">
+                                        ${message.replace(/\n/g, '<br>')}
+                                    </div>
+                                    
+                                    <div style="padding-top:30px; border-top:1px solid #333333;">
+                                        <div style="color:#ffffff; font-size:14px; font-weight:bold; line-height:1.4; margin-bottom:20px;">
+                                            Cordialement,<br>
+                                            L'équipe Dropsiders
+                                        </div>
+                                        
+                                        <div style="margin-top:20px;">
+                                            <a href="https://dropsiders.fr" style="display:inline-block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:10px; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(255,0,51,0.3);">
+                                                S'inscrire à la Newsletter
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="background:#000000; padding:20px; text-align:center; border-top:1px solid #333333;">
+                                    <p style="color:#666666; font-size:10px; margin:0; font-weight:bold; letter-spacing:2px; text-transform:uppercase;">
+                                        DROPSIDERS · News · Récaps Events · Interviews
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `,
                     replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
                 };
                 const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
