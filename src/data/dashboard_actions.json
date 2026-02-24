@@ -18,14 +18,14 @@
     "columns": 1
   },
   {
-    "title": "Messages",
-    "description": "Formulaire contact",
+    "title": "MESSAGERIE & CONTACT",
+    "description": "Accès Messagerie & Contact",
     "icon": "Mail",
     "link": "/admin/messages",
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
-    "permission": "all",
-    "baseColor": "#4c00ff",
+    "permission": "messages",
+    "baseColor": "orange",
     "columns": 1
   },
   {
@@ -131,7 +131,7 @@
     "bg": "bg-neon-purple/5",
     "permission": "all",
     "baseColor": "#ff0000",
-    "columns": 1
+    "columns": 2
   },
   {
     "title": "Éditeurs",
@@ -140,6 +140,6 @@
     "link": "/admin/editors",
     "baseColor": "#d24b4b",
     "permission": "all",
-    "columns": 1
+    "columns": 2
   }
 ]
