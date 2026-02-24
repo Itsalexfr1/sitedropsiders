@@ -236,6 +236,16 @@ export function AdminDashboard() {
                             </p>
                         </div>
                     </motion.div>
+
+                    <div className="mt-6 text-center">
+                        <Link
+                            to="/"
+                            className="inline-flex items-center gap-2 text-gray-500 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group"
+                        >
+                            <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                            Retour au site
+                        </Link>
+                    </div>
                 </div>
             </div>
         );
