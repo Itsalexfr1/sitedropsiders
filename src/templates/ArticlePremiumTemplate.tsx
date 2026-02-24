@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2, Instagram, Facebook, Twitter, Globe, Music, Youtube, Link2 } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
@@ -252,7 +252,50 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         return finalHtml;
     };
 
-    let displayContent = language === 'en' && translatedBody ? cleanHTML(translatedBody) : cleanHTML(content);
+    const platformIcons: Record<string, any> = {
+        website: Globe,
+        instagram: Instagram,
+        tiktok: Music,
+        youtube: Youtube,
+        facebook: Facebook,
+        x: Twitter,
+        twitter: Twitter,
+        spotify: Music,
+        soundcloud: Music
+    };
+
+    const processContent = (html: string) => {
+        if (!html) return { cleanHtml: '', socials: [], festivalSocials: [] };
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+        const socialsContainer = doc.querySelector('.artist-socials-premium');
+        let socials: { platform: string, url: string }[] = [];
+        if (socialsContainer) {
+            socials = Array.from(socialsContainer.querySelectorAll('a')).map(a => ({
+                platform: a.getAttribute('data-platform') || '',
+                url: a.getAttribute('href') || ''
+            }));
+            socialsContainer.remove();
+        }
+
+        const festSocialsContainer = doc.querySelector('.festival-socials-premium');
+        let festivalSocials: { platform: string, url: string }[] = [];
+        if (festSocialsContainer) {
+            festivalSocials = Array.from(festSocialsContainer.querySelectorAll('a')).map(a => ({
+                platform: a.getAttribute('data-platform') || '',
+                url: a.getAttribute('href') || ''
+            }));
+            festSocialsContainer.remove();
+        }
+
+        return { cleanHtml: doc.body.innerHTML, socials, festivalSocials };
+    };
+
+    const rawDisplayContent = language === 'en' && translatedBody ? cleanHTML(translatedBody) : cleanHTML(content);
+    const processedContent = processContent(rawDisplayContent);
+    let displayContent = processedContent.cleanHtml;
+    const artistSocials = processedContent.socials;
+    const festivalSocials = processedContent.festivalSocials;
     const isMusic = article.category === 'Musique' || article.category === 'Music';
 
     // Support Top Lists for Music Category
@@ -494,6 +537,54 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     className="article-body-premium w-full"
                                     dangerouslySetInnerHTML={{ __html: displayContent }}
                                 />
+
+                                {artistSocials && artistSocials.length > 0 && (
+                                    <div className="artist-socials-premium mt-12 pt-8 border-t border-white/10">
+                                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 text-center">SUIVEZ L'ARTISTE</h3>
+                                        <div className="flex flex-wrap justify-center gap-4">
+                                            {artistSocials.map((social, idx) => {
+                                                const Icon = platformIcons[social.platform] || Link2;
+                                                return (
+                                                    <a
+                                                        key={idx}
+                                                        href={social.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group hover:border-neon-red/50 hover:shadow-[0_0_20px_rgba(255,18,65,0.2)]"
+                                                    >
+                                                        <Icon className="w-4 h-4 text-neon-red group-hover:scale-110 transition-transform" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{social.platform}</span>
+                                                    </a>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {festivalSocials && festivalSocials.length > 0 && (
+                                    <div className="festival-socials-premium mt-12 pt-8 border-t border-white/10">
+                                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 text-center">LE FESTIVAL</h3>
+                                        <div className="flex flex-wrap justify-center gap-4">
+                                            {festivalSocials.map((social, idx) => {
+                                                const Icon = platformIcons[social.platform] || Link2;
+                                                return (
+                                                    <a
+                                                        key={idx}
+                                                        href={social.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all group hover:border-neon-cyan/50 hover:shadow-[0_0_20px_rgba(0,255,255,0.2)]"
+                                                    >
+                                                        <Icon className="w-4 h-4 text-neon-cyan group-hover:scale-110 transition-transform" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-white transition-colors">{social.platform}</span>
+                                                    </a>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+
 
                                 {/* Video Section - High Priority for Recap/Interview */}
                                 {article.youtubeId && (

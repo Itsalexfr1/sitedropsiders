@@ -23,6 +23,7 @@ export function AdminDashboard() {
     const [hasChanges, setHasChanges] = useState(false);
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+    const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
         text: '',
@@ -160,13 +161,11 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
-        { title: "News", description: "Gérer les actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
+        { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "News", description: "Gérer les actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "news", baseColor: "blue", columns: 1 },
         { title: "Musique", description: "Gérer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
-        { title: "Interviews", description: "Gérer les interviews", icon: "Mic", link: "/admin/manage?tab=Interviews", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Interview Écrite", description: "Nouveau format texte", icon: "FileText", link: "/news/create?type=Interview&subtype=written", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Interview Vidéo", description: "Nouveau format vidéo", icon: "Youtube", link: "/news/create?type=Interview&subtype=video", color: "border-red-600/20 hover:border-red-600", bg: "bg-red-600/5", permission: "publications", baseColor: "red", columns: 1 },
-        { title: "Récaps", description: "Gérer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
+        { title: "Interviews", description: "Gérer & Créer", icon: "Mic", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
+        { title: "Récaps", description: "Gérer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "recaps", baseColor: "red", columns: 1 },
         { title: "Agenda", description: "Gérer les dates", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
         { title: "Galeries", description: "Gérer les albums", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse du site", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
@@ -174,7 +173,7 @@ export function AdminDashboard() {
         { title: "Shop", description: "Gérer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
         { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
-        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
+        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 2 },
         { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 3 },
         { title: "Mots de passe", description: "Accès & Sécurité", icon: "Lock", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
         { title: "MESSAGERIE & CONTACT", description: "Accès Messagerie & Contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
@@ -328,7 +327,12 @@ export function AdminDashboard() {
     }
 
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const isAlex = localStorage.getItem('admin_user') === 'alex';
+
     const hasPermission = (p: string) => {
+        // Permission Maître (Alex uniquement pour superadmin)
+        if (p === 'superadmin') return isAlex;
+
         if (storedPermissions.includes('all')) return true;
 
         // Séparation des permissions d'action (create, edit, delete)
@@ -339,9 +343,9 @@ export function AdminDashboard() {
 
         if (storedPermissions.includes(p)) return true;
 
-        // Si l'utilisateur possède 'publications', il a accès par défaut aux sous-sections
+        // Si l'utilisateur possède 'publications', il a accès par défaut aux sous-sections éditoriales
         if (storedPermissions.includes('publications')) {
-            const editorialSubsets = ['agenda', 'galeries'];
+            const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries'];
             if (editorialSubsets.includes(p)) return true;
         }
 
@@ -425,7 +429,7 @@ export function AdminDashboard() {
     };
 
     const isAdminAcc = storedPermissions.includes('all');
-    const isAlex = localStorage.getItem('admin_user') === 'alex';
+    // isAlex already declared above at line 330
 
     const deployToProduction = async () => {
         setDeployStatus('loading');
@@ -764,6 +768,9 @@ export function AdminDashboard() {
                                         } else if (action.title === 'Bandeau') {
                                             e.preventDefault();
                                             setIsBannerModalOpen(true);
+                                        } else if (action.title === 'Interviews') {
+                                            e.preventDefault();
+                                            setIsInterviewModalOpen(true);
                                         }
                                     }}
                                     className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -1028,6 +1035,77 @@ export function AdminDashboard() {
                                     </div>
                                 </div>
                             </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Choix Interview */}
+            <AnimatePresence>
+                {isInterviewModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-right from-neon-purple via-neon-red to-neon-orange" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-purple">Interviews</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsInterviewModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                <Link
+                                    to="/news/create?type=Interview&subtype=written"
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                        <FileText className="w-6 h-6 text-neon-purple" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Écrite</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format texte</p>
+                                </Link>
+
+                                <Link
+                                    to="/news/create?type=Interview&subtype=video"
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                        <Youtube className="w-6 h-6 text-neon-red" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vidéo</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format vidéo</p>
+                                </Link>
+                            </div>
+
+                            <Link
+                                to="/admin/manage?tab=Interviews"
+                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
+                                        <Settings2 className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes interviews</h3>
+                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
+                                    </div>
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                            </Link>
                         </motion.div>
                     </div>
                 )}

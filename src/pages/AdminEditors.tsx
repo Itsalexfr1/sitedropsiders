@@ -16,6 +16,13 @@ interface Editor {
 
 const PERMISSION_CATEGORIES = [
     {
+        id: 'admin',
+        label: 'Rôle & Accès Maître',
+        permissions: [
+            { id: 'all', label: 'Administrateur (Tout)', description: 'Accès illimité à toutes les fonctionnalités et paramètres du site.' }
+        ]
+    },
+    {
         id: 'actions',
         label: "Droits d'Actions(Global)",
         permissions: [
@@ -28,7 +35,9 @@ const PERMISSION_CATEGORIES = [
         id: 'editorial',
         label: 'Contenu Éditorial',
         permissions: [
-            { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer les articles.' },
+            { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer tous les articles.' },
+            { id: 'news', label: 'Gestion News', description: 'Accéder uniquement à la rubrique actualités.' },
+            { id: 'recaps', label: 'Gestion Récaps', description: 'Accéder uniquement à la rubrique reportages/récaps.' },
             { id: 'agenda', label: 'Gestion Agenda', description: 'Gérer uniquement les dates et événements.' },
             { id: 'galeries', label: 'Gestion Galeries', description: 'Gérer uniquement les albums photos.' }
         ]
@@ -220,9 +229,16 @@ export function AdminEditors() {
                                             <User className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-bold text-white uppercase italic">
-                                                {editor.name || editor.username}
-                                            </h3>
+                                            <div className="flex items-center gap-3">
+                                                <h3 className="text-lg font-bold text-white uppercase italic">
+                                                    {editor.name || editor.username}
+                                                </h3>
+                                                {editor.permissions?.includes('all') && (
+                                                    <span className="px-2 py-0.5 bg-neon-red/20 border border-neon-red/40 text-neon-red text-[8px] font-black rounded uppercase tracking-widest animate-pulse">
+                                                        Admin
+                                                    </span>
+                                                )}
+                                            </div>
                                             <div className="flex items-center gap-3 text-sm">
                                                 <span className="text-neon-red font-mono opacity-70">@{editor.username}</span>
                                                 <span className="w-1 h-1 bg-white/20 rounded-full" />

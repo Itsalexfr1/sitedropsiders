@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, Twitter, Music } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -56,6 +56,14 @@ export function RecapCreate() {
     const [youtubeId, setYoutubeId] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
     const [author, setAuthor] = useState(localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
+    const [festivalSocials, setFestivalSocials] = useState({
+        website: '',
+        instagram: '',
+        tiktok: '',
+        youtube: '',
+        facebook: '',
+        x: ''
+    });
 
 
 
@@ -133,6 +141,24 @@ export function RecapCreate() {
                                 setIsFeatured(localItem.isFeatured || false);
                                 if (localItem.author) setAuthor(localItem.author);
                             }
+
+                            // Extract Festival Socials
+                            const festSocialsRegex = /<div class="festival-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
+                            const socialLinkRegex = /href="([^"]+)"[^>]*data-platform="([^"]+)"/g;
+                            const festSocialsMatch = (data.content || '').match(festSocialsRegex);
+                            if (festSocialsMatch) {
+                                const socialsContent = festSocialsMatch[1];
+                                let linkMatch;
+                                const newSocials = { ...festivalSocials };
+                                while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
+                                    const [_, url, platform] = linkMatch;
+                                    if (platform in newSocials) {
+                                        (newSocials as any)[platform] = url;
+                                    }
+                                }
+                                setFestivalSocials(newSocials);
+                            }
+
                             setWidgets([{ id: 'legacy-1', content: data.content }]);
                         }
                     }
@@ -193,7 +219,7 @@ export function RecapCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, summary, coverImage, widgets, date, festival, locationInput, youtubeId, isFeatured]);
+    }, [title, summary, coverImage, widgets, date, festival, locationInput, youtubeId, isFeatured, festivalSocials]);
 
 
 
@@ -635,9 +661,20 @@ export function RecapCreate() {
         setMessage('Publication en cours...');
 
         try {
+            const generateFestivalSocialsHtml = () => {
+                const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
+                if (activeSocials.length === 0) return '';
+
+                const linksHtml = activeSocials.map(([platform, url]) => {
+                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
+                }).join('');
+
+                return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">RESEAUX DU FESTIVAL</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+            };
+
             const finalContent = widgets.map(w =>
                 `<div class="article-section">\n\n${w.content}\n\n</div>`
-            ).join('\n\n');
+            ).join('\n\n') + (generateFestivalSocialsHtml() ? `\n\n<div class="article-section">${generateFestivalSocialsHtml()}</div>` : '');
 
             const endpoint = isEditing ? '/api/recaps/update' : '/api/recaps/create';
 
@@ -883,6 +920,39 @@ export function RecapCreate() {
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Festival Socials */}
+                        <div className="pt-8 border-t border-white/10 mt-4">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux du Festival (Optionnel)
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[
+                                    { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
+                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                    { id: 'tiktok', name: 'TikTok', icon: Music, color: 'text-neon-cyan' },
+                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                    { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
+                                ].map((social) => (
+                                    <div key={social.id}>
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                        <div className="relative group">
+                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                <social.icon className="w-full h-full" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={(festivalSocials as any)[social.id]}
+                                                onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
+                                                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="URL Festival..."
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
 

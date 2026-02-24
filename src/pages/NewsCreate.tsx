@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, Twitter, PartyPopper } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -72,12 +72,41 @@ export function NewsCreate() {
         { id: 'initial-1', content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
     ]);
 
+    const [interviewQuestions, setInterviewQuestions] = useState<{
+        id: string,
+        type: 'qa' | 'image' | 'video',
+        artistName?: string,
+        question?: string,
+        answer?: string,
+        mediaUrl?: string
+    }[]>([
+        { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', question: '', answer: '' }
+    ]);
+
     const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(type === 'Musique' ? 'Musique' : 'News');
     const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string, aspectRatio?: string, widgetId?: string }>({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto' });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2', index?: number, widgetId?: string }>({ type: 'main' });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
+    const [artistSocials, setArtistSocials] = useState({
+        website: '',
+        instagram: '',
+        tiktok: '',
+        youtube: '',
+        facebook: '',
+        x: '',
+        spotify: '',
+        soundcloud: ''
+    });
+    const [festivalSocials, setFestivalSocials] = useState({
+        website: '',
+        instagram: '',
+        tiktok: '',
+        youtube: '',
+        facebook: '',
+        x: ''
+    });
     const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
 
@@ -243,7 +272,7 @@ export function NewsCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, summary, imageUrl, widgets, date, category, youtubeId, isFeatured, musicItems]);
+    }, [title, summary, imageUrl, widgets, date, category, youtubeId, isFeatured, musicItems, artistSocials, interviewQuestions]);
 
 
 
@@ -278,8 +307,81 @@ export function NewsCreate() {
             setYoutubeId(editingItem.youtubeId || '');
             setIsFeatured(editingItem.isFeatured || false);
             setAuthor(editingItem.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
+            if (editingItem.category === 'Interview') {
+                setInterviewSubtype('written');
+                // Try to parse Q&A and Media
+                const singleSectionPattern = /<div class="article-section">([\s\S]*?)<\/div>/g;
+                const qnaRegex = /<p><strong[^>]*>DROPSIDERS\s*:\s*<\/strong>\s*([\s\S]*?)<\/p>\s*<p><strong[^>]*>(.*?)\s*:\s*<\/strong>\s*([\s\S]*?)<\/p>/i;
+                const imgRegex = /<div class="image-premium-wrapper[^>]*>[\s\S]*?<img src="([^"]*)"/i;
+                const vidRegex = /<div class="youtube-player-widget[^>]*>[\s\S]*?src="https:\/\/www\.youtube\.com\/embed\/([^"? ]*)/i;
+                const socialsRegex = /<div class="artist-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
+                const socialLinkRegex = /href="([^"]+)"[^>]*data-platform="([^"]+)"/g;
 
-            if (editingItem.category === 'Musique') {
+                const socialsMatch = (editingItem.content || '').match(socialsRegex);
+                if (socialsMatch) {
+                    const socialsContent = socialsMatch[1];
+                    let linkMatch;
+                    const newSocials = { ...artistSocials };
+                    while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
+                        const [_, url, platform] = linkMatch;
+                        if (platform in newSocials) {
+                            (newSocials as any)[platform] = url;
+                        }
+                    }
+                    setArtistSocials(newSocials);
+                }
+
+                const festSocialsRegex = /<div class="festival-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
+                const festSocialsMatch = (editingItem.content || '').match(festSocialsRegex);
+                if (festSocialsMatch) {
+                    const socialsContent = festSocialsMatch[1];
+                    let linkMatch;
+                    const newSocials = { ...festivalSocials };
+                    while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
+                        const [_, url, platform] = linkMatch;
+                        if (platform in newSocials) {
+                            (newSocials as any)[platform] = url;
+                        }
+                    }
+                    setFestivalSocials(newSocials);
+                }
+
+                const foundBlocks: { id: string, type: 'qa' | 'image' | 'video', question?: string, artistName?: string, answer?: string, mediaUrl?: string }[] = [];
+                let sectionMatch;
+                while ((sectionMatch = singleSectionPattern.exec(editingItem.content || '')) !== null) {
+                    const sectionContent = sectionMatch[1];
+                    const qnaMatch = sectionContent.match(qnaRegex);
+                    const imgMatch = sectionContent.match(imgRegex);
+                    const vidMatch = sectionContent.match(vidRegex);
+
+                    if (qnaMatch) {
+                        foundBlocks.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            type: 'qa',
+                            question: qnaMatch[1].trim(),
+                            artistName: qnaMatch[2].trim(),
+                            answer: qnaMatch[3].trim()
+                        });
+                    } else if (imgMatch) {
+                        foundBlocks.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            type: 'image',
+                            mediaUrl: imgMatch[1]
+                        });
+                    } else if (vidMatch) {
+                        foundBlocks.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            type: 'video',
+                            mediaUrl: vidMatch[1]
+                        });
+                    }
+                }
+                if (foundBlocks.length > 0) {
+                    setInterviewQuestions(foundBlocks);
+                    // Also clear widgets to avoid duplicate editing UI
+                    setWidgets([]);
+                }
+            } else if (editingItem.category === 'Musique') {
                 setActiveTab('Musique');
                 // Try to parse music items
                 const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
@@ -782,6 +884,28 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             let isFocus = activeTab === 'Focus';
             let finalImageUrl = imageUrl;
 
+            const generateSocialsHtml = () => {
+                const activeSocials = Object.entries(artistSocials).filter(([_, url]) => url && url.trim() !== '');
+                if (activeSocials.length === 0) return '';
+
+                const linksHtml = activeSocials.map(([platform, url]) => {
+                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link">${platform}</a>`;
+                }).join('');
+
+                return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">SUIVEZ L'ARTISTE</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+            };
+
+            const generateFestivalSocialsHtml = () => {
+                const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
+                if (activeSocials.length === 0) return '';
+
+                const linksHtml = activeSocials.map(([platform, url]) => {
+                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
+                }).join('');
+
+                return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">RESEAUX DU FESTIVAL</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+            };
+
             if (isInterviewVideo) {
                 finalCategory = 'Interview Video';
                 if (!finalImageUrl && youtubeId) {
@@ -791,7 +915,33 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 <div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
   <iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
 </div>
+${generateSocialsHtml()}
+${generateFestivalSocialsHtml()}
 </div>`;
+            } else if (type === 'Interview' && interviewSubtype === 'written') {
+                finalCategory = 'Interview';
+                const interviewHtml = interviewQuestions.map(q => {
+                    if (q.type === 'qa') {
+                        return `<div class="article-section">
+    <p><strong style="color: #ff1241">DROPSIDERS :</strong> ${q.question}</p>
+    <p><strong style="color: #ff1241">${(q.artistName || '').toUpperCase()} :</strong> ${q.answer}</p>
+</div>`;
+                    } else if (q.type === 'image') {
+                        return `<div class="article-section">
+<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+  <img src="${q.mediaUrl}" alt="Interview Image" class="w-full h-auto object-cover" />
+</div>
+</div>`;
+                    } else if (q.type === 'video') {
+                        return `<div class="article-section">
+<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+  <iframe src="https://www.youtube.com/embed/${q.mediaUrl}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+</div>
+</div>`;
+                    }
+                    return '';
+                }).join('\n');
+                finalContent = interviewHtml + (interviewHtml ? `\n<div class="article-section">${generateSocialsHtml()} ${generateFestivalSocialsHtml()}</div>` : '');
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
                 const musicHtml = musicItems.map((item) => `
@@ -803,13 +953,17 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         ${renderMediaEmbed(item.media)}
     </div>
 </div>`).join('\n');
-                finalContent = `<div class="article-section music-top-section">\n\n${musicHtml}\n\n</div>`;
+                finalContent = `<div class="article-section music-top-section">\n\n${musicHtml}\n\n${generateFestivalSocialsHtml()}\n\n</div>`;
             } else {
                 if (type === 'Interview') finalCategory = 'Interview';
                 // Construct Final Content with HTML Wrappers for Automatic Styling
                 finalContent = widgets.map(w =>
                     `<div class="article-section">\n\n${w.content}\n\n</div>`
                 ).join('\n\n');
+
+                if (generateFestivalSocialsHtml()) {
+                    finalContent += `\n\n<div class="article-section">${generateFestivalSocialsHtml()}</div>`;
+                }
             }
 
             const payload = {
@@ -1151,8 +1305,225 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                             </div>
                         </div>
 
-                        {/* WIDGET EDITOR SECTION (News & Focus & Written Interviews) */}
-                        {((activeTab === 'News' || activeTab === 'Focus') && !(type === 'Interview' && interviewSubtype === 'video')) && (
+                        {/* ARTIST SOCIALS (Only for Interviews) */}
+                        {type === 'Interview' && (
+                            <div className="pt-8 border-t border-white/10 mt-4">
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
+                                </label>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {[
+                                        { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
+                                        { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                        { id: 'tiktok', name: 'TikTok', icon: Music, color: 'text-neon-cyan' },
+                                        { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                        { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                        { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
+                                        { id: 'spotify', name: 'Spotify', icon: Music, color: 'text-green-500' },
+                                        { id: 'soundcloud', name: 'SoundCloud', icon: Music, color: 'text-orange-500' }
+                                    ].map((social) => (
+                                        <div key={social.id}>
+                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                            <div className="relative group">
+                                                <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                    <social.icon className="w-full h-full" />
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={(artistSocials as any)[social.id]}
+                                                    onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
+                                                    className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                                    placeholder="URL..."
+                                                />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+
+                        {/* FESTIVAL SOCIALS (For all News/Interviews) */}
+                        <div className="pt-8 border-t border-white/10 mt-4">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
+                            </label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[
+                                    { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
+                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                    { id: 'tiktok', name: 'TikTok', icon: Music, color: 'text-neon-cyan' },
+                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                    { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
+                                ].map((social) => (
+                                    <div key={social.id}>
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                        <div className="relative group">
+                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                <social.icon className="w-full h-full" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={(festivalSocials as any)[social.id]}
+                                                onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
+                                                className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="URL Festival..."
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+
+                        {/* WRITTEN INTERVIEW Q&A EDITOR */}
+                        {(type === 'Interview' && interviewSubtype === 'written') && (
+                            <div className="pt-8 border-t border-white/10 mt-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                    <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                        <List className="w-4 h-4 text-neon-purple" /> Studio Interview
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        <button
+                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: interviewQuestions.find(q => q.type === 'qa')?.artistName || '', question: '', answer: '' }])}
+                                            className="flex items-center gap-2 px-4 py-2 bg-neon-purple text-white rounded-full hover:bg-neon-purple/80 transition-all font-black uppercase tracking-widest text-[9px] shadow-lg shadow-neon-purple/20"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" /> Question
+                                        </button>
+                                        <button
+                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' }])}
+                                            className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-black uppercase tracking-widest text-[9px]"
+                                        >
+                                            <ImageIcon className="w-3.5 h-3.5" /> Photo
+                                        </button>
+                                        <button
+                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' }])}
+                                            className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/30 text-red-600 rounded-full hover:bg-red-600/20 transition-all font-black uppercase tracking-widest text-[9px]"
+                                        >
+                                            <Youtube className="w-3.5 h-3.5" /> Vidéo
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {interviewQuestions.map((q, idx) => (
+                                        <div key={q.id} className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
+                                                    {idx + 1}
+                                                </span>
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : 'Bloc Vidéo'}
+                                                </h4>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                {q.type === 'qa' ? (
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        <div className="space-y-2">
+                                                            <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
+                                                                DROPSIDERS (Question)
+                                                            </label>
+                                                            <textarea
+                                                                value={q.question}
+                                                                onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: e.target.value } : item))}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none transition-all min-h-[80px]"
+                                                                placeholder="Écrivez votre question ici..."
+                                                            />
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
+                                                                    NOM ARTISTE
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={q.artistName}
+                                                                    onChange={(e) => {
+                                                                        const newName = e.target.value;
+                                                                        setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistName: newName } : item));
+                                                                    }}
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none uppercase font-bold"
+                                                                    placeholder="Ex: ANYMA"
+                                                                />
+                                                            </div>
+                                                            <div className="md:col-span-3 space-y-2">
+                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
+                                                                    RÉPONSE
+                                                                </label>
+                                                                <textarea
+                                                                    value={q.answer}
+                                                                    onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: e.target.value } : item))}
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none transition-all min-h-[120px]"
+                                                                    placeholder="La réponse de l'artiste..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : q.type === 'image' ? (
+                                                    <div className="flex gap-4 items-center">
+                                                        <div className="flex-1 space-y-2">
+                                                            <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest ml-1">URL de l'image</label>
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={q.mediaUrl}
+                                                                    onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: e.target.value } : item))}
+                                                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-neon-cyan"
+                                                                    placeholder="https://..."
+                                                                />
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setUploadTarget({ type: 'interview-media', interviewBlockId: q.id });
+                                                                        setShowUploadModal(true);
+                                                                    }}
+                                                                    className="px-4 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl font-bold text-[10px] uppercase hover:bg-neon-cyan/30 transition-all"
+                                                                >
+                                                                    Upload
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        {q.mediaUrl && (
+                                                            <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
+                                                                <img src={q.mediaUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">Lien ou ID YouTube</label>
+                                                        <input
+                                                            type="text"
+                                                            value={q.mediaUrl}
+                                                            onChange={(e) => {
+                                                                let val = e.target.value;
+                                                                if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
+                                                                else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
+                                                                setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+                                                            }}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-red-600"
+                                                            placeholder="Ex: dQw4w9WgXcQ"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <button
+                                                onClick={() => setInterviewQuestions(interviewQuestions.filter(item => item.id !== q.id))}
+                                                className="absolute top-6 right-6 p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all bg-white/5 rounded-xl hover:bg-neon-red/10 border border-transparent hover:border-neon-red/20"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* WIDGET EDITOR SECTION (News & Focus) */}
+                        {((activeTab === 'News' || activeTab === 'Focus') && type !== 'Interview') && (
                             <div className="pt-8 border-t border-white/10">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                     <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
@@ -1976,6 +2347,8 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                             setDuoModal(prev => ({ ...prev, url1: url }));
                         } else if (uploadTarget.type === 'duo2' as any) {
                             setDuoModal(prev => ({ ...prev, url2: url }));
+                        } else if (uploadTarget.type === 'interview-media') {
+                            setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: url } : q));
                         } else if (uploadTarget.type === 'widget-edit' as any) {
                             const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
                             updateWidget(uploadTarget.widgetId!, imgWidget);
