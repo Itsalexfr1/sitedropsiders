@@ -5,5 +5,12 @@
     "date": "2026-02-24T01:56:27.946Z",
     "recipientsCount": 3,
     "fromAccount": "contact@dropsiders.fr"
+  },
+  {
+    "id": "1771898474776",
+    "subject": "NEWSLETTER TEST",
+    "date": "2026-02-24T02:01:14.776Z",
+    "recipientsCount": 2,
+    "fromAccount": "contact@dropsiders.fr"
   }
 ]
