@@ -7,14 +7,5 @@
     "permissions": [
       "publications"
     ]
-  },
-  {
-    "username": "alex",
-    "password": "2026",
-    "name": "Alex",
-    "permissions": [
-      "all"
-    ],
-    "created": "2026-02-22T03:04:51.629Z"
   }
 ]
