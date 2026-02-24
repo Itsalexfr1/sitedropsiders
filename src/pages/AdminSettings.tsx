@@ -6,33 +6,45 @@ import { getAuthHeaders } from '../utils/auth';
 
 export function AdminSettings() {
     const navigate = useNavigate();
-    const [emailPassword, setEmailPassword] = useState('2026');
+    const [emailPassword, setEmailPassword] = useState('');
+    const [shopPassword, setShopPassword] = useState('');
+    const [kitMediaPassword, setKitMediaPassword] = useState('');
+    const [adminPassword, setAdminPassword] = useState('');
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
 
-    const isAlex = localStorage.getItem('admin_user') === 'alex';
+    const currentUser = localStorage.getItem('admin_user');
+    const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const isAdmin = storedPermissions.includes('all');
 
     useEffect(() => {
-        if (!isAlex) {
+        if (!isAdmin) {
             navigate('/admin');
             return;
         }
 
-        const fetchSettings = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/settings');
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.email_password) {
-                        setEmailPassword(data.email_password);
-                    }
+                const resSets = await fetch('/api/settings');
+                if (resSets.ok) {
+                    const data = await resSets.json();
+                    if (data.email_password) setEmailPassword(data.email_password);
+                    if (data.shop_password) setShopPassword(data.shop_password);
+                    if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
+                }
+
+                const resAuth = await fetch('/api/editors');
+                if (resAuth.ok) {
+                    const eds = await resAuth.json();
+                    const me = eds.find((e: any) => e.username === currentUser);
+                    if (me) setAdminPassword(me.password);
                 }
             } catch (e) {
-                console.error('Failed to fetch settings');
+                console.error('Failed to fetch data', e);
             }
         };
-        fetchSettings();
-    }, [isAlex, navigate]);
+        fetchData();
+    }, [isAdmin, currentUser, navigate]);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -43,7 +55,9 @@ export function AdminSettings() {
 
             const newSettings = {
                 ...data,
-                email_password: emailPassword
+                email_password: emailPassword,
+                shop_password: shopPassword,
+                kit_media_password: kitMediaPassword
             };
 
             const saveRes = await fetch('/api/settings/update', {
@@ -52,8 +66,27 @@ export function AdminSettings() {
                 body: JSON.stringify(newSettings)
             });
 
+            const resAuth = await fetch('/api/editors');
+            if (resAuth.ok) {
+                const eds = await resAuth.json();
+                const me = eds.find((e: any) => e.username === currentUser);
+                if (me && me.password !== adminPassword) {
+                    await fetch('/api/editors/update', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({
+                            username: currentUser,
+                            password: adminPassword,
+                            name: me.name,
+                            permissions: me.permissions
+                        })
+                    });
+                    localStorage.setItem('admin_password', adminPassword);
+                }
+            }
+
             if (saveRes.ok) {
-                setMessage('Paramètres enregistrés avec succès !');
+                setMessage('Mots de passe enregistrés !');
                 setTimeout(() => setMessage(''), 3000);
             } else {
                 setMessage('Erreur lors de l\'enregistrement');
@@ -65,7 +98,7 @@ export function AdminSettings() {
         }
     };
 
-    if (!isAlex) return null;
+    if (!isAdmin) return null;
 
     return (
         <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
@@ -81,9 +114,9 @@ export function AdminSettings() {
                         </button>
                         <div>
                             <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-purple">Settings</span>
+                                Studio <span className="text-neon-purple">Passwords</span>
                             </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">Configuration réservée à l'administrateur principal.</p>
+                            <p className="text-gray-400 mt-2 text-sm md:text-base">Gérer tous les mots de passe du site au même endroit.</p>
                         </div>
                     </div>
 
@@ -107,13 +140,80 @@ export function AdminSettings() {
                             <div className="p-3 bg-neon-purple/10 rounded-2xl">
                                 <ShieldCheck className="w-6 h-6 text-neon-purple" />
                             </div>
-                            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Accès Messagerie</h2>
+                            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Gestion des Clés d'Accès</h2>
                         </div>
 
-                        <div className="space-y-6">
+                        <div className="space-y-8">
+                            {/* Admin Password */}
+                            <div className="pb-8 border-b border-white/5">
+                                <label className="block text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-3 ml-1">
+                                    MON MOT DE PASSE (TABLEAU DE BORD)
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <Lock className="w-5 h-5 text-neon-cyan/50" />
+                                    </div>
+                                    <input
+                                        type="password"
+                                        value={adminPassword}
+                                        onChange={(e) => setAdminPassword(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-cyan transition-all"
+                                        placeholder="EX: MOTDEPASSE"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
+                                    Mot de passe pour accéder à votre espace administrateur personnel ({currentUser}).
+                                </p>
+                            </div>
+
+                            {/* Shop Password */}
+                            <div className="pb-8 border-b border-white/5">
+                                <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3 ml-1">
+                                    MOT DE PASSE (SHOP PRIVÉ)
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <Lock className="w-5 h-5 text-neon-red/50" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={shopPassword}
+                                        onChange={(e) => setShopPassword(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-red transition-all"
+                                        placeholder="EX: DROPSIDERS2026"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
+                                    Protège l'accès anticipé à la nouvelle collection.
+                                </p>
+                            </div>
+
+                            {/* Kit Media Password */}
+                            <div className="pb-8 border-b border-white/5">
+                                <label className="block text-[10px] font-black text-neon-blue uppercase tracking-widest mb-3 ml-1">
+                                    MOT DE PASSE (KIT MEDIA EXTERNE)
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <Lock className="w-5 h-5 text-neon-blue/50" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={kitMediaPassword}
+                                        onChange={(e) => setKitMediaPassword(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-blue transition-all"
+                                        placeholder="EX: CONTACTDROP"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
+                                    Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
+                                </p>
+                            </div>
+
+                            {/* Mail Section Password */}
                             <div>
                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">
-                                    Mot de passe de la section Mails
+                                    MOT DE PASSE (SECTION EMAILS LWS)
                                 </label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
@@ -123,12 +223,12 @@ export function AdminSettings() {
                                         type="text"
                                         value={emailPassword}
                                         onChange={(e) => setEmailPassword(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-purple transition-all"
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-white transition-all"
                                         placeholder="EX: 2026"
                                     />
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
-                                    Ce mot de passe protège l'accès à la page /admin/emails pour tous les éditeurs ayant la permission 'mail'.
+                                    Protège la section /admin/emails au sein du dashboard.
                                 </p>
                             </div>
                         </div>

@@ -34,7 +34,7 @@ const KitMedia = () => {
         try {
             const res = await fetch('/api/settings');
             const data = await res.json();
-            const correctPass = data.email_password || '2026';
+            const correctPass = data.kit_media_password || data.email_password || '2026';
 
             if (password.toUpperCase() === correctPass.toUpperCase()) {
                 setIsAuthenticated(true);

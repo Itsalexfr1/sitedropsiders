@@ -12,6 +12,7 @@ export function Shop() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [passwordInput, setPasswordInput] = useState('');
     const [passwordError, setPasswordError] = useState(false);
+    const [shopAuthPassword, setShopAuthPassword] = useState((initialSettings as any).shop_password || '2026');
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState<'Tous' | 'Vetements' | 'Accessoires'>('Tous');
@@ -30,6 +31,7 @@ export function Shop() {
                     setIsEnabled(data.shop_enabled);
                     setIsPasswordProtected(data.shop_password_protected || false);
                     setPasswordImage(data.shop_password_image || '');
+                    setShopAuthPassword(data.shop_password || '2026');
                 }
 
                 if (productsRes.ok) {
@@ -47,7 +49,7 @@ export function Shop() {
 
     const handlePasswordSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (passwordInput.toUpperCase() === '2026') {
+        if (passwordInput.toUpperCase() === shopAuthPassword.toUpperCase()) {
             setIsAuthenticated(true);
             setPasswordError(false);
         } else {
