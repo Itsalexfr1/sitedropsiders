@@ -363,9 +363,19 @@ export function NewsCreate() {
 
     const insertLinkToActiveWidget = (id: string | null) => {
         const activeEl = document.activeElement;
-        const isCorrectTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
 
+        if (isVisualEditor) {
+            const url = prompt('ENTREZ L\'URL DU LIEN :');
+            if (url) {
+                document.execCommand('createLink', false, url);
+                const event = new Event('input', { bubbles: true });
+                activeEl.dispatchEvent(event);
+            }
+            return;
+        }
+
+        const isCorrectTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
         const widgetId = id || (activeEl ? activeEl.getAttribute('data-widget-id') : null);
         if (!widgetId) return;
 
@@ -378,8 +388,6 @@ export function NewsCreate() {
             selection = ta.value.substring(ta.selectionStart, ta.selectionEnd);
             start = ta.selectionStart;
             end = ta.selectionEnd;
-        } else if (isVisualEditor) {
-            selection = window.getSelection()?.toString() || '';
         }
 
         setLinkModal({
@@ -1117,13 +1125,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                         </button>
                                         <button
                                             type="button"
-                                            onClick={() => setMediaModal({ show: true, type: 'image', url: '', urls: '' })}
-                                            className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Plus className="w-3 h-3" /> Image (URL)
-                                        </button>
-                                        <button
-                                            type="button"
                                             onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                             className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                         >
@@ -1422,14 +1423,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                                         title="Ajouter du texte ici"
                                                     >
                                                         <FileText className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setMediaModal({ show: true, type: 'image', url: '', urls: '', widgetIndex: index } as any)}
-                                                        className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all"
-                                                        title="Ajouter une image ici"
-                                                    >
-                                                        <ImageIcon className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         type="button"
