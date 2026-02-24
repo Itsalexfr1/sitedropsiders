@@ -547,43 +547,65 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                 {/* Previous / Next Buttons */}
                                 {(previousArticle || nextArticle) && (
-                                    <div className="mt-16 pt-16 border-t border-white/5 grid grid-cols-2 gap-8">
-                                        <div className="flex justify-start">
-                                            {previousArticle && (
-                                                <Link
-                                                    to={type === 'recap' ? getRecapLink(previousArticle) : getArticleLink(previousArticle)}
-                                                    className="group flex flex-col items-start gap-3 max-w-[150px]"
-                                                    onMouseEnter={playHoverSound}
-                                                >
-                                                    <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase">{t('article_detail.previous')}</span>
-                                                    <div className="flex items-center gap-3">
-                                                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
-                                                            <ArrowLeft className="w-3 h-3 text-white" />
+                                    <div className="mt-16 pt-16 border-t border-white/5">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                            {/* Précédent */}
+                                            <div>
+                                                {previousArticle ? (
+                                                    <Link
+                                                        to={type === 'recap' ? getRecapLink(previousArticle) : getArticleLink(previousArticle)}
+                                                        className="group flex flex-col gap-4 p-5 bg-white/[0.03] border border-white/10 rounded-2xl hover:border-neon-red/40 hover:bg-neon-red/5 transition-all duration-300"
+                                                        onMouseEnter={playHoverSound}
+                                                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                                    >
+                                                        <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase flex items-center gap-2">
+                                                            <ArrowLeft className="w-3 h-3" /> {t('article_detail.previous')}
+                                                        </span>
+                                                        <div className="flex items-center gap-4">
+                                                            {previousArticle.image && (
+                                                                <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10">
+                                                                    <img src={previousArticle.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                                </div>
+                                                            )}
+                                                            <div className="flex flex-col gap-1 min-w-0">
+                                                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{previousArticle.category}</span>
+                                                                <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors line-clamp-2 uppercase leading-tight">{translatedPrevTitle || previousArticle.title}</span>
+                                                            </div>
                                                         </div>
-                                                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase">{translatedPrevTitle || previousArticle.title}</span>
-                                                    </div>
-                                                </Link>
-                                            )}
-                                        </div>
-                                        <div className="flex justify-end">
-                                            {nextArticle && (
-                                                <Link
-                                                    to={type === 'recap' ? getRecapLink(nextArticle) : getArticleLink(nextArticle)}
-                                                    className="group flex flex-col items-end gap-3 max-w-[150px]"
-                                                    onMouseEnter={playHoverSound}
-                                                >
-                                                    <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase">{t('article_detail.next')}</span>
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-[10px] font-bold text-gray-400 group-hover:text-white transition-colors line-clamp-1 uppercase text-right">{translatedNextTitle || nextArticle.title}</span>
-                                                        <div className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all">
-                                                            <ArrowRight className="w-3 h-3 text-white" />
+                                                    </Link>
+                                                ) : <div />}
+                                            </div>
+
+                                            {/* Suivant */}
+                                            <div>
+                                                {nextArticle ? (
+                                                    <Link
+                                                        to={type === 'recap' ? getRecapLink(nextArticle) : getArticleLink(nextArticle)}
+                                                        className="group flex flex-col gap-4 p-5 bg-white/[0.03] border border-white/10 rounded-2xl hover:border-neon-red/40 hover:bg-neon-red/5 transition-all duration-300"
+                                                        onMouseEnter={playHoverSound}
+                                                        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                                                    >
+                                                        <span className="text-[10px] font-black text-neon-red tracking-[0.2em] uppercase flex items-center justify-end gap-2">
+                                                            {t('article_detail.next')} <ArrowRight className="w-3 h-3" />
+                                                        </span>
+                                                        <div className="flex items-center gap-4 flex-row-reverse">
+                                                            {nextArticle.image && (
+                                                                <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10">
+                                                                    <img src={nextArticle.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                                </div>
+                                                            )}
+                                                            <div className="flex flex-col gap-1 min-w-0 text-right">
+                                                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{nextArticle.category}</span>
+                                                                <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors line-clamp-2 uppercase leading-tight">{translatedNextTitle || nextArticle.title}</span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </Link>
-                                            )}
+                                                    </Link>
+                                                ) : <div />}
+                                            </div>
                                         </div>
                                     </div>
                                 )}
+
 
                                 {/* Back Link Center */}
                                 <div className="mt-16 pt-8 border-t border-white/5 flex justify-center">

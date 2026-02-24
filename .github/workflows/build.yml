@@ -1,13 +1,19 @@
-name: Build and Verify
+name: Build and Deploy
 
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Raison du déploiement manuel'
+        required: false
+        default: 'Mise en ligne manuelle depuis admin'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,3 +30,10 @@ jobs:
 
     - name: Run Build
       run: npm run build
+
+    - name: Deploy to Cloudflare Workers
+      if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+      run: npx wrangler deploy
+      env:
+        CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

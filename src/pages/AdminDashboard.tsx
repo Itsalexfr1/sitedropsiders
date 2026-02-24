@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music, ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Palette, Type, Activity } from 'lucide-react';
+import {
+    FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users,
+    LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
+    ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
+    ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
+    Youtube, Rocket, CheckCircle2, AlertCircle, Loader2, ExternalLink
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -17,7 +23,6 @@ export function AdminDashboard() {
     const [hasChanges, setHasChanges] = useState(false);
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [bannerEnabled, setBannerEnabled] = useState(false);
-    const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
@@ -25,10 +30,17 @@ export function AdminDashboard() {
         text_en: '',
         color: '#ffffff',
         bgColor: '#ff0033',
-        size: 'medium',
+        size: 'medium' as 'small' | 'medium' | 'large',
         link: ''
     });
+    const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const navigate = useNavigate();
+
+    // --- DEPLOY STATE ---
+    const [deployStatus, setDeployStatus] = useState<'idle' | 'loading' | 'queued' | 'in_progress' | 'success' | 'failure'>('idle');
+    const [deployRunId, setDeployRunId] = useState<string | null>(null);
+    const [deployRunUrl, setDeployRunUrl] = useState<string | null>(null);
+    const deployPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     const colors = [
         { name: 'Red', value: 'red' },
@@ -114,6 +126,7 @@ export function AdminDashboard() {
         }
     };
 
+
     const fetchActions = async () => {
         try {
             const resp = await fetch('/api/dashboard-actions');
@@ -131,12 +144,13 @@ export function AdminDashboard() {
                         }
                     });
 
-                    // Also filter out deleted actions (like 'Messages') that might be in the saved layout
-                    const cleanedActions = mergedActions.filter(savedAction =>
+                    // Filter out 'Bandeau' and also deleted actions that might be in the saved layout
+                    const finalActions = mergedActions.filter(savedAction =>
+                        savedAction.title !== 'Bandeau' &&
                         defaultActions.some(def => def.title === savedAction.title)
                     );
 
-                    setActions(cleanedActions);
+                    setActions(finalActions);
                 } else {
                     setActions(getFallbackActions());
                 }
@@ -149,22 +163,24 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
+        { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
         { title: "News", description: "Gérer les actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
         { title: "Musique", description: "Gérer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
         { title: "Interviews", description: "Gérer les interviews", icon: "Mic", link: "/admin/manage?tab=Interviews", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
+        { title: "Interview Écrite", description: "Nouveau format texte", icon: "FileText", link: "/news/create?type=Interview&subtype=written", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
+        { title: "Interview Vidéo", description: "Nouveau format vidéo", icon: "Youtube", link: "/news/create?type=Interview&subtype=video", color: "border-red-600/20 hover:border-red-600", bg: "bg-red-600/5", permission: "publications", baseColor: "red", columns: 1 },
         { title: "Récaps", description: "Gérer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
-        { title: "Agenda", description: "Gérer les dates", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "publications", baseColor: "yellow", columns: 1 },
-        { title: "Galeries", description: "Gérer les albums", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "publications", baseColor: "pink", columns: 1 },
+        { title: "Agenda", description: "Gérer les dates", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        { title: "Galeries", description: "Gérer les albums", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse du site", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Playlists accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
         { title: "Shop", description: "Gérer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
         { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
         { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
-        { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 3 },
+        { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 3 },
         { title: "Mots de passe", description: "Accès & Sécurité", icon: "Lock", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
-        { title: "Messages", description: "Formulaire contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
+        { title: "MESSAGERIE & CONTACT", description: "Accès Messagerie & Contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -315,7 +331,25 @@ export function AdminDashboard() {
     }
 
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const hasPermission = (p: string) => storedPermissions.includes('all') || storedPermissions.includes(p);
+    const hasPermission = (p: string) => {
+        if (storedPermissions.includes('all')) return true;
+
+        // Séparation des permissions d'action (create, edit, delete)
+        const actionPermissions = ['create', 'edit', 'delete'];
+        if (actionPermissions.includes(p)) {
+            return storedPermissions.includes(p);
+        }
+
+        if (storedPermissions.includes(p)) return true;
+
+        // Si l'utilisateur possède 'publications', il a accès par défaut aux sous-sections
+        if (storedPermissions.includes('publications')) {
+            const editorialSubsets = ['agenda', 'galeries'];
+            if (editorialSubsets.includes(p)) return true;
+        }
+
+        return false;
+    };
     const isAdmin = storedPermissions.includes('all');
 
     const getIcon = (iconName: string, baseColor: string = 'white') => {
@@ -337,6 +371,8 @@ export function AdminDashboard() {
             case 'Users': return <Users className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Lock': return <Lock className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Settings2': return <Settings2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Megaphone': return <Megaphone className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Youtube': return <Youtube className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -395,6 +431,63 @@ export function AdminDashboard() {
         }
     };
 
+    const deployToProduction = async () => {
+        setDeployStatus('loading');
+        setDeployRunId(null);
+        setDeployRunUrl(null);
+        if (deployPollRef.current) clearInterval(deployPollRef.current);
+
+        try {
+            const response = await fetch('/api/deploy', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reason: 'Mise en ligne manuelle depuis le tableau de bord admin' })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                console.error('Erreur deploy:', data.error);
+                setDeployStatus('failure');
+                setTimeout(() => setDeployStatus('idle'), 6000);
+                return;
+            }
+
+            setDeployStatus(data.status === 'in_progress' ? 'in_progress' : 'queued');
+            if (data.runId) setDeployRunId(String(data.runId));
+            if (data.runUrl) setDeployRunUrl(data.runUrl);
+
+            // Poll for status every 5s
+            if (data.runId) {
+                deployPollRef.current = setInterval(async () => {
+                    try {
+                        const statusRes = await fetch(`/api/deploy/status?runId=${data.runId}`);
+                        const statusData = await statusRes.json();
+
+                        if (statusData.status === 'in_progress') {
+                            setDeployStatus('in_progress');
+                        } else if (statusData.status === 'completed') {
+                            clearInterval(deployPollRef.current!);
+                            setDeployStatus(statusData.conclusion === 'success' ? 'success' : 'failure');
+                            setTimeout(() => setDeployStatus('idle'), 10000);
+                        }
+                        if (statusData.runUrl) setDeployRunUrl(statusData.runUrl);
+                    } catch { /* ignore poll errors */ }
+                }, 5000);
+            } else {
+                // No runId: just show queued for a bit
+                setTimeout(() => {
+                    setDeployStatus('success');
+                    setTimeout(() => setDeployStatus('idle'), 8000);
+                }, 4000);
+            }
+        } catch (e) {
+            console.error('Deploy error:', e);
+            setDeployStatus('failure');
+            setTimeout(() => setDeployStatus('idle'), 6000);
+        }
+    };
+
     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
 
     return (
@@ -450,440 +543,438 @@ export function AdminDashboard() {
                                 </button>
                             )}
                         </div>
-
-                        <div className="flex items-center gap-4">
-                            {hasChanges && (
+                        <div className="flex flex-wrap items-center gap-4">
+                            <button
+                                onClick={fetchActions}
+                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                                title="Rafraîchir les données"
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                Mise à jour
+                            </button>
+                            {/* Bouton Mise en ligne - Alex uniquement */}
+                            {localStorage.getItem('admin_user') === 'alex' && (
                                 <motion.button
-                                    initial={{ scale: 0.9, opacity: 0 }}
-                                    animate={{ scale: 1, opacity: 1 }}
-                                    onClick={deployConfig}
-                                    disabled={isSaving}
-                                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-black uppercase rounded-full shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all"
+                                    whileHover={deployStatus === 'idle' ? { scale: 1.03 } : {}}
+                                    whileTap={deployStatus === 'idle' ? { scale: 0.97 } : {}}
+                                    onClick={() => deployStatus === 'idle' && deployToProduction()}
+                                    disabled={deployStatus !== 'idle'}
+                                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${deployStatus === 'idle'
+                                        ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.4)]'
+                                        : deployStatus === 'loading' || deployStatus === 'queued'
+                                            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 cursor-wait'
+                                            : deployStatus === 'in_progress'
+                                                ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-wait'
+                                                : deployStatus === 'success'
+                                                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
+                                                    : 'bg-red-500/10 border-red-500/30 text-red-400'
+                                        }`}
+                                    title="Déclencher un déploiement en production"
                                 >
-                                    <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
-                                    {isSaving ? 'Déploiement...' : 'Enregistrer & Déployer'}
+                                    {deployStatus === 'idle' && <><Rocket className="w-4 h-4" /> Mise en ligne</>}
+                                    {(deployStatus === 'loading' || deployStatus === 'queued') && <><Loader2 className="w-4 h-4 animate-spin" /> En attente...</>}
+                                    {deployStatus === 'in_progress' && <><Loader2 className="w-4 h-4 animate-spin" /> Build en cours...</>}
+                                    {deployStatus === 'success' && <><CheckCircle2 className="w-4 h-4" /> En ligne !</>}
+                                    {deployStatus === 'failure' && <><AlertCircle className="w-4 h-4" /> Échec</>}
                                 </motion.button>
                             )}
-                            <button
-                                onClick={() => setIsBannerModalOpen(true)}
-                                className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${bannerEnabled ? 'bg-neon-orange border-transparent text-white shadow-[0_0_15px_rgba(255,165,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                            >
-                                <motion.div
-                                    animate={bannerEnabled ? { scale: [1, 1.2, 1] } : {}}
-                                    transition={{ repeat: bannerEnabled ? Infinity : 0, duration: 2 }}
-                                    className={`w-2 h-2 rounded-full ${bannerEnabled ? 'bg-white' : 'bg-gray-600'}`}
-                                />
-                                Bandeau
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setEditMode(!editMode);
-                                    if (editMode) setOpenMenu(null);
-                                }}
-                                className={`px-6 py-2 border rounded-full text-sm font-bold transition-colors w-full md:w-auto flex items-center justify-center gap-2 ${editMode ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                            >
-                                <LayoutDashboard className="w-4 h-4" />
-                                {editMode ? 'Quitter Personnalisation' : 'Personnaliser'}
-                            </button>
-                            <button
-                                onClick={handleLogout}
-                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-bold text-gray-400 hover:text-white transition-colors w-full md:w-auto"
-                            >
-                                Se déconnecter
-                            </button>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <AnimatePresence mode="popLayout">
-                        {filteredActions.map((action, index) => (
-                            <motion.div
-                                layout
-                                key={action.title}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 40 }}
-                                className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
-                                    action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
-                                        action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
-                                    }`}
-                            >
-                                {editMode && (
-                                    <>
-                                        {/* D-Pad Controls (Replacement for GripVertical) */}
-                                        <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-                                            <div />
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'up'); }}
-                                                disabled={index === 0}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                            >
-                                                <ChevronUp className="w-4 h-4" />
-                                            </button>
-                                            <div />
-
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                            >
-                                                <ChevronLeft className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'down'); }}
-                                                disabled={index === actions.length - 1}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                            >
-                                                <ChevronDown className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                            >
-                                                <ChevronRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-
-                                        <div className="absolute top-4 right-4 z-[60]">
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
-                                                className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
-                                            >
-                                                <Settings2 className="w-5 h-5" />
-                                            </button>
-
-                                            {openMenu === action.title && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                    className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
-                                                >
-                                                    <div className="space-y-2">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
-                                                        <div className="flex gap-1">
-                                                            {[1, 2, 3, 4].map(n => (
-                                                                <button
-                                                                    key={n}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault(); e.stopPropagation();
-                                                                        updateActionProp(action.title, { columns: n });
-                                                                    }}
-                                                                    className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                                                >
-                                                                    x{n}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="space-y-2">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
-                                                        <div className="grid grid-cols-5 gap-1.5">
-                                                            {colors.map(c => (
-                                                                <button
-                                                                    key={c.value}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault(); e.stopPropagation();
-                                                                        updateActionProp(action.title, { baseColor: c.value });
-                                                                    }}
-                                                                    className={`w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-125 ${action.baseColor === c.value ? 'scale-125 ring-2 ring-white/50' : ''}`}
-                                                                    style={{ backgroundColor: c.value === 'white' ? '#ffffff' : `var(--color-neon-${c.value})` }}
-                                                                    title={c.name}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Roue Perso</label>
-                                                        <div className="relative group/brush">
-                                                            <button
-                                                                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red transition-colors relative"
-                                                                style={action.baseColor?.startsWith('#') ? { backgroundColor: `${action.baseColor}33`, borderColor: action.baseColor } : {}}
-                                                            >
-                                                                <Paintbrush className="w-5 h-5 text-white" />
-                                                                <input
-                                                                    type="color"
-                                                                    value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
-                                                                    onChange={(e) => updateActionProp(action.title, { baseColor: e.target.value })}
-                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                                                />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                                <Link
-                                    to={editMode ? "#" : action.link}
-                                    onClick={(e) => editMode && e.preventDefault()}
-                                    className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
-                                    style={{
-                                        borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                            action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                                `var(--color-neon-${action.baseColor}33)`,
-                                        backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
-                                            action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
-                                                `var(--color-neon-${action.baseColor}0D)`,
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!editMode) {
-                                            e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
-                                                action.baseColor?.startsWith('#') ? action.baseColor :
-                                                    `var(--color-neon-${action.baseColor})`;
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                            action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                                `var(--color-neon-${action.baseColor}33)`;
-                                    }}
+                            {deployRunUrl && (deployStatus === 'in_progress' || deployStatus === 'success' || deployStatus === 'failure') && (
+                                <a
+                                    href={deployRunUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-400 hover:text-white transition-all"
+                                    title="Voir le déploiement sur GitHub Actions"
                                 >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors">
-                                            {getIcon(action.icon, action.baseColor)}
-                                        </div>
-                                        <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Plus className="w-4 h-4 text-white" />
-                                        </div>
-                                    </div>
-                                    <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
-                                        {action.title}
-                                    </h3>
-                                    <p className="text-gray-400 font-medium">
-                                        {action.description}
-                                    </p>
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
-                </div>
-                {/* Modal Gestion Bandeau */}
-                <AnimatePresence>
-                    {isBannerModalOpen && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setIsBannerModalOpen(false)}
-                                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-xl bg-[#111] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
-                            >
-                                <div className="p-8 md:p-10">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-neon-orange/10 rounded-2xl border border-neon-orange/20">
-                                                <Activity className="w-6 h-6 text-neon-orange" />
-                                            </div>
-                                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
-                                                Gestion <span className="text-neon-orange">Bandeau</span>
-                                            </h2>
-                                        </div>
+                                    <ExternalLink className="w-4 h-4" />
+                                </a>
+                            )}
+                            transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                            className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
+                                action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
+                                    action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
+                                }`}
+                >
+                            {editMode && (
+                                <>
+                                    {/* D-Pad Controls (Replacement for GripVertical) */}
+                                    <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+                                        <div />
                                         <button
-                                            onClick={() => setIsBannerModalOpen(false)}
-                                            className="p-2 hover:bg-white/5 rounded-xl transition-colors text-gray-500 hover:text-white"
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'up'); }}
+                                            disabled={index === 0}
+                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
                                         >
-                                            <X className="w-6 h-6" />
+                                            <ChevronUp className="w-4 h-4" />
+                                        </button>
+                                        <div />
+
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
+                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'down'); }}
+                                            disabled={index === actions.length - 1}
+                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                        >
+                                            <ChevronDown className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
+                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                        >
+                                            <ChevronRight className="w-4 h-4" />
                                         </button>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        {/* Status Toggle */}
-                                        <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`w-2 h-2 rounded-full ${bannerState.enabled ? 'bg-neon-green animate-pulse' : 'bg-gray-600'}`} />
-                                                <span className="text-sm font-black uppercase tracking-widest text-white">Statut du bandeau</span>
-                                            </div>
-                                            <button
-                                                onClick={() => setBannerState({ ...bannerState, enabled: !bannerState.enabled })}
-                                                className={`relative w-12 h-6 rounded-full transition-colors ${bannerState.enabled ? 'bg-neon-orange' : 'bg-gray-800'}`}
+                                    <div className="absolute top-4 right-4 z-[60]">
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
+                                            className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
+                                        >
+                                            <Settings2 className="w-5 h-5" />
+                                        </button>
+
+                                        {openMenu === action.title && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
                                             >
-                                                <motion.div
-                                                    animate={{ x: bannerState.enabled ? 24 : 4 }}
-                                                    className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-lg"
-                                                />
-                                            </button>
-                                        </div>
-
-                                        {/* Text Inputs (FR & EN) */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                    <Type className="w-3 h-3" /> Message (FR)
-                                                </label>
-                                                <textarea
-                                                    value={bannerState.text}
-                                                    onChange={(e) => setBannerState({ ...bannerState, text: e.target.value.toUpperCase() })}
-                                                    className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
-                                                    placeholder="Message en Français..."
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                    <Type className="w-3 h-3" /> Message (EN)
-                                                </label>
-                                                <textarea
-                                                    value={bannerState.text_en}
-                                                    onChange={(e) => setBannerState({ ...bannerState, text_en: e.target.value.toUpperCase() })}
-                                                    className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
-                                                    placeholder="Message in English..."
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Link Selection */}
-                                        <div className="p-5 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
-                                            <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                <ArrowRight className="w-3 h-3 text-neon-orange" /> Redirection au clic (Lien)
-                                            </label>
-                                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                                                {[
-                                                    { label: 'Aucun (Désactivé)', val: '' },
-                                                    { label: 'Accueil', val: '/' },
-                                                    { label: 'News', val: '/news' },
-                                                    { label: 'Agenda', val: '/agenda' },
-                                                    { label: 'Shop (Boutique)', val: '/shop' },
-                                                    { label: 'Contact', val: '/contact' }
-                                                ].map(link => (
-                                                    <button
-                                                        key={link.val}
-                                                        onClick={() => setBannerState({ ...bannerState, link: link.val })}
-                                                        className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all border ${bannerState.link === link.val ? 'bg-neon-orange text-white border-neon-orange shadow-[0_0_15px_rgba(255,165,0,0.3)]' : 'bg-black/40 border-white/10 text-gray-500 hover:text-white hover:border-white/20'}`}
-                                                    >
-                                                        {link.label}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    placeholder="URL personnalisée ou lien externe (https://...)"
-                                                    value={bannerState.link}
-                                                    onChange={(e) => setBannerState({ ...bannerState, link: e.target.value })}
-                                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-[11px] focus:outline-none focus:border-neon-orange transition-all font-mono"
-                                                />
-                                                {bannerState.link && !['/', '/news', '/agenda', '/shop', '/contact', ''].includes(bannerState.link) && (
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-neon-orange animate-pulse" />
-                                                )}
-                                            </div>
-                                        </div>
-
-                                        {/* Color & Opacity Pickers */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                        <Palette className="w-3 h-3" /> Fond (Background)
-                                                    </label>
-                                                    <div className="relative group/color">
-                                                        <div
-                                                            className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
-                                                            style={{ borderLeft: `4px solid ${bannerState.bgColor}` }}
-                                                        >
-                                                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.bgColor }} />
-                                                            <span className="text-xs font-mono text-gray-400">{bannerState.bgColor}</span>
-                                                        </div>
-                                                        <input
-                                                            type="color"
-                                                            value={bannerState.bgColor}
-                                                            onChange={(e) => setBannerState({ ...bannerState, bgColor: e.target.value })}
-                                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                        <Palette className="w-3 h-3" /> Texte
-                                                    </label>
-                                                    <div className="relative">
-                                                        <div
-                                                            className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
-                                                            style={{ borderLeft: `4px solid ${bannerState.color}` }}
-                                                        >
-                                                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.color }} />
-                                                            <span className="text-xs font-mono text-gray-400">{bannerState.color}</span>
-                                                        </div>
-                                                        <input
-                                                            type="color"
-                                                            value={bannerState.color}
-                                                            onChange={(e) => setBannerState({ ...bannerState, color: e.target.value })}
-                                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-2">
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2">Taille du bandeau</label>
-                                                    <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
-                                                        {['small', 'medium', 'large'].map((s) => (
+                                                    <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
+                                                    <div className="flex gap-1">
+                                                        {[1, 2, 3, 4].map(n => (
                                                             <button
-                                                                key={s}
-                                                                onClick={() => setBannerState({ ...bannerState, size: s as any })}
-                                                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${bannerState.size === s ? 'bg-neon-orange text-white' : 'text-gray-500 hover:text-white'}`}
+                                                                key={n}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault(); e.stopPropagation();
+                                                                    updateActionProp(action.title, { columns: n });
+                                                                }}
+                                                                className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
                                                             >
-                                                                {s === 'small' ? 'Petit' : s === 'medium' ? 'Moyen' : 'Grand'}
+                                                                x{n}
                                                             </button>
                                                         ))}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
 
-                                        {/* Preview */}
-                                        <div className="pt-4 border-t border-white/5">
-                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct (taille approx.)</div>
-                                            <div
-                                                className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
-                                                style={{
-                                                    backgroundColor: bannerState.bgColor,
-                                                    opacity: 0.8
-                                                }}
-                                            >
-                                                <span
-                                                    className="text-[10px] font-black uppercase tracking-tighter italic whitespace-nowrap"
-                                                    style={{ color: bannerState.color }}
-                                                >
-                                                    {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."} • {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."}
-                                                </span>
-                                                {!bannerState.enabled && (
-                                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Bandeau Désactivé</div>
-                                                )}
-                                            </div>
-                                        </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
+                                                    <div className="grid grid-cols-5 gap-1.5">
+                                                        {colors.map(c => (
+                                                            <button
+                                                                key={c.value}
+                                                                onClick={(e) => {
+                                                                    e.preventDefault(); e.stopPropagation();
+                                                                    updateActionProp(action.title, { baseColor: c.value });
+                                                                }}
+                                                                className={`w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-125 ${action.baseColor === c.value ? 'scale-125 ring-2 ring-white/50' : ''}`}
+                                                                style={{ backgroundColor: c.value === 'white' ? '#ffffff' : `var(--color-neon-${c.value})` }}
+                                                                title={c.name}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
 
-                                        <button
-                                            onClick={saveBannerSettings}
-                                            disabled={isUpdatingBanner}
-                                            className="w-full py-4 mt-4 bg-gradient-to-r from-neon-orange to-orange-600 text-white rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-neon-orange/20 flex items-center justify-center gap-3 disabled:opacity-50"
-                                        >
-                                            {isUpdatingBanner ? (
-                                                <Activity className="w-5 h-5 animate-spin" />
-                                            ) : (
-                                                <Save className="w-5 h-5" />
-                                            )}
-                                            Enregistrer les modifications
-                                        </button>
+                                                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                                    <label className="text-[9px] font-black uppercase text-gray-400">Roue Perso</label>
+                                                    <div className="relative group/brush">
+                                                        <button
+                                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red transition-colors relative"
+                                                            style={action.baseColor?.startsWith('#') ? { backgroundColor: `${action.baseColor}33`, borderColor: action.baseColor } : {}}
+                                                        >
+                                                            <Paintbrush className="w-5 h-5 text-white" />
+                                                            <input
+                                                                type="color"
+                                                                value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
+                                                                onChange={(e) => updateActionProp(action.title, { baseColor: e.target.value })}
+                                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                </>
+                            )}
+                            <Link
+                                to={editMode ? "#" : action.link}
+                                onClick={(e) => {
+                                    if (editMode) {
+                                        e.preventDefault();
+                                    } else if (action.title === 'Bandeau') {
+                                        e.preventDefault();
+                                        setIsBannerModalOpen(true);
+                                    }
+                                }}
+                                className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
+                                style={{
+                                    borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                        action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                            `var(--color-neon-${action.baseColor}33)`,
+                                    backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
+                                        action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
+                                            `var(--color-neon-${action.baseColor}0D)`,
+                                }}
+                                onMouseEnter={(e) => {
+                                    if (!editMode) {
+                                        e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
+                                            action.baseColor?.startsWith('#') ? action.baseColor :
+                                                `var(--color-neon-${action.baseColor})`;
+                                    }
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                        action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                            `var(--color-neon-${action.baseColor}33)`;
+                                }}
+                            >
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors">
+                                        {getIcon(action.icon, action.baseColor)}
+                                    </div>
+                                    <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <Plus className="w-4 h-4 text-white" />
                                     </div>
                                 </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
+                                <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
+                                    {action.title}
+                                </h3>
+                                <p className="text-gray-400 font-medium">
+                                    {action.description}
+                                </p>
+                            </Link>
+                        </motion.div>
+            ))}
+                    </AnimatePresence>
             </div>
-        </div>
+            {/* Modal Gestion Bandeau */}
+            <AnimatePresence>
+                {isBannerModalOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsBannerModalOpen(false)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-xl bg-[#111] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-8 md:p-10">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-3 bg-neon-orange/10 rounded-2xl border border-neon-orange/20">
+                                            <Activity className="w-6 h-6 text-neon-orange" />
+                                        </div>
+                                        <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Gestion <span className="text-neon-orange">Bandeau</span>
+                                        </h2>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsBannerModalOpen(false)}
+                                        className="p-2 hover:bg-white/5 rounded-xl transition-colors text-gray-500 hover:text-white"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* Status Toggle */}
+                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-2 h-2 rounded-full ${bannerState.enabled ? 'bg-neon-green animate-pulse' : 'bg-gray-600'}`} />
+                                            <span className="text-sm font-black uppercase tracking-widest text-white">Statut du bandeau</span>
+                                        </div>
+                                        <button
+                                            onClick={() => setBannerState({ ...bannerState, enabled: !bannerState.enabled })}
+                                            className={`relative w-12 h-6 rounded-full transition-colors ${bannerState.enabled ? 'bg-neon-orange' : 'bg-gray-800'}`}
+                                        >
+                                            <motion.div
+                                                animate={{ x: bannerState.enabled ? 24 : 4 }}
+                                                className="absolute top-1 w-4 h-4 bg-white rounded-full shadow-lg"
+                                            />
+                                        </button>
+                                    </div>
+
+                                    {/* Text Inputs (FR & EN) */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                <Type className="w-3 h-3" /> Message (FR)
+                                            </label>
+                                            <textarea
+                                                value={bannerState.text}
+                                                onChange={(e) => setBannerState({ ...bannerState, text: e.target.value.toUpperCase() })}
+                                                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
+                                                placeholder="Message en Français..."
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                <Type className="w-3 h-3" /> Message (EN)
+                                            </label>
+                                            <textarea
+                                                value={bannerState.text_en}
+                                                onChange={(e) => setBannerState({ ...bannerState, text_en: e.target.value.toUpperCase() })}
+                                                className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
+                                                placeholder="Message in English..."
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Link Selection */}
+                                    <div className="p-5 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
+                                        <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                            <ArrowRight className="w-3 h-3 text-neon-orange" /> Redirection au clic (Lien)
+                                        </label>
+                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                                            {[
+                                                { label: 'Aucun (Désactivé)', val: '' },
+                                                { label: 'Accueil', val: '/' },
+                                                { label: 'News', val: '/news' },
+                                                { label: 'Agenda', val: '/agenda' },
+                                                { label: 'Shop (Boutique)', val: '/shop' },
+                                                { label: 'Contact', val: '/contact' }
+                                            ].map(link => (
+                                                <button
+                                                    key={link.val}
+                                                    onClick={() => setBannerState({ ...bannerState, link: link.val })}
+                                                    className={`py-2.5 rounded-xl text-[10px] font-black uppercase transition-all border ${bannerState.link === link.val ? 'bg-neon-orange text-white border-neon-orange shadow-[0_0_15px_rgba(255,165,0,0.3)]' : 'bg-black/40 border-white/10 text-gray-500 hover:text-white hover:border-white/20'}`}
+                                                >
+                                                    {link.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="URL personnalisée ou lien externe (https://...)"
+                                                value={bannerState.link}
+                                                onChange={(e) => setBannerState({ ...bannerState, link: e.target.value })}
+                                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-[11px] focus:outline-none focus:border-neon-orange transition-all font-mono"
+                                            />
+                                            {bannerState.link && !['/', '/news', '/agenda', '/shop', '/contact', ''].includes(bannerState.link) && (
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-neon-orange animate-pulse" />
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Color & Opacity Pickers */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                    <Palette className="w-3 h-3" /> Fond (Background)
+                                                </label>
+                                                <div className="relative group/color">
+                                                    <div
+                                                        className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
+                                                        style={{ borderLeft: `4px solid ${bannerState.bgColor}` }}
+                                                    >
+                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.bgColor }} />
+                                                        <span className="text-xs font-mono text-gray-400">{bannerState.bgColor}</span>
+                                                    </div>
+                                                    <input
+                                                        type="color"
+                                                        value={bannerState.bgColor}
+                                                        onChange={(e) => setBannerState({ ...bannerState, bgColor: e.target.value })}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                    <Palette className="w-3 h-3" /> Texte
+                                                </label>
+                                                <div className="relative">
+                                                    <div
+                                                        className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
+                                                        style={{ borderLeft: `4px solid ${bannerState.color}` }}
+                                                    >
+                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.color }} />
+                                                        <span className="text-xs font-mono text-gray-400">{bannerState.color}</span>
+                                                    </div>
+                                                    <input
+                                                        type="color"
+                                                        value={bannerState.color}
+                                                        onChange={(e) => setBannerState({ ...bannerState, color: e.target.value })}
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2">Taille du bandeau</label>
+                                                <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
+                                                    {['small', 'medium', 'large'].map((s) => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => setBannerState({ ...bannerState, size: s as any })}
+                                                            className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${bannerState.size === s ? 'bg-neon-orange text-white' : 'text-gray-500 hover:text-white'}`}
+                                                        >
+                                                            {s === 'small' ? 'Petit' : s === 'medium' ? 'Moyen' : 'Grand'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Preview */}
+                                    <div className="pt-4 border-t border-white/5">
+                                        <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct (taille approx.)</div>
+                                        <div
+                                            className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
+                                            style={{
+                                                backgroundColor: bannerState.bgColor,
+                                                opacity: 0.8
+                                            }}
+                                        >
+                                            <span
+                                                className="text-[10px] font-black uppercase tracking-tighter italic whitespace-nowrap"
+                                                style={{ color: bannerState.color }}
+                                            >
+                                                {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."} • {bannerState.text || "VOTRE MESSAGE S'AFFICHERA ICI..."}
+                                            </span>
+                                            {!bannerState.enabled && (
+                                                <div className="absolute inset-0 bg-black/60 backdrop-blur-[1px] flex items-center justify-center text-[8px] font-black text-white/40 uppercase tracking-[0.3em]">Bandeau Désactivé</div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={saveBannerSettings}
+                                        disabled={isUpdatingBanner}
+                                        className="w-full py-4 mt-4 bg-gradient-to-r from-neon-orange to-orange-600 text-white rounded-2xl font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl shadow-neon-orange/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                    >
+                                        {isUpdatingBanner ? (
+                                            <Activity className="w-5 h-5 animate-spin" />
+                                        ) : (
+                                            <Save className="w-5 h-5" />
+                                        )}
+                                        Enregistrer les modifications
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div >
+        </div >
     );
 }

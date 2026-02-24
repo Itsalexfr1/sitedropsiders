@@ -23,6 +23,32 @@ export function AdminShop() {
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [dateSort, setDateSort] = useState<'desc' | 'asc'>('desc');
 
+    const [permissions] = useState<string[]>(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'));
+    const storedUser = localStorage.getItem('admin_user');
+
+    const hasPermission = (p: string) => {
+        if (permissions.includes('all')) return true;
+        if (storedUser === 'alex') return true;
+
+        const actionPermissions = ['create', 'edit', 'delete'];
+        if (actionPermissions.includes(p)) {
+            return permissions.includes(p);
+        }
+
+        if (permissions.includes(p)) return true;
+
+        // Fallback pour shop
+        if (permissions.includes('shop') && (p === 'shop' || p === 'create' || p === 'edit' || p === 'delete')) return true;
+
+        return false;
+    };
+
+    const isAdmin = hasPermission('all');
+    const canCreate = hasPermission('create');
+    const canEdit = hasPermission('edit');
+    const canDelete = hasPermission('delete');
+    const canManageShop = hasPermission('shop');
+
     // Add/Edit Product Form State
     const [isAdding, setIsAdding] = useState(false);
     const [editingProduct, setEditingProduct] = useState<any | null>(null);
@@ -267,19 +293,21 @@ export function AdminShop() {
                         </div>
                     </div>
 
-                    <button
-                        onClick={() => {
-                            if (isAdding) {
-                                resetForm();
-                            } else {
-                                setIsAdding(true);
-                            }
-                        }}
-                        className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
-                    >
-                        {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
-                        {isAdding ? 'Annuler' : 'Ajouter un article'}
-                    </button>
+                    {(canCreate || canManageShop) && (
+                        <button
+                            onClick={() => {
+                                if (isAdding) {
+                                    resetForm();
+                                } else {
+                                    setIsAdding(true);
+                                }
+                            }}
+                            className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
+                        >
+                            {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
+                            {isAdding ? 'Annuler' : 'Ajouter un article'}
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -382,7 +410,7 @@ export function AdminShop() {
                                 </div>
                                 <button
                                     onClick={handleSaveSettings}
-                                    disabled={loading}
+                                    disabled={loading || !(canEdit || canManageShop)}
                                     className="w-full flex items-center justify-center gap-3 py-4 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 disabled:opacity-50"
                                 >
                                     {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -711,14 +739,16 @@ export function AdminShop() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => handleEditProductClick(product)}
-                                                className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-                                                title="Modifier"
-                                            >
-                                                <Edit2 className="w-4 h-4" />
-                                            </button>
-                                            {localStorage.getItem('admin_user') === 'alex' && (
+                                            {(canEdit || canManageShop) && (
+                                                <button
+                                                    onClick={() => handleEditProductClick(product)}
+                                                    className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                                    title="Modifier"
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            {(canDelete || canManageShop) && (
                                                 <button
                                                     onClick={() => setDeleteTarget(product)}
                                                     className="p-3 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"

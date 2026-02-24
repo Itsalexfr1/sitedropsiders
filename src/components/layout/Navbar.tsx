@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Search, Sun, Moon, Filter, Shield } from 'lucide-react';
+import { Menu, X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
@@ -132,27 +132,47 @@ export function Navbar() {
             <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24">
                 <div className="flex items-center justify-between h-20">
                     <div className="flex items-center gap-4 shrink-0">
-                        {/* Desktop Social Icons - Left Side Stacked */}
-                        <div className="hidden lg:flex flex-col items-center gap-1.5 border-r border-white/10 pr-4 mr-1">
-                            <a href="https://instagram.com/dropsiders.eu" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
-                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-3 h-3 brightness-0 invert" />
-                            </a>
-                            <a href="https://tiktok.com/@dropsiders.eu" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
-                                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-3 h-3 brightness-0 invert" />
-                            </a>
-                            <a href="https://www.facebook.com/dropsidersfr" target="_blank" rel="noopener noreferrer" className="opacity-50 hover:opacity-100 transition-all hover:scale-110">
-                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-3 h-3 brightness-0 invert" />
-                            </a>
-                        </div>
-
                         {/* Logo */}
                         <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2">
                             <img
                                 src="/Logo.png"
                                 alt="DROPSIDERS"
-                                className="logo-img h-10 md:h-14 w-auto max-w-[150px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
+                                className="logo-img h-10 md:h-12 w-auto max-w-[150px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
                             />
                         </Link>
+
+                        {/* Social Icons - Stacked vertically next to logo */}
+                        <div className="hidden lg:flex flex-col items-center gap-1.5 py-1 border-l border-white/10 pl-3">
+                            <a
+                                href="https://instagram.com/dropsiders.eu"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white/20 hover:text-white transition-all transform hover:scale-110"
+                                title="Instagram"
+                            >
+                                <Instagram className="w-3.5 h-3.5" />
+                            </a>
+                            <a
+                                href="https://tiktok.com/@dropsiders.eu"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white/20 hover:text-white transition-all transform hover:scale-110"
+                                title="TikTok"
+                            >
+                                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.6-4.13-1.47V18.77a7.658 7.658 0 0 1-5.69 7.42c-1.39.4-2.87.5-4.28.28-1.4-.21-2.77-.73-3.95-1.54A7.784 7.784 0 0 1 .15 20.32c-.52-1.48-.68-3.08-.47-4.63.19-1.4.74-2.77 1.58-3.95A7.74 7.74 0 0 1 5.46 8.78c1.37-.58 2.87-.78 4.35-.59v4.16c-1.12-.2-2.3.06-3.23.69-.93.63-1.52 1.62-1.63 2.74-.11 1.12.33 2.22 1.05 3.03.72.82 1.76 1.3 2.86 1.35 1.15.05 2.3-.39 3.07-1.23.63-.7.88-1.61.88-2.51V.02z" />
+                                </svg>
+                            </a>
+                            <a
+                                href="https://www.facebook.com/dropsidersfr"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-white/20 hover:text-white transition-all transform hover:scale-110"
+                                title="Facebook"
+                            >
+                                <Facebook className="w-3.5 h-3.5" />
+                            </a>
+                        </div>
                     </div>
 
                     {/* Desktop Navigation */}

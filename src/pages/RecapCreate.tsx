@@ -806,7 +806,16 @@ export function RecapCreate() {
                         {/* Date & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date <span className="text-neon-red">*</span></label>
+                                <div className="flex items-center justify-between">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date de Publication <span className="text-neon-red">*</span></label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                                        className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
+                                    >
+                                        Aujourd'hui
+                                    </button>
+                                </div>
                                 <div className="relative group">
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input

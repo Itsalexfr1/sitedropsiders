@@ -36,6 +36,7 @@ import KitMedia from './pages/KitMedia';
 import { AdminHome } from './pages/AdminHome';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminMessages } from './pages/AdminMessages';
+import { AdminBanner } from './pages/AdminBanner';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import { CookieConsent } from './components/ui/CookieConsent';
@@ -90,6 +91,7 @@ const router = createBrowserRouter([
       { path: "admin/shop", element: <ProtectedRoute><AdminShop /></ProtectedRoute> },
       { path: "admin/settings", element: <ProtectedRoute><AdminSettings /></ProtectedRoute> },
       { path: "admin/messages", element: <ProtectedRoute><AdminMessages /></ProtectedRoute> },
+      { path: "admin/banner", element: <ProtectedRoute><AdminBanner /></ProtectedRoute> },
 
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },

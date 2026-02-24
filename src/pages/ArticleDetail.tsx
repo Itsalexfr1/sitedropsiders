@@ -35,15 +35,18 @@ export function ArticleDetail() {
         );
     }
 
+    // Related articles — same category, excluding current
     const relatedArticles = newsData
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
 
-    // Navigation: Same Category
-    const categoryArticles = newsData.filter(item => item.category === article.category);
+    // Navigation prev/next — same category, sorted by date desc (same as list page)
+    const categoryArticles = newsData
+        .filter(item => item.category === article.category)
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const currentIndex = categoryArticles.findIndex(item => item.id === article.id);
-    const previousArticle = currentIndex > 0 ? categoryArticles[currentIndex - 1] : null;
-    const nextArticle = currentIndex < categoryArticles.length - 1 ? categoryArticles[currentIndex + 1] : null;
+    const previousArticle = currentIndex < categoryArticles.length - 1 ? categoryArticles[currentIndex + 1] : null;
+    const nextArticle = currentIndex > 0 ? categoryArticles[currentIndex - 1] : null;
 
     // Get content from separate files
     const fullContent = getNewsContent(article.id);

@@ -8,19 +8,61 @@ import { getAuthHeaders } from '../utils/auth';
 
 interface Editor {
     username: string;
+    password?: string;
     name: string;
     created: string;
     permissions?: string[];
 }
 
-const AVAILABLE_PERMISSIONS = [
-    { id: 'publications', label: 'Gestion Publications', description: 'News, Récaps, Agenda, Galeries' },
-    { id: 'stats', label: 'Voir Stats', description: 'Accès aux statistiques d\'audience' },
-    { id: 'shop', label: 'Gestion Shop', description: 'Ajouter/Modifier des produits' },
-    { id: 'newsletter', label: 'Newsletter', description: 'Création et envoi de mailings' },
-    { id: 'spotify', label: 'Spotify', description: 'Gestion des playlists accueil' },
-    { id: 'messages', label: 'Messages Contact', description: 'Voir et répondre aux messages du formulaire' }
+const PERMISSION_CATEGORIES = [
+    {
+        id: 'actions',
+        label: 'Droits d'Actions(Global)',
+        permissions: [
+            { id: 'create', label: 'Créer', description: 'Autoriser la création de nouveaux éléments.' },
+            { id: 'edit', label: 'Modifier', description: 'Autoriser la modification des éléments existants.' },
+            { id: 'delete', label: 'Supprimer', description: 'Autoriser la suppression définitive d'éléments.' }
+        ]
+    },
+    {
+        id: 'editorial',
+        label: 'Contenu Éditorial',
+        permissions: [
+            { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer les articles.' },
+            { id: 'agenda', label: 'Gestion Agenda', description: 'Gérer uniquement les dates et événements.' },
+            { id: 'galeries', label: 'Gestion Galeries', description: 'Gérer uniquement les albums photos.' }
+        ]
+    },
+    {
+        id: 'communication',
+        label: 'Communication',
+        permissions: [
+            { id: 'messages', label: 'Messagerie & Contact', description: 'Lire et répondre aux messages du site.' },
+            { id: 'newsletter', label: 'Newsletters', description: 'Créer et envoyer des campagnes mail.' }
+        ]
+    },
+    {
+        id: 'tools',
+        label: 'Outils & Dashboard',
+        permissions: [
+            {
+                id: 'banner', label: 'Bandeau d'annonce', description: 'Gérer le message défilant du site.' },
+            { id: 'spotify', label: 'Playlists Spotify', description: 'Gérer les playlists de la page d\'accueil.' },
+            { id: 'team', label: 'Gestion Team', description: 'Gérer les membres de la Dream Team.' }
+        ]
+    },
+    {
+        id: 'business',
+        label: 'Business & Analyse',
+        permissions: [
+            { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et analyses.' },
+            { id: 'shop', label: 'Boutique (Shop)', description: 'Gérer les produits et les ventes.' }
+        ]
+    }
 ];
+
+// Helper to get flat list for labels
+const ALL_PERMISSIONS_FLAT = PERMISSION_CATEGORIES.flatMap(cat => cat.permissions);
 
 export function AdminEditors() {
     const navigate = useNavigate();
@@ -189,9 +231,19 @@ export function AdminEditors() {
                                                 <div className="flex flex-wrap gap-2 mt-3">
                                                     {editor.permissions.map(p => (
                                                         <span key={p} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                                            {AVAILABLE_PERMISSIONS.find(ap => ap.id === p)?.label || p}
+                                                            {ALL_PERMISSIONS_FLAT.find(ap => ap.id === p)?.label || p}
                                                         </span>
                                                     ))}
+                                                </div>
+                                            )}
+                                            {localStorage.getItem('admin_user') === 'alex' && editor.password && (
+                                                <div className="mt-4 p-3 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between group/pw">
+                                                    <div className="flex items-center gap-3">
+                                                        <Lock className="w-3 h-3 text-gray-500" />
+                                                        <span className="text-xs font-mono text-gray-400">
+                                                            MDP: <span className="text-white bg-white/10 px-2 py-0.5 rounded">{editor.password}</span>
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             )}
                                         </div>
@@ -234,7 +286,7 @@ export function AdminEditors() {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
-                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl"
+                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-2xl w-full shadow-2xl max-h-[90vh] overflow-y-auto"
                         >
                             <div className="flex justify-between items-center mb-8">
                                 <h2 className="text-2xl font-display font-black text-white uppercase italic">
@@ -277,51 +329,95 @@ export function AdminEditors() {
                                         </div>
                                         {isEditing && <p className="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">L'identifiant ne peut pas être modifié</p>}
                                     </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">
-                                            {isEditing ? 'Nouveau mot de passe (optionnel)' : 'Mot de passe'}
-                                        </label>
-                                        <div className="relative">
-                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
-                                            <input
-                                                required={!isEditing}
-                                                type="password"
-                                                value={newEditor.password}
-                                                onChange={e => setNewEditor({ ...newEditor, password: e.target.value })}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-neon-red"
-                                                placeholder={isEditing ? 'Laisser vide pour ne pas changer' : '********'}
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="pt-4 border-t border-white/5">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 block">Permissions</label>
-                                        <div className="grid gap-3">
-                                            {AVAILABLE_PERMISSIONS.map((perm) => (
-                                                <label key={perm.id} className="flex items-start gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-colors group">
-                                                    <div className="mt-1">
+                                    {isEditing && (
+                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl mb-6">
+                                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-4 block">Modification Sécurisée</label>
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 block">Mot de passe actuel</label>
+                                                    <div className="relative">
+                                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                                                         <input
-                                                            type="checkbox"
-                                                            checked={newEditor.permissions.includes(perm.id)}
-                                                            onChange={(e) => {
-                                                                const checked = e.target.checked;
-                                                                setNewEditor(prev => ({
-                                                                    ...prev,
-                                                                    permissions: checked
-                                                                        ? [...prev.permissions, perm.id]
-                                                                        : prev.permissions.filter(p => p !== perm.id)
-                                                                }));
-                                                            }}
-                                                            className="sr-only"
+                                                            type="text"
+                                                            readOnly
+                                                            value={editors.find(e => e.username === newEditor.username)?.password || ''}
+                                                            className="w-full bg-black/20 border border-white/5 rounded-xl pl-10 pr-4 py-2 text-xs text-gray-400 focus:outline-none"
                                                         />
-                                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${newEditor.permissions.includes(perm.id) ? 'bg-neon-red border-neon-red' : 'border-white/20'}`}>
-                                                            {newEditor.permissions.includes(perm.id) && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><Save className="w-3 h-3 text-white" /></motion.div>}
-                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-bold text-white uppercase italic">{perm.label}</p>
-                                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest leading-tight">{perm.description}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[9px] font-bold text-neon-red uppercase tracking-widest mb-2 block">Nouveau mot de passe</label>
+                                                    <div className="relative">
+                                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                        <input
+                                                            type="text"
+                                                            value={newEditor.password}
+                                                            onChange={e => setNewEditor({ ...newEditor, password: e.target.value })}
+                                                            className="w-full bg-neon-red/5 border border-neon-red/20 rounded-xl pl-10 pr-4 py-3 text-white text-sm focus:outline-none focus:border-neon-red"
+                                                            placeholder="Nouveau mot de passe"
+                                                        />
                                                     </div>
-                                                </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {!isEditing && (
+                                        <div>
+                                            <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Mot de passe</label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                                                <input
+                                                    required
+                                                    type="password"
+                                                    value={newEditor.password}
+                                                    onChange={e => setNewEditor({ ...newEditor, password: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none focus:border-neon-red"
+                                                    placeholder="********"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="pt-4 border-t border-white/5">
+                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-6 block">Permissions par Catégorie</label>
+                                        <div className="space-y-8">
+                                            {PERMISSION_CATEGORIES.map((category) => (
+                                                <div key={category.id} className="space-y-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-px flex-1 bg-white/10" />
+                                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">{category.label}</span>
+                                                        <div className="h-px flex-1 bg-white/10" />
+                                                    </div>
+                                                    <div className="grid gap-3">
+                                                        {category.permissions.map((perm) => (
+                                                            <label key={perm.id} className="flex items-start gap-3 p-4 bg-white/5 border border-white/5 rounded-2xl cursor-pointer hover:bg-white/10 transition-all group">
+                                                                <div className="mt-1">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={newEditor.permissions.includes(perm.id)}
+                                                                        onChange={(e) => {
+                                                                            const checked = e.target.checked;
+                                                                            setNewEditor(prev => ({
+                                                                                ...prev,
+                                                                                permissions: checked
+                                                                                    ? [...prev.permissions, perm.id]
+                                                                                    : prev.permissions.filter(p => p !== perm.id)
+                                                                            }));
+                                                                        }}
+                                                                        className="sr-only"
+                                                                    />
+                                                                    <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${newEditor.permissions.includes(perm.id) ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,24,24,0.3)]' : 'border-white/10'}`}>
+                                                                        {newEditor.permissions.includes(perm.id) && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><Save className="w-3.5 h-3.5 text-white" /></motion.div>}
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-white uppercase italic tracking-tight">{perm.label}</p>
+                                                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest leading-tight mt-1">{perm.description}</p>
+                                                                </div>
+                                                            </label>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>

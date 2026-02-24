@@ -6,22 +6,14 @@ import { getAuthHeaders } from '../utils/auth';
 
 export function AdminSettings() {
     const navigate = useNavigate();
-    const [emailPassword, setEmailPassword] = useState('');
     const [shopPassword, setShopPassword] = useState('');
     const [kitMediaPassword, setKitMediaPassword] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showShopPassword, setShowShopPassword] = useState(false);
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
-    const [showEmailPassword, setShowEmailPassword] = useState(false);
 
-    // Announcement Banner
-    const [bannerEnabled, setBannerEnabled] = useState(false);
-    const [bannerText, setBannerText] = useState('');
-    const [bannerColor, setBannerColor] = useState('#ff0033');
-    const [bannerBgColor, setBannerBgColor] = useState('#0a0a0a');
-    const [bannerOpacity, setBannerOpacity] = useState(100);
-    const [bannerSize, setBannerSize] = useState<'small' | 'medium' | 'large'>('medium');
+
 
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -41,17 +33,10 @@ export function AdminSettings() {
                 const resSets = await fetch('/api/settings');
                 if (resSets.ok) {
                     const data = await resSets.json();
-                    if (data.email_password) setEmailPassword(data.email_password);
+
                     if (data.shop_password) setShopPassword(data.shop_password);
                     if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
-                    if (data.announcement_banner) {
-                        setBannerEnabled(data.announcement_banner.enabled || false);
-                        setBannerText(data.announcement_banner.text || '');
-                        setBannerColor(data.announcement_banner.color || '#ff0033');
-                        setBannerBgColor(data.announcement_banner.bgColor || '#0a0a0a');
-                        setBannerOpacity(data.announcement_banner.opacity || 100);
-                        setBannerSize(data.announcement_banner.size || 'medium');
-                    }
+
                 }
 
                 const resAuth = await fetch('/api/editors');
@@ -76,17 +61,9 @@ export function AdminSettings() {
 
             const newSettings = {
                 ...data,
-                email_password: emailPassword,
+
                 shop_password: shopPassword,
                 kit_media_password: kitMediaPassword,
-                announcement_banner: {
-                    enabled: bannerEnabled,
-                    text: bannerText,
-                    color: bannerColor,
-                    bgColor: bannerBgColor,
-                    opacity: bannerOpacity,
-                    size: bannerSize
-                }
             };
 
             const saveRes = await fetch('/api/settings/update', {
@@ -259,158 +236,7 @@ export function AdminSettings() {
                                 </p>
                             </div>
 
-                            {/* Announcement Banner Section */}
-                            <div className="pb-8 border-b border-white/5">
-                                <div className="flex items-center justify-between mb-6">
-                                    <label className="block text-[10px] font-black text-neon-orange uppercase tracking-widest ml-1">
-                                        BANDEAU D'ANNONCE DÉFILANT
-                                    </label>
-                                    <button
-                                        onClick={() => setBannerEnabled(!bannerEnabled)}
-                                        className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all border ${bannerEnabled ? 'bg-neon-orange border-transparent text-white shadow-[0_0_15px_rgba(255,165,0,0.4)]' : 'bg-white/5 border-white/10 text-gray-400'}`}
-                                    >
-                                        {bannerEnabled ? 'Activé' : 'Désactivé'}
-                                    </button>
-                                </div>
 
-                                <div className={`space-y-6 transition-all duration-300 ${bannerEnabled ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
-                                    <div>
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">TEXTE DE L'ANNONCE</label>
-                                        <input
-                                            type="text"
-                                            value={bannerText}
-                                            onChange={(e) => setBannerText(e.target.value.toUpperCase())}
-                                            className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold tracking-wide focus:outline-none focus:border-neon-orange transition-all placeholder:text-gray-700"
-                                            placeholder="EX: BIENVENUE SUR DROPSIDERS..."
-                                        />
-                                    </div>
-
-                                    <div className="flex flex-col md:flex-row gap-6 md:items-center">
-                                        <div className="flex-1 space-y-4">
-                                            <div className="flex-1">
-                                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR TEXTE</label>
-                                                <div className="flex items-center gap-4">
-                                                    <div
-                                                        className="w-12 h-12 rounded-xl border border-white/20 relative"
-                                                        style={{ backgroundColor: bannerColor }}
-                                                    >
-                                                        <input
-                                                            type="color"
-                                                            value={bannerColor}
-                                                            onChange={(e) => setBannerColor(e.target.value)}
-                                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                                        />
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        value={bannerColor}
-                                                        onChange={(e) => setBannerColor(e.target.value)}
-                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="flex-1 space-y-4">
-                                                <div className="flex-1">
-                                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR FOND</label>
-                                                    <div className="flex items-center gap-4">
-                                                        <div
-                                                            className="w-12 h-12 rounded-xl border border-white/20 relative"
-                                                            style={{ backgroundColor: bannerBgColor }}
-                                                        >
-                                                            <input
-                                                                type="color"
-                                                                value={bannerBgColor}
-                                                                onChange={(e) => setBannerBgColor(e.target.value)}
-                                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                                            />
-                                                        </div>
-                                                        <input
-                                                            type="text"
-                                                            value={bannerBgColor}
-                                                            onChange={(e) => setBannerBgColor(e.target.value)}
-                                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex-1">
-                                                    <label className="flex items-center justify-between text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
-                                                        <span>OPACITÉ FOND</span>
-                                                        <span className="text-neon-orange">{bannerOpacity}%</span>
-                                                    </label>
-                                                    <input
-                                                        type="range"
-                                                        min="0"
-                                                        max="100"
-                                                        value={bannerOpacity}
-                                                        onChange={(e) => setBannerOpacity(parseInt(e.target.value))}
-                                                        className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-neon-orange"
-                                                    />
-                                                </div>
-
-                                                <div className="flex-1">
-                                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">TAILLE BANDAU</label>
-                                                    <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
-                                                        {['small', 'medium', 'large'].map((s) => (
-                                                            <button
-                                                                key={s}
-                                                                onClick={() => setBannerSize(s as any)}
-                                                                className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${bannerSize === s ? 'bg-neon-orange text-white' : 'text-gray-500 hover:text-white'}`}
-                                                            >
-                                                                {s === 'small' ? 'Petit' : s === 'medium' ? 'Moyen' : 'Grand'}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div
-                                            className={`flex-1 p-4 border border-white/5 rounded-2xl relative overflow-hidden flex items-center ${bannerSize === 'small' ? 'h-6' : bannerSize === 'large' ? 'h-12' : 'h-8'}`}
-                                            style={{
-                                                backgroundColor: `rgba(${parseInt(bannerBgColor.slice(1, 3), 16)}, ${parseInt(bannerBgColor.slice(3, 5), 16)}, ${parseInt(bannerBgColor.slice(5, 7), 16)}, ${bannerOpacity / 100})`
-                                            }}
-                                        >
-                                            <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                                            <p
-                                                className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap animate-marquee"
-                                                style={{ color: bannerColor }}
-                                            >
-                                                APPERÇU : {bannerText || 'VOTRE TEXTE ICI...'} — {bannerText || 'VOTRE TEXTE ICI...'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Mail Section Password */}
-                            <div>
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">
-                                    MOT DE PASSE (SECTION EMAILS LWS)
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-                                        <Lock className="w-5 h-5 text-gray-500" />
-                                    </div>
-                                    <input
-                                        type={showEmailPassword ? "text" : "password"}
-                                        value={emailPassword}
-                                        onChange={(e) => setEmailPassword(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-white transition-all"
-                                        placeholder="EX: 2026"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowEmailPassword(!showEmailPassword)}
-                                        className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-white transition-colors"
-                                    >
-                                        {showEmailPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                    </button>
-                                </div>
-                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
-                                    Protège la section /admin/emails au sein du dashboard.
-                                </p>
-                            </div>
                         </div>
                     </motion.div>
 

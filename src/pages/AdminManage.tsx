@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { ImageUploadModal } from '../components/ImageUploadModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -46,6 +47,8 @@ export function AdminManage() {
     const [message, setMessage] = useState('');
     const [loadingEditId, setLoadingEditId] = useState<number | string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: number | string, title: string } | null>(null);
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+    const [activePhotoId, setActivePhotoId] = useState<number | string | null>(null);
     const [team, setTeam] = useState<any[]>([]);
 
     useEffect(() => {
@@ -63,7 +66,6 @@ export function AdminManage() {
     const getAuthorInsta = (authorName: string) => {
         if (!authorName) return null;
         const normalized = authorName.trim().toLowerCase();
-        // Permettre une correspondance si le nom d'affichage contient le nom de l'équipe ou vice versa
         const member = team.find(m =>
             m.name.trim().toLowerCase() === normalized ||
             normalized.includes(m.name.trim().toLowerCase()) ||
@@ -83,17 +85,47 @@ export function AdminManage() {
 
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
     const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
-    const isAdmin = localStorage.getItem('admin_user') === 'alex';
+    const storedUser = localStorage.getItem('admin_user');
+    const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+
+    const hasPermission = (p: string) => {
+        if (storedPermissions.includes('all')) return true;
+        if (storedUser === 'alex') return true;
+
+        // Séparation des permissions d'action (create, edit, delete)
+        const actionPermissions = ['create', 'edit', 'delete'];
+        if (actionPermissions.includes(p)) {
+            return storedPermissions.includes(p);
+        }
+
+        if (storedPermissions.includes(p)) return true;
+
+        // Fallback pour publications
+        if (storedPermissions.includes('publications')) {
+            const editorialSubsets = ['agenda', 'galeries'];
+            if (editorialSubsets.includes(p)) return true;
+        }
+
+        return false;
+    };
+
+    const isAdmin = hasPermission('all');
+    const canCreate = hasPermission('create');
+    const canEdit = hasPermission('edit');
+    const canDelete = hasPermission('delete');
 
     // Pagination & Sorting
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortBy, setSortBy] = useState<'title' | 'date' | 'pubDate' | 'event' | 'location' | 'country'>('date');
+    const [sortBy, setSortBy] = useState<'title' | 'date' | 'pubDate' | 'event' | 'location' | 'country' | 'manual'>('date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [isOrderDirty, setIsOrderDirty] = useState(false);
+    const [isSavingOrder, setIsSavingOrder] = useState(false);
     const itemsPerPage = 20;
 
     useEffect(() => {
         setCurrentPage(1);
         setSelectedIds([]);
+        setIsOrderDirty(false);
         fetchData();
     }, [activeTab]);
 
@@ -145,7 +177,7 @@ export function AdminManage() {
                 data = activeTab === 'News'
                     ? allNews.filter((item: any) => item.category === 'News')
                     : activeTab === 'Interviews'
-                        ? allNews.filter((item: any) => item.category === 'Interview')
+                        ? allNews.filter((item: any) => item.category === 'Interview' || item.category === 'Interview Video')
                         : allNews.filter((item: any) => item.category === 'Musique');
             } else if (activeTab === 'Recaps') {
                 data = await fetchJson('recaps.json');
@@ -164,7 +196,6 @@ export function AdminManage() {
     };
 
     const handleDelete = async (id: number | string) => {
-
         setDeleteStatus('loading');
         try {
             const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
@@ -198,7 +229,6 @@ export function AdminManage() {
     const handleEdit = async (item: any) => {
         setLoadingEditId(item.id);
         try {
-            // Determine content API based on active tab
             const contentEndpoint =
                 activeTab === 'Recaps' ? `/api/recaps/content?id=${item.id}` : `/api/news/content?id=${item.id}`;
 
@@ -247,12 +277,89 @@ export function AdminManage() {
         }
     };
 
-    const [selectedCategory, setSelectedCategory] = useState('ALL');
+    const handleUpdatePhoto = async (newImageUrl: string) => {
+        if (!activePhotoId) return;
 
-    useEffect(() => {
-        setSelectedCategory('ALL');
-        fetchData();
-    }, [activeTab]);
+        try {
+            setLoading(true);
+            const endpoint = activeTab === 'Recaps' ? '/api/recaps/update' : '/api/news/update';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: activePhotoId, image: newImageUrl })
+            });
+
+            if (response.ok) {
+                setItems(items.map(i => i.id === activePhotoId ? { ...i, image: newImageUrl } : i));
+                setIsImageModalOpen(false);
+            }
+        } catch (e) {
+            console.error('Error updating photo:', e);
+        } finally {
+            setLoading(false);
+            setActivePhotoId(null);
+        }
+    };
+
+    const handleMove = (index: number, direction: 'up' | 'down') => {
+        const newItems = [...items];
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= newItems.length) return;
+        [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
+        setItems(newItems);
+        setIsOrderDirty(true);
+        if (sortBy !== 'manual') setSortBy('manual');
+    };
+
+    const handleSaveOrder = async () => {
+        setIsSavingOrder(true);
+        try {
+            const resource = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'News') ? 'news' : activeTab.toLowerCase();
+            const filename = resource === 'news' ? 'news.json' :
+                resource === 'recaps' ? 'recaps.json' :
+                    resource === 'agenda' ? 'agenda.json' :
+                        activeTab === 'Galeries' ? 'galerie.json' : null;
+
+            if (!filename) return;
+
+            const fullList = await fetchJson(filename);
+            let updatedList = [...fullList];
+
+            if (resource === 'news') {
+                const category = activeTab === 'News' ? 'News' : activeTab === 'Interviews' ? 'Interview' : 'Musique';
+                let localIdx = 0;
+                updatedList = fullList.map(item => {
+                    if (item.category === category) {
+                        return items[localIdx++] || item;
+                    }
+                    return item;
+                });
+            } else {
+                updatedList = items;
+            }
+
+            const response = await fetch(`/api/${filename.replace('.json', '')}/reorder`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ items: updatedList })
+            });
+
+            if (response.ok) {
+                setIsOrderDirty(false);
+                setMessage('Ordre sauvegardé !');
+                setTimeout(() => setMessage(''), 3000);
+            } else {
+                setMessage('Erreur lors de la sauvegarde');
+            }
+        } catch (e) {
+            console.error('Error saving order:', e);
+            setMessage('Erreur de connexion');
+        } finally {
+            setIsSavingOrder(false);
+        }
+    };
+
+    const [selectedCategory, setSelectedCategory] = useState('ALL');
 
     const categories = useMemo(() => {
         if (activeTab !== 'Galeries') return [];
@@ -272,38 +379,40 @@ export function AdminManage() {
             return matchesSearch && matchesCategory;
         });
 
-        result.sort((a, b) => {
-            let valA, valB;
-            switch (sortBy) {
-                case 'title':
-                case 'event':
-                    valA = a.title?.toLowerCase() || '';
-                    valB = b.title?.toLowerCase() || '';
-                    break;
-                case 'date':
-                    valA = a.date || '';
-                    valB = b.date || '';
-                    break;
-                case 'pubDate':
-                    valA = a.id || 0;
-                    valB = b.id || 0;
-                    break;
-                case 'location':
-                    valA = a.location?.toLowerCase() || '';
-                    valB = b.location?.toLowerCase() || '';
-                    break;
-                case 'country':
-                    valA = a.location?.split(',').pop()?.trim().toLowerCase() || '';
-                    valB = b.location?.split(',').pop()?.trim().toLowerCase() || '';
-                    break;
-                default:
-                    valA = a.date || '';
-                    valB = b.date || '';
-            }
-            if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
-            if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
-            return 0;
-        });
+        if (sortBy !== 'manual') {
+            result.sort((a, b) => {
+                let valA, valB;
+                switch (sortBy) {
+                    case 'title':
+                    case 'event':
+                        valA = a.title?.toLowerCase() || '';
+                        valB = b.title?.toLowerCase() || '';
+                        break;
+                    case 'date':
+                        valA = a.date || '';
+                        valB = b.date || '';
+                        break;
+                    case 'pubDate':
+                        valA = a.id || 0;
+                        valB = b.id || 0;
+                        break;
+                    case 'location':
+                        valA = a.location?.toLowerCase() || '';
+                        valB = b.location?.toLowerCase() || '';
+                        break;
+                    case 'country':
+                        valA = a.location?.split(',').pop()?.trim().toLowerCase() || '';
+                        valB = b.location?.split(',').pop()?.trim().toLowerCase() || '';
+                        break;
+                    default:
+                        valA = a.date || '';
+                        valB = b.date || '';
+                }
+                if (valA < valB) return sortOrder === 'asc' ? -1 : 1;
+                if (valA > valB) return sortOrder === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
 
         return result;
     }, [items, searchTerm, selectedCategory, sortBy, sortOrder]);
@@ -334,12 +443,22 @@ export function AdminManage() {
                         </Link>
                         <div>
                             <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Gestion du <span className="text-neon-red">Contenu</span>
+                                GESTION <span className="text-neon-red">DU CONTENU</span>
                             </h1>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center gap-4">
+                        {isOrderDirty && (
+                            <button
+                                onClick={handleSaveOrder}
+                                disabled={isSavingOrder}
+                                className="px-6 py-4 bg-green-500 text-white rounded-full hover:bg-green-600 transition-all shadow-lg shadow-green-500/20 flex items-center gap-2 font-bold uppercase tracking-widest text-xs"
+                            >
+                                {isSavingOrder ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                Sauvegarder l'ordre
+                            </button>
+                        )}
                         <div className="relative w-full md:w-80">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
                             <input
@@ -358,12 +477,21 @@ export function AdminManage() {
                                 </button>
                             )}
                         </div>
-                        <Link
-                            to={activeTab === 'News' ? '/news/create' : activeTab === 'Musique' ? '/news/create?type=Musique' : activeTab === 'Recaps' ? '/recaps/create' : activeTab === 'Interviews' ? '/news/create?type=Interview' : activeTab === 'Agenda' ? '/agenda/create' : activeTab === 'Galeries' ? '/galerie/create' : '#'}
-                            className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
+                        <button
+                            onClick={fetchData}
+                            className="p-4 bg-white/5 text-white border border-white/10 rounded-full hover:bg-white/10 transition-all flex items-center justify-center group flex-shrink-0"
+                            title="Mettre à jour"
                         >
-                            <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-                        </Link>
+                            <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+                        </button>
+                        {canCreate && (
+                            <Link
+                                to={activeTab === 'News' ? '/news/create' : activeTab === 'Musique' ? '/news/create?type=Musique' : activeTab === 'Recaps' ? '/recaps/create' : activeTab === 'Interviews' ? '/news/create?type=Interview' : activeTab === 'Agenda' ? '/agenda/create' : activeTab === 'Galeries' ? '/galerie/create' : '#'}
+                                className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
+                            >
+                                <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                            </Link>
+                        )}
                     </div>
                 </div>
 
@@ -392,8 +520,9 @@ export function AdminManage() {
                         <div className="flex flex-wrap items-center gap-4">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trier par :</span>
                             <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-transparent border-none text-xs font-bold text-white focus:ring-0 cursor-pointer uppercase tracking-widest">
+                                <option className="bg-dark-bg" value="date">Plus récents</option>
+                                <option className="bg-dark-bg" value="manual">Ordre Manuel</option>
                                 <option className="bg-dark-bg" value="title">Nom</option>
-                                <option className="bg-dark-bg" value="date">Date Événement</option>
                                 <option className="bg-dark-bg" value="pubDate">Date de publication</option>
                                 <option className="bg-dark-bg" value="location">Lieu</option>
                                 <option className="bg-dark-bg" value="country">Pays</option>
@@ -437,7 +566,7 @@ export function AdminManage() {
                                 </button>
                             </div>
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest whitespace-nowrap hidden sm:block">
-                                Total: {filteredAndSortedItems.length} items
+                                Total : {filteredAndSortedItems.length} éléments
                             </span>
                         </div>
                     </div>
@@ -463,7 +592,7 @@ export function AdminManage() {
                             exit={{ opacity: 0, y: 20 }}
                             className="mb-6 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between"
                         >
-                            {isAdmin ? (
+                            {canDelete ? (
                                 <>
                                     <div className="flex items-center gap-4">
                                         <span className="text-white font-bold">{selectedIds.length} élément(s) sélectionné(s)</span>
@@ -484,7 +613,7 @@ export function AdminManage() {
                                 </>
                             ) : (
                                 <div className="flex items-center gap-4 py-2">
-                                    <span className="text-white/60 text-xs font-bold uppercase tracking-widest italic tracking-tighter">Action groupée désactivée (Administrateur uniquement)</span>
+                                    <span className="text-white/60 text-xs font-bold uppercase tracking-widest italic tracking-tighter">Action groupée désactivée (Droit "Supprimer" requis)</span>
                                     <button
                                         onClick={() => setSelectedIds([])}
                                         className="text-[10px] text-gray-500 hover:text-white underline uppercase font-black"
@@ -556,7 +685,7 @@ export function AdminManage() {
                                                         className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red focus:ring-offset-black"
                                                     />
                                                 </td>
-                                                {isAdmin && (
+                                                {canDelete && (
                                                     <td className="px-6 py-4">
                                                         <button
                                                             onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
@@ -613,6 +742,26 @@ export function AdminManage() {
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
                                                 <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                                                    {!searchTerm && selectedCategory === 'ALL' && (
+                                                        <div className="flex items-center gap-1 mr-2 border-r border-white/10 pr-2">
+                                                            <button
+                                                                onClick={() => handleMove(items.indexOf(item), 'up')}
+                                                                disabled={items.indexOf(item) === 0}
+                                                                className="p-2 text-gray-500 hover:text-white disabled:opacity-10 transition-colors"
+                                                                title="Monter"
+                                                            >
+                                                                <ChevronUp className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleMove(items.indexOf(item), 'down')}
+                                                                disabled={items.indexOf(item) === items.length - 1}
+                                                                className="p-2 text-gray-500 hover:text-white disabled:opacity-10 transition-colors"
+                                                                title="Descendre"
+                                                            >
+                                                                <ChevronDown className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                     {['News', 'Musique', 'Interviews', 'Recaps'].includes(activeTab) && (
                                                         <button
                                                             onClick={() => handleToggleFeatured(item)}
@@ -622,17 +771,31 @@ export function AdminManage() {
                                                             <Star className={`w-5 h-5 ${item.isFeatured ? 'fill-current' : ''}`} />
                                                         </button>
                                                     )}
-                                                    <button
-                                                        onClick={() => handleEdit(item)}
-                                                        disabled={loadingEditId === item.id}
-                                                        className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all focus:opacity-100 disabled:cursor-wait"
-                                                        title="Modifier"
-                                                    >
-                                                        {loadingEditId === item.id
-                                                            ? <Loader2 className="w-5 h-5 animate-spin text-neon-cyan" />
-                                                            : <Pencil className="w-5 h-5" />
-                                                        }
-                                                    </button>
+                                                    {canEdit && (
+                                                        <button
+                                                            onClick={() => handleEdit(item)}
+                                                            disabled={loadingEditId === item.id}
+                                                            className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all focus:opacity-100 disabled:cursor-wait"
+                                                            title="Modifier"
+                                                        >
+                                                            {loadingEditId === item.id
+                                                                ? <Loader2 className="w-5 h-5 animate-spin text-neon-cyan" />
+                                                                : <Pencil className="w-5 h-5" />
+                                                            }
+                                                        </button>
+                                                    )}
+                                                    {activeTab === 'Interviews' && (
+                                                        <button
+                                                            onClick={() => {
+                                                                setActivePhotoId(item.id);
+                                                                setIsImageModalOpen(true);
+                                                            }}
+                                                            className="p-3 text-gray-500 hover:text-neon-pink hover:bg-neon-pink/10 rounded-xl transition-all"
+                                                            title="Changer uniquement la photo"
+                                                        >
+                                                            <Camera className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );
@@ -723,6 +886,14 @@ export function AdminManage() {
                 onConfirm={handleBulkDelete}
                 onCancel={() => setBulkDeleteConfirm(false)}
                 accentColor="neon-red"
+            />
+
+            <ImageUploadModal
+                isOpen={isImageModalOpen}
+                onClose={() => setIsImageModalOpen(false)}
+                onUploadSuccess={handleUpdatePhoto}
+                accentColor="neon-pink"
+                aspect={4 / 3}
             />
         </div>
     );

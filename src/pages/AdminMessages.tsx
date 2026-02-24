@@ -130,17 +130,28 @@ export function AdminMessages() {
                             </div>
                             <div>
                                 <h1 className="text-xl font-display font-black uppercase italic tracking-tight text-white">
-                                    Messages <span className="text-neon-red">Contact</span>
+                                    MESSAGERIE <span className="text-neon-red">& CONTACTS</span>
                                 </h1>
                                 <p className="text-gray-500 text-xs">{messages.length} messages · {unreadCount} non lus</p>
                             </div>
                         </div>
                     </div>
-                    {unreadCount > 0 && (
-                        <div className="px-3 py-1 bg-neon-red rounded-full text-white text-xs font-black">
-                            {unreadCount} NOUVEAU{unreadCount > 1 ? 'X' : ''}
-                        </div>
-                    )}
+                    <div className="flex items-center gap-4">
+                        <a
+                            href="https://mail.dropsiders.fr"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2 group"
+                        >
+                            <Mail className="w-3 h-3 text-neon-red" />
+                            Accès Messagerie Pro
+                        </a>
+                        {unreadCount > 0 && (
+                            <div className="px-3 py-1 bg-neon-red rounded-full text-white text-xs font-black">
+                                {unreadCount} NOUVEAU{unreadCount > 1 ? 'X' : ''}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
 

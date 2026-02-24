@@ -18,7 +18,30 @@ export function Agenda() {
     const playHoverSound = useHoverSound();
     const [expandedEvent, setExpandedEvent] = useState<number | string | null>(null);
     const [activeCategory, setActiveCategory] = useState('ALL');
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [permissions, setPermissions] = useState<string[]>([]);
+    const storedUser = localStorage.getItem('admin_user');
+
+    const hasPermission = (p: string) => {
+        if (permissions.includes('all')) return true;
+        if (storedUser === 'alex') return true;
+
+        const actionPermissions = ['create', 'edit', 'delete'];
+        if (actionPermissions.includes(p)) {
+            return permissions.includes(p);
+        }
+
+        if (permissions.includes(p)) return true;
+
+        // Fallback pour publications (donne accès à l'agenda)
+        if (permissions.includes('publications') && p === 'agenda') return true;
+
+        return false;
+    };
+
+    const isAdmin = hasPermission('all');
+    const canCreate = hasPermission('create');
+    const canEdit = hasPermission('edit');
+    const canDelete = hasPermission('delete');
     const [agendaData, setAgendaData] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
@@ -47,7 +70,8 @@ export function Agenda() {
 
     useEffect(() => {
         fetchAgenda();
-        setIsAdmin(localStorage.getItem('admin_auth') === 'true');
+        const stored = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+        setPermissions(stored);
     }, []);
 
     useEffect(() => {
@@ -271,7 +295,7 @@ export function Agenda() {
                     <h1 className="text-4xl md:text-5xl font-display font-bold text-white uppercase italic tracking-tighter">
                         {t('agenda.title')}
                     </h1>
-                    {isAdmin && (
+                    {canCreate && (
                         <button
                             onClick={() => {
                                 setEditingEvent(null);
@@ -287,7 +311,7 @@ export function Agenda() {
             </motion.div>
 
             <AnimatePresence>
-                {isAdmin && selectedEvents.size > 0 && (
+                {canDelete && selectedEvents.size > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -426,7 +450,7 @@ export function Agenda() {
                                     className={`group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 ${styles.hoverBorder} ${styles.shadow} ${isSelected ? 'border-neon-red/50 bg-neon-red/5' : ''}`}
                                 >
                                     <div className="flex">
-                                        {isAdmin && (
+                                        {canDelete && (
                                             <div
                                                 className="w-12 flex items-center justify-center cursor-pointer hover:bg-white/5"
                                                 onClick={(e) => {
@@ -537,7 +561,7 @@ export function Agenda() {
                                                             >
                                                                 {t('agenda.book_tickets')}
                                                             </a>
-                                                            {isAdmin && (
+                                                            {canEdit && (
                                                                 <button
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();

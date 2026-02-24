@@ -278,7 +278,89 @@ export default {
             }
         }
 
-        // --- PUBLIC DATA GETTERS ---
+        // --- DEPLOY: Trigger GitHub Actions workflow_dispatch ---
+        if (path === '/api/deploy' && request.method === 'POST') {
+            // Only alex can trigger a deploy
+            if (requestUsername !== 'alex' || requestPassword !== adminPassword) {
+                return new Response(JSON.stringify({ error: 'Accès réservé à l\'administrateur principal' }), { status: 403, headers });
+            }
+
+            const body = await request.json().catch(() => ({}));
+            const reason = (body as any).reason || 'Mise en ligne manuelle depuis admin';
+
+            // Trigger workflow_dispatch on GitHub Actions
+            const workflowUrl = `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/build.yml/dispatches`;
+            const triggerResponse = await fetch(workflowUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'User-Agent': 'Cloudflare-Worker',
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    ref: 'main',
+                    inputs: { reason }
+                })
+            });
+
+            if (!triggerResponse.ok) {
+                const errText = await triggerResponse.text();
+                return new Response(JSON.stringify({ error: 'Erreur lors du déclenchement du déploiement', detail: errText }), { status: 500, headers });
+            }
+
+            // Wait a moment then fetch the latest run info
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            const runsUrl = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs?per_page=1&event=workflow_dispatch`;
+            const runsResponse = await fetch(runsUrl, {
+                headers: {
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'User-Agent': 'Cloudflare-Worker',
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            let runInfo = null;
+            if (runsResponse.ok) {
+                const runsData = await runsResponse.json();
+                runInfo = runsData.workflow_runs?.[0] || null;
+            }
+
+            return new Response(JSON.stringify({
+                success: true,
+                message: 'Déploiement déclenché avec succès !',
+                runId: runInfo?.id,
+                runUrl: runInfo?.html_url,
+                status: runInfo?.status || 'queued',
+                triggeredAt: new Date().toISOString()
+            }), { status: 200, headers });
+        }
+
+        // --- DEPLOY STATUS: Check GitHub Actions run status ---
+        if (path === '/api/deploy/status' && request.method === 'GET') {
+            const runId = url.searchParams.get('runId');
+            if (!runId) {
+                return new Response(JSON.stringify({ error: 'runId requis' }), { status: 400, headers });
+            }
+            const runUrl = `https://api.github.com/repos/${OWNER}/${REPO}/actions/runs/${runId}`;
+            const runResponse = await fetch(runUrl, {
+                headers: {
+                    'Authorization': `Bearer ${TOKEN}`,
+                    'User-Agent': 'Cloudflare-Worker',
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (!runResponse.ok) {
+                return new Response(JSON.stringify({ error: 'Run introuvable' }), { status: 404, headers });
+            }
+            const runData = await runResponse.json();
+            return new Response(JSON.stringify({
+                status: runData.status,
+                conclusion: runData.conclusion,
+                runUrl: runData.html_url,
+                updatedAt: runData.updated_at
+            }), { status: 200, headers });
+        }
+
         if (path === '/api/news' && request.method === 'GET') {
             const FILE_PATH = 'src/data/news.json';
             const file = await fetchGitHubFile(FILE_PATH);
@@ -511,6 +593,17 @@ export default {
 
             const updated = { ...file.content, products };
             const saved = await saveGitHubFile(SHOP_PATH, updated, 'Reorder shop products', file.sha);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
+        if (path.endsWith('/reorder') && request.method === 'POST') {
+            const type = path.split('/')[2];
+            const { items } = await request.json();
+            const FILE_PATH = `src/data/${type}.json`;
+            const file = await fetchGitHubFile(FILE_PATH);
+            if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+            const saved = await saveGitHubFile(FILE_PATH, items, `Reorder ${type}`, file.sha);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 

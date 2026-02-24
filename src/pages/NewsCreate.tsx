@@ -57,6 +57,7 @@ export function NewsCreate() {
     console.log('[NewsCreate] Initialization. isEditing:', isEditing, 'id:', id);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
+    const [interviewSubtype, setInterviewSubtype] = useState<'written' | 'video'>((searchParams.get('subtype') as 'written' | 'video') || 'written');
     const [author, setAuthor] = useState(
         localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex'
     );
@@ -135,6 +136,8 @@ export function NewsCreate() {
                                     });
                                 }
                                 if (foundMusic.length > 0) setMusicItems(foundMusic);
+                            } else if (data.article.category === 'Interview Video') {
+                                setInterviewSubtype('video');
                             } else if (data.article.isFocus) {
                                 setActiveTab('Focus');
                             }
@@ -148,6 +151,9 @@ export function NewsCreate() {
                                 setDate(localItem.date);
                                 setCategory(localItem.category);
                                 setIsFeatured(localItem.isFeatured || false);
+                                if (localItem.category === 'Interview Video') {
+                                    setInterviewSubtype('video');
+                                }
 
                                 if (localItem.category === 'Musique') {
                                     setActiveTab('Musique');
@@ -753,9 +759,17 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
     };
 
     const handleSubmit = async () => {
-        if (!title || !imageUrl) {
+        const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
+
+        if (!title || (!imageUrl && !isInterviewVideo)) {
             setStatus('error');
             setMessage('Veuillez remplir les champs obligatoires (Titre, Image)');
+            return;
+        }
+
+        if (isInterviewVideo && !youtubeId) {
+            setStatus('error');
+            setMessage('Le lien vidéo est obligatoire pour une interview vidéo');
             return;
         }
 
@@ -766,8 +780,19 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             let finalContent = '';
             let finalCategory = category;
             let isFocus = activeTab === 'Focus';
+            let finalImageUrl = imageUrl;
 
-            if (activeTab === 'Musique') {
+            if (isInterviewVideo) {
+                finalCategory = 'Interview Video';
+                if (!finalImageUrl && youtubeId) {
+                    finalImageUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
+                }
+                finalContent = `<div class="article-section">
+<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+  <iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+</div>
+</div>`;
+            } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
                 const musicHtml = musicItems.map((item) => `
 <div class="music-top-item-premium mb-12 last:mb-0">
@@ -780,6 +805,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 </div>`).join('\n');
                 finalContent = `<div class="article-section music-top-section">\n\n${musicHtml}\n\n</div>`;
             } else {
+                if (type === 'Interview') finalCategory = 'Interview';
                 // Construct Final Content with HTML Wrappers for Automatic Styling
                 finalContent = widgets.map(w =>
                     `<div class="article-section">\n\n${w.content}\n\n</div>`
@@ -791,7 +817,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 title: fixEncoding(title),
                 summary: fixEncoding(summary),
                 date,
-                image: imageUrl,
+                image: finalImageUrl,
                 category: finalCategory,
                 content: fixEncoding(finalContent),
                 youtubeId,
@@ -940,6 +966,25 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                         </div>
                     )}
 
+                    {type === 'Interview' && (
+                        <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 w-full md:w-fit mx-auto overflow-x-auto">
+                            <button
+                                onClick={() => setInterviewSubtype('written')}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${interviewSubtype === 'written' ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(189,0,255,0.4)]' : 'text-gray-500 hover:text-white'
+                                    }`}
+                            >
+                                <FileText className="w-3.5 h-3.5" /> Interview Écrite
+                            </button>
+                            <button
+                                onClick={() => setInterviewSubtype('video')}
+                                className={`flex items-center gap-2 px-4 md:px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[9px] md:text-[10px] transition-all whitespace-nowrap ${interviewSubtype === 'video' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'text-gray-500 hover:text-white'
+                                    }`}
+                            >
+                                <Youtube className="w-3.5 h-3.5" /> Interview Vidéo
+                            </button>
+                        </div>
+                    )}
+
 
 
                     <div className="space-y-6">
@@ -980,14 +1025,23 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Date <span className="text-neon-red">*</span></label>
-                                <div className="relative">
-                                    <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">Date de Publication <span className="text-neon-red">*</span></label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDate(new Date().toISOString().split('T')[0])}
+                                        className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
+                                    >
+                                        Aujourd'hui
+                                    </button>
+                                </div>
+                                <div className="relative group">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
                                         type="date"
                                         value={date}
                                         onChange={(e) => setDate(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none"
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none transition-all"
                                     />
                                 </div>
                             </div>
@@ -1017,7 +1071,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                             </div>
                         </div>
 
-                        {activeTab !== 'Musique' && (
+                        {(activeTab !== 'Musique' && !(type === 'Interview' && interviewSubtype === 'video')) && (
                             <div>
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Résumé (Intro) <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
@@ -1041,37 +1095,41 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 
                         {/* Image & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
-                                </label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={imageUrl}
-                                        onChange={(e) => setImageUrl(e.target.value)}
-                                        className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                        placeholder="https://..."
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setUploadTarget({ type: 'main' });
-                                            setShowUploadModal(true);
-                                        }}
-                                        className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
-                                    >
-                                        Upload
-                                    </button>
+                            {!(type === 'Interview' && interviewSubtype === 'video') && (
+                                <div>
+                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={imageUrl}
+                                            onChange={(e) => setImageUrl(e.target.value)}
+                                            className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                            placeholder="https://..."
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setUploadTarget({ type: 'main' });
+                                                setShowUploadModal(true);
+                                            }}
+                                            className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                        >
+                                            Upload
+                                        </button>
 
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
+                            )}
+                            <div className={type === 'Interview' && interviewSubtype === 'video' ? 'md:col-span-2' : ''}>
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center justify-between gap-2">
                                     <span className="flex items-center gap-2">
-                                        <Youtube className="w-4 h-4" /> Vidéo de l'article
+                                        <Youtube className="w-4 h-4" /> {type === 'Interview' && interviewSubtype === 'video' ? 'Lien Vidéo (ID ou URL)' : 'Vidéo de l\'article'}
                                     </span>
-                                    <span className="text-[9px] text-neon-cyan/80 normal-case font-bold">(S'affichera en bas de l'article)</span>
+                                    <span className="text-[9px] text-neon-cyan/80 normal-case font-bold">
+                                        {type === 'Interview' && interviewSubtype === 'video' ? '(Obligatoire)' : '(S\'affichera en bas de l\'article)'}
+                                    </span>
                                 </label>
                                 <input
                                     type="text"
@@ -1093,8 +1151,8 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                             </div>
                         </div>
 
-                        {/* WIDGET EDITOR SECTION (News & Focus) */}
-                        {(activeTab === 'News' || activeTab === 'Focus') && (
+                        {/* WIDGET EDITOR SECTION (News & Focus & Written Interviews) */}
+                        {((activeTab === 'News' || activeTab === 'Focus') && !(type === 'Interview' && interviewSubtype === 'video')) && (
                             <div className="pt-8 border-t border-white/10">
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                                     <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
