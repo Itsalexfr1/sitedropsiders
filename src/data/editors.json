@@ -47,5 +47,15 @@
       "messages"
     ],
     "created": "2026-02-24T19:52:44.407Z"
+  },
+  {
+    "username": "julien",
+    "password": "2026",
+    "name": "Julien",
+    "permissions": [
+      "create",
+      "messages"
+    ],
+    "created": "2026-02-24T22:02:20.569Z"
   }
 ]
