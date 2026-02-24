@@ -1326,14 +1326,15 @@ export default {
                                         ${message.replace(/\n/g, '<br>')}
                                     </div>
                                     
-                                    <div style="padding-top:30px; border-top:1px solid #333333;">
-                                        <div style="color:#ffffff; font-size:14px; font-weight:bold; line-height:1.4; margin-bottom:20px;">
+                                    <!-- BLOC SIGNATURE STYLÉ -->
+                                    <div style="background:#000000; border:1px solid #ff0033; border-radius:16px; padding:25px; margin-top:30px; box-shadow: 0 0 20px rgba(255,0,51,0.1);">
+                                        <div style="color:#ffffff; font-size:15px; font-weight:bold; line-height:1.4; margin-bottom:20px; font-style: italic;">
                                             Cordialement,<br>
                                             L'équipe Dropsiders
                                         </div>
                                         
-                                        <div style="margin-top:20px;">
-                                            <a href="https://dropsiders.fr" style="display:inline-block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:10px; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(255,0,51,0.3);">
+                                        <div style="margin-top:10px;">
+                                            <a href="https://dropsiders.fr" style="display:inline-block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:10px; font-weight:900; font-size:11px; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(255,0,51,0.3);">
                                                 S'inscrire à la Newsletter
                                             </a>
                                         </div>

@@ -236,8 +236,7 @@ export function AdminMessages() {
                                     <button
                                         onClick={() => {
                                             const sig = `\n\n\n`;
-                                            const quote = `\n\n---\n✉ Message original de ${selected.name}\nObjet : ${selected.subject}\n\n${selected.message}`;
-                                            setReplyBody(sig + quote);
+                                            setReplyBody(sig);
                                             setReplyModal(true);
                                             // Set cursor at beginning
                                             setTimeout(() => {
