@@ -327,7 +327,7 @@ export function AdminDashboard() {
     }
 
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const isAlex = localStorage.getItem('admin_user') === 'alex';
+    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
         // Permission Maître (Alex uniquement pour superadmin)
@@ -585,7 +585,7 @@ export function AdminDashboard() {
                                 title="Rafraîchir les données"
                             >
                                 <RefreshCw className="w-4 h-4" />
-                                Mise à jour
+                                Actualiser
                             </button>
                             {/* Bouton Bandeau - Admin */}
                             {isAdminAcc && (

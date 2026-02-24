@@ -281,7 +281,7 @@ export default {
         // --- DEPLOY: Trigger GitHub Actions workflow_dispatch ---
         if (path === '/api/deploy' && request.method === 'POST') {
             // Only alex can trigger a deploy
-            if (requestUsername !== 'alex' || requestPassword !== adminPassword) {
+            if ((requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr') || requestPassword !== adminPassword) {
                 return new Response(JSON.stringify({ error: 'Accès réservé à l\'administrateur principal' }), { status: 403, headers });
             }
 
@@ -300,7 +300,7 @@ export default {
                 },
                 body: JSON.stringify({
                     ref: 'main',
-                    inputs: { reason }
+                    inputs: { reason: reason + ` (par ${requestUsername})` }
                 })
             });
 
@@ -389,8 +389,8 @@ export default {
         if (path === '/api/login' && request.method === 'POST') {
             try {
                 const { username, password } = await request.json();
-                if (username === 'alex' && password === adminPassword) {
-                    return new Response(JSON.stringify({ success: true, user: 'alex', permissions: ['all'] }), { status: 200, headers });
+                if ((username === 'alex' || username === 'contact@dropsiders.fr') && password === adminPassword) {
+                    return new Response(JSON.stringify({ success: true, user: username, permissions: ['all'] }), { status: 200, headers });
                 }
 
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH);
