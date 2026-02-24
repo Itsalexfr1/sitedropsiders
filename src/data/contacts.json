@@ -26,7 +26,7 @@
     "subject": "Recrutement",
     "message": "test",
     "date": "2026-02-24T14:22:33.769Z",
-    "read": false,
+    "read": true,
     "replied": false
   }
 ]
