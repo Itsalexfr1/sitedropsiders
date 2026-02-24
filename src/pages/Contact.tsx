@@ -90,7 +90,7 @@ export function Contact() {
                     <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre Nom</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre Nom <span className="text-neon-red">*</span></label>
                                 <input
                                     required
                                     type="text"
@@ -102,7 +102,7 @@ export function Contact() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre E-mail</label>
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre E-mail <span className="text-neon-red">*</span></label>
                                 <input
                                     required
                                     type="email"
@@ -116,7 +116,7 @@ export function Contact() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Sujet du Message</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Sujet du Message <span className="text-neon-red">*</span></label>
                             <input
                                 required
                                 type="text"
@@ -129,7 +129,7 @@ export function Contact() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre Message</label>
+                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Votre Message <span className="text-neon-red">*</span></label>
                             <textarea
                                 required
                                 name="message"

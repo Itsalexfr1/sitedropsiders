@@ -713,7 +713,7 @@ export function RecapCreate() {
 
     return (
         <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
                     <div className="flex items-center gap-4 md:gap-6">
                         <button

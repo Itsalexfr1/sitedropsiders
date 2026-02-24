@@ -438,216 +438,218 @@ export function AdminStats() {
                 )}
             </AnimatePresence>
 
-            <div className="w-full">
-                <div className="flex items-center gap-6 mb-16">
-                    <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-gray-400 group" title="Retour au tableau de bord">
-                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                    </Link>
-                    <div>
-                        <h1 className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                            Dashboard <span className="text-neon-red underline decoration-8 decoration-neon-red/10 underline-offset-8">Analytics</span>
-                        </h1>
-                        <p className="text-gray-400 mt-4 text-xs font-black uppercase tracking-[0.3em] font-display">
-                            {language === 'fr' ? "Tracking Réel Temps Réel" : "Real Time Real Tracking"} • Dropsiders V2
-                        </p>
-                    </div>
-                </div>
-
-                <div className="absolute top-8 p-4 right-8 z-50 flex gap-2">
-                    <button onClick={() => setLanguage('fr')} aria-label="Switch to French" className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'fr' ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-                        <FlagIcon location="France" className="w-4 h-3" /><span>FR</span>
-                    </button>
-                    <button onClick={() => setLanguage('en')} aria-label="Switch to English" className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>
-                        <FlagIcon location="USA" className="w-4 h-3" /><span>EN</span>
-                    </button>
-                </div>
-
-                {/* Main Stats Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-                    {cards.map((card, idx) => (
-                        <motion.div
-                            key={card.title}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            onClick={() => (card as any).clickable && setSelectedDetail((card as any).clickable)}
-                            className={`bg-white/5 border border-white/10 rounded-[40px] p-10 relative overflow-hidden group shadow-2xl transition-all duration-500 ${(card as any).clickable ? 'cursor-pointer hover:border-neon-red/50 hover:bg-neon-red/5' : 'hover:border-white/20'}`}
-                        >
-                            <div className={`absolute top-0 right-0 w-32 h-32 bg-neon-${card.color === 'white' ? 'white' : card.color}/5 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700`} />
-                            <div className="flex justify-between items-start mb-8 relative z-10">
-                                <div className={`p-5 bg-white/5 rounded-[22px] border border-white/10 group-hover:bg-white/10 transition-colors`}>{card.icon}</div>
-                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-gray-400">{card.trend}</div>
-                            </div>
-                            <div className="relative z-10">
-                                <div className="text-5xl font-display font-black text-white mb-2 group-hover:translate-x-2 transition-transform duration-500 origin-left tabular-nums tracking-tighter">{card.value}</div>
-                                <div className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                                    {card.title}
-                                    {(card as any).clickable && <Plus className="w-3.5 h-3.5 text-neon-red animate-pulse" />}
-                                </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-
-                {/* Visits Bar Chart */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 border border-white/10 rounded-[40px] p-10 mb-16 shadow-2xl">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div className="min-h-screen bg-dark-bg py-32">
+                <div className="max-w-full mx-auto px-4 md:px-12">
+                    <div className="flex items-center gap-6 mb-16">
+                        <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-gray-400 group" title="Retour au tableau de bord">
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                        </Link>
                         <div>
-                            <h3 className="text-2xl font-display font-black text-white uppercase italic">{language === 'fr' ? "Visites" : "Visits"} <span className="text-neon-red">Timeline</span></h3>
-                            <p className="text-gray-500 text-xs mt-1 font-bold uppercase tracking-widest">{language === 'fr' ? "Suivi des sessions en temps réel" : "Real-time session tracking"}</p>
-                        </div>
-                        <div className="flex gap-2 bg-white/5 border border-white/10 rounded-full p-1">
-                            {(['day', 'month', 'year'] as const).map(p => (
-                                <button key={p} onClick={() => setVisitPeriod(p)} className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${visitPeriod === p ? 'bg-neon-red text-white shadow-lg shadow-neon-red/30' : 'text-gray-500 hover:text-white'}`}>
-                                    {p === 'day' ? (language === 'fr' ? 'Jour' : 'Day') : p === 'month' ? (language === 'fr' ? 'Mois' : 'Month') : (language === 'fr' ? 'Année' : 'Year')}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <VisitsBarChart data={visitData} />
-                    <div className="mt-4 flex items-center gap-2">
-                        <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-red opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-neon-red"></span></span>
-                        <span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">{language === 'fr' ? "Données issues du localStorage. Aucun tracking serveur activé." : "Data from localStorage. No server tracking enabled."}</span>
-                    </div>
-                </motion.div>
-
-                {/* Content Pie + Performance */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-8 bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl">
-                        <div className="flex justify-between items-center mb-10">
-                            <div>
-                                <h3 className="text-2xl font-display font-black text-white uppercase italic">{language === 'fr' ? "Répartition du Contenu" : "Content Distribution"}</h3>
-                                <p className="text-gray-400 text-xs mt-1 uppercase tracking-widest">{language === 'fr' ? "Base de données réelle" : "Real database"}</p>
-                            </div>
-                            <button onClick={() => setSelectedDetail('content')} className="flex items-center gap-2 px-4 py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-xl text-xs font-black uppercase hover:bg-neon-blue/20 transition-all">
-                                <BarChart3 className="w-4 h-4" /> Détail
-                            </button>
-                        </div>
-                        <PieChart data={pieData} />
-                    </motion.div>
-
-                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-4 bg-white/5 border border-white/10 rounded-[40px] p-12 relative overflow-hidden flex flex-col justify-between group">
-                        <div className="absolute -top-10 -right-10 w-64 h-64 bg-neon-red/20 blur-[100px] group-hover:bg-neon-red/30 transition-colors duration-700" />
-                        <div className="relative z-10">
-                            <h3 className="text-3xl font-display font-black text-white uppercase italic mb-10 leading-tight">Insight<br /> <span className="text-neon-red">Performance</span></h3>
-                            <div className="space-y-10">
-                                <div>
-                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">{language === 'fr' ? "Total des Données" : "Total Data Points"}</div>
-                                    <div className="text-5xl font-display font-black text-white tracking-tighter">{stats.content.total}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">{language === 'fr' ? "Abonnés Newsletter" : "Newsletter Subs"}</div>
-                                    <div className="text-5xl font-display font-black text-white tracking-tighter">{stats.community.subscribers}</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="relative z-10 pt-16 mt-auto">
-                            <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
-                                <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-red opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-neon-red"></span></span>
-                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Tracking Live Activé</span>
-                            </div>
-                        </div>
-                    </motion.div>
-                </div>
-
-                {/* World Map Section */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-32">
-                    <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-[40px] p-12 overflow-hidden relative shadow-2xl">
-                        <div className="flex justify-between items-center mb-16 px-4">
-                            <div>
-                                <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tight underline decoration-neon-red/10 decoration-8 underline-offset-4">Distribution <span className="text-neon-red">Live</span></h3>
-                                <p className="text-gray-400 text-xs font-black mt-3 uppercase tracking-widest">{language === 'fr' ? "Analyse d'audience par localisation" : "Audience analysis by location"}</p>
-                            </div>
-                            <Globe className="w-10 h-10 text-white/5 animate-spin-slow" />
-                        </div>
-                        <div className="relative aspect-[2.2/1] w-full max-w-5xl mx-auto opacity-100 group overflow-hidden">
-                            <ComposableMap projectionConfig={{ scale: 160 }} className="w-full h-full bg-white/5 rounded-3xl" width={800} height={400}>
-                                <ZoomableGroup zoom={position.zoom} center={position.coordinates} onMoveEnd={(pos) => setPosition(pos)}>
-                                    <Geographies geography={geoUrl}>
-                                        {({ geographies }) => geographies.map((geo) => {
-                                            const countryName = geo.properties.name;
-                                            const hasData = !!CITIES_DATA[countryName];
-                                            const isSelected = selectedCountry === countryName;
-                                            return (
-                                                <Geography key={geo.rsmKey} geography={geo} onClick={() => { if (hasData) handleCountryClick(countryName); }}
-                                                    style={{
-                                                        default: { fill: isSelected ? "#FF3333" : hasData ? "rgba(255,51,51,0.3)" : "rgba(255,255,255,0.05)", stroke: "rgba(255,255,255,0.1)", strokeWidth: 0.5, outline: "none", cursor: hasData ? "pointer" : "default" },
-                                                        hover: { fill: hasData ? "#FF3333" : "rgba(255,255,255,0.1)", stroke: "rgba(255,255,255,0.2)", strokeWidth: 0.5, outline: "none", cursor: hasData ? "pointer" : "default" },
-                                                        pressed: { fill: "#FF3333", outline: "none" }
-                                                    }} />
-                                            );
-                                        })}
-                                    </Geographies>
-                                    {selectedCountry && CITIES_DATA[selectedCountry] && CITIES_DATA[selectedCountry].map((city) => (
-                                        <Marker key={city.name} coordinates={city.coordinates}>
-                                            <circle r={3 / position.zoom} fill="#00f0ff" className="animate-pulse" />
-                                            <circle r={8 / position.zoom} stroke="#00f0ff" fill="none" opacity={0.4} strokeWidth={1 / position.zoom} className="animate-ping" />
-                                            <rect x={-20 / position.zoom} y={-16 / position.zoom} width={40 / position.zoom} height={12 / position.zoom} fill="black" opacity={0.8} rx={2 / position.zoom} />
-                                            <text textAnchor="middle" y={-7 / position.zoom} style={{ fill: "#FFFFFF", fontSize: `${5 / position.zoom}px`, fontWeight: "bold", pointerEvents: "none" }}>{city.name} ({city.views})</text>
-                                        </Marker>
-                                    ))}
-                                </ZoomableGroup>
-                            </ComposableMap>
-                            <div className="absolute top-4 left-4 pointer-events-none">
-                                <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }} className="bg-black/80 backdrop-blur-sm border border-white/20 text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase tracking-tighter shadow-2xl flex flex-col gap-1">
-                                    <div className="flex items-center gap-2 hidden md:flex"><span className="w-1.5 h-1.5 rounded-full bg-neon-red animate-ping" />{language === 'fr' ? "CARTE INTERACTIVE" : "INTERACTIVE MAP"}</div>
-                                    <span className="text-[7px] text-gray-400">{language === 'fr' ? "Cliquez sur les pays en surbrillance, molette pour zoomer" : "Click highlighted countries, scroll to zoom"}</span>
-                                </motion.div>
-                            </div>
-                        </div>
-                        <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-                    </div>
-
-                    <div className="lg:col-span-4 bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl flex flex-col">
-                        <h3 className="text-2xl font-display font-black text-white uppercase italic mb-10">{language === 'fr' ? "Top Marchés" : "Top Markets"}</h3>
-                        <div className="space-y-8 flex-1">
-                            {stats.community.countries.map((country, idx) => {
-                                const hasData = !!CITIES_DATA[country.name];
-                                const isSelected = selectedCountry === country.name;
-                                return (
-                                    <motion.div key={country.code} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + (idx * 0.1) }} className="flex flex-col">
-                                        <div onClick={() => handleCountryClick(country.name)} className={`group/entry flex items-center justify-between ${hasData ? 'cursor-pointer' : ''} ${isSelected ? 'bg-white/10 -mx-4 px-4 py-2 rounded-xl' : 'py-2'}`}>
-                                            <div className="flex items-center gap-5">
-                                                <div className={`w-12 h-8 rounded-xl ${country.color === 'bg-neon-red' ? 'bg-gradient-to-br from-neon-red to-neon-purple' : country.color} shadow-sm group-hover/entry:scale-110 transition-transform duration-300 flex items-center justify-center overflow-hidden`}>
-                                                    <FlagIcon location={country.name} className="w-full h-full" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm font-bold text-white uppercase italic tracking-tight group-hover/entry:text-neon-red transition-colors">{language === 'fr' ? country.name_fr : country.name}</div>
-                                                    <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{country.visits.toLocaleString()} VISITES</div>
-                                                </div>
-                                            </div>
-                                            <div className="text-right">
-                                                <div className="text-2xl font-display font-black text-white">{country.percentage}%</div>
-                                                <div className="w-20 h-1.5 bg-white/5 rounded-full mt-2 overflow-hidden border border-white/10">
-                                                    <motion.div initial={{ width: 0 }} animate={{ width: `${country.percentage}%` }} transition={{ duration: 1.5, delay: 0.8 }} className={`h-full ${country.color === 'bg-white' ? 'bg-white/20' : country.color} rounded-full`} />
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <AnimatePresence>
-                                            {isSelected && hasData && (
-                                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                                                    <div className="pt-4 pl-16 pr-4 pb-2 space-y-3 border-l-2 border-white/10 ml-6 mb-2">
-                                                        {CITIES_DATA[country.name].map(city => (
-                                                            <div key={city.name} className="flex justify-between items-center bg-white/5 px-4 py-2 rounded-lg">
-                                                                <span className="text-xs text-white uppercase tracking-widest">{city.name}</span>
-                                                                <span className="text-xs font-black text-neon-red">{city.views.toLocaleString()}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                        <div className="mt-12 p-6 bg-white/5 border border-white/10 rounded-3xl">
-                            <p className="text-[9px] text-gray-500 leading-relaxed font-black uppercase tracking-[0.2em]">
-                                {language === 'fr' ? "* Estimations géospatiales en temps réel propulsées par l'analyse des nœuds IP Dropsiders." : "* Real-Time Geospatial Estimations powered by Dropsiders IP node analysis."}
+                            <h1 className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                Dashboard <span className="text-neon-red underline decoration-8 decoration-neon-red/10 underline-offset-8">Analytics</span>
+                            </h1>
+                            <p className="text-gray-400 mt-4 text-xs font-black uppercase tracking-[0.3em] font-display">
+                                {language === 'fr' ? "Tracking Réel Temps Réel" : "Real Time Real Tracking"} • Dropsiders V2
                             </p>
                         </div>
                     </div>
-                </motion.div>
+
+                    <div className="absolute top-8 p-4 right-8 z-50 flex gap-2">
+                        <button onClick={() => setLanguage('fr')} aria-label="Switch to French" className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'fr' ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                            <FlagIcon location="France" className="w-4 h-3" /><span>FR</span>
+                        </button>
+                        <button onClick={() => setLanguage('en')} aria-label="Switch to English" className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-white text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                            <FlagIcon location="USA" className="w-4 h-3" /><span>EN</span>
+                        </button>
+                    </div>
+
+                    {/* Main Stats Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+                        {cards.map((card, idx) => (
+                            <motion.div
+                                key={card.title}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                onClick={() => (card as any).clickable && setSelectedDetail((card as any).clickable)}
+                                className={`bg-white/5 border border-white/10 rounded-[40px] p-10 relative overflow-hidden group shadow-2xl transition-all duration-500 ${(card as any).clickable ? 'cursor-pointer hover:border-neon-red/50 hover:bg-neon-red/5' : 'hover:border-white/20'}`}
+                            >
+                                <div className={`absolute top-0 right-0 w-32 h-32 bg-neon-${card.color === 'white' ? 'white' : card.color}/5 blur-[60px] rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700`} />
+                                <div className="flex justify-between items-start mb-8 relative z-10">
+                                    <div className={`p-5 bg-white/5 rounded-[22px] border border-white/10 group-hover:bg-white/10 transition-colors`}>{card.icon}</div>
+                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-gray-400">{card.trend}</div>
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="text-5xl font-display font-black text-white mb-2 group-hover:translate-x-2 transition-transform duration-500 origin-left tabular-nums tracking-tighter">{card.value}</div>
+                                    <div className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                                        {card.title}
+                                        {(card as any).clickable && <Plus className="w-3.5 h-3.5 text-neon-red animate-pulse" />}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Visits Bar Chart */}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="bg-white/5 border border-white/10 rounded-[40px] p-10 mb-16 shadow-2xl">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                            <div>
+                                <h3 className="text-2xl font-display font-black text-white uppercase italic">{language === 'fr' ? "Visites" : "Visits"} <span className="text-neon-red">Timeline</span></h3>
+                                <p className="text-gray-500 text-xs mt-1 font-bold uppercase tracking-widest">{language === 'fr' ? "Suivi des sessions en temps réel" : "Real-time session tracking"}</p>
+                            </div>
+                            <div className="flex gap-2 bg-white/5 border border-white/10 rounded-full p-1">
+                                {(['day', 'month', 'year'] as const).map(p => (
+                                    <button key={p} onClick={() => setVisitPeriod(p)} className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all ${visitPeriod === p ? 'bg-neon-red text-white shadow-lg shadow-neon-red/30' : 'text-gray-500 hover:text-white'}`}>
+                                        {p === 'day' ? (language === 'fr' ? 'Jour' : 'Day') : p === 'month' ? (language === 'fr' ? 'Mois' : 'Month') : (language === 'fr' ? 'Année' : 'Year')}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <VisitsBarChart data={visitData} />
+                        <div className="mt-4 flex items-center gap-2">
+                            <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-red opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-neon-red"></span></span>
+                            <span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">{language === 'fr' ? "Données issues du localStorage. Aucun tracking serveur activé." : "Data from localStorage. No server tracking enabled."}</span>
+                        </div>
+                    </motion.div>
+
+                    {/* Content Pie + Performance */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+                        <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-8 bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl">
+                            <div className="flex justify-between items-center mb-10">
+                                <div>
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic">{language === 'fr' ? "Répartition du Contenu" : "Content Distribution"}</h3>
+                                    <p className="text-gray-400 text-xs mt-1 uppercase tracking-widest">{language === 'fr' ? "Base de données réelle" : "Real database"}</p>
+                                </div>
+                                <button onClick={() => setSelectedDetail('content')} className="flex items-center gap-2 px-4 py-2 bg-neon-blue/10 border border-neon-blue/30 text-neon-blue rounded-xl text-xs font-black uppercase hover:bg-neon-blue/20 transition-all">
+                                    <BarChart3 className="w-4 h-4" /> Détail
+                                </button>
+                            </div>
+                            <PieChart data={pieData} />
+                        </motion.div>
+
+                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="lg:col-span-4 bg-white/5 border border-white/10 rounded-[40px] p-12 relative overflow-hidden flex flex-col justify-between group">
+                            <div className="absolute -top-10 -right-10 w-64 h-64 bg-neon-red/20 blur-[100px] group-hover:bg-neon-red/30 transition-colors duration-700" />
+                            <div className="relative z-10">
+                                <h3 className="text-3xl font-display font-black text-white uppercase italic mb-10 leading-tight">Insight<br /> <span className="text-neon-red">Performance</span></h3>
+                                <div className="space-y-10">
+                                    <div>
+                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">{language === 'fr' ? "Total des Données" : "Total Data Points"}</div>
+                                        <div className="text-5xl font-display font-black text-white tracking-tighter">{stats.content.total}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em] mb-3">{language === 'fr' ? "Abonnés Newsletter" : "Newsletter Subs"}</div>
+                                        <div className="text-5xl font-display font-black text-white tracking-tighter">{stats.community.subscribers}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="relative z-10 pt-16 mt-auto">
+                                <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-md">
+                                    <span className="relative flex h-3 w-3"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-red opacity-75"></span><span className="relative inline-flex rounded-full h-3 w-3 bg-neon-red"></span></span>
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Tracking Live Activé</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+
+                    {/* World Map Section */}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="grid grid-cols-1 lg:grid-cols-12 gap-8 pb-32">
+                        <div className="lg:col-span-8 bg-white/5 border border-white/10 rounded-[40px] p-12 overflow-hidden relative shadow-2xl">
+                            <div className="flex justify-between items-center mb-16 px-4">
+                                <div>
+                                    <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tight underline decoration-neon-red/10 decoration-8 underline-offset-4">Distribution <span className="text-neon-red">Live</span></h3>
+                                    <p className="text-gray-400 text-xs font-black mt-3 uppercase tracking-widest">{language === 'fr' ? "Analyse d'audience par localisation" : "Audience analysis by location"}</p>
+                                </div>
+                                <Globe className="w-10 h-10 text-white/5 animate-spin-slow" />
+                            </div>
+                            <div className="relative aspect-[2.2/1] w-full max-w-5xl mx-auto opacity-100 group overflow-hidden">
+                                <ComposableMap projectionConfig={{ scale: 160 }} className="w-full h-full bg-white/5 rounded-3xl" width={800} height={400}>
+                                    <ZoomableGroup zoom={position.zoom} center={position.coordinates} onMoveEnd={(pos) => setPosition(pos)}>
+                                        <Geographies geography={geoUrl}>
+                                            {({ geographies }) => geographies.map((geo) => {
+                                                const countryName = geo.properties.name;
+                                                const hasData = !!CITIES_DATA[countryName];
+                                                const isSelected = selectedCountry === countryName;
+                                                return (
+                                                    <Geography key={geo.rsmKey} geography={geo} onClick={() => { if (hasData) handleCountryClick(countryName); }}
+                                                        style={{
+                                                            default: { fill: isSelected ? "#FF3333" : hasData ? "rgba(255,51,51,0.3)" : "rgba(255,255,255,0.05)", stroke: "rgba(255,255,255,0.1)", strokeWidth: 0.5, outline: "none", cursor: hasData ? "pointer" : "default" },
+                                                            hover: { fill: hasData ? "#FF3333" : "rgba(255,255,255,0.1)", stroke: "rgba(255,255,255,0.2)", strokeWidth: 0.5, outline: "none", cursor: hasData ? "pointer" : "default" },
+                                                            pressed: { fill: "#FF3333", outline: "none" }
+                                                        }} />
+                                                );
+                                            })}
+                                        </Geographies>
+                                        {selectedCountry && CITIES_DATA[selectedCountry] && CITIES_DATA[selectedCountry].map((city) => (
+                                            <Marker key={city.name} coordinates={city.coordinates}>
+                                                <circle r={3 / position.zoom} fill="#00f0ff" className="animate-pulse" />
+                                                <circle r={8 / position.zoom} stroke="#00f0ff" fill="none" opacity={0.4} strokeWidth={1 / position.zoom} className="animate-ping" />
+                                                <rect x={-20 / position.zoom} y={-16 / position.zoom} width={40 / position.zoom} height={12 / position.zoom} fill="black" opacity={0.8} rx={2 / position.zoom} />
+                                                <text textAnchor="middle" y={-7 / position.zoom} style={{ fill: "#FFFFFF", fontSize: `${5 / position.zoom}px`, fontWeight: "bold", pointerEvents: "none" }}>{city.name} ({city.views})</text>
+                                            </Marker>
+                                        ))}
+                                    </ZoomableGroup>
+                                </ComposableMap>
+                                <div className="absolute top-4 left-4 pointer-events-none">
+                                    <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }} className="bg-black/80 backdrop-blur-sm border border-white/20 text-white text-[9px] font-black px-4 py-2 rounded-xl uppercase tracking-tighter shadow-2xl flex flex-col gap-1">
+                                        <div className="flex items-center gap-2 hidden md:flex"><span className="w-1.5 h-1.5 rounded-full bg-neon-red animate-ping" />{language === 'fr' ? "CARTE INTERACTIVE" : "INTERACTIVE MAP"}</div>
+                                        <span className="text-[7px] text-gray-400">{language === 'fr' ? "Cliquez sur les pays en surbrillance, molette pour zoomer" : "Click highlighted countries, scroll to zoom"}</span>
+                                    </motion.div>
+                                </div>
+                            </div>
+                            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                        </div>
+
+                        <div className="lg:col-span-4 bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl flex flex-col">
+                            <h3 className="text-2xl font-display font-black text-white uppercase italic mb-10">{language === 'fr' ? "Top Marchés" : "Top Markets"}</h3>
+                            <div className="space-y-8 flex-1">
+                                {stats.community.countries.map((country, idx) => {
+                                    const hasData = !!CITIES_DATA[country.name];
+                                    const isSelected = selectedCountry === country.name;
+                                    return (
+                                        <motion.div key={country.code} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.5 + (idx * 0.1) }} className="flex flex-col">
+                                            <div onClick={() => handleCountryClick(country.name)} className={`group/entry flex items-center justify-between ${hasData ? 'cursor-pointer' : ''} ${isSelected ? 'bg-white/10 -mx-4 px-4 py-2 rounded-xl' : 'py-2'}`}>
+                                                <div className="flex items-center gap-5">
+                                                    <div className={`w-12 h-8 rounded-xl ${country.color === 'bg-neon-red' ? 'bg-gradient-to-br from-neon-red to-neon-purple' : country.color} shadow-sm group-hover/entry:scale-110 transition-transform duration-300 flex items-center justify-center overflow-hidden`}>
+                                                        <FlagIcon location={country.name} className="w-full h-full" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-white uppercase italic tracking-tight group-hover/entry:text-neon-red transition-colors">{language === 'fr' ? country.name_fr : country.name}</div>
+                                                        <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{country.visits.toLocaleString()} VISITES</div>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-2xl font-display font-black text-white">{country.percentage}%</div>
+                                                    <div className="w-20 h-1.5 bg-white/5 rounded-full mt-2 overflow-hidden border border-white/10">
+                                                        <motion.div initial={{ width: 0 }} animate={{ width: `${country.percentage}%` }} transition={{ duration: 1.5, delay: 0.8 }} className={`h-full ${country.color === 'bg-white' ? 'bg-white/20' : country.color} rounded-full`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <AnimatePresence>
+                                                {isSelected && hasData && (
+                                                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                                        <div className="pt-4 pl-16 pr-4 pb-2 space-y-3 border-l-2 border-white/10 ml-6 mb-2">
+                                                            {CITIES_DATA[country.name].map(city => (
+                                                                <div key={city.name} className="flex justify-between items-center bg-white/5 px-4 py-2 rounded-lg">
+                                                                    <span className="text-xs text-white uppercase tracking-widest">{city.name}</span>
+                                                                    <span className="text-xs font-black text-neon-red">{city.views.toLocaleString()}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.div>
+                                    );
+                                })}
+                            </div>
+                            <div className="mt-12 p-6 bg-white/5 border border-white/10 rounded-3xl">
+                                <p className="text-[9px] text-gray-500 leading-relaxed font-black uppercase tracking-[0.2em]">
+                                    {language === 'fr' ? "* Estimations géospatiales en temps réel propulsées par l'analyse des nœuds IP Dropsiders." : "* Real-Time Geospatial Estimations powered by Dropsiders IP node analysis."}
+                                </p>
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
             </div>
         </div>
     );

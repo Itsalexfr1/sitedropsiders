@@ -27,10 +27,31 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [team, setTeam] = useState<any[]>([]);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
+        const fetchTeam = async () => {
+            try {
+                const res = await fetch('/api/team');
+                if (res.ok) setTeam(await res.json());
+            } catch (e) {
+                console.error("Error fetching team:", e);
+            }
+        };
+        fetchTeam();
     }, []);
+
+    const getAuthorInsta = (authorName: string) => {
+        if (!authorName) return null;
+        const normalized = authorName.trim().toLowerCase();
+        const member = team.find(m =>
+            m.name.trim().toLowerCase() === normalized ||
+            normalized.includes(m.name.trim().toLowerCase()) ||
+            m.name.trim().toLowerCase().includes(normalized)
+        );
+        return member?.socials?.instagram && member.socials.instagram !== '#' ? member.socials.instagram : null;
+    };
 
     const handleEdit = () => {
         const isInterview = article.category === 'Interview' || article.category === 'Interviews';
@@ -422,10 +443,22 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 })}
                             </span>
                             {article.author && (
-                                <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
-                                    <svg className="w-3.5 h-3.5 text-neon-red flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
-                                    {article.author}
-                                </span>
+                                getAuthorInsta(article.author) ? (
+                                    <a
+                                        href={getAuthorInsta(article.author)!}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest hover:bg-white/20 hover:border-white/40 transition-all group/author"
+                                    >
+                                        <svg className="w-3.5 h-3.5 text-neon-red flex-shrink-0 group-hover/author:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
+                                        {article.author}
+                                    </a>
+                                ) : (
+                                    <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
+                                        <svg className="w-3.5 h-3.5 text-neon-red flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
+                                        {article.author}
+                                    </span>
+                                )
                             )}
                             {type === 'recap' && article.location && (
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">

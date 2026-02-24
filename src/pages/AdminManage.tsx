@@ -46,6 +46,31 @@ export function AdminManage() {
     const [message, setMessage] = useState('');
     const [loadingEditId, setLoadingEditId] = useState<number | string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: number | string, title: string } | null>(null);
+    const [team, setTeam] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchTeam = async () => {
+            try {
+                const res = await fetch('/api/team');
+                if (res.ok) setTeam(await res.json());
+            } catch (e) {
+                console.error("Error fetching team:", e);
+            }
+        };
+        fetchTeam();
+    }, []);
+
+    const getAuthorInsta = (authorName: string) => {
+        if (!authorName) return null;
+        const normalized = authorName.trim().toLowerCase();
+        // Permettre une correspondance si le nom d'affichage contient le nom de l'équipe ou vice versa
+        const member = team.find(m =>
+            m.name.trim().toLowerCase() === normalized ||
+            normalized.includes(m.name.trim().toLowerCase()) ||
+            m.name.trim().toLowerCase().includes(normalized)
+        );
+        return member?.socials?.instagram && member.socials.instagram !== '#' ? member.socials.instagram : null;
+    };
 
     // Sync with sessionStorage
     useEffect(() => {
@@ -58,6 +83,7 @@ export function AdminManage() {
 
     const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
     const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+    const isAdmin = localStorage.getItem('admin_user') === 'alex';
 
     // Pagination & Sorting
     const [currentPage, setCurrentPage] = useState(1);
@@ -143,7 +169,7 @@ export function AdminManage() {
         try {
             const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
                 activeTab === 'Galeries' ? '/api/galerie/delete' :
-                    `/ api / ${activeTab.toLowerCase()}/delete`;
+                    `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -299,8 +325,8 @@ export function AdminManage() {
     ];
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-dark-bg py-32">
+            <div className="max-w-full mx-auto px-4 md:px-12">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
                     <div className="flex items-center gap-6">
                         <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group" title="Retour au tableau de bord">
@@ -437,22 +463,36 @@ export function AdminManage() {
                             exit={{ opacity: 0, y: 20 }}
                             className="mb-6 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between"
                         >
-                            <div className="flex items-center gap-4">
-                                <span className="text-white font-bold">{selectedIds.length} élément(s) sélectionné(s)</span>
-                                <button
-                                    onClick={() => setSelectedIds([])}
-                                    className="text-xs text-gray-400 hover:text-white underline uppercase tracking-widest font-black"
-                                >
-                                    Annuler
-                                </button>
-                            </div>
-                            <button
-                                onClick={() => setBulkDeleteConfirm(true)}
-                                className="px-6 py-2 bg-neon-red text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] transition-all flex items-center gap-2"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                                Supprimer la sélection
-                            </button>
+                            {isAdmin ? (
+                                <>
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-white font-bold">{selectedIds.length} élément(s) sélectionné(s)</span>
+                                        <button
+                                            onClick={() => setSelectedIds([])}
+                                            className="text-xs text-gray-400 hover:text-white underline uppercase tracking-widest font-black"
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => setBulkDeleteConfirm(true)}
+                                        className="px-6 py-2 bg-neon-red text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] transition-all flex items-center gap-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        Supprimer la sélection
+                                    </button>
+                                </>
+                            ) : (
+                                <div className="flex items-center gap-4 py-2">
+                                    <span className="text-white/60 text-xs font-bold uppercase tracking-widest italic tracking-tighter">Action groupée désactivée (Administrateur uniquement)</span>
+                                    <button
+                                        onClick={() => setSelectedIds([])}
+                                        className="text-[10px] text-gray-500 hover:text-white underline uppercase font-black"
+                                    >
+                                        Désélectionner
+                                    </button>
+                                </div>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -487,7 +527,7 @@ export function AdminManage() {
                                                 className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red focus:ring-offset-black"
                                             />
                                         </th>
-                                        {localStorage.getItem('admin_user') === 'alex' && (
+                                        {isAdmin && (
                                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest w-10">Sup.</th>
                                         )}
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Image</th>
@@ -516,7 +556,7 @@ export function AdminManage() {
                                                         className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red focus:ring-offset-black"
                                                     />
                                                 </td>
-                                                {localStorage.getItem('admin_user') === 'alex' && (
+                                                {isAdmin && (
                                                     <td className="px-6 py-4">
                                                         <button
                                                             onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
@@ -554,9 +594,22 @@ export function AdminManage() {
                                                     <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="text-xs font-black uppercase text-neon-cyan tracking-wider">
-                                                        {item.author || 'Alex'}
-                                                    </span>
+                                                    {item.author && (
+                                                        getAuthorInsta(item.author) ? (
+                                                            <a
+                                                                href={getAuthorInsta(item.author)!}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="text-xs font-black uppercase text-neon-cyan tracking-wider hover:text-white transition-colors underline decoration-neon-cyan/30"
+                                                            >
+                                                                {item.author}
+                                                            </a>
+                                                        ) : (
+                                                            <span className="text-xs font-black uppercase text-neon-cyan tracking-wider">
+                                                                {item.author}
+                                                            </span>
+                                                        )
+                                                    )}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
                                                 <td className="px-6 py-4 text-right flex items-center justify-end gap-1">

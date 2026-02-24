@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Search, Sun, Moon, Filter } from 'lucide-react';
+import { Menu, X, Search, Sun, Moon, Filter, Shield } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
@@ -57,8 +57,9 @@ export function Navbar() {
         { name: t('nav.galerie'), path: '/galerie' },
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
+        { name: t('nav.contact'), path: '/contact' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
-        ...(isAdmin ? [{ name: 'Admin', path: '/admin' }] : []),
+        ...(isAdmin ? [{ name: 'Admin', path: '/admin', icon: Shield }] : []),
     ];
 
     const toggleTheme = () => {
@@ -128,7 +129,7 @@ export function Navbar() {
 
     return (
         <nav className="fixed top-0 left-0 right-0 z-50 bg-dark-bg/40 backdrop-blur-md border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-full mx-auto px-4 md:px-12">
                 <div className="flex items-center justify-between h-20">
                     {/* Logo */}
                     <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2">
@@ -398,7 +399,7 @@ export function Navbar() {
 }
 
 interface NavItemProps {
-    item: { name: string; path: string };
+    item: { name: string; path: string; icon?: any };
     isActive: boolean;
 }
 
@@ -427,7 +428,13 @@ function NavItem({ item, isActive }: NavItemProps) {
                         : "text-gray-400 hover:text-neon-red hover:drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]"
                 )}
             >
-                <span className="relative z-10">{item.name}</span>
+                <span className="relative z-10">
+                    {item.icon ? (
+                        <item.icon className={twMerge("w-5 h-5 transition-transform duration-300", isHovered ? "scale-110" : "")} />
+                    ) : (
+                        item.name
+                    )}
+                </span>
 
                 {/* Hover Background Highlight */}
                 <AnimatePresence>

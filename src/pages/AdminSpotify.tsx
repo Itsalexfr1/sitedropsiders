@@ -92,8 +92,8 @@ export function AdminSpotify() {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-dark-bg py-32">
+            <div className="max-w-full mx-auto px-4 md:px-12">
                 <div className="flex items-center gap-6 mb-12">
                     <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group">
                         <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />

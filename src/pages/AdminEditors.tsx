@@ -128,8 +128,8 @@ export function AdminEditors() {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
-            <div className="max-w-4xl mx-auto">
+        <div className="min-h-screen bg-dark-bg py-32">
+            <div className="max-w-full mx-auto px-4 md:px-12">
                 <Link to="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Retour au tableau de bord

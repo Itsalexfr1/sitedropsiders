@@ -399,9 +399,9 @@ export function NewsletterComposer() {
     // SECTION 6 : RENDU (JSX)
     // -----------------------------------------------------------
     return (
-        <div className="min-h-screen bg-black text-white py-8 md:py-20 px-4 md:px-8 font-sans">
+        <div className="min-h-screen bg-black text-white py-32 font-sans">
             {/* Header de la page */}
-            <header className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-16 gap-6">
+            <header className="max-w-full mx-auto px-4 md:px-12 flex flex-col md:flex-row justify-between items-start md:items-center mb-8 md:mb-16 gap-6">
                 <div className="flex items-center gap-4 md:gap-6">
                     <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group">
                         <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />

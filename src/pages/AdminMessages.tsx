@@ -110,7 +110,7 @@ export function AdminMessages() {
         <div className="min-h-screen bg-black text-white">
             {/* Header */}
             <div className="border-b border-white/5 bg-black/80 backdrop-blur-xl sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div className="max-w-full mx-auto px-4 md:px-12 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link to="/admin" className="p-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white group">
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
@@ -153,9 +153,9 @@ export function AdminMessages() {
                 )}
             </AnimatePresence>
 
-            <div className="max-w-7xl mx-auto flex h-[calc(100vh-65px)]">
+            <div className={`max-w-full mx-auto flex h-[calc(100vh-65px)] px-0 md:px-12`}>
                 {/* LEFT: Message List */}
-                <div className="w-full md:w-96 border-r border-white/5 overflow-y-auto flex-shrink-0">
+                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r border-white/5 overflow-y-auto flex-shrink-0 flex-col`}>
                     {loading ? (
                         <div className="flex items-center justify-center h-48 text-gray-600">
                             <div className="animate-spin w-6 h-6 border-2 border-neon-red border-t-transparent rounded-full" />
@@ -203,14 +203,21 @@ export function AdminMessages() {
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className="flex-1 overflow-y-auto">
+                <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col`}>
                     {selected ? (
                         <motion.div
                             key={selected.id}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="p-8 max-w-3xl"
+                            className="p-4 md:p-8 max-w-full"
                         >
+                            {/* Mobile Back Button */}
+                            <button
+                                onClick={() => setSelected(null)}
+                                className="md:hidden flex items-center gap-2 text-gray-400 hover:text-white mb-6 uppercase text-[10px] font-black tracking-widest"
+                            >
+                                <ArrowLeft className="w-4 h-4" /> Retour à la liste
+                            </button>
                             {/* Message Header */}
                             <div className="flex items-start justify-between mb-8 gap-4">
                                 <div>

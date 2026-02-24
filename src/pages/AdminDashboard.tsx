@@ -168,12 +168,12 @@ export function AdminDashboard() {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-dark-bg py-32 px-6 flex items-center justify-center">
-                <div className="w-full max-w-md">
+            <div className="min-h-screen bg-dark-bg py-32">
+                <div className="max-w-full mx-auto px-4 md:px-12 flex items-center justify-center">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl"
+                        className="w-full max-w-md bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl"
                     >
                         <div className="flex justify-center mb-8">
                             <div className="p-4 bg-neon-red/10 rounded-full border border-neon-red/20">
@@ -297,9 +297,9 @@ export function AdminDashboard() {
 
         let nextCols = action.columns || 1;
         if (direction === 'right') {
-            nextCols = nextCols >= 3 ? 1 : nextCols + 1;
+            nextCols = nextCols >= 4 ? 1 : nextCols + 1;
         } else {
-            nextCols = nextCols <= 1 ? 3 : nextCols - 1;
+            nextCols = nextCols <= 1 ? 4 : nextCols - 1;
         }
 
         updateActionProp(title, { columns: nextCols });
@@ -336,8 +336,8 @@ export function AdminDashboard() {
     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-dark-bg py-32">
+            <div className="max-w-full mx-auto px-4 md:px-12">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -423,7 +423,7 @@ export function AdminDashboard() {
                 </motion.div>
 
                 {/* Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <AnimatePresence mode="popLayout">
                         {filteredActions.map((action, index) => (
                             <motion.div
@@ -434,7 +434,8 @@ export function AdminDashboard() {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ type: "spring", stiffness: 400, damping: 40 }}
                                 className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
-                                    action.columns === 3 ? 'md:col-span-2 lg:col-span-3' : 'col-span-1'
+                                    action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
+                                        action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
                                     }`}
                             >
                                 {editMode && (
@@ -489,7 +490,7 @@ export function AdminDashboard() {
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
                                                         <div className="flex gap-1">
-                                                            {[1, 2, 3].map(n => (
+                                                            {[1, 2, 3, 4].map(n => (
                                                                 <button
                                                                     key={n}
                                                                     onClick={(e) => {
