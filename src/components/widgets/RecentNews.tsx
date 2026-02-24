@@ -8,7 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 
-export function RecentNews({ accentColor = 'blue', resolvedColor, hideHeader = false }: { accentColor?: string, resolvedColor?: string, hideHeader?: boolean }) {
+export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
 
@@ -76,24 +76,22 @@ export function RecentNews({ accentColor = 'blue', resolvedColor, hideHeader = f
     const playHoverSound = useHoverSound();
 
     return (
-        <div className={`${hideHeader ? 'h-full' : 'h-[450px] md:h-[750px]'} flex flex-col`}>
-            {!hideHeader && (
-                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
-                    <span
-                        className="w-2 h-2 rounded-full animate-pulse"
-                        style={{
-                            backgroundColor: color,
-                            boxShadow: `0 0 10px ${color}`
-                        }}
-                    />
-                    {t('home.latest_news').toUpperCase()}
-                </h3>
-            )}
+        <div className="h-auto flex flex-col">
+            <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
+                <span
+                    className="w-2 h-2 rounded-full animate-pulse"
+                    style={{
+                        backgroundColor: color,
+                        boxShadow: `0 0 10px ${color}`
+                    }}
+                />
+                {t('home.latest_news').toUpperCase()}
+            </h3>
 
-            <div className="flex-1 flex flex-col gap-6 overflow-hidden">
-                <div className="flex-1 flex flex-col gap-6 relative">
+            <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-6 md:h-[680px] relative">
                     {recentNews.slice(0, 2).map((item, index) => (
-                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[180px] md:min-h-0">
+                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:min-h-0">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
@@ -102,9 +100,6 @@ export function RecentNews({ accentColor = 'blue', resolvedColor, hideHeader = f
                                 transition={{ delay: index * 0.1 }}
                                 className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${accentColor}`}
                             >
-                                <div
-                                    className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-dark-bg/80 to-transparent z-10"
-                                />
                                 <div
                                     className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
                                     style={{
@@ -117,7 +112,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor, hideHeader = f
                                     alt=""
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 bg-transparent group-hover:bg-white/5 transition-colors duration-300" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
 
                                 {/* Content Overlay */}
                                 <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
@@ -145,7 +140,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor, hideHeader = f
 
                 <Link
                     to="/news"
-                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group shrink-0 h-14"
+                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group mt-4 h-14"
                     style={{
                         borderColor: `${color}4D`,
                     }}

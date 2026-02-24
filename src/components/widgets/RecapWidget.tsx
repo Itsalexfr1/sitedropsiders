@@ -8,7 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getRecapLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 
-export function RecapWidget({ accentColor = 'orange', resolvedColor, hideHeader = false }: { accentColor?: string, resolvedColor?: string, hideHeader?: boolean }) {
+export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
 
@@ -47,27 +47,25 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor, hideHeader 
 
     return (
         <div className="flex flex-col h-full">
-            {!hideHeader && (
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
-                        <span
-                            className="w-2 h-2 rounded-full animate-pulse"
-                            style={{
-                                backgroundColor: color,
-                                boxShadow: `0 0 10px ${color}`
-                            }}
-                        />
-                        {t('home.latest_recaps').toUpperCase()}
-                    </h3>
-                    <Link
-                        to="/recaps"
-                        className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
-                        style={{ color: color }}
-                    >
-                        {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
-                    </Link>
-                </div>
-            )}
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
+                    <span
+                        className="w-2 h-2 rounded-full animate-pulse"
+                        style={{
+                            backgroundColor: color,
+                            boxShadow: `0 0 10px ${color}`
+                        }}
+                    />
+                    {t('home.latest_recaps').toUpperCase()}
+                </h3>
+                <Link
+                    to="/recaps"
+                    className="text-sm hover:underline transition-all flex items-center gap-1 font-bold tracking-tight uppercase italic"
+                    style={{ color: color }}
+                >
+                    {t('home.view_all')} <ArrowUpRight className="w-4 h-4" />
+                </Link>
+            </div>
 
             {latestRecaps.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center border border-white/10 rounded-lg bg-dark-bg/40 backdrop-blur-md min-h-[400px]">
@@ -99,7 +97,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor, hideHeader 
                                     alt={item.title}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 bg-transparent group-hover:bg-white/5 transition-colors duration-300 flex items-center justify-center z-10">
+                                <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center z-10">
                                     <div
                                         className="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 group-hover:scale-110 transition-all duration-300"
                                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${color}33`}
@@ -120,7 +118,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor, hideHeader 
                                         {t('home.recap_badge')}
                                     </span>
                                 </div>
-                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-20">
+                                <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
                                     <h4
                                         className="text-[13px] font-display font-bold text-white leading-tight transition-colors line-clamp-2 uppercase italic tracking-tighter"
                                         onMouseEnter={(e) => e.currentTarget.style.color = color}

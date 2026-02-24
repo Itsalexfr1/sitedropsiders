@@ -7,7 +7,7 @@ import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 import { useState, useEffect, useMemo } from 'react';
 
-export function FeaturedNews({ accentColor = 'red', resolvedColor, hideHeader = false }: { accentColor?: string, resolvedColor?: string, hideHeader?: boolean }) {
+export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
 
@@ -57,19 +57,17 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor, hideHeader = 
     const playHoverSound = useHoverSound();
 
     return (
-        <div className={`${hideHeader ? 'h-full' : 'h-[450px] md:h-[750px]'} flex flex-col`}>
-            {!hideHeader && (
-                <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
-                    <span
-                        className="w-2 h-2 rounded-full animate-pulse"
-                        style={{
-                            backgroundColor: color,
-                            boxShadow: `0 0 10px ${color}`
-                        }}
-                    />
-                    {t('home.featured')}
-                </h3>
-            )}
+        <div className="h-[450px] md:h-[750px] flex flex-col">
+            <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3 mb-6">
+                <span
+                    className="w-2 h-2 rounded-full animate-pulse"
+                    style={{
+                        backgroundColor: color,
+                        boxShadow: `0 0 10px ${color}`
+                    }}
+                />
+                {t('home.featured')}
+            </h3>
 
             <Link to={getArticleLink(heroNews)} className="flex-1 block group relative">
                 <motion.div
