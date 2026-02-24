@@ -2775,22 +2775,5 @@
     "category": "News",
     "isFeatured": false,
     "author": "Alex"
-  },
-  {
-    "id": 151,
-    "title": "INTERVIEWS : RAN-D",
-    "date": "2021-11-22",
-    "summary": "à l'occasion de l'édition 2021 de Qlimax Distorted Reality, nous avons eu la chance d'avoir RAN-D en interview. On attend vos commentaires sur cette nouvelle interview.",
-    "content": "",
-    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810394/dropsiders/images/zgwh67hpiav75643vm1k.png",
-    "images": [
-      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810395/dropsiders/images/br6vr5tyrm2mcplrusm0.png",
-      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810396/dropsiders/images/lbznrr7wnitu2fax6z7a.jpg"
-    ],
-    "youtubeId": "65ARYmqvTBI",
-    "link": "https://www.dropsiders.fr/interviews/1006759_interviews-ran-d",
-    "category": "Interview",
-    "isFeatured": false,
-    "author": "Alex"
   }
 ]
