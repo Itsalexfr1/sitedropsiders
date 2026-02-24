@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import { FileText, Mail, Calendar, Image as ImageIcon, Video, Mic, Plus, Users, LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music, ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -62,21 +62,19 @@ export function AdminDashboard() {
 
     const getFallbackActions = () => [
         { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
-        { title: "News", description: "Gérer les actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
-        { title: "Musique", description: "Gérer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
-        { title: "Interviews", description: "Gérer les interviews", icon: "Mic", link: "/admin/manage?tab=Interviews", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Récaps", description: "Gérer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
-        { title: "Agenda", description: "Gérer les dates", icon: "Calendar", link: "/agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "publications", baseColor: "yellow", columns: 1 },
-        { title: "Galeries", description: "Gérer les albums", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "publications", baseColor: "pink", columns: 1 },
+        { title: "News", description: "G├®rer les actualit├®s", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
+        { title: "Musique", description: "G├®rer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
+        { title: "Interviews", description: "G├®rer les interviews", icon: "Mic", link: "/admin/manage?tab=Interviews", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
+        { title: "R├®caps", description: "G├®rer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
+        { title: "Agenda", description: "G├®rer les dates", icon: "Calendar", link: "/agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "publications", baseColor: "yellow", columns: 1 },
+        { title: "Galeries", description: "G├®rer les albums", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "publications", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse du site", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Playlists accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
-        { title: "Shop", description: "Gérer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
-        { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
-        { title: "Éditeurs", description: "Gestion Équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
-        { title: "Team", description: "Gérer l'équipe (Menu)", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 1 },
-        { title: "Messages", description: "Mails & Contact", icon: "Mail", link: "/admin/emails", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "mail", baseColor: "orange", columns: 1 },
-        { title: "Paramètres", description: "Config système", icon: "Settings2", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "alex_only", baseColor: "purple", columns: 1 }
+        { title: "Shop", description: "G├®rer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
+        { title: "Newsletter", description: "Studio de cr├®ation", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
+        { title: "Abonn├®s", description: "G├®rer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
+        { title: "├ëditeurs", description: "G├®rer l'├®quipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
+        { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -104,7 +102,7 @@ export function AdminDashboard() {
                 }
             }
 
-            // Si l'API répond avec une erreur explicite
+            // Si l'API r├®pond avec une erreur explicite
             if (response.status === 401) {
                 setError('Identifiants incorrects');
                 return;
@@ -114,10 +112,10 @@ export function AdminDashboard() {
 
         } catch (err) {
             // FALLBACK LOCAL (DEV MODE)
-            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vérifie en dur ici pour débloquer
+            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on v├®rifie en dur ici pour d├®bloquer
             console.log("API Login failed, trying local check...", err);
 
-            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026') {
+            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026alexC') {
                 setIsAuthenticated(true);
                 localStorage.setItem('admin_auth', 'true');
                 localStorage.setItem('admin_password', password);
@@ -154,10 +152,10 @@ export function AdminDashboard() {
                         </div>
 
                         <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
-                            Accès Restreint
+                            Acc├¿s Restreint
                         </h2>
                         <p className="text-center text-gray-400 text-sm mb-8">
-                            Veuillez vous identifier pour accéder au tableau de bord.
+                            Veuillez vous identifier pour acc├®der au tableau de bord.
                         </p>
 
                         <form onSubmit={handleLogin} className="space-y-4">
@@ -203,8 +201,8 @@ export function AdminDashboard() {
 
                         <div className="mt-8 pt-6 border-t border-white/5">
                             <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
-                                Espace d'administration réservé à l'équipe Dropsiders.
-                                Ce portail permet la gestion des actualités, des reportages festivals,
+                                Espace d'administration r├®serv├® ├á l'├®quipe Dropsiders.
+                                Ce portail permet la gestion des actualit├®s, des reportages festivals,
                                 de la billetterie et des statistiques d'audience du site.
                             </p>
                         </div>
@@ -236,7 +234,6 @@ export function AdminDashboard() {
             case 'Mail': return <Mail className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Users': return <Users className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Lock': return <Lock className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
-            case 'Settings2': return <Settings2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -316,7 +313,7 @@ export function AdminDashboard() {
                             </h1>
                         </div>
                         <p className="text-gray-400 text-lg max-w-2xl">
-                            Bienvenue dans votre espace d'administration. {isAdmin && "Déplacez les cartes pour réorganiser."}
+                            Bienvenue dans votre espace d'administration. {isAdmin && "D├®placez les cartes pour r├®organiser."}
                         </p>
                     </div>
 
@@ -355,7 +352,7 @@ export function AdminDashboard() {
                                     className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-black uppercase rounded-full shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all"
                                 >
                                     <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
-                                    {isSaving ? 'Déploiement...' : 'Enregistrer & Déployer'}
+                                    {isSaving ? 'D├®ploiement...' : 'Enregistrer & D├®ployer'}
                                 </motion.button>
                             )}
                             <button
@@ -372,7 +369,7 @@ export function AdminDashboard() {
                                 onClick={handleLogout}
                                 className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-bold text-gray-400 hover:text-white transition-colors w-full md:w-auto"
                             >
-                                Se déconnecter
+                                Se d├®connecter
                             </button>
                         </div>
                     </div>
@@ -461,7 +458,7 @@ export function AdminDashboard() {
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
+                                                        <label className="text-[9px] font-black uppercase text-gray-400">Th├¿me Couleur</label>
                                                         <div className="grid grid-cols-5 gap-1.5">
                                                             {colors.map(c => (
                                                                 <button

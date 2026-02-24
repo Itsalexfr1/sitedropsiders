@@ -1,0 +1,309 @@
+﻿commit 6a387285a2d5699c9c1c25d2e3eec9f2e41f0d5a
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Tue Feb 24 01:06:10 2026 +0100
+
+    Update site-wide passwords to 2026 and streamline email management UI
+
+diff --git a/src/pages/AdminDashboard.tsx b/src/pages/AdminDashboard.tsx
+index 53b7293..cf88fd6 100644
+--- a/src/pages/AdminDashboard.tsx
++++ b/src/pages/AdminDashboard.tsx
+@@ -74,7 +74,7 @@ export function AdminDashboard() {
+         { title: "Newsletter", description: "Studio de cr├®ation", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
+         { title: "Abonn├®s", description: "G├®rer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
+         { title: "├ëditeurs", description: "G├®rer l'├®quipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
+-        { title: "Mails", description: "LWS Webmail", icon: "Mail", link: "/admin/emails", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "mail", baseColor: "orange", columns: 1 },
++        { title: "Messages", description: "Formulaire de contact", icon: "Mail", link: "/admin/emails", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "mail", baseColor: "orange", columns: 1 },
+         { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 1 },
+         { title: "Param├¿tres", description: "Config syst├¿me", icon: "Settings2", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "alex_only", baseColor: "purple", columns: 1 }
+     ];
+@@ -117,7 +117,7 @@ export function AdminDashboard() {
+             // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on v├®rifie en dur ici pour d├®bloquer
+             console.log("API Login failed, trying local check...", err);
+ 
+-            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026alexC') {
++            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026') {
+                 setIsAuthenticated(true);
+                 localStorage.setItem('admin_auth', 'true');
+                 localStorage.setItem('admin_password', password);
+
+commit 177f1d66bb56f732248474f7b95052d59ff61677
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 22:26:38 2026 +0100
+
+    Refactor entire admin panel to 'Studio' design system, mobile-first layouts, and fix linting errors across all admin pages
+
+diff --git a/src/pages/AdminDashboard.tsx b/src/pages/AdminDashboard.tsx
+index 8e6eeb5..53b7293 100644
+--- a/src/pages/AdminDashboard.tsx
++++ b/src/pages/AdminDashboard.tsx
+@@ -140,76 +140,116 @@ export function AdminDashboard() {
+ 
+     if (!isAuthenticated) {
+         return (
+-            <div className="min-h-screen bg-dark-bg py-32 px-6 flex items-center justify-center">
+-                <div className="w-full max-w-md">
++            <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center p-4 relative overflow-hidden">
++                {/* Background Effects */}
++                <div className="absolute inset-0 z-0 pointer-events-none">
+                     <motion.div
+-                        initial={{ opacity: 0, scale: 0.95 }}
+-                        animate={{ opacity: 1, scale: 1 }}
+-                        className="bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl backdrop-blur-xl"
+-                    >
+-                        <div className="flex justify-center mb-8">
+-                            <div className="p-4 bg-neon-red/10 rounded-full border border-neon-red/20">
+-                                <Lock className="w-8 h-8 text-neon-red" />
+-                            </div>
+-                        </div>
+-
+-                        <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
+-                            Acc├¿s Restreint
+-                        </h2>
+-                        <p className="text-center text-gray-400 text-sm mb-8">
+-                            Veuillez vous identifier pour acc├®der au tableau de bord.
+-                        </p>
++                        animate={{
++                            scale: [1, 1.2, 1],
++                            opacity: [0.3, 0.5, 0.3]
++                        }}
++                        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
++                        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-neon-red/20 blur-[120px] rounded-full"
++                    />
++                    <motion.div
++                        animate={{
++                            scale: [1.2, 1, 1.2],
++                            opacity: [0.2, 0.4, 0.2]
++                        }}
++                        transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
++                        className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-neon-blue/10 blur-[150px] rounded-full"
++                    />
++                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.05] mix-blend-overlay" />
++                </div>
+ 
+-                        <form onSubmit={handleLogin} className="space-y-4">
+-                            <div className="relative">
+-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+-                                    <User className="h-5 w-5 text-gray-400" />
+-                                </div>
+-                                <input
+-                                    type="text"
+-                                    placeholder="Identifiant"
+-                                    value={username}
+-                                    onChange={(e) => setUsername(e.target.value)}
+-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
+-                                />
++                <motion.div
++                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
++                    animate={{ opacity: 1, scale: 1, y: 0 }}
++                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
++                    className="relative z-10 w-full max-w-md"
++                >
++                    <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
++                        {/* Subtle inner glow */}
++                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50 pointer-events-none" />
++
++                        <div className="relative z-10">
++                            <div className="flex justify-center mb-10">
++                                <motion.div
++                                    whileHover={{ rotate: 360, scale: 1.1 }}
++                                    transition={{ duration: 0.6 }}
++                                    className="w-20 h-20 bg-gradient-to-br from-neon-red to-neon-pink p-[1px] rounded-3xl"
++                                >
++                                    <div className="w-full h-full bg-black rounded-[23px] flex items-center justify-center">
++                                        <Lock className="w-8 h-8 text-white" />
++                                    </div>
++                                </motion.div>
+                             </div>
+-                            <div className="relative">
+-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+-                                    <Lock className="h-5 w-5 text-gray-400" />
+-                                </div>
+-                                <input
+-                                    type="password"
+-                                    placeholder="Mot de passe"
+-                                    value={password}
+-                                    onChange={(e) => setPassword(e.target.value)}
+-                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-neon-red transition-all"
+-                                />
++
++                            <div className="text-center mb-10">
++                                <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2 leading-none">
++                                    Studio <span className="text-neon-red">Access</span>
++                                </h1>
++                                <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] opacity-60 mt-4">
++                                    Portail d'Administration Centralis├®
++                                </p>
+                             </div>
+ 
+-                            {error && (
+-                                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+-                                    <p className="text-red-400 text-xs text-center font-bold">{error}</p>
++                            <form onSubmit={handleLogin} className="space-y-6">
++                                <div className="space-y-4">
++                                    <div className="relative group">
++                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-neon-red">
++                                            <User className="h-5 w-5 text-gray-500 transition-colors group-focus-within:text-neon-red" />
++                                        </div>
++                                        <input
++                                            type="text"
++                                            placeholder="IDENTIFIANT"
++                                            value={username}
++                                            onChange={(e) => setUsername(e.target.value)}
++                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all font-bold tracking-widest text-xs"
++                                        />
++                                    </div>
++                                    <div className="relative group">
++                                        <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-neon-red">
++                                            <Lock className="h-5 w-5 text-gray-500 transition-colors group-focus-within:text-neon-red" />
++                                        </div>
++                                        <input
++                                            type="password"
++                                            placeholder="MOT DE PASSE"
++                                            value={password}
++                                            onChange={(e) => setPassword(e.target.value)}
++                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white placeholder-gray-700 focus:outline-none focus:border-neon-red focus:bg-white/10 transition-all font-bold tracking-widest text-xs"
++                                        />
++                                    </div>
+                                 </div>
+-                            )}
+ 
+-                            <button
+-                                type="submit"
+-                                className="w-full py-3 bg-neon-red hover:bg-neon-red/80 text-white font-bold uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center gap-2 group"
+-                            >
+-                                Se connecter
+-                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+-                            </button>
+-                        </form>
+-
+-                        <div className="mt-8 pt-6 border-t border-white/5">
+-                            <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
+-                                Espace d'administration r├®serv├® ├á l'├®quipe Dropsiders.
+-                                Ce portail permet la gestion des actualit├®s, des reportages festivals,
+-                                de la billetterie et des statistiques d'audience du site.
+-                            </p>
++                                {error && (
++                                    <motion.div
++                                        initial={{ opacity: 0, y: -10 }}
++                                        animate={{ opacity: 1, y: 0 }}
++                                        className="p-4 bg-neon-red/10 border border-neon-red/20 rounded-2xl"
++                                    >
++                                        <p className="text-neon-red text-[10px] text-center font-black uppercase tracking-widest">{error}</p>
++                                    </motion.div>
++                                )}
++
++                                <button
++                                    type="submit"
++                                    className="w-full py-5 bg-white text-black hover:bg-neon-red hover:text-white font-black uppercase tracking-[0.2em] text-[10px] rounded-2xl transition-all duration-300 shadow-xl shadow-white/5 flex items-center justify-center gap-3 group active:scale-[0.98]"
++                                >
++                                    Se connecter
++                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
++                                </button>
++                            </form>
++
++                            <div className="mt-12 pt-8 border-t border-white/5">
++                                <p className="text-[9px] text-gray-500 uppercase tracking-[0.2em] text-center leading-relaxed font-medium">
++                                    Acc├¿s r├®serv├®. Ce portail permet la gestion compl├¿te des contenus,
++                                    statistiques et configurations du m├®dia Dropsiders.
++                                </p>
++                            </div>
+                         </div>
+-                    </motion.div>
+-                </div>
++                    </div>
++                </motion.div>
+             </div>
+         );
+     }
+
+commit da0aa212644b6aab5e92df3fa9e5416b37e34dc6
+Author: AlexFR <alexfr@dropsiders.com>
+Date:   Mon Feb 23 22:01:20 2026 +0100
+
+    Admin full-screen and mobile design optimization [skip ci] [CF-Pages-Skip]
+
+diff --git a/src/pages/AdminDashboard.tsx b/src/pages/AdminDashboard.tsx
+index b83a653..8e6eeb5 100644
+--- a/src/pages/AdminDashboard.tsx
++++ b/src/pages/AdminDashboard.tsx
+@@ -301,25 +301,25 @@ export function AdminDashboard() {
+     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
+ 
+     return (
+-        <div className="min-h-screen bg-dark-bg py-32 px-6">
++        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
+             <div className="max-w-7xl mx-auto">
+                 {/* Header */}
+                 <motion.div
+                     initial={{ opacity: 0, y: 20 }}
+                     animate={{ opacity: 1, y: 0 }}
+-                    className="mb-16 text-center md:text-left flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
++                    className="mb-8 md:mb-16 text-center md:text-left flex flex-col items-center md:items-end md:flex-row justify-between gap-6"
+                 >
+-                    <div>
+-                        <div className="flex items-center gap-4 justify-center md:justify-start mb-4">
+-                            <div className="p-3 bg-neon-red/10 rounded-2xl">
+-                                <LayoutDashboard className="w-8 h-8 text-neon-red" />
++                    <div className="flex flex-col items-center md:items-start text-center md:text-left">
++                        <div className="flex items-center gap-3 md:gap-4 mb-2 md:mb-4">
++                            <div className="p-2 md:p-3 bg-neon-red/10 rounded-xl md:rounded-2xl">
++                                <LayoutDashboard className="w-6 h-6 md:w-8 md:h-8 text-neon-red" />
+                             </div>
+-                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+-                                Tableau de <span className="text-neon-red">Bord</span>
++                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
++                                Studio <span className="text-neon-red">Dropsiders</span>
+                             </h1>
+                         </div>
+-                        <p className="text-gray-400 text-lg max-w-2xl">
+-                            Bienvenue dans votre espace d'administration. {isAdmin && "D├®placez les cartes pour r├®organiser."}
++                        <p className="text-gray-400 text-sm md:text-lg max-w-2xl px-4 md:px-0">
++                            Espace d'administration centralis├®. {isAdmin && <span className="hidden md:inline">Personnalisez votre vue.</span>}
+                         </p>
+                     </div>
+ 
+@@ -348,17 +348,17 @@ export function AdminDashboard() {
+                             )}
+                         </div>
+ 
+-                        <div className="flex items-center gap-4">
++                        <div className="flex flex-row items-center gap-2 md:gap-4 overflow-x-auto no-scrollbar pb-2 md:pb-0 w-full md:w-auto">
+                             {hasChanges && (
+                                 <motion.button
+                                     initial={{ scale: 0.9, opacity: 0 }}
+                                     animate={{ scale: 1, opacity: 1 }}
+                                     onClick={deployConfig}
+                                     disabled={isSaving}
+-                                    className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white text-xs font-black uppercase rounded-full shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all"
++                                    className="px-4 md:px-6 py-2 bg-green-500 hover:bg-green-600 text-white text-[10px] md:text-xs font-black uppercase rounded-full shadow-lg shadow-green-500/20 flex items-center gap-2 transition-all whitespace-nowrap"
+                                 >
+-                                    <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
+-                                    {isSaving ? 'D├®ploiement...' : 'Enregistrer & D├®ployer'}
++                                    <Save className={`w-3 h-3 md:w-4 md:h-4 ${isSaving ? 'animate-spin' : ''}`} />
++                                    {isSaving ? '...' : 'D├®ployer'}
+                                 </motion.button>
+                             )}
+                             <button
+@@ -366,16 +366,16 @@ export function AdminDashboard() {
+                                     setEditMode(!editMode);
+                                     if (editMode) setOpenMenu(null);
+                                 }}
+-                                className={`px-6 py-2 border rounded-full text-sm font-bold transition-colors w-full md:w-auto flex items-center justify-center gap-2 ${editMode ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
++                                className={`px-4 md:px-6 py-2 border rounded-full text-[10px] md:text-sm font-black md:font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${editMode ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                             >
+-                                <LayoutDashboard className="w-4 h-4" />
+-                                {editMode ? 'Quitter Personnalisation' : 'Personnaliser'}
++                                <LayoutDashboard className="w-3 h-3 md:w-4 md:h-4" />
++                                <span className="uppercase">{editMode ? 'OK' : '├ëditer'}</span>
+                             </button>
+                             <button
+                                 onClick={handleLogout}
+-                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-sm font-bold text-gray-400 hover:text-white transition-colors w-full md:w-auto"
++                                className="px-4 md:px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[10px] md:text-sm font-black md:font-bold text-gray-400 hover:text-white transition-all whitespace-nowrap uppercase"
+                             >
+-                                Se d├®connecter
++                                Quitter
+                             </button>
+                         </div>
+                     </div>

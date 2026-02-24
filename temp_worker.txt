@@ -1,4 +1,4 @@
-
+﻿
 // @ts-nocheck
 export default {
     async fetch(request, env, ctx) {
@@ -36,11 +36,11 @@ export default {
         const TOKEN = env.GITHUB_TOKEN;
 
         // --- CONTENT SPLITTING CONFIG ---
-        // Fichiers cibles pour les nouveaux contenus (à mettre à jour manuellement si taille > 1MB)
+        // Fichiers cibles pour les nouveaux contenus (├á mettre ├á jour manuellement si taille > 1MB)
         const NEWS_CONTENT_TARGET = 'src/data/news_content_3.json';
         const RECAPS_CONTENT_TARGET = 'src/data/recaps_content_2.json';
 
-        // Listes des fichiers à scanner pour Updates/Deletes
+        // Listes des fichiers ├á scanner pour Updates/Deletes
         const NEWS_CONTENT_FILES = [
             'src/data/news_content_3.json',
             'src/data/news_content_2.json',
@@ -114,16 +114,16 @@ export default {
 
             try {
                 // Recovery logic for double-encoded/mangled UTF-8 characters (common issues with JSON saves)
-                if (content.includes('Ã') || content.includes('â') || content.includes('Â')) {
+                if (content.includes('├â') || content.includes('├ó') || content.includes('├é')) {
                     content = content
-                        .replace(/Ã /g, 'à').replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è')
-                        .replace(/Ãª/g, 'ê').replace(/Ã»/g, 'û').replace(/Ã´/g, 'ô')
-                        .replace(/Ã®/g, 'î').replace(/Ã§/g, 'ç').replace(/Ã¹/g, 'ù')
-                        .replace(/Ã«/g, 'ë').replace(/Ã¯/g, 'ï').replace(/Â /g, ' ')
-                        .replace(/â€™/g, "'").replace(/â€¦/g, '...').replace(/Ã‚/g, '')
-                        .replace(/Ã³/g, 'ó').replace(/Ã±/g, 'ñ').replace(/Ã‰/g, 'É')
-                        .replace(/â€“/g, '-').replace(/Â«/g, '«').replace(/Â»/g, '»')
-                        .replace(/Ã»/g, 'û').replace(/Ã€/g, 'À');
+                        .replace(/├â┬á/g, '├á').replace(/├â┬®/g, '├®').replace(/├â┬¿/g, '├¿')
+                        .replace(/├â┬¬/g, '├¬').replace(/├â┬╗/g, '├╗').replace(/├â┬┤/g, '├┤')
+                        .replace(/├â┬«/g, '├«').replace(/├â┬º/g, '├º').replace(/├â┬╣/g, '├╣')
+                        .replace(/├â┬½/g, '├½').replace(/├â┬»/g, '├»').replace(/├é┬á/g, ' ')
+                        .replace(/├óÔé¼Ôäó/g, "'").replace(/├óÔé¼┬ª/g, '...').replace(/├âÔÇÜ/g, '')
+                        .replace(/├â┬│/g, '├│').replace(/├â┬▒/g, '├▒').replace(/├âÔÇ░/g, '├ë')
+                        .replace(/├óÔé¼ÔÇ£/g, '-').replace(/├é┬½/g, '┬½').replace(/├é┬╗/g, '┬╗')
+                        .replace(/├â┬╗/g, '├╗').replace(/├âÔé¼/g, '├Ç');
                 }
                 return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
             } catch (e) {
@@ -178,22 +178,22 @@ export default {
         const cleanStr = (str) => {
             if (!str) return str;
             // Handle recovery at string level if needed
-            if (str.includes('Ã') || str.includes('â') || str.includes('Â')) {
+            if (str.includes('├â') || str.includes('├ó') || str.includes('├é')) {
                 return str
-                    .replace(/Ã /g, 'à').replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è')
-                    .replace(/Ãª/g, 'ê').replace(/Ã»/g, 'û').replace(/Ã´/g, 'ô')
-                    .replace(/Ã®/g, 'î').replace(/Ã§/g, 'ç').replace(/Ã¹/g, 'ù')
-                    .replace(/Ã«/g, 'ë').replace(/Ã¯/g, 'ï').replace(/Â /g, ' ')
-                    .replace(/â€™/g, "'").replace(/â€¦/g, '...').replace(/Ã‚/g, '')
-                    .replace(/Ã³/g, 'ó').replace(/Ã±/g, 'ñ').replace(/Ã‰/g, 'É')
-                    .replace(/â€“/g, '-').replace(/Â«/g, '«').replace(/Â»/g, '»')
-                    .replace(/Ã»/g, 'û').replace(/Ã€/g, 'À');
+                    .replace(/├â┬á/g, '├á').replace(/├â┬®/g, '├®').replace(/├â┬¿/g, '├¿')
+                    .replace(/├â┬¬/g, '├¬').replace(/├â┬╗/g, '├╗').replace(/├â┬┤/g, '├┤')
+                    .replace(/├â┬«/g, '├«').replace(/├â┬º/g, '├º').replace(/├â┬╣/g, '├╣')
+                    .replace(/├â┬½/g, '├½').replace(/├â┬»/g, '├»').replace(/├é┬á/g, ' ')
+                    .replace(/├óÔé¼Ôäó/g, "'").replace(/├óÔé¼┬ª/g, '...').replace(/├âÔÇÜ/g, '')
+                    .replace(/├â┬│/g, '├│').replace(/├â┬▒/g, '├▒').replace(/├âÔÇ░/g, '├ë')
+                    .replace(/├óÔé¼ÔÇ£/g, '-').replace(/├é┬½/g, '┬½').replace(/├é┬╗/g, '┬╗')
+                    .replace(/├â┬╗/g, '├╗').replace(/├âÔé¼/g, '├Ç');
             }
             return str;
         };
 
         // --- AUTH CHECK ---
-        const adminPassword = env.ADMIN_PASSWORD || '2026';
+        const adminPassword = env.ADMIN_PASSWORD || 'alex2026';
         const requestPassword = request.headers.get('X-Admin-Password');
         let requestUsername = request.headers.get('X-Admin-Username') || '';
 
@@ -238,7 +238,7 @@ export default {
             }
 
             if (!authenticated) {
-                return new Response(JSON.stringify({ error: 'Accès non autorisé' }), { status: 401, headers });
+                return new Response(JSON.stringify({ error: 'Acc├¿s non autoris├®' }), { status: 401, headers });
             }
 
             // --- PERMISSION CHECKS ---
@@ -248,32 +248,32 @@ export default {
             const isContentRoute = path.startsWith('/api/news') || path.startsWith('/api/recaps') ||
                 path.startsWith('/api/agenda') || path.startsWith('/api/galerie');
             if (isContentRoute && !hasAll && !userPermissions.includes('publications')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : publications' }), { status: 403, headers });
+                return new Response(JSON.stringify({ error: 'Permission refus├®e : publications' }), { status: 403, headers });
             }
 
             // Shop
             if (path.includes('/api/shop') && !hasAll && !userPermissions.includes('shop')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : shop' }), { status: 403, headers });
+                return new Response(JSON.stringify({ error: 'Permission refus├®e : shop' }), { status: 403, headers });
             }
 
             // Newsletter
             if ((path.startsWith('/api/newsletter') || path === '/api/subscribers') && !hasAll && !userPermissions.includes('newsletter')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : newsletter' }), { status: 403, headers });
+                return new Response(JSON.stringify({ error: 'Permission refus├®e : newsletter' }), { status: 403, headers });
             }
 
             // Spotify
             if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('spotify')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : spotify' }), { status: 403, headers });
+                return new Response(JSON.stringify({ error: 'Permission refus├®e : spotify' }), { status: 403, headers });
             }
 
             // Dashboard Actions
             if (path === '/api/dashboard-actions/update' && !hasAll) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : administrateur requis' }), { status: 403, headers });
+                return new Response(JSON.stringify({ error: 'Permission refus├®e : administrateur requis' }), { status: 403, headers });
             }
 
             // Editors Management: only Alex
             if (path.startsWith('/api/editors') && requestUsername !== 'alex') {
-                return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur" }), { status: 403, headers });
+                return new Response(JSON.stringify({ error: "Acc├¿s r├®serv├® ├á l'administrateur" }), { status: 403, headers });
             }
         }
 
@@ -586,13 +586,13 @@ export default {
 
                 const file = await fetchGitHubFile(PATH) || { content: [], sha: null };
                 if (file.content.some(sub => sub.email === email)) {
-                    return new Response(JSON.stringify({ error: 'Déjà inscrit' }), { status: 409, headers });
+                    return new Response(JSON.stringify({ error: 'D├®j├á inscrit' }), { status: 409, headers });
                 }
 
                 const newSubscriber = { email, firstName: firstName || null, lastName: lastName || null, subscribedAt: new Date().toISOString() };
                 const updatedData = [...file.content, newSubscriber];
 
-                const saved = await saveGitHubFile(PATH, updatedData, `Nouvel abonné : ${email}`, file.sha);
+                const saved = await saveGitHubFile(PATH, updatedData, `Nouvel abonn├® : ${email}`, file.sha);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -614,7 +614,7 @@ export default {
                 const updatedData = file.content.filter(sub => sub.email !== email);
                 if (updatedData.length === file.content.length) return new Response(JSON.stringify({ error: 'Email not found' }), { status: 404, headers });
 
-                const saved = await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha);
+                const saved = await saveGitHubFile(PATH, updatedData, `D├®sinscription : ${email}`, file.sha);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -1100,23 +1100,6 @@ export default {
                     if (response.ok) results.push({ success: true, chunk: chunk.length });
                     else results.push({ success: false, error: await response.text() });
                 }
-                // --- LOG NEWSLETTER ---
-                try {
-                    const logPath = 'src/data/newsletters_sent.json';
-                    const file = await fetchGitHubFile(logPath) || { content: [], sha: null };
-                    const newLog = {
-                        id: Date.now().toString(),
-                        subject,
-                        date: new Date().toISOString(),
-                        recipientsCount: recipients.length,
-                        fromAccount: "contact@dropsiders.fr"
-                    };
-                    const updated = [...(Array.isArray(file.content) ? file.content : []), newLog];
-                    await saveGitHubFile(logPath, updated, `Newsletter sent: ${subject} [skip ci] [CF-Pages-Skip]`, file.sha);
-                } catch (logErr) {
-                    console.error('Log Newsletter Error:', logErr);
-                }
-
                 return new Response(JSON.stringify({ success: true, details: results }), { status: 200, headers });
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
@@ -1243,7 +1226,7 @@ export default {
         if (contentType && contentType.includes("text/html")) {
             const origin = url.origin;
             let title = "DROPSIDERS : L'actu de tous les festivals";
-            let description = "Découvrez toute l'actualité des festivals, des recaps, des interviews et bien plus sur Dropsiders.";
+            let description = "D├®couvrez toute l'actualit├® des festivals, des recaps, des interviews et bien plus sur Dropsiders.";
             let image = `${origin}/logo_presentation.png`;
             let foundItem = null;
 

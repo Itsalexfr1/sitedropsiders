@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Save, ArrowLeft, Loader2, Instagram, Music, Trash2 } from 'lucide-react';
+import { Users, Plus, Save, ArrowLeft, Loader2, Instagram, Music, Trash2 } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -146,36 +146,41 @@ export function AdminTeam() {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
+        <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
-                    <div className="flex items-center gap-4 md:gap-6">
-                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                    <div className="flex items-center gap-6">
+                        <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group">
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-red">Team</span>
-                            </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">Gérez les membres de l'équipe</p>
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="p-3 bg-neon-red/10 rounded-2xl">
+                                    <Users className="w-8 h-8 text-neon-red" />
+                                </div>
+                                <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                    Gestion <span className="text-neon-red">Team</span>
+                                </h1>
+                            </div>
+                            <p className="text-gray-400">Gérez les membres qui apparaissent sur la page Équipe du site.</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex gap-4">
                         <button
                             onClick={openAddModal}
-                            className="flex-1 md:flex-none px-4 md:px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-white/10 transition-all text-xs md:text-sm"
+                            className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-white/10 transition-all"
                         >
-                            <Plus className="w-4 h-4" />
-                            <span>Ajouter</span>
+                            <Plus className="w-5 h-5" />
+                            Ajouter
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="flex-1 md:flex-none px-4 md:px-8 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 disabled:opacity-50 text-xs md:text-sm"
+                            className="px-8 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-wider flex items-center gap-2 hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 disabled:opacity-50"
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            <span>Enregistrer</span>
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                            Enregistrer
                         </button>
                     </div>
                 </div>

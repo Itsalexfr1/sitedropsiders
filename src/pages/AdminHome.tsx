@@ -1,17 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical } from 'lucide-react';
+import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
-import { ImageUploadModal } from '../components/ImageUploadModal';
 
 interface LayoutItem {
     id: string;
     enabled: boolean;
     columns?: string;
     videoId?: string;
-    videoUrl?: string;
     maxAgendaItems?: number;
     accentColor?: string;
     accentColor2?: string;
@@ -26,7 +24,7 @@ const SECTION_CONFIG: Record<string, { name: string, icon: any, color: string, d
     spotify: { name: "Playlists Spotify", icon: Music, color: "#1db954", description: "Sélection de playlists sur l'accueil" }
 };
 
-function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { item: LayoutItem, updateItem: (id: string, updates: Partial<LayoutItem>) => void, getColorValue: (color?: string) => string, onUploadVideo?: (id: string) => void }) {
+function ReorderableItem({ item, updateItem, getColorValue }: { item: LayoutItem, updateItem: (id: string, updates: Partial<LayoutItem>) => void, getColorValue: (color?: string) => string }) {
     const config = SECTION_CONFIG[item.id] || { name: item.id, icon: Layout, color: "#fff", description: "" };
     const Icon = config.icon;
 
@@ -89,35 +87,17 @@ function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { i
                             </div>
 
                             {item.id === 'hero' && (
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
-                                        <Youtube className="w-3 h-3 text-red-500" />
-                                        <input
-                                            type="text"
-                                            value={item.videoId || ''}
-                                            onChange={(e) => updateItem(item.id, { videoId: e.target.value })}
-                                            className="bg-transparent border-none text-[10px] font-bold outline-none w-24 text-white"
-                                            placeholder="ID YouTube"
-                                        />
-                                    </div>
-                                    <span className="text-[10px] font-black text-gray-600 uppercase">OU</span>
-                                    <button
-                                        onClick={() => onUploadVideo?.(item.id)}
-                                        className={`flex items - center gap - 2 px - 3 py - 1.5 rounded - xl border transition - all text - [10px] font - bold uppercase ${item.videoUrl ? 'bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'} `}
-                                    >
-                                        {item.videoUrl ? 'Vidéo Uploadée' : 'Upload Vidéo File'}
-                                    </button>
-                                    {item.videoUrl && (
-                                        <button
-                                            onClick={() => updateItem(item.id, { videoUrl: undefined })}
-                                            className="text-[10px] text-red-500 font-bold hover:underline"
-                                        >
-                                            Supprimer
-                                        </button>
-                                    )}
+                                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                                    <Youtube className="w-3 h-3 text-red-500" />
+                                    <input
+                                        type="text"
+                                        value={item.videoId || ''}
+                                        onChange={(e) => updateItem(item.id, { videoId: e.target.value })}
+                                        className="bg-transparent border-none text-[10px] font-bold outline-none w-24 text-white"
+                                        placeholder="ID YouTube"
+                                    />
                                 </div>
                             )}
-
 
                             {(item.id === 'news_grid' || item.id === 'recap_agenda_grid' || item.id === 'social_grid') && (
                                 <div className="flex items-center gap-2">
@@ -159,7 +139,7 @@ function ReorderableItem({ item, updateItem, getColorValue, onUploadVideo }: { i
                 <div className="flex items-center gap-2 lg:pl-2">
                     <button
                         onClick={() => updateItem(item.id, { enabled: !item.enabled })}
-                        className={`w - 10 h - 10 rounded - xl flex items - center justify - center transition - all ${item.enabled ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'} `}
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${item.enabled ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}
                         title={item.enabled ? "Masquer cette section" : "Afficher cette section"}
                     >
                         {item.enabled ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
@@ -181,8 +161,9 @@ export function AdminHome() {
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
     const [hasChanges, setHasChanges] = useState(false);
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-    const [uploadingItemId, setUploadingItemId] = useState<string | null>(null);
+
+
+
     // Prompt before internal React Router navigation
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
@@ -238,7 +219,7 @@ export function AdminHome() {
             } else {
                 setMessage('Erreur lors de la sauvegarde');
             }
-        } catch {
+        } catch (err) {
             setMessage('Erreur réseau');
         } finally {
             setIsSaving(false);
@@ -269,44 +250,39 @@ export function AdminHome() {
         return colorMap[color] || '#ff0000';
     };
 
-    const handleUploadVideo = (id: string) => {
-        setUploadingItemId(id);
-        setIsUploadModalOpen(true);
-    };
-
-    const onUploadSuccess = (url: string) => {
-        if (uploadingItemId) {
-            updateItem(uploadingItemId, { videoUrl: url });
-        }
-    };
-
     return (
-        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8 text-white overflow-x-hidden uppercase">
+        <div className="min-h-screen bg-dark-bg py-32 px-6 text-white overflow-x-hidden uppercase">
             <div className="max-w-5xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
-                    <div className="flex items-center gap-4 md:gap-6">
-                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                {/* Header */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+                    <div className="flex items-center gap-6">
+                        <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors group">
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-cyan">Accueil</span>
-                            </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">{hasChanges ? 'Modifications en attente...' : 'Gestion de la structure d\'accueil'}</p>
+                            <div className="flex items-center gap-4 mb-2">
+                                <div className="p-3 bg-neon-cyan/10 rounded-2xl">
+                                    <LayoutDashboard className="w-8 h-8 text-neon-cyan" />
+                                </div>
+                                <h1 className="text-4xl font-display font-black uppercase italic tracking-tighter">
+                                    Gestion <span className="text-neon-cyan">Accueil</span>
+                                </h1>
+                            </div>
+                            <p className="text-gray-400 normal-case">Organisez l'ordre et le style des sections de votre page d'accueil.</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
+                    <div className="flex items-center gap-4">
                         {hasChanges && (
-                            <span className="hidden md:inline text-[10px] font-black uppercase text-neon-orange animate-pulse">Non enregistré</span>
+                            <span className="text-[10px] font-black uppercase text-neon-orange animate-pulse">Changements non enregistrés</span>
                         )}
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="flex-1 md:flex-none px-6 md:px-8 py-3 bg-neon-cyan text-black rounded-xl font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20 disabled:opacity-50 text-xs md:text-sm"
+                            className="px-8 py-4 bg-neon-cyan text-black rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20 disabled:opacity-50 group active:scale-95"
                         >
-                            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                            <span>Enregistrer</span>
+                            {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+                            Enregistrer
                         </button>
                     </div>
                 </div>
@@ -344,7 +320,6 @@ export function AdminHome() {
                                         item={item}
                                         updateItem={updateItem}
                                         getColorValue={getColorValue}
-                                        onUploadVideo={handleUploadVideo}
                                     />
                                 ))}
                             </AnimatePresence>
@@ -380,13 +355,6 @@ export function AdminHome() {
                 message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                 onConfirm={() => blocker.proceed?.()}
                 onCancel={() => blocker.reset?.()}
-                accentColor="neon-cyan"
-            />
-
-            <ImageUploadModal
-                isOpen={isUploadModalOpen}
-                onClose={() => setIsUploadModalOpen(false)}
-                onUploadSuccess={onUploadSuccess}
                 accentColor="neon-cyan"
             />
         </div>

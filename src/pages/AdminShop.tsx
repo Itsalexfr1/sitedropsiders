@@ -41,73 +41,23 @@ export function AdminShop() {
     });
 
     const [hasChanges, setHasChanges] = useState(false);
-    const [isFormDirty, setIsFormDirty] = useState(false);
     const initialDataLoaded = useRef(false);
-    const previousProductsRef = useRef<any[]>([]);
 
-    // Track settings changes
+    // Track changes
     useEffect(() => {
-        if (!initialDataLoaded.current) return;
-        setHasChanges(true);
-    }, [shopEnabled, shopPasswordProtected, shopPasswordImage]);
-
-    // Track product form changes
-    useEffect(() => {
-        if (!isAdding && !editingProduct) {
-            setIsFormDirty(false);
+        if (products.length > 0 && !initialDataLoaded.current) {
+            initialDataLoaded.current = true;
             return;
         }
-
-        const isNotEmpty = newProduct.name !== '' || newProduct.price !== '' || newProduct.image !== '' || newProduct.description !== '';
-
-        if (editingProduct) {
-            const hasFormChanged =
-                newProduct.name !== editingProduct.name ||
-                newProduct.price !== editingProduct.price ||
-                newProduct.image !== editingProduct.image ||
-                newProduct.description !== (editingProduct.description || '') ||
-                newProduct.category !== (editingProduct.category || 'Vetements') ||
-                newProduct.url !== (editingProduct.url || '') ||
-                newProduct.imageBack !== (editingProduct.imageBack || '') ||
-                JSON.stringify(newProduct.colors) !== JSON.stringify(editingProduct.colors || []);
-
-            setIsFormDirty(hasFormChanged);
-        } else {
-            setIsFormDirty(isNotEmpty);
+        if (initialDataLoaded.current) {
+            setHasChanges(true);
         }
-    }, [newProduct, isAdding, editingProduct]);
-
-    // Track reorder changes manually in handleReorder instead of useEffect on products
-    const handleReorder = async (newOrder: any[]) => {
-        setProducts(newOrder);
-        setHasChanges(true); // Mark as dirty when manual reorder happens
-    };
-
-    const saveOrder = async () => {
-        setLoading(true);
-        try {
-            await fetch('/api/shop/reorder', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ products })
-            });
-            setHasChanges(false);
-            setStatus('success');
-            setMessage('Ordre enregistré !');
-            setTimeout(() => setStatus('idle'), 3000);
-        } catch (error) {
-            console.error('Error reordering products:', error);
-            setStatus('error');
-            setMessage('Erreur reorder');
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [products, shopEnabled, shopPasswordProtected, shopPasswordImage]);
 
     // Prompt before internal React Router navigation
     const blocker = useBlocker(
         ({ currentLocation, nextLocation }) =>
-            (hasChanges || isFormDirty) && currentLocation.pathname !== nextLocation.pathname
+            hasChanges && currentLocation.pathname !== nextLocation.pathname
     );
 
     // Confirm navigation handled by ConfirmationModal component in JSX
@@ -115,7 +65,7 @@ export function AdminShop() {
     // Prompt before window reload/close
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (hasChanges || isFormDirty) {
+            if (hasChanges) {
                 e.preventDefault();
                 e.returnValue = '';
             }
@@ -142,13 +92,7 @@ export function AdminShop() {
                 if (productsRes.ok) {
                     const data = await productsRes.json();
                     setProducts(data);
-                    previousProductsRef.current = data;
                 }
-
-                // Set loaded after first fetch to prevent initial changes from being marked as dirty
-                setTimeout(() => {
-                    initialDataLoaded.current = true;
-                }, 500);
             } catch (error) {
                 console.error('Error fetching shop data:', error);
             }
@@ -204,7 +148,7 @@ export function AdminShop() {
                     setProducts(products.map(p => p.id === editingProduct.id ? data.product : p));
                     resetForm();
                     setStatus('success');
-                    setIsFormDirty(false); // Clear form dirty state
+                    setHasChanges(false);
                     setMessage('Produit mis à jour !');
                     setTimeout(() => setStatus('idle'), 3000);
                 }
@@ -220,7 +164,7 @@ export function AdminShop() {
                     setProducts([data.product, ...products]);
                     resetForm();
                     setStatus('success');
-                    setIsFormDirty(false); // Clear form dirty state
+                    setHasChanges(false);
                     setMessage('Produit ajouté !');
                     setTimeout(() => setStatus('idle'), 3000);
                 }
@@ -238,7 +182,6 @@ export function AdminShop() {
         setNewProduct({ name: '', price: '', image: '', description: '', url: '', colors: [], colorImages: {}, images: [], category: 'Vetements', imageBack: '' });
         setEditingProduct(null);
         setIsAdding(false);
-        setIsFormDirty(false);
     };
 
     const handleDeleteProduct = async (id: number) => {
@@ -285,8 +228,18 @@ export function AdminShop() {
         });
     };
 
-    // The manual reorder handling is now at the top near state definitions
-
+    const handleReorder = async (newOrder: any[]) => {
+        setProducts(newOrder);
+        try {
+            await fetch('/api/shop/reorder', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ products: newOrder })
+            });
+        } catch (error) {
+            console.error('Error reordering products:', error);
+        }
+    };
 
     const filteredProducts = products.filter(product => {
         const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -300,47 +253,33 @@ export function AdminShop() {
     });
 
     return (
-        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
+        <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
-                    <div className="flex items-center gap-4 md:gap-6">
-                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                <div className="flex items-center justify-between mb-12">
+                    <div className="flex items-center gap-6">
+                        <Link to="/admin" className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-gray-400 group" title="Retour au tableau de bord">
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                         </Link>
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-red">Shop</span>
+                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                Gestion <span className="text-neon-red">Shop</span>
                             </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">Gérez les articles de la boutique</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        {hasChanges && (
-                            <button
-                                onClick={saveOrder}
-                                disabled={loading}
-                                className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-xs hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
-                            >
-                                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                <span className="hidden md:inline">Enregistrer l'ordre</span>
-                                <span className="md:hidden">Ordre</span>
-                            </button>
-                        )}
-                        <button
-                            onClick={() => {
-                                if (isAdding) {
-                                    resetForm();
-                                } else {
-                                    setIsAdding(true);
-                                }
-                            }}
-                            className="flex-1 md:flex-none flex items-center justify-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
-                        >
-                            {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
-                            <span>{isAdding ? 'Annuler' : 'Ajouter'}</span>
-                        </button>
-                    </div>
+                    <button
+                        onClick={() => {
+                            if (isAdding) {
+                                resetForm();
+                            } else {
+                                setIsAdding(true);
+                            }
+                        }}
+                        className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
+                    >
+                        {isAdding ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4 text-neon-red" />}
+                        {isAdding ? 'Annuler' : 'Ajouter un article'}
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -389,7 +328,7 @@ export function AdminShop() {
                                             <div>
                                                 <p className="text-gray-500 text-[9px] font-black uppercase mb-1">ACCÈS PRIVÉ (CODE)</p>
                                                 <p className={`text-sm font-bold uppercase ${shopPasswordProtected ? 'text-neon-red' : 'text-gray-600'}`}>
-                                                    {shopPasswordProtected ? '2026' : 'Désactivé'}
+                                                    {shopPasswordProtected ? 'DROPSHOP' : 'Désactivé'}
                                                 </p>
                                             </div>
                                             <button
@@ -403,7 +342,7 @@ export function AdminShop() {
                                             </button>
                                         </div>
                                         <p className="text-[9px] text-gray-500 leading-relaxed uppercase font-medium">
-                                            Si activé, le shop ne sera plus visible dans le menu et nécessitera le code <span className="text-neon-red font-black">2026</span> pour y accéder.
+                                            Si activé, le shop ne sera plus visible dans le menu et nécessitera le code <span className="text-neon-red font-black">DROPSHOP</span> pour y accéder.
                                         </p>
 
                                         {shopPasswordProtected && (

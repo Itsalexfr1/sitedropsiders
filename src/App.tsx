@@ -34,7 +34,6 @@ import { AdminSpotify } from './pages/AdminSpotify';
 import { AdminShop } from './pages/AdminShop';
 import KitMedia from './pages/KitMedia';
 import { AdminHome } from './pages/AdminHome';
-import { AdminEmails } from './pages/AdminEmails';
 import { AdminSettings } from './pages/AdminSettings';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
@@ -88,7 +87,6 @@ const router = createBrowserRouter([
       { path: "admin/spotify", element: <ProtectedRoute><AdminSpotify /></ProtectedRoute> },
       { path: "admin/home", element: <ProtectedRoute><AdminHome /></ProtectedRoute> },
       { path: "admin/shop", element: <ProtectedRoute><AdminShop /></ProtectedRoute> },
-      { path: "admin/emails", element: <ProtectedRoute><AdminEmails /></ProtectedRoute> },
       { path: "admin/settings", element: <ProtectedRoute><AdminSettings /></ProtectedRoute> },
 
       { path: "newsletter", element: <Newsletter /> },

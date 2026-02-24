@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Music, ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -85,25 +85,28 @@ export function AdminSpotify() {
                 setStatus('error');
                 setMessage(err.error || 'Erreur lors de la sauvegarde');
             }
-        } catch {
+        } catch (error) {
             setStatus('error');
             setMessage('Erreur de connexion');
         }
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
+        <div className="min-h-screen bg-dark-bg py-32 px-6">
             <div className="max-w-4xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
-                    <div className="flex items-center gap-4 md:gap-6">
-                        <Link to="/admin" className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group" title="Retour au tableau de bord">
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
-                        </Link>
+                <div className="flex items-center gap-6 mb-12">
+                    <Link to="/admin" className="p-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-colors text-white group">
+                        <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </Link>
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-neon-green/10 rounded-2xl">
+                            <Music className="w-8 h-8 text-neon-green" />
+                        </div>
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-green">Spotify</span>
+                            <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                Gestion <span className="text-neon-green">Spotify</span>
                             </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">Configurez les playlists de la homepage</p>
+                            <p className="text-gray-400">Configurez les 4 playlists de la page d'accueil</p>
                         </div>
                     </div>
                 </div>
