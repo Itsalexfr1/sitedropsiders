@@ -89,17 +89,34 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
             </h3>
 
             <div className="flex-1 flex flex-col gap-6 overflow-hidden">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6 flex-1">
+                <div className="flex flex-col gap-6 flex-1 h-full relative">
                     {recentNews.slice(0, 2).map((item, index) => (
-                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:h-auto overflow-hidden">
+                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:min-h-0 md:h-full">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 whileHover={{ scale: 1.02 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className="h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl"
+                                className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${accentColor}`}
+                                style={{
+                                    boxShadow: `0 0 20px ${color}1A`
+                                }}
                             >
+                                <div
+                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
+                                    style={{
+                                        background: `radial-gradient(circle at center, ${color}33 0%, transparent 70%)`,
+                                        filter: 'blur(30px)'
+                                    }}
+                                />
+                                <div
+                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
+                                    style={{
+                                        background: `radial-gradient(circle at center, ${color}4D 0%, transparent 70%)`,
+                                        filter: 'blur(40px)'
+                                    }}
+                                />
                                 <img
                                     src={item.image}
                                     alt=""
@@ -133,7 +150,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
 
                 <Link
                     to="/news"
-                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group shrink-0"
+                    className="w-full py-4 border bg-dark-bg/40 backdrop-blur-md text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all duration-300 flex items-center justify-center gap-3 group shrink-0 mt-4 md:mt-2"
                     style={{
                         borderColor: `${color}4D`,
                     }}

@@ -162,6 +162,39 @@
     text-shadow: 0 0 30px rgba(255, 0, 51, 0.4);
   }
 
+  /* Lueurs pour les cartes */
+  .glow-card-blue:hover {
+    box-shadow: 0 0 50px rgba(0, 112, 255, 0.25) !important;
+  }
+
+  .glow-card-red:hover {
+    box-shadow: 0 0 50px rgba(255, 0, 51, 0.25) !important;
+  }
+
+  .glow-card-orange:hover {
+    box-shadow: 0 0 50px rgba(255, 102, 0, 0.25) !important;
+  }
+
+  .glow-card-purple:hover {
+    box-shadow: 0 0 50px rgba(189, 0, 255, 0.25) !important;
+  }
+
+  .glow-card-cyan:hover {
+    box-shadow: 0 0 50px rgba(0, 240, 255, 0.25) !important;
+  }
+
+  .glow-card-green:hover {
+    box-shadow: 0 0 50px rgba(57, 255, 20, 0.25) !important;
+  }
+
+  .glow-card-yellow:hover {
+    box-shadow: 0 0 50px rgba(255, 204, 0, 0.25) !important;
+  }
+
+  .glow-card-pink:hover {
+    box-shadow: 0 0 50px rgba(255, 0, 153, 0.25) !important;
+  }
+
   /* Titres Internes - Force compacité */
   .article-body-premium h1 {
     display: none !important;

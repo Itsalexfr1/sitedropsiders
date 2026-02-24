@@ -76,10 +76,17 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                     whileHover={{ scale: 1.05 }}
                     onMouseEnter={playHoverSound}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                    className="h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl"
+                    className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${accentColor}`}
                     onMouseOver={(e) => e.currentTarget.style.borderColor = `${color}80`}
                     onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                 >
+                    <div
+                        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
+                        style={{
+                            background: `radial-gradient(circle at center, ${color}4D 0%, transparent 70%)`,
+                            filter: 'blur(40px)'
+                        }}
+                    />
                     <img
                         src={heroNews.image}
                         alt=""
