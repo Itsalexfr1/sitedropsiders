@@ -203,7 +203,12 @@ export function News() {
                                             </div>
                                             <div className="p-6">
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-xs font-bold text-neon-red border border-neon-red/30 px-2 py-1 rounded-full">
+                                                    <span className={`text-xs font-bold px-2 py-1 rounded-full border ${item.isFocus
+                                                            ? 'text-yellow-400 border-yellow-400/30'
+                                                            : (item.category || '').toLowerCase() === 'musique'
+                                                                ? 'text-neon-green border-neon-green/30'
+                                                                : 'text-neon-red border-neon-red/30'
+                                                        }`}>
                                                         {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
                                                     </span>
                                                     <div className="flex flex-col items-end">

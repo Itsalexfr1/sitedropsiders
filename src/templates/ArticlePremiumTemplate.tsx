@@ -428,7 +428,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     <div className="space-y-6">
                         {/* Meta Badges */}
                         <div className="flex flex-wrap gap-3">
-                            <span className="px-4 py-2 bg-neon-red rounded-full text-white font-black text-xs uppercase tracking-widest shadow-lg shadow-neon-red/20">
+                            <span className={`px-4 py-2 rounded-full text-white font-black text-xs uppercase tracking-widest shadow-lg ${article.isFocus
+                                    ? 'bg-yellow-500 shadow-yellow-500/20'
+                                    : (article.category || '').toLowerCase() === 'musique'
+                                        ? 'bg-neon-green shadow-neon-green/20'
+                                        : 'bg-neon-red shadow-neon-red/20'
+                                }`}>
                                 {article.isFocus ? t('article_detail.focus').toUpperCase() : (article.category || (type === 'recap' ? 'Recap' : 'News'))}
                             </span>
                             <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">

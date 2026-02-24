@@ -309,7 +309,9 @@ export function Navbar() {
                                                                     "text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded shadow-[0_0_10px_rgba(0,0,0,0.3)]",
                                                                     item.searchType === 'agenda' ? "bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30" :
                                                                         item.searchType === 'recap' ? "bg-neon-red/20 text-neon-red border border-neon-red/30" :
-                                                                            "bg-neon-purple/20 text-neon-purple border border-neon-purple/30"
+                                                                            item.isFocus ? "bg-yellow-500/20 text-yellow-400 border border-yellow-400/30" :
+                                                                                (item.category || '').toLowerCase() === 'musique' ? "bg-neon-green/20 text-neon-green border border-neon-green/30" :
+                                                                                    "bg-neon-purple/20 text-neon-purple border border-neon-purple/30"
                                                                 )}>
                                                                     {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
                                                                 </span>
