@@ -14,6 +14,25 @@ import '../styles/article-premium.css';
 
 
 
+// Custom Icons for Official Brands
+const TikTokIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7.82a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.25z" />
+    </svg>
+);
+
+const SpotifyIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.3-.6.4-.9.2-2.8-1.7-6.4-2.1-10.6-1.1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 4.7-1.1 8.7-.6 11.8 1.3.2.2.3.5.1.8zm1.5-3.3c-.3.4-.8.5-1.2.3-3.2-2-8.2-2.6-12-1.4-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 4.4-1.3 9.9-.7 13.6 1.6.3.3.4.8.1 1zM19.2 10.6c-3.9-2.3-10.3-2.5-14.1-1.4-.6.2-1.2-.2-1.4-.8-.2-.6.2-1.2.8-1.4 4.3-1.3 11.4-1.1 16 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4v.1z" />
+    </svg>
+);
+
+const SoundCloudIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M1 14.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5S1 15.33 1 14.5zm3.5.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 0c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 0c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 .5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm11.5-2c-.12 0-.25.01-.37.03-.43-1.74-2-3.03-3.88-3.03-.31 0-.61.04-.9.11-.64-1.63-2.23-2.77-4.1-2.77-.18 0-.36.01-.53.03C12.44 6.13 10.87 5 9 5c-.32 0-.63.04-.92.11C7.43 3.96 6.04 3 4.5 3c-.1 0-.19 0-.29.01C3.79 1.28 2.05 0 0 0v24h24c.55 0 1-.45 1-1s-.45-1-1-1h-6.2c.11-.32.2-.65.2-1 0-1.66-1.34-3-3-3s-3 1.34-3 3c0 .35.09.68.2 1H2z" />
+    </svg>
+);
+
 // Helper component to fix caret jumping in contentEditable
 function VisualEditor({ content, onChange, className, widgetId, onFocus }: { content: string, onChange: (html: string) => void, className: string, widgetId: string, onFocus?: (e: any) => void }) {
     const editorRef = useRef<HTMLDivElement>(null);
@@ -1315,12 +1334,12 @@ ${generateFestivalSocialsHtml()}
                                     {[
                                         { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
                                         { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                        { id: 'tiktok', name: 'TikTok', icon: Music, color: 'text-neon-cyan' },
+                                        { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                         { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                         { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
                                         { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
-                                        { id: 'spotify', name: 'Spotify', icon: Music, color: 'text-green-500' },
-                                        { id: 'soundcloud', name: 'SoundCloud', icon: Music, color: 'text-orange-500' }
+                                        { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
+                                        { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' }
                                     ].map((social) => (
                                         <div key={social.id}>
                                             <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
@@ -1332,8 +1351,8 @@ ${generateFestivalSocialsHtml()}
                                                     type="text"
                                                     value={(artistSocials as any)[social.id]}
                                                     onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
-                                                    placeholder="URL..."
+                                                    className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                                    placeholder="URL Artiste..."
                                                 />
                                             </div>
                                         </div>
@@ -1352,7 +1371,7 @@ ${generateFestivalSocialsHtml()}
                                 {[
                                     { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
                                     { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                    { id: 'tiktok', name: 'TikTok', icon: Music, color: 'text-neon-cyan' },
+                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
                                     { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
