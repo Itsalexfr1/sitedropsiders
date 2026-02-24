@@ -75,7 +75,7 @@ export function AdminDashboard() {
         { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
         { title: "Éditeurs", description: "Gestion Équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
         { title: "Team", description: "Gérer l'équipe (Menu)", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 1 },
-        { title: "Messages", description: "Mails & Contact", icon: "Mail", link: "/admin/emails", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "mail", baseColor: "orange", columns: 1 },
+
         { title: "Paramètres", description: "Config système", icon: "Settings2", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "alex_only", baseColor: "purple", columns: 1 }
     ];
 
