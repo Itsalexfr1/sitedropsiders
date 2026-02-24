@@ -23,7 +23,8 @@
     "password": "2026",
     "name": "Tiffany",
     "permissions": [
-      "publications"
+      "publications",
+      "messages"
     ],
     "created": "2026-02-24T03:40:00.617Z"
   },
