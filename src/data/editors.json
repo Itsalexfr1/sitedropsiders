@@ -34,5 +34,14 @@
       "publications"
     ],
     "created": "2026-02-24T03:40:20.933Z"
+  },
+  {
+    "username": "kevin",
+    "password": "2026",
+    "name": "Kevin",
+    "permissions": [
+      "publications"
+    ],
+    "created": "2026-02-24T03:41:19.585Z"
   }
 ]
