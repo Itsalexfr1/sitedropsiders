@@ -1326,23 +1326,50 @@ export default {
                                         ${message.replace(/\n/g, '<br>')}
                                     </div>
                                     
-                                    <!-- BLOC SIGNATURE STYLÉ -->
-                                    <div style="background:#000000; border:1px solid #ff0033; border-radius:16px; padding:25px; margin-top:30px; box-shadow: 0 0 20px rgba(255,0,51,0.1);">
-                                        <div style="color:#ffffff; font-size:15px; font-weight:bold; line-height:1.4; margin-bottom:20px; font-style: italic;">
-                                            Cordialement,<br>
-                                            L'équipe Dropsiders
+                                    <!-- SIGNATURE BLOCK : ULTRA STYLE DROPSIDERS -->
+                                    <div style="margin-top:50px; background:#000000; border:2px solid #333333; border-top:4px solid #ff0033; border-radius:24px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
+                                        <div style="padding:35px 30px; text-align:center;">
+                                            <div style="color:#ffffff; font-size:18px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:10px; letter-spacing:-0.5px;">
+                                                Cordialement,<br>
+                                                L'équipe <span style="color:#ff0033;">Dropsiders</span>
+                                            </div>
+                                            
+                                            <!-- CATEGORIES BAR -->
+                                            <div style="color:#ff0033; font-size:9px; font-weight:900; text-transform:uppercase; letter-spacing:3px; margin-bottom:30px; border-bottom:1px solid #222; padding-bottom:15px;">
+                                                NEWS · RÉCAPS EVENTS · INTERVIEWS · CONCOURS
+                                            </div>
+                                            
+                                            <!-- ACTIONS GRID -->
+                                            <table width="100%" cellpadding="0" cellspacing="10" border="0">
+                                                <tr>
+                                                    <td align="center" width="33%">
+                                                        <a href="https://dropsiders.fr" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:12px 5px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; transition: all 0.3s; border-bottom:3px solid #ff0033;">
+                                                            🌐 Le Site
+                                                        </a>
+                                                    </td>
+                                                    <td align="center" width="33%">
+                                                        <a href="https://dropsiders.fr/shop" style="display:block; background:#111; border:1px solid #333; color:#fff; text-decoration:none; padding:12px 5px; border-radius:12px; font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:1px; border-bottom:3px solid #00ffd5;">
+                                                            🛍️ Le Shop
+                                                        </a>
+                                                    </td>
+                                                    <td align="center" width="33%">
+                                                        <a href="https://dropsiders.fr/newsletter" style="display:block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#fff; text-decoration:none; padding:12px 5px; border-radius:12px; font-size:10px; font-weight:900; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(255,0,51,0.3);">
+                                                            📩 Newsletter
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </table>
                                         </div>
                                         
-                                        <div style="margin-top:10px;">
-                                            <a href="https://dropsiders.fr" style="display:inline-block; background:linear-gradient(90deg, #ff0033 0%, #ff0066 100%); color:#ffffff; text-decoration:none; padding:12px 24px; border-radius:10px; font-weight:900; font-size:11px; text-transform:uppercase; letter-spacing:1px; box-shadow: 0 4px 15px rgba(255,0,51,0.3);">
-                                                S'inscrire à la Newsletter
-                                            </a>
+                                        <!-- FOOTER STRIP -->
+                                        <div style="background:#080808; padding:15px; text-align:center;">
+                                            <img src="https://dropsiders.fr/Logo.png" width="80" alt="Logo" style="opacity:0.5; filter:grayscale(1);">
                                         </div>
                                     </div>
                                 </div>
-                                <div style="background:#000000; padding:20px; text-align:center; border-top:1px solid #333333;">
-                                    <p style="color:#666666; font-size:10px; margin:0; font-weight:bold; letter-spacing:2px; text-transform:uppercase;">
-                                        DROPSIDERS · News · Récaps Events · Interviews
+                                <div style="background:#000000; padding:20px; text-align:center; border-top:1px solid #222;">
+                                    <p style="color:#333; font-size:9px; margin:0; font-weight:bold; letter-spacing:2px; text-transform:uppercase;">
+                                        DROPSIDERS · TOUTE L'ACTU DES FESTIVALS
                                     </p>
                                 </div>
                             </div>
