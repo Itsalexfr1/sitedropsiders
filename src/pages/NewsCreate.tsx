@@ -783,7 +783,8 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 content: finalContent,
                 youtubeId,
                 isFocus,
-                isFeatured
+                isFeatured,
+                author: localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || ''
             };
 
             const endpoint = isEditing ? '/api/news/update' : '/api/news/create';

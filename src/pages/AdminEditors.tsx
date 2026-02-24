@@ -18,7 +18,8 @@ const AVAILABLE_PERMISSIONS = [
     { id: 'stats', label: 'Voir Stats', description: 'Accès aux statistiques d\'audience' },
     { id: 'shop', label: 'Gestion Shop', description: 'Ajouter/Modifier des produits' },
     { id: 'newsletter', label: 'Newsletter', description: 'Création et envoi de mailings' },
-    { id: 'spotify', label: 'Spotify', description: 'Gestion des playlists accueil' }
+    { id: 'spotify', label: 'Spotify', description: 'Gestion des playlists accueil' },
+    { id: 'messages', label: 'Messages Contact', description: 'Voir et répondre aux messages du formulaire' }
 ];
 
 export function AdminEditors() {

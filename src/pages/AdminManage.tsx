@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
@@ -430,7 +430,24 @@ export function AdminManage() {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <div className="font-bold text-white line-clamp-1">{item.title}</div>
+                                                <div className="font-bold text-white line-clamp-1 flex items-center gap-2">
+                                                    <Link
+                                                        to={
+                                                            activeTab === 'Recaps' ? `/recaps/${item.id}` :
+                                                                activeTab === 'Interviews' ? `/interviews/${item.id}` :
+                                                                    activeTab === 'Galeries' ? `/galerie/${item.id}` :
+                                                                        activeTab === 'Agenda' ? `/agenda` :
+                                                                            `/news/${item.id}`
+                                                        }
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="hover:text-neon-red transition-colors flex items-center gap-1.5 group/link"
+                                                        title="Voir l'article"
+                                                    >
+                                                        {item.title}
+                                                        <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
+                                                    </Link>
+                                                </div>
                                                 <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>

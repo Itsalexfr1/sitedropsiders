@@ -102,7 +102,7 @@ export function AdminDashboard() {
         { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
         { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 3 },
         { title: "Mots de passe", description: "Accès & Sécurité", icon: "Lock", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
-        { title: "Messages", description: "Formulaire contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "all", baseColor: "orange", columns: 1 }
+        { title: "Messages", description: "Formulaire contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -437,7 +437,7 @@ export function AdminDashboard() {
                                     action.columns === 3 ? 'md:col-span-2 lg:col-span-3' : 'col-span-1'
                                     }`}
                             >
-                                {editMode && isAdmin && (
+                                {editMode && (
                                     <>
                                         {/* D-Pad Controls (Replacement for GripVertical) */}
                                         <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">

@@ -421,6 +421,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     day: 'numeric'
                                 })}
                             </span>
+                            {article.author && (
+                                <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
+                                    <svg className="w-3.5 h-3.5 text-neon-red flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
+                                    {article.author}
+                                </span>
+                            )}
                             {type === 'recap' && article.location && (
                                 <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
                                     <MapPin className="w-4 h-4 text-neon-red" />

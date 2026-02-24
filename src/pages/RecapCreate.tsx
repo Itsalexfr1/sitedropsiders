@@ -644,7 +644,8 @@ export function RecapCreate() {
                     location: locationInput,
                     youtubeId,
                     category: 'Recaps',
-                    isFeatured
+                    isFeatured,
+                    author: localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || ''
                 }),
             });
 

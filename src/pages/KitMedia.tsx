@@ -211,6 +211,16 @@ const KitMedia = () => {
                         </p>
                     </div>
                 </motion.div>
+
+                <div className="mt-6 text-center relative z-10">
+                    <a
+                        href="/"
+                        className="inline-flex items-center gap-2 text-gray-600 hover:text-white text-[10px] uppercase tracking-[0.3em] font-bold transition-all group"
+                    >
+                        <svg className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                        {language === 'fr' ? 'Retour au site' : 'Back to site'}
+                    </a>
+                </div>
             </div>
         );
     }

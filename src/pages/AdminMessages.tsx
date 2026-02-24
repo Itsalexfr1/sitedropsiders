@@ -143,8 +143,8 @@ export function AdminMessages() {
                         animate={{ opacity: 1, y: 0, x: '-50%' }}
                         exit={{ opacity: 0, y: -20, x: '-50%' }}
                         className={`fixed top-20 left-1/2 z-50 px-6 py-3 rounded-2xl text-sm font-bold flex items-center gap-2 shadow-2xl ${notification.type === 'success'
-                                ? 'bg-green-500/20 border border-green-500/30 text-green-400'
-                                : 'bg-neon-red/20 border border-neon-red/30 text-neon-red'
+                            ? 'bg-green-500/20 border border-green-500/30 text-green-400'
+                            : 'bg-neon-red/20 border border-neon-red/30 text-neon-red'
                             }`}
                     >
                         {notification.type === 'success' ? <CheckCircle className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
@@ -234,7 +234,12 @@ export function AdminMessages() {
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <button
-                                        onClick={() => { setReplyBody(`\n\n---\nDe : ${selected.name}\nObjet : ${selected.subject}\n\n${selected.message}`); setReplyModal(true); }}
+                                        onClick={() => {
+                                            const sig = `\n\n\n——\nDROPSIDERS\nNews · Récaps Events · Interviews · Concours\nhttps://dropsiders.fr`;
+                                            const quote = `\n\n---\nDe : ${selected.name}\nObjet : ${selected.subject}\n\n${selected.message}`;
+                                            setReplyBody(sig + quote);
+                                            setReplyModal(true);
+                                        }}
                                         className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-xs font-black uppercase"
                                     >
                                         <Reply className="w-4 h-4" />
