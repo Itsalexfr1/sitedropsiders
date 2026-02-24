@@ -44,7 +44,7 @@ export function NewsletterComposer() {
 
     // Abonnés (Initialisé vide pour éviter tout crash au démarrage)
     const [subscribersData, setSubscribersData] = useState<any[]>([]);
-    const [subscribers, setSubscribers] = useState<string[]>([]);
+    const [selectedSubscribers, setSelectedSubscribers] = useState<string[]>([]);
     const [showSubscribersModal, setShowSubscribersModal] = useState(false);
     const [subSearch, setSubSearch] = useState('');
 
@@ -96,7 +96,7 @@ export function NewsletterComposer() {
                         setSubscribersData(data);
                         // On extrait juste les emails
                         const emails = data.map((sub: any) => sub.email || sub).filter(Boolean);
-                        setSubscribers(emails);
+                        setSelectedSubscribers(emails);
                     }
                 }
             } catch (error) {
@@ -345,9 +345,9 @@ export function NewsletterComposer() {
     };
 
     const handleCopyEmails = () => {
-        if (subscribers.length === 0) return alert('Aucun abonné à copier.');
-        navigator.clipboard.writeText(subscribers.join(', '));
-        alert(`${subscribers.length} emails copiés !`);
+        if (selectedSubscribers.length === 0) return alert('Aucun abonné sélectionné à copier.');
+        navigator.clipboard.writeText(selectedSubscribers.join(', '));
+        alert(`${selectedSubscribers.length} emails copiés !`);
     };
 
     const handleSendClick = () => {
@@ -356,8 +356,8 @@ export function NewsletterComposer() {
             return;
         }
 
-        if (subscribers.length === 0) {
-            setAlertModal({ isOpen: true, isError: true, message: 'Erreur : Aucun abonné trouvé dans la liste.' });
+        if (selectedSubscribers.length === 0) {
+            setAlertModal({ isOpen: true, isError: true, message: 'Erreur : Aucun abonné sélectionné.' });
             return;
         }
 
@@ -374,7 +374,7 @@ export function NewsletterComposer() {
                 body: JSON.stringify({
                     subject,
                     htmlContent: generateHTML(false),
-                    recipients: subscribers
+                    recipients: selectedSubscribers
                 })
             });
 
@@ -418,7 +418,7 @@ export function NewsletterComposer() {
                         title="Voir les abonnés"
                     >
                         <Users size={14} className="text-neon-cyan" />
-                        <span>{subscribers.length} Abonnés</span>
+                        <span>{selectedSubscribers.length} sur {subscribersData.length} Dest.</span>
                     </button>
 
                     <button
@@ -432,7 +432,7 @@ export function NewsletterComposer() {
 
                     <button
                         onClick={handleSendClick}
-                        disabled={sending || subscribers.length === 0}
+                        disabled={sending || selectedSubscribers.length === 0}
                         className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl flex items-center justify-center gap-2 text-[10px] md:text-xs font-black uppercase tracking-wide transition-all
                             ${sending
                                 ? 'bg-gray-800 text-gray-500 cursor-wait'
@@ -734,7 +734,21 @@ export function NewsletterComposer() {
                                 </button>
                             </div>
 
-                            <div className="p-4 border-b border-white/10 bg-black/30">
+                            <div className="p-4 border-b border-white/10 bg-black/30 flex flex-col gap-3">
+                                <div className="flex justify-between items-center text-xs font-bold text-gray-400 uppercase">
+                                    <span>Sélectionnés : <span className="text-white">{selectedSubscribers.length}</span> / {subscribersData.length}</span>
+                                    {selectedSubscribers.length === subscribersData.length ? (
+                                        <button
+                                            onClick={() => setSelectedSubscribers([])}
+                                            className="text-neon-red hover:text-white transition-colors"
+                                        >Déselectionner tout</button>
+                                    ) : (
+                                        <button
+                                            onClick={() => setSelectedSubscribers(subscribersData.map((sub: any) => sub.email || sub).filter(Boolean))}
+                                            className="text-neon-cyan hover:text-white transition-colors"
+                                        >Sélectionner tout</button>
+                                    )}
+                                </div>
                                 <input
                                     type="text"
                                     placeholder="Rechercher par email..."
@@ -748,12 +762,37 @@ export function NewsletterComposer() {
                                 <div className="space-y-2">
                                     {subscribersData
                                         .filter(sub => (sub.email || sub).toLowerCase().includes(subSearch.toLowerCase()))
-                                        .map((sub, i) => (
-                                            <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-all">
-                                                <span className="text-sm font-medium text-gray-300">{sub.email || sub}</span>
-                                                <span className="text-[10px] font-black uppercase text-gray-600">Dropsider</span>
-                                            </div>
-                                        ))
+                                        .map((sub, i) => {
+                                            const email = sub.email || sub;
+                                            const isSelected = selectedSubscribers.includes(email);
+                                            return (
+                                                <div
+                                                    key={i}
+                                                    onClick={() => {
+                                                        if (isSelected) {
+                                                            setSelectedSubscribers(selectedSubscribers.filter(e => e !== email));
+                                                        } else {
+                                                            setSelectedSubscribers([...selectedSubscribers, email]);
+                                                        }
+                                                    }}
+                                                    className={`flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none
+                                                        ${isSelected
+                                                            ? 'bg-neon-cyan/10 border-neon-cyan/30 hover:bg-neon-cyan/20'
+                                                            : 'bg-white/5 border-white/5 hover:border-white/10'
+                                                        }`}
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors
+                                                            ${isSelected ? 'bg-neon-cyan border-neon-cyan text-black' : 'border-gray-500 bg-black'}`}>
+                                                            {isSelected && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                                                        </div>
+                                                        <span className={`text-sm font-medium ${isSelected ? 'text-white' : 'text-gray-400'}`}>
+                                                            {email}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })
                                     }
                                 </div>
                             </div>
@@ -806,7 +845,7 @@ export function NewsletterComposer() {
             <ConfirmationModal
                 isOpen={confirmSendModal}
                 title="Envoi Définitif"
-                message={`Êtes-vous sûr de vouloir envoyer cette newsletter à ${subscribers.length} abonnés ?\nCette action est irréversible !`}
+                message={`Êtes-vous sûr de vouloir envoyer cette newsletter à ${selectedSubscribers.length} abonné(s) ?\nCette action est irréversible !`}
                 confirmLabel="Envoyer la Newsletter"
                 cancelLabel="Annuler"
                 onConfirm={executeSend}

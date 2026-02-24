@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -10,6 +10,11 @@ export function AdminSettings() {
     const [shopPassword, setShopPassword] = useState('');
     const [kitMediaPassword, setKitMediaPassword] = useState('');
     const [adminPassword, setAdminPassword] = useState('');
+    const [showAdminPassword, setShowAdminPassword] = useState(false);
+    const [showShopPassword, setShowShopPassword] = useState(false);
+    const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
+    const [showEmailPassword, setShowEmailPassword] = useState(false);
+
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
 
@@ -154,12 +159,19 @@ export function AdminSettings() {
                                         <Lock className="w-5 h-5 text-neon-cyan/50" />
                                     </div>
                                     <input
-                                        type="password"
+                                        type={showAdminPassword ? "text" : "password"}
                                         value={adminPassword}
                                         onChange={(e) => setAdminPassword(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-cyan transition-all"
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-cyan transition-all"
                                         placeholder="EX: MOTDEPASSE"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAdminPassword(!showAdminPassword)}
+                                        className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        {showAdminPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Mot de passe pour accéder à votre espace administrateur personnel ({currentUser}).
@@ -176,12 +188,19 @@ export function AdminSettings() {
                                         <Lock className="w-5 h-5 text-neon-red/50" />
                                     </div>
                                     <input
-                                        type="text"
+                                        type={showShopPassword ? "text" : "password"}
                                         value={shopPassword}
                                         onChange={(e) => setShopPassword(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-red transition-all"
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-red transition-all"
                                         placeholder="EX: DROPSIDERS2026"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowShopPassword(!showShopPassword)}
+                                        className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        {showShopPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Protège l'accès anticipé à la nouvelle collection.
@@ -198,12 +217,19 @@ export function AdminSettings() {
                                         <Lock className="w-5 h-5 text-neon-blue/50" />
                                     </div>
                                     <input
-                                        type="text"
+                                        type={showKitMediaPassword ? "text" : "password"}
                                         value={kitMediaPassword}
                                         onChange={(e) => setKitMediaPassword(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-blue transition-all"
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-blue transition-all"
                                         placeholder="EX: CONTACTDROP"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowKitMediaPassword(!showKitMediaPassword)}
+                                        className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        {showKitMediaPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
@@ -220,12 +246,19 @@ export function AdminSettings() {
                                         <Lock className="w-5 h-5 text-gray-500" />
                                     </div>
                                     <input
-                                        type="text"
+                                        type={showEmailPassword ? "text" : "password"}
                                         value={emailPassword}
                                         onChange={(e) => setEmailPassword(e.target.value)}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-white transition-all"
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-white transition-all"
                                         placeholder="EX: 2026"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowEmailPassword(!showEmailPassword)}
+                                        className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-500 hover:text-white transition-colors"
+                                    >
+                                        {showEmailPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                    </button>
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Protège la section /admin/emails au sein du dashboard.
