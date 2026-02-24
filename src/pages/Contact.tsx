@@ -67,7 +67,7 @@ export function Contact() {
                         Nous <span className="text-neon-red">Contacter</span>
                     </h1>
                     <p className="text-gray-400 text-lg sm:text-xl font-medium tracking-wide max-w-xl mx-auto">
-                        Une question, une suggestion ou une demande de partenariat ? Envoyez-nous un message et nous vous répondrons dans les plus brefs délais !
+                        Une question, une suggestion ou l'envie de rejoindre l'aventure et d'intégrer l'équipe ? Envoyez-nous un message, nous vous répondrons dans les plus brefs délais !
                     </p>
                 </motion.div>
 
