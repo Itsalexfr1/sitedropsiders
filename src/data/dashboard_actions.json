@@ -9,15 +9,6 @@
     "columns": 1
   },
   {
-    "title": "Messages",
-    "description": "Mails & Contact",
-    "icon": "Mail",
-    "link": "/admin/emails",
-    "baseColor": "#ff6600",
-    "permission": "mail",
-    "columns": 1
-  },
-  {
     "title": "Statistiques",
     "description": "Analyse du site",
     "icon": "BarChart3",
@@ -68,15 +59,6 @@
     "permission": "publications"
   },
   {
-    "title": "Spotify",
-    "description": "Playlists accueil",
-    "icon": "Music",
-    "link": "/admin/spotify",
-    "baseColor": "#00ff11",
-    "permission": "spotify",
-    "columns": 2
-  },
-  {
     "title": "Musique",
     "description": "Gérer les articles musique",
     "icon": "Music",
@@ -84,6 +66,15 @@
     "baseColor": "#9e677d",
     "permission": "publications",
     "columns": 1
+  },
+  {
+    "title": "Spotify",
+    "description": "Playlists accueil",
+    "icon": "Music",
+    "link": "/admin/spotify",
+    "baseColor": "#00ff11",
+    "permission": "spotify",
+    "columns": 2
   },
   {
     "title": "Interviews",
@@ -103,15 +94,6 @@
     "columns": 2
   },
   {
-    "title": "Abonnés",
-    "description": "Gérer la liste mail",
-    "icon": "Users",
-    "link": "/newsletter/admin",
-    "baseColor": "white",
-    "permission": "all",
-    "columns": 2
-  },
-  {
     "title": "Team",
     "description": "Gérer l'équipe (Menu)",
     "icon": "Users",
@@ -121,11 +103,11 @@
     "columns": 1
   },
   {
-    "title": "Éditeurs",
-    "description": "Gérer l'équipe",
-    "icon": "Lock",
-    "link": "/admin/editors",
-    "baseColor": "#ff2e2e",
+    "title": "Abonnés",
+    "description": "Gérer la liste mail",
+    "icon": "Users",
+    "link": "/newsletter/admin",
+    "baseColor": "white",
     "permission": "all",
     "columns": 2
   },
@@ -137,5 +119,14 @@
     "baseColor": "#9d00ff",
     "permission": "alex_only",
     "columns": 1
+  },
+  {
+    "title": "Éditeurs",
+    "description": "Gérer l'équipe",
+    "icon": "Lock",
+    "link": "/admin/editors",
+    "baseColor": "#ff2e2e",
+    "permission": "all",
+    "columns": 2
   }
 ]
