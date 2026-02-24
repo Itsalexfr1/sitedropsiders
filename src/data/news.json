@@ -2865,22 +2865,5 @@
     "category": "Interview",
     "isFeatured": false,
     "author": "Alex"
-  },
-  {
-    "id": 172,
-    "title": "INTERVIEW VIDEO : MAURICE WEST",
-    "date": "2018-02-13",
-    "summary": "Mauripour e de la next gen",
-    "content": "",
-    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810432/dropsiders/images/jtprqbzkzzbfnhyyalzz.jpg",
-    "images": [
-      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810432/dropsiders/images/vp3gncjbecmaun7p5gj5.jpg",
-      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810432/dropsiders/images/xpxudfscei8gkrpuvb0m.jpg"
-    ],
-    "youtubeId": "Jk5wteO4cVE",
-    "link": "https://www.dropsiders.fr/interviews/2468726_interview-video-maurice-west",
-    "category": "Interview",
-    "isFeatured": false,
-    "author": "Alex"
   }
 ]
