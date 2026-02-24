@@ -299,7 +299,7 @@ export function Interviews() {
                             <Mail className="w-8 h-8 text-neon-red" />
                         </div>
                         <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-                            {t('article_detail.newsletter_title')}
+                            S'INSCRIRE À LA <span className="text-neon-red">NEWSLETTER</span>
                         </h2>
                         <p className="text-gray-400 mb-10 text-lg">
                             {t('article_detail.newsletter_subtitle')}

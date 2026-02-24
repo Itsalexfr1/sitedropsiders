@@ -56,6 +56,9 @@ export function AdminManage() {
         sessionStorage.setItem('admin_search_term', searchTerm);
     }, [searchTerm]);
 
+    const [selectedIds, setSelectedIds] = useState<(number | string)[]>([]);
+    const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+
     // Pagination & Sorting
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState<'title' | 'date' | 'pubDate' | 'event' | 'location' | 'country'>('date');
@@ -64,8 +67,48 @@ export function AdminManage() {
 
     useEffect(() => {
         setCurrentPage(1);
+        setSelectedIds([]);
         fetchData();
     }, [activeTab]);
+
+    const handleBulkDelete = async () => {
+        setBulkDeleteConfirm(false);
+        setDeleteStatus('loading');
+        setMessage(`Suppression de ${selectedIds.length} éléments...`);
+
+        let successCount = 0;
+        let failCount = 0;
+
+        for (const id of selectedIds) {
+            try {
+                const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
+                    activeTab === 'Galeries' ? '/api/galerie/delete' :
+                        `/api/${activeTab.toLowerCase()}/delete`;
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id })
+                });
+                if (response.ok) successCount++;
+                else failCount++;
+            } catch (e) {
+                failCount++;
+            }
+        }
+
+        if (successCount > 0) {
+            setDeleteStatus('success');
+            setMessage(`${successCount} éléments supprimés avec succès` + (failCount > 0 ? `, ${failCount} échecs.` : '!'));
+            setSelectedIds([]);
+            setTimeout(async () => {
+                await fetchData();
+                setDeleteStatus('idle');
+            }, 2000);
+        } else {
+            setDeleteStatus('error');
+            setMessage('Échec de la suppression groupée.');
+        }
+    };
 
     const fetchData = async () => {
         setLoading(true);
@@ -385,6 +428,35 @@ export function AdminManage() {
                     )}
                 </AnimatePresence>
 
+                {/* Multi-delete status/actions */}
+                <AnimatePresence>
+                    {selectedIds.length > 0 && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 20 }}
+                            className="mb-6 p-4 bg-neon-red/10 border border-neon-red/30 rounded-2xl flex items-center justify-between"
+                        >
+                            <div className="flex items-center gap-4">
+                                <span className="text-white font-bold">{selectedIds.length} élément(s) sélectionné(s)</span>
+                                <button
+                                    onClick={() => setSelectedIds([])}
+                                    className="text-xs text-gray-400 hover:text-white underline uppercase tracking-widest font-black"
+                                >
+                                    Annuler
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => setBulkDeleteConfirm(true)}
+                                className="px-6 py-2 bg-neon-red text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] transition-all flex items-center gap-2"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Supprimer la sélection
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden backdrop-blur-sm">
                     {loading ? (
                         <div className="p-20 flex flex-col items-center justify-center gap-4 text-gray-500">
@@ -401,80 +473,117 @@ export function AdminManage() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b border-white/10 bg-white/5">
+                                        <th className="px-6 py-4 w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.length === paginatedItems.length && paginatedItems.length > 0}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedIds(paginatedItems.map(i => i.id));
+                                                    } else {
+                                                        setSelectedIds([]);
+                                                    }
+                                                }}
+                                                className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red focus:ring-offset-black"
+                                            />
+                                        </th>
                                         {localStorage.getItem('admin_user') === 'alex' && (
                                             <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest w-10">Sup.</th>
                                         )}
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Image</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Titre</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Auteur</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
-                                    {paginatedItems.map((item) => (
-                                        <tr key={item.id} className="hover:bg-white/[0.02] transition-colors group">
-                                            {localStorage.getItem('admin_user') === 'alex' && (
+                                    {paginatedItems.map((item) => {
+                                        const isSelected = selectedIds.includes(item.id);
+                                        return (
+                                            <tr key={item.id} className={`hover:bg-white/[0.02] transition-colors group ${isSelected ? 'bg-white/[0.03]' : ''}`}>
                                                 <td className="px-6 py-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => {
+                                                            if (isSelected) {
+                                                                setSelectedIds(selectedIds.filter(id => id !== item.id));
+                                                            } else {
+                                                                setSelectedIds([...selectedIds, item.id]);
+                                                            }
+                                                        }}
+                                                        className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red focus:ring-offset-black"
+                                                    />
+                                                </td>
+                                                {localStorage.getItem('admin_user') === 'alex' && (
+                                                    <td className="px-6 py-4">
+                                                        <button
+                                                            onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
+                                                            className="p-3 text-gray-600 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all"
+                                                            title="Supprimer"
+                                                        >
+                                                            <Trash2 className="w-5 h-5" />
+                                                        </button>
+                                                    </td>
+                                                )}
+                                                <td className="px-6 py-4">
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10">
+                                                        <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-white line-clamp-1 flex items-center gap-2">
+                                                        <Link
+                                                            to={
+                                                                activeTab === 'Recaps' ? `/recaps/${item.id}` :
+                                                                    activeTab === 'Interviews' ? `/interviews/${item.id}` :
+                                                                        activeTab === 'Galeries' ? `/galerie/${item.id}` :
+                                                                            activeTab === 'Agenda' ? `/agenda` :
+                                                                                `/news/${item.id}`
+                                                            }
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="hover:text-neon-red transition-colors flex items-center gap-1.5 group/link"
+                                                            title="Voir l'article"
+                                                        >
+                                                            {item.title}
+                                                            <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
+                                                        </Link>
+                                                    </div>
+                                                    <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-xs font-black uppercase text-neon-cyan tracking-wider">
+                                                        {item.author || 'Alex'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
+                                                <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
+                                                    {['News', 'Musique', 'Interviews', 'Recaps'].includes(activeTab) && (
+                                                        <button
+                                                            onClick={() => handleToggleFeatured(item)}
+                                                            className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 opacity-0 group-hover:opacity-100'}`}
+                                                            title={item.isFeatured ? "Retirer de la une" : "Mettre à la une"}
+                                                        >
+                                                            <Star className={`w-5 h-5 ${item.isFeatured ? 'fill-current' : ''}`} />
+                                                        </button>
+                                                    )}
                                                     <button
-                                                        onClick={() => setDeleteTarget({ id: item.id, title: item.title })}
-                                                        className="p-3 text-gray-600 hover:text-neon-red hover:bg-neon-red/10 rounded-xl transition-all"
-                                                        title="Supprimer"
+                                                        onClick={() => handleEdit(item)}
+                                                        disabled={loadingEditId === item.id}
+                                                        className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all focus:opacity-100 disabled:cursor-wait"
+                                                        title="Modifier"
                                                     >
-                                                        <Trash2 className="w-5 h-5" />
+                                                        {loadingEditId === item.id
+                                                            ? <Loader2 className="w-5 h-5 animate-spin text-neon-cyan" />
+                                                            : <Pencil className="w-5 h-5" />
+                                                        }
                                                     </button>
                                                 </td>
-                                            )}
-                                            <td className="px-6 py-4">
-                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10">
-                                                    <img src={item.image} alt="" className="w-full h-full object-cover" />
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-bold text-white line-clamp-1 flex items-center gap-2">
-                                                    <Link
-                                                        to={
-                                                            activeTab === 'Recaps' ? `/recaps/${item.id}` :
-                                                                activeTab === 'Interviews' ? `/interviews/${item.id}` :
-                                                                    activeTab === 'Galeries' ? `/galerie/${item.id}` :
-                                                                        activeTab === 'Agenda' ? `/agenda` :
-                                                                            `/news/${item.id}`
-                                                        }
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="hover:text-neon-red transition-colors flex items-center gap-1.5 group/link"
-                                                        title="Voir l'article"
-                                                    >
-                                                        {item.title}
-                                                        <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
-                                                    </Link>
-                                                </div>
-                                                <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
-                                            <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
-                                                {['News', 'Musique', 'Interviews', 'Recaps'].includes(activeTab) && (
-                                                    <button
-                                                        onClick={() => handleToggleFeatured(item)}
-                                                        className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 opacity-0 group-hover:opacity-100'}`}
-                                                        title={item.isFeatured ? "Retirer de la une" : "Mettre à la une"}
-                                                    >
-                                                        <Star className={`w-5 h-5 ${item.isFeatured ? 'fill-current' : ''}`} />
-                                                    </button>
-                                                )}
-                                                <button
-                                                    onClick={() => handleEdit(item)}
-                                                    disabled={loadingEditId === item.id}
-                                                    className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all focus:opacity-100 disabled:cursor-wait"
-                                                    title="Modifier"
-                                                >
-                                                    {loadingEditId === item.id
-                                                        ? <Loader2 className="w-5 h-5 animate-spin text-neon-cyan" />
-                                                        : <Pencil className="w-5 h-5" />
-                                                    }
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -549,6 +658,17 @@ export function AdminManage() {
                     setDeleteTarget(null);
                 }}
                 onCancel={() => setDeleteTarget(null)}
+                accentColor="neon-red"
+            />
+
+            <ConfirmationModal
+                isOpen={bulkDeleteConfirm}
+                title="Suppression groupée"
+                message={`Êtes-vous sûr de vouloir supprimer ces ${selectedIds.length} éléments ? Cette action est irréversible.`}
+                confirmLabel="Supprimer tout"
+                cancelLabel="Annuler"
+                onConfirm={handleBulkDelete}
+                onCancel={() => setBulkDeleteConfirm(false)}
                 accentColor="neon-red"
             />
         </div>

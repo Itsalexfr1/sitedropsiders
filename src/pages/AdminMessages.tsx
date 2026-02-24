@@ -235,10 +235,18 @@ export function AdminMessages() {
                                 <div className="flex items-center gap-2 flex-shrink-0">
                                     <button
                                         onClick={() => {
-                                            const sig = `\n\n\n——\nDROPSIDERS\nNews · Récaps Events · Interviews · Concours\nhttps://dropsiders.fr`;
-                                            const quote = `\n\n---\nDe : ${selected.name}\nObjet : ${selected.subject}\n\n${selected.message}`;
+                                            const sig = `\n\n\nCordialement,\nL'équipe Dropsiders\n\n——\nDROPSIDERS | News · Récaps Events · Interviews · Concours\n🌐 https://dropsiders.fr`;
+                                            const quote = `\n\n---\n✉ Message original de ${selected.name}\nObjet : ${selected.subject}\n\n${selected.message}`;
                                             setReplyBody(sig + quote);
                                             setReplyModal(true);
+                                            // Set cursor at beginning
+                                            setTimeout(() => {
+                                                const textarea = document.querySelector('textarea');
+                                                if (textarea) {
+                                                    textarea.focus();
+                                                    textarea.setSelectionRange(0, 0);
+                                                }
+                                            }, 100);
                                         }}
                                         className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-xs font-black uppercase"
                                     >

@@ -50,7 +50,7 @@ export function Team() {
                                         <img
                                             src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"
                                             alt="TikTok"
-                                            className="w-6 h-6 object-contain invert opacity-80 group-hover/social:opacity-100 group-hover/social:brightness-0 group-hover/social:invert-[0.20] group-hover/social:sepia-[0.95] group-hover/social:saturate-[6000%] group-hover/social:hue-rotate-[350deg] transition-all duration-300"
+                                            className="w-6 h-6 object-contain filter group-hover/social:brightness-0 group-hover/social:invert-[0.20] group-hover/social:sepia-[0.95] group-hover/social:saturate-[6000%] group-hover/social:hue-rotate-[350deg] transition-all duration-300"
                                         />
                                     </a>
                                 )}

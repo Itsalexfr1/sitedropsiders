@@ -16,7 +16,8 @@
     "category": "News",
     "isFeatured": false,
     "isFocus": false,
-    "link": "https://dropsiders.fr/news/180_world-club-dome-shl-mo-et-carv-cart-s-du-festival-apr-s-des-all-gations-de-violences-"
+    "link": "https://dropsiders.fr/news/180_world-club-dome-shl-mo-et-carv-cart-s-du-festival-apr-s-des-all-gations-de-violences-",
+    "author": "Alex"
   },
   {
     "id": 179,
@@ -33,7 +34,8 @@
     "category": "News",
     "isFeatured": false,
     "isFocus": false,
-    "link": "https://dropsiders.fr/news/179_nic-chagall-et-bossi-annoncent-la-s-paration-de-cosmic-gate-"
+    "link": "https://dropsiders.fr/news/179_nic-chagall-et-bossi-annoncent-la-s-paration-de-cosmic-gate-",
+    "author": "Alex"
   },
   {
     "id": 178,
@@ -51,7 +53,8 @@
     "category": "News",
     "isFeatured": false,
     "isFocus": false,
-    "link": "https://dropsiders.fr/news/178_monegros-desert-festival-2026-le-d-sert-espagnol-confirme-son-grand-retour-"
+    "link": "https://dropsiders.fr/news/178_monegros-desert-festival-2026-le-d-sert-espagnol-confirme-son-grand-retour-",
+    "author": "Alex"
   },
   {
     "id": 177,
@@ -71,7 +74,8 @@
     "category": "News",
     "isFocus": true,
     "link": "https://dropsiders.fr/news/177_la-winter-music-conference-d-voile-sa-deuxi-me-vague-de-programmation-miami-",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 176,
@@ -84,7 +88,8 @@
     "youtubeId": "",
     "category": "News",
     "link": "https://dropsiders.fr/news/176_ti-sto-unvrs-ibiza-le-retour-du-patron-pour-une-r-sidence-historique-",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 175,
@@ -97,7 +102,8 @@
     "youtubeId": "_ih6kBeqcvk",
     "category": "Musique",
     "link": "https://dropsiders.fr/news/175_la-s-lection-du-20-f-vrier-2026",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 174,
@@ -112,7 +118,8 @@
     "youtubeId": "EEosqs6_Pkc",
     "link": "https://dropsiders.fr/news/174_retour-sur-le-set-de-mosimann-a-l-amnesia",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 173,
@@ -127,7 +134,8 @@
     "youtubeId": "",
     "link": "https://dropsiders.fr/news/173_le-programme-de-l-edc-week-se-d-voile-petit-petit-",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 2,
@@ -149,7 +157,8 @@
     "youtubeId": "TzpqoarmmH4",
     "link": "https://www.dropsiders.fr/news/3001752_edc-las-vegas-2026-insomniac-frappe-fort-avec-les-30-ans-du-festival",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 1,
@@ -165,7 +174,8 @@
     "youtubeId": "PiRKObDKal0",
     "link": "https://www.dropsiders.fr/news/3002828_anyma-annonce-sa-tournee-mondiale-2026-aeden",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 4,
@@ -183,7 +193,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2983010_cercle-festival-2026-l-electro-prend-son-envol-au-musee-de-l-air-et-de-l-espace",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 3,
@@ -201,7 +212,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2983033_swedish-house-mafia-signe-son-grand-retour-a-ibiza-avec-une-residence-exclusive-a-ushuaia",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 7,
@@ -224,7 +236,8 @@
     "youtubeId": "BDsyIjiK0Nc",
     "link": "https://www.dropsiders.fr/news/2978196_siam-songkran-music-festival-2026-un-debut-de-line-up-impressionnant",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 6,
@@ -248,7 +261,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2979058_winter-music-conferenpour-mondial-de-l-industrie-électronique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 5,
@@ -266,7 +280,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2979463_omnia-dayclub-s-installe-a-las-vegas-le-nouveau-spot-qui-promet-des-vibes-en-mode-st-tropez",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 9,
@@ -287,7 +302,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2976436_coachella-2026-lelectronique-au-coeur-du-desert",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 8,
@@ -308,7 +324,8 @@
     "youtubeId": "ewkMArBtG7E",
     "link": "https://www.dropsiders.fr/news/2976896_edc-week-las-vegas-2026-la-mecque-de-la-musique-électronique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 11,
@@ -326,7 +343,8 @@
     "youtubeId": "HstH-JL0MoM",
     "link": "https://www.dropsiders.fr/news/2971535_loveland-festival-2026-devoile-une-premiere-vague-d-artistes-monumentale",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 10,
@@ -344,7 +362,8 @@
     "youtubeId": "4RiVZQKRnyY",
     "link": "https://www.dropsiders.fr/news/2971576_voodoo-village-2026-devoile-ses-premiers-noms-et-annonce-une-edition-mystique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 14,
@@ -368,7 +387,8 @@
     "youtubeId": "1zcTFxuG-II",
     "link": "https://www.dropsiders.fr/news/2969842_tomorrowland-winter-2026-alpe-d-huez-s-apprete-a-vibrer-au-rythme-d-une-nouvelle-edition-de-tomorrowland-winter",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 13,
@@ -391,7 +411,8 @@
     "youtubeId": "J8P_X7Fc5as",
     "link": "https://www.dropsiders.fr/news/2969941_ultra-music-festival-2026-devoile-un-line-up-inedit-et-explosif-a-miami",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 12,
@@ -409,7 +430,8 @@
     "youtubeId": "wxKkaBoEWCk",
     "link": "https://www.dropsiders.fr/news/2969979_mau-p-all-night-long-une-nuit-electrisante-au-lofi-amsterdam",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 15,
@@ -434,7 +456,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2953931_que-retenir-de-la-programmation-de-tomorrowland-2026",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 16,
@@ -460,7 +483,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2859417_les-10-sets-inratable-de-l-edition-2026-de-groove-cruise",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 17,
@@ -485,7 +509,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2836165_les-10-sets-inratable-de-l-ultra-music-festival-2026",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 18,
@@ -501,7 +526,8 @@
     "youtubeId": "WwGzovAxYxA",
     "link": "https://www.dropsiders.fr/news/2765246_tomorrowland-bresil-2025-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 19,
@@ -519,7 +545,8 @@
     "youtubeId": "3uoChocZq8g",
     "link": "https://www.dropsiders.fr/news/2753178_escape-psycho-circus-2025-le-rendez-vous-monstrueux-de-l-automne",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 20,
@@ -543,7 +570,8 @@
     "youtubeId": "5eDxz3cLyHw",
     "link": "https://www.dropsiders.fr/news/2748496_ultra-music-festival-2026-devoile-la-phase-1-de-sa-programmation-une-edition-historique-en-preparation-a-miami",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 21,
@@ -566,7 +594,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2722066_escape-halloween-2025-le-festival-electro-le-plus-terrifiant-de-californie",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 22,
@@ -586,7 +615,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2711983_coachella-2025-la-programmation-est-sortie",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 23,
@@ -605,7 +635,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2708463_escape-psycho-circus-2025-le-festival-halloween-incontournable-en-californie",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 24,
@@ -622,7 +653,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2691886_dream-nation-festival-2025-l-evenement-elefournable-de-la-rentree",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 25,
@@ -639,7 +671,8 @@
     "youtubeId": "pGKl9ZkJemY",
     "link": "https://www.dropsiders.fr/news/2602293_ultra-europe-confirme-son-livestream",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 28,
@@ -658,7 +691,8 @@
     "youtubeId": "-HXoNwTYFRs",
     "link": "https://www.dropsiders.fr/news/2600528_tomorrowland-2025-la-19e-edition-autour-d-orbyz-une-mainstage-monumentale",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 27,
@@ -675,7 +709,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2600560_amsterdam-dance-event-2025-devoile-la-premiere-phase-de-son-line-up-avec-plus-de-250-artistes",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 26,
@@ -693,7 +728,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2600954_john-summit-lance-le-experts-only-festival-a-new-york",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 29,
@@ -711,7 +747,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2592995_tiktok-s-assopour-une-expérience-digitale-inedite-tout-au-long-de-l-annee-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 30,
@@ -731,7 +768,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2589498_tomorrowland-presente-avicii-forever-the-tribute",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 31,
@@ -754,7 +792,8 @@
     "youtubeId": "lCHSnSc90lA",
     "link": "https://www.dropsiders.fr/news/2576731_edc-orlando-2025-un-line-up-monumental-pour-une-edition-qui-s-annonce-historique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 32,
@@ -771,7 +810,8 @@
     "youtubeId": "wIYU0ECdPIs",
     "link": "https://www.dropsiders.fr/news/2574442_tomorrowland-2025-devoile-sa-programmation-pour-une-edition-mythique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 33,
@@ -789,7 +829,8 @@
     "youtubeId": "jXBtF_QBBI0",
     "link": "https://www.dropsiders.fr/news/2555346_q-dance-fête-ses-25-ans-comment-defqon-1-a-transforme-un-mouvement-underground-en-empire-mondial",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 34,
@@ -805,7 +846,8 @@
     "link": "https://www.dropsiders.fr/interviews/2548164_interview-da-tweekaz-edc-las-vegas-2025",
     "category": "Interview",
     "isFeatured": false,
-    "isFocus": false
+    "isFocus": false,
+    "author": "Alex"
   },
   {
     "id": 35,
@@ -821,7 +863,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2542545_afterlife-festival-barcelone-2025-un-voyage-sensoriel-entre-realite-et-illusion",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 37,
@@ -836,7 +879,8 @@
     "youtubeId": "kKmjrqHS840",
     "link": "https://www.dropsiders.fr/interviews/2537123_interview-morten-edc-las-vegas-2025",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 36,
@@ -855,7 +899,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2538235_las-vegas-l-omnia-daypour e-du-strip",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 38,
@@ -873,7 +918,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2531059_amf-2025-une-edition-audaprès-legendaires-et-nouveaux-visages-de-la-scene-électronique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 39,
@@ -890,7 +936,8 @@
     "youtubeId": "fMc_8yh5930",
     "link": "https://www.dropsiders.fr/news/2528950_verknipt-arena-2025-un-show-hard-techno-qui-entre-dans-l-histoire-avec-le-plus-grand-show-laser-jamais-vu",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 40,
@@ -905,7 +952,8 @@
     "youtubeId": "trXRltKkl1g",
     "link": "https://www.dropsiders.fr/news/2524964_edc-las-vegas-2025-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 44,
@@ -921,7 +969,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2502552_edc-las-vegas-annonce-son-livestream",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 43,
@@ -937,7 +986,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2502630_osheaga-2025-les-artistes-electro-a-ne-pas-manquer",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 42,
@@ -953,7 +1003,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2502610_plus-que-3-mois-avant-ilesoniq-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 47,
@@ -972,7 +1023,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2493806_edc-las-vegas-devoile-sa-timetable-et-la-map-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 48,
@@ -991,7 +1043,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2468675_groove-cruise-2026-le-festival-electro-qui-fait-escale-entre-miami-et-nassau",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 50,
@@ -1012,7 +1065,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2463976_les-ardentes-annonce-sa-programmation-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 49,
@@ -1036,7 +1090,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2465388_edc-las-vegas-2025-les-sets-a-ne-pas-manquer-et-les-nouveautes-qui-vont-tout-changer",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 51,
@@ -1061,7 +1116,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2438299_l-edc-las-vegas-2025-devoile-les-artistes-par-stage",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 52,
@@ -1087,7 +1143,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2435615_tomorrowland-2025-les-10-sets-inratable",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 54,
@@ -1105,7 +1162,8 @@
     "youtubeId": "ovhiZqMo5ok",
     "link": "https://www.dropsiders.fr/news/2430303_la-timetable-de-rave-rebels-est-sortie",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 53,
@@ -1123,7 +1181,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2430616_tomorrowland-bresil-devoile-son-line-up-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 55,
@@ -1138,7 +1197,8 @@
     "youtubeId": "gWd3YaBsxvs",
     "link": "https://www.dropsiders.fr/news/2418506_ultra-miami-2025-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 56,
@@ -1156,7 +1216,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2415099_afterlife-barcelone-devoile-son-line-up",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 59,
@@ -1171,7 +1232,8 @@
     "youtubeId": "lYbG2g1pW_M",
     "link": "https://www.dropsiders.fr/news/2412549_insomniac-tomorrowland-lance-unity-dans-la-sphere-de-las-vegas",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 58,
@@ -1186,7 +1248,8 @@
     "youtubeId": "7eAPdPGdyhg",
     "link": "https://www.dropsiders.fr/news/2412587_tomorrowland-winter-2025-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 57,
@@ -1219,7 +1282,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2412783_la-timetable-de-ultra-music-festival-2025-est-disponible",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 61,
@@ -1234,7 +1298,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2398094_john-summit-une-residence-immanquable-au-hi-ibiza-avec-experts-only-les-20-et-27-juin",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 62,
@@ -1250,7 +1315,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2354821_dom-dolla-annonce-un-show-incroyable-a-montreal",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 63,
@@ -1266,7 +1332,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2354817_le-feq-festival-d-ete-du-quebec-annonce-sa-programmation-et-sold-out-en-quelques-heures",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 64,
@@ -1282,7 +1349,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2354813_le-festival-osheaga-annonce-la-programmation-de-son-edition-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 65,
@@ -1297,7 +1365,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2327431_le-line-up-de-l-edc-las-vegas-2025-est-disponible",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 66,
@@ -1313,7 +1382,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2295063_le-veld-music-festival-devoile-sa-programmation-complete",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 68,
@@ -1329,7 +1399,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2286949_anyma-annonce-4-nouvelles-dates-a-la-sphere-de-las-vegas",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 70,
@@ -1345,7 +1416,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2286946_carl-cox-sera-resident-du-unvrs-le-nouvel-hyperclub-d-ibiza",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 69,
@@ -1362,7 +1434,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2286952_tiesto-et-miss-monique-a-montreal-en-mars",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 71,
@@ -1378,7 +1451,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2286944_stmpd-annonce-sa-pool-party-a-l-occasion-de-la-miami-music-week",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 73,
@@ -1394,7 +1468,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2286939_escapade-music-festival-devoile-sa-programmation-complete",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 74,
@@ -1410,7 +1485,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2295102_fisher-james-hype-sean-paul-ou-gims-parmi-les-premiers-noms-des-solidays-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 75,
@@ -1425,7 +1501,8 @@
     "youtubeId": "V2VmcuOEqEg",
     "link": "https://www.dropsiders.fr/news/2270583_skrillex-tease-sa-venue-a-l-ultra-music-festival-de-miami",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 76,
@@ -1445,7 +1522,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267622_tale-of-us-la-fin-est-elle-proche",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 77,
@@ -1463,7 +1541,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267624_positiv-festival-une-programmation-plus-qu-impressionnante-en-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 78,
@@ -1479,7 +1558,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267625_les-premiers-noms-du-dour-festival-enfin-devoiles",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 80,
@@ -1495,7 +1575,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267627_eric-prydz-tiesto-booba-trym-retrouvez-les-tous-aux-plages-électroniques-en-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 82,
@@ -1511,7 +1592,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267630_l-incontournable-de-l-ete-decouvrez-les-premiers-noms-du-sziget-festival",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 81,
@@ -1527,7 +1609,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267575_ilesoniq-de-retour-en-2025-avec-deja-2-gros-headliners-illenium-et-john-summit",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 83,
@@ -1543,7 +1626,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267628_un-petit-voyage-en-croatie-direction-le-sonus-festival-cet-ete",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 84,
@@ -1559,7 +1643,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267635_un-debut-de-programmation-legendaire-pour-les-eurockeenes-de-belfort",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 85,
@@ -1578,7 +1663,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267548_escapade-annonce-kygo-the-chainsmokers-dj-snake-et-subtronics",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 87,
@@ -1594,7 +1680,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2267828_lady-gaga-green-day-post-malone-et-travis-scott-a-coachella-2025",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 88,
@@ -1609,7 +1696,8 @@
     "youtubeId": "uqf0mOngpIk",
     "link": "https://www.dropsiders.fr/news/2412627_edc-orlando-2024-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 89,
@@ -1625,7 +1713,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2142442_le-new-city-gas-annonce-son-festival-lumen",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 90,
@@ -1641,7 +1730,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2140272_igloofest-2025-decouvrez-la-programmation",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 91,
@@ -1666,7 +1756,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2126770_edc-orlando-les-10-sets-inratable",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 92,
@@ -1682,7 +1773,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2140283_l-ultra-miami-devoile-la-phase-1-de-sa-25eme-edition",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 93,
@@ -1701,7 +1793,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/2033444_le-guide-ultime-pour-burning-man",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 95,
@@ -1729,7 +1822,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1918502_le-sonus-festival-de-retour-du-18-au-22-aout-en-croatie",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 94,
@@ -1744,7 +1838,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1966446_tomorrowland-2024-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 98,
@@ -1764,7 +1859,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1904333_le-top-100-festival-est-enfin-disponible",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 97,
@@ -1783,7 +1879,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1904610_john-summit-dans-le-parc-olympique-de-montreal-en-septembre",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 96,
@@ -1802,7 +1899,8 @@
     "youtubeId": "NXqbXp1FjRc",
     "link": "https://www.dropsiders.fr/news/1904701_l-edc-orlando-devoile-son-line-up-2024",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 99,
@@ -1828,7 +1926,8 @@
     "youtubeId": "BUncYn3mZ64",
     "link": "https://www.dropsiders.fr/news/1900379_awakenings-2024-les-10-sets-incontournables",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 101,
@@ -1857,7 +1956,8 @@
     "link": "https://www.dropsiders.fr/news/1878536_retour-sur-la-programmation-de-l-amnesia-cap-d-agde",
     "category": "News",
     "isFeatured": false,
-    "isFocus": false
+    "isFocus": false,
+    "author": "Alex"
   },
   {
     "id": 102,
@@ -1873,7 +1973,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1852527_la-programmation-2024-du-lost-lands-festival",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 103,
@@ -1903,7 +2004,8 @@
     "youtubeId": "7gEAqO7-6Bw",
     "link": "https://www.dropsiders.fr/news/1849760_les-15-sets-a-ne-pas-louper-durant-l-edition-2024-de-tomorrowland",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 105,
@@ -1929,7 +2031,8 @@
     "youtubeId": "rg259A0WM5E",
     "link": "https://www.dropsiders.fr/news/1847548_edc-las-vegas-vs-tomorrowland-un-comparatif-des-geants-de-la-musique-électronique",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 104,
@@ -1944,7 +2047,8 @@
     "youtubeId": "yv09_u3zwAA",
     "link": "https://www.dropsiders.fr/news/1847617_edc-las-vegas-2024-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 106,
@@ -1964,7 +2068,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1781357_le-day-trip-festival-promet-un-week-end-explosif-de-musique-électronique-devant-le-queen-mary-de-long-beach",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 108,
@@ -1984,7 +2089,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1770101_l-exit-festival-2024-un-spectacle-epoustouflant-de-musique-et-de-culture",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 110,
@@ -2001,7 +2107,8 @@
     "youtubeId": "RFMQOGJUsGI",
     "link": "https://www.dropsiders.fr/news/1768832_off-week-festival-2024-un-festival-electro-a-ne-pas-manquer",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 109,
@@ -2018,7 +2125,8 @@
     "youtubeId": "BUncYn3mZ64",
     "link": "https://www.dropsiders.fr/news/1768974_awakenings-festival-2024-une-expérience-électronique-epique-a-hilvarenbeek",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 115,
@@ -2044,7 +2152,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1767027_ushuaia-ibiza-revele-sa-programmation-epoustouflante-pour-la-saison-2024",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 113,
@@ -2070,7 +2179,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1767197_les-10-sets-incontournables-a-ne-pas-louper-lors-de-l-edc-las-vegas-2024",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 112,
@@ -2086,7 +2196,8 @@
     "youtubeId": "ajTMOR7Ke_I",
     "link": "https://www.dropsiders.fr/news/1767224_annonce-de-la-line-up-du-festival-defqon-1",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 111,
@@ -2101,7 +2212,8 @@
     "youtubeId": "J5SaaPZVvGY",
     "link": "https://www.dropsiders.fr/news/1767823_le-festival-untold-2024-un-debut-de-line-up-explosif",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 119,
@@ -2123,7 +2235,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1763082_notre-edc-week-2024-une-semaine-sans-repos",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 118,
@@ -2142,7 +2255,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1763421_l-action-caritative-du-festival-edc-las-vegas",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 117,
@@ -2159,7 +2273,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1764110_la-soiree-de-cloture-explosive-du-t7-a-paris-john-summit-pour-la-premiere-fois-en-france",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 121,
@@ -2177,7 +2292,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1758477_john-summit-presents-experts-only-caverns-weekender",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 120,
@@ -2194,7 +2310,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1758530_afterlife-une-soiree-epique-avec-tale-of-us-a-paris-la-defense-arena",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 122,
@@ -2218,7 +2335,8 @@
     "youtubeId": "3f-xarogbT4",
     "link": "https://www.dropsiders.fr/news/1744020_les-artistes-de-l-edc-las-vegas-2024-par-stages",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 123,
@@ -2238,7 +2356,8 @@
     "youtubeId": "ovB9NIonYwM",
     "link": "https://www.dropsiders.fr/news/1739024_tomorrowland-winter-2024-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 124,
@@ -2253,7 +2372,8 @@
     "youtubeId": "uDL_wlJL2yo",
     "link": "https://www.dropsiders.fr/news/1420511_parookaville-2023-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 125,
@@ -2268,7 +2388,8 @@
     "youtubeId": "2WJoKYs4xnk",
     "link": "https://www.dropsiders.fr/news/1415514_tomorrowland-2023-les-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 126,
@@ -2289,7 +2410,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1408989_l-arc-music-festival-devoile-ses-afters",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 127,
@@ -2306,7 +2428,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1400718_les-sets-inratable-lors-du-week-end-1-de-tomorrowland",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 128,
@@ -2321,7 +2444,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1358283_l-episode-2-du-podcast-off-the-grid-est-disponible",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 130,
@@ -2336,7 +2460,8 @@
     "youtubeId": "BTBjRil3TnQ",
     "link": "https://www.dropsiders.fr/news/1351233_john-summit-live-au-brooklyn-mirage",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 129,
@@ -2354,7 +2479,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1351234_l-enorme-line-up-de-electric-zoo-2023",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 131,
@@ -2371,7 +2497,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1348681_world-club-dome-fêtera-ses-10-ans-ce-week-end",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 132,
@@ -2386,7 +2513,8 @@
     "youtubeId": "dH7MqEpZSV4",
     "link": "https://www.dropsiders.fr/news/1334967_edc-las-vegas-2023-aftermovie-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 133,
@@ -2401,7 +2529,8 @@
     "youtubeId": "WEH_QkdjKVc",
     "link": "https://www.dropsiders.fr/news/1316834_les-premiers-noms-de-ultra-europe",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 135,
@@ -2416,7 +2545,8 @@
     "youtubeId": "c-oaLJVjVnM",
     "link": "https://www.dropsiders.fr/news/1315397_decouvrez-la-programmation-d-awakenings-summer-2023",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 134,
@@ -2432,7 +2562,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1315421_opening-ants-glitterbox-a-ushuaia-et-hi-ibiza",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 136,
@@ -2447,7 +2578,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1314686_your-mind-is-dirty-la-nouvelle-bombe-signee-mau-p-sur-off-the-grid",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 137,
@@ -2462,7 +2594,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1309979_le-mythique-bal-des-fous-de-pour-2023",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 139,
@@ -2478,7 +2611,8 @@
     "youtubeId": "Nq0djQjBk4M",
     "link": "https://www.dropsiders.fr/news/1308498_edc-las-vegas-2023",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 138,
@@ -2493,7 +2627,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1309243_john-summit-lance-son-podcast-off-the-grid-radio",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 140,
@@ -2508,7 +2643,8 @@
     "youtubeId": "v0RLCJ7dPC4",
     "link": "https://www.dropsiders.fr/news/1296545_aftermovie-tomorrowland-winter-2023",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 141,
@@ -2523,7 +2659,8 @@
     "youtubeId": "rSHAin0eZPo",
     "link": "https://www.dropsiders.fr/news/1309312_ultra-miami-2023-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 142,
@@ -2538,7 +2675,8 @@
     "youtubeId": "o3k77fSGbFU",
     "link": "https://www.dropsiders.fr/news/1309291_tomorrowland-winter-2023-livesets",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 143,
@@ -2553,7 +2691,8 @@
     "youtubeId": "",
     "link": "https://www.dropsiders.fr/news/1199411_elrow-town-madrid-2023",
     "category": "News",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 145,
@@ -2569,7 +2708,8 @@
     "youtubeId": "V85ddAz3PdI",
     "link": "https://www.dropsiders.fr/interviews/2468720_interview-video-vintage-culture-tomorrowland-winter",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 146,
@@ -2585,7 +2725,8 @@
     "youtubeId": "yG2jZL6-BVk",
     "link": "https://www.dropsiders.fr/interviews/2468713_interview-video-dubvision-tomorrowland-winter",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 147,
@@ -2601,7 +2742,8 @@
     "youtubeId": "g07LcpZZC0g",
     "link": "https://www.dropsiders.fr/interviews/2468703_interview-video-topic-tomorrowland-winter",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 148,
@@ -2617,7 +2759,8 @@
     "youtubeId": "8_SKLW2icUY",
     "link": "https://www.dropsiders.fr/interviews/2468702_interview-video-yves-v-tomorrowland-winter",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 149,
@@ -2633,7 +2776,8 @@
     "youtubeId": "bZ1uqmreZOI",
     "link": "https://www.dropsiders.fr/interviews/1006753_interviews-tube-berger",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 150,
@@ -2649,7 +2793,8 @@
     "youtubeId": "xTPDPzT8Lgs",
     "link": "https://www.dropsiders.fr/interviews/1006754_interviews-oliver-heldens",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 152,
@@ -2665,7 +2810,8 @@
     "youtubeId": "r6_0Dkbs-cc",
     "link": "https://www.dropsiders.fr/interviews/1006755_interviews-reinier-zonneveld",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 151,
@@ -2681,7 +2827,8 @@
     "youtubeId": "65ARYmqvTBI",
     "link": "https://www.dropsiders.fr/interviews/1006759_interviews-ran-d",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 154,
@@ -2697,7 +2844,8 @@
     "youtubeId": "KZq3ivwgGxg",
     "link": "https://www.dropsiders.fr/interviews/2468798_interview-video-nervo",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 155,
@@ -2713,7 +2861,8 @@
     "youtubeId": "13vRjyugFEk",
     "link": "https://www.dropsiders.fr/interviews/2468795_interview-video-crime-zcene",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 156,
@@ -2729,7 +2878,8 @@
     "youtubeId": "2sm5gYBpRr0",
     "link": "https://www.dropsiders.fr/interviews/2468793_interview-video-adam-k",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 157,
@@ -2745,7 +2895,8 @@
     "youtubeId": "XYe4vWkcO7k",
     "link": "https://www.dropsiders.fr/interviews/2468789_interview-video-mc-stretch",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 158,
@@ -2761,7 +2912,8 @@
     "youtubeId": "F1853KKzVWs",
     "link": "https://www.dropsiders.fr/interviews/2468768_interview-video-seth-hills-ade",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 159,
@@ -2777,7 +2929,8 @@
     "youtubeId": "nCny7AmM3fg",
     "link": "https://www.dropsiders.fr/interviews/2468778_interview-video-blinders-ade",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 160,
@@ -2793,7 +2946,8 @@
     "youtubeId": "Fu_zeF0wRMo",
     "link": "https://www.dropsiders.fr/interviews/2468770_interview-video-tv-noise-ade",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 161,
@@ -2809,7 +2963,8 @@
     "youtubeId": "CiAMNdCc8KA",
     "link": "https://www.dropsiders.fr/interviews/2468781_interview-video-dannic",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 162,
@@ -2825,7 +2980,8 @@
     "youtubeId": "Wg-pbt3FL_c",
     "link": "https://www.dropsiders.fr/interviews/2468763_interview-video-todd-helder-dancefair",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 163,
@@ -2841,7 +2997,8 @@
     "youtubeId": "j3fP2ZdTP-g",
     "link": "https://www.dropsiders.fr/interviews/2468761_interview-video-kayzo",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 164,
@@ -2857,7 +3014,8 @@
     "youtubeId": "tIcRNGD-8fg",
     "link": "https://www.dropsiders.fr/interviews/2468758_fast-quizz-maurice-west",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 165,
@@ -2873,7 +3031,8 @@
     "youtubeId": "euqWDHhnW0U",
     "link": "https://www.dropsiders.fr/interviews/2468746_interview-video-david-gravell-asot",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 166,
@@ -2889,7 +3048,8 @@
     "youtubeId": "Lv61nBIPOpw",
     "link": "https://www.dropsiders.fr/interviews/2468754_interview-video-brooks-daydream",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 167,
@@ -2905,7 +3065,8 @@
     "youtubeId": "N_mPsOT_Vkg",
     "link": "https://www.dropsiders.fr/interviews/2468744_interview-video-slushii-electric-love",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 168,
@@ -2921,7 +3082,8 @@
     "youtubeId": "BOyzbnMZ0hk",
     "link": "https://www.dropsiders.fr/interviews/2468743_interview-video-d-o-d-medusa-festival",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 169,
@@ -2937,7 +3099,8 @@
     "youtubeId": "Pg1_HGb5DXE",
     "link": "https://www.dropsiders.fr/interviews/2468734_interview-video-will-spark-airbeat-one",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 170,
@@ -2953,7 +3116,8 @@
     "youtubeId": "vbJHwgvp3RQ",
     "link": "https://www.dropsiders.fr/interviews/2468742_interview-video-moksi-electric-love",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 171,
@@ -2969,7 +3133,8 @@
     "youtubeId": "tkogXCVCUUk",
     "link": "https://www.dropsiders.fr/interviews/2468740_interview-video-justin-mylo",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   },
   {
     "id": 172,
@@ -2985,6 +3150,7 @@
     "youtubeId": "Jk5wteO4cVE",
     "link": "https://www.dropsiders.fr/interviews/2468726_interview-video-maurice-west",
     "category": "Interview",
-    "isFeatured": false
+    "isFeatured": false,
+    "author": "Alex"
   }
 ]

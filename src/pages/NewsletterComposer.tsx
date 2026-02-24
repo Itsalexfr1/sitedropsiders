@@ -149,11 +149,11 @@ export function NewsletterComposer() {
                 
                 /* En-tête avec Logo */
                 .header { text-align: center; padding: 40px 0 30px 0; background-color: ${C.bg}; border-bottom: 1px solid ${C.border}; }
-                .newsletter-title { font-family: 'Impact', sans-serif; font-size: 32px; color: #ffffff; text-transform: uppercase; letter-spacing: 4px; margin-top: 10px; text-shadow: 0 0 10px rgba(255, 255, 255, 0.3); }
-
+                .newsletter-title { font-family: 'Impact', sans-serif; font-size: 32px; color: ${C.accent}; text-transform: uppercase; letter-spacing: 4px; margin-top: 10px; text-shadow: 0 0 10px rgba(255, 0, 51, 0.3); }
+                
                 /* Article Principal */
                 .main-article { padding: 40px 30px; border-bottom: 1px solid ${C.border}; }
-                .main-title { font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 25px 0 15px 0; color: ${C.text}; line-height: 1.1; letter-spacing: -1px; font-style: italic; }
+                .main-title { font-family: 'Impact', 'Arial Black', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase; margin: 25px 0 15px 0; color: ${C.text}; line-height: 1.1; letter-spacing: -1px; font-style: italic; }
                 .main-text { font-size: 16px; line-height: 1.6; color: ${C.textMuted}; margin-bottom: 30px; }
                 .main-image { width: 100%; border-radius: 12px; border: 1px solid ${C.border}; display: block; object-fit: cover; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
                 
@@ -179,7 +179,7 @@ export function NewsletterComposer() {
                 .news-spacer { display: table-cell; width: 4%; }
                 
                 .news-image { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; border: 1px solid ${C.border}; margin-bottom: 15px; display: block; background-color: #222; box-shadow: 0 4px 15px rgba(255, 0, 51, 0.15); /* GLOW ROUGE WIDGETS */ }
-                .news-title { font-size: 16px; font-weight: 800; color: ${C.text}; margin-bottom: 8px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.5px; }
+                .news-title { font-family: 'Impact', 'Arial Black', sans-serif; font-size: 16px; font-weight: 800; color: ${C.text}; margin-bottom: 8px; line-height: 1.3; text-transform: uppercase; letter-spacing: -0.5px; }
                 .news-desc { font-size: 13px; line-height: 1.5; color: ${C.textMuted}; margin-bottom: 12px; }
                 .news-link { color: ${C.accent}; text-decoration: none; font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
                 

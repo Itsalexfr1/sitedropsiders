@@ -215,9 +215,12 @@ export function Recap() {
                                             <div className="p-6">
                                                 <div className="flex justify-between items-center mb-3">
                                                     <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
-                                                    <span className="text-xs text-gray-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                        {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
-                                                    </span>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                                            {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
+                                                        </span>
+                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                    </div>
                                                 </div>
                                                 <h2
                                                     className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
@@ -280,7 +283,7 @@ export function Recap() {
                             <Mail className="w-8 h-8 text-neon-red" />
                         </div>
                         <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-                            {t('article_detail.newsletter_title')}
+                            S'INSCRIRE À LA <span className="text-neon-red">NEWSLETTER</span>
                         </h2>
                         <p className="text-gray-400 mb-10 text-lg">
                             {t('article_detail.newsletter_subtitle')}

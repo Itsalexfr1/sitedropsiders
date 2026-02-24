@@ -1887,6 +1887,7 @@ export function RecapCreate() {
 
             <ConfirmationModal
                 isOpen={blocker.state === "blocked"}
+                title="Modifications non enregistrées"
                 message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                 onConfirm={() => blocker.proceed?.()}
                 onCancel={() => blocker.reset?.()}

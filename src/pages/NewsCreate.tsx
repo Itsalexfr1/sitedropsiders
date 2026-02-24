@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -9,6 +9,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import { Wand2, Star } from 'lucide-react';
 import newsData from '../data/news.json';
+import editorsData from '../data/editors.json';
 import '../styles/article-premium.css';
 
 
@@ -56,6 +57,9 @@ export function NewsCreate() {
     console.log('[NewsCreate] Initialization. isEditing:', isEditing, 'id:', id);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
+    const [author, setAuthor] = useState(
+        localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex'
+    );
 
 
 
@@ -267,6 +271,7 @@ export function NewsCreate() {
             setCategory(editingItem.category);
             setYoutubeId(editingItem.youtubeId || '');
             setIsFeatured(editingItem.isFeatured || false);
+            setAuthor(editingItem.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
 
             if (editingItem.category === 'Musique') {
                 setActiveTab('Musique');
@@ -784,7 +789,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 youtubeId,
                 isFocus,
                 isFeatured,
-                author: localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || ''
+                author
             };
 
             const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
@@ -976,6 +981,30 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                                         onChange={(e) => setDate(e.target.value)}
                                         className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none"
                                     />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Author Selector */}
+                        <div>
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                <User className="w-4 h-4" /> Éditeur
+                            </label>
+                            <div className="relative">
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
+                                <select
+                                    value={author}
+                                    onChange={(e) => setAuthor(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none appearance-none cursor-pointer"
+                                >
+                                    {(editorsData as any[]).map((editor: any) => (
+                                        <option key={editor.username} value={editor.name} className="bg-dark-bg text-white">
+                                            {editor.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                                 </div>
                             </div>
                         </div>
@@ -2106,6 +2135,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 
                 <ConfirmationModal
                     isOpen={blocker.state === "blocked"}
+                    title="Modifications non enregistrées"
                     message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                     onConfirm={() => blocker.proceed?.()}
                     onCancel={() => blocker.reset?.()}

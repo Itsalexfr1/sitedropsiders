@@ -19,6 +19,36 @@ export function NewsletterAdmin() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredSubscribers, setFilteredSubscribers] = useState<Subscriber[]>([]);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+    const [selectedEmails, setSelectedEmails] = useState<string[]>([]);
+    const [bulkDeleteConfirm, setBulkDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const handleBulkDelete = async () => {
+        setBulkDeleteConfirm(false);
+        setIsDeleting(true);
+
+        let successCount = 0;
+        for (const email of selectedEmails) {
+            try {
+                const response = await fetch('/api/unsubscribe', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ email })
+                });
+                if (response.ok) successCount++;
+            } catch (e) {
+                console.error('Error deleting', email, e);
+            }
+        }
+
+        if (successCount > 0) {
+            const updated = subscribers.filter(sub => !selectedEmails.includes(sub.email));
+            setSubscribers(updated);
+            setSelectedEmails([]);
+            alert(`${successCount} abonnés supprimés`);
+        }
+        setIsDeleting(false);
+    };
 
     useEffect(() => {
         loadSubscribers();
@@ -180,21 +210,35 @@ export function NewsletterAdmin() {
 
                 <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-6 mb-8">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-                        <div className="relative flex-1 w-full md:max-w-md">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-                            <input
-                                type="text"
-                                placeholder="Rechercher un abonné..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-cyan transition-all"
-                            />
-                            {searchTerm && (
-                                <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white z-10">
-                                    <X className="w-4 h-4" />
+                        <div className="flex flex-col md:flex-row gap-4 flex-1 w-full md:max-w-2xl">
+                            <div className="relative flex-1">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                <input
+                                    type="text"
+                                    placeholder="Rechercher un abonné..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neon-cyan transition-all"
+                                />
+                                {searchTerm && (
+                                    <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white z-10">
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                )}
+                            </div>
+
+                            {selectedEmails.length > 0 && (
+                                <button
+                                    onClick={() => setBulkDeleteConfirm(true)}
+                                    disabled={isDeleting}
+                                    className="flex items-center gap-2 px-6 py-3 bg-neon-red text-white text-xs font-black uppercase tracking-widest rounded-xl hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] transition-all"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    Supprimer ({selectedEmails.length})
                                 </button>
                             )}
                         </div>
+
                         <div className="flex gap-4">
                             <Link to="/newsletter/studio" className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-neon-purple to-neon-pink border border-neon-purple/30 rounded-xl text-white font-bold uppercase tracking-wide hover:shadow-[0_0_20px_rgba(200,0,255,0.3)] transition-all">
                                 <Mail className="w-5 h-5" />
@@ -218,29 +262,66 @@ export function NewsletterAdmin() {
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
-                                    <tr className="border-b border-white/10">
-                                        <th className="text-left p-4 text-xs font-black text-neon-red uppercase tracking-widest">Email</th>
-                                        <th className="text-left p-4 text-xs font-black text-neon-red uppercase tracking-widest">Prénom</th>
-                                        <th className="text-left p-4 text-xs font-black text-neon-red uppercase tracking-widest">Nom</th>
-                                        <th className="text-left p-4 text-xs font-black text-neon-red uppercase tracking-widest">Date d'inscription</th>
-                                        <th className="text-right p-4 text-xs font-black text-neon-red uppercase tracking-widest">Actions</th>
+                                    <tr className="border-b border-white/10 text-left">
+                                        <th className="p-4 w-10">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedEmails.length === filteredSubscribers.length && filteredSubscribers.length > 0}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedEmails(filteredSubscribers.map(s => s.email));
+                                                    } else {
+                                                        setSelectedEmails([]);
+                                                    }
+                                                }}
+                                                className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red"
+                                            />
+                                        </th>
+                                        <th className="p-4 text-xs font-black text-neon-red uppercase tracking-widest">Email</th>
+                                        <th className="p-4 text-xs font-black text-neon-red uppercase tracking-widest">Prénom</th>
+                                        <th className="p-4 text-xs font-black text-neon-red uppercase tracking-widest">Nom</th>
+                                        <th className="p-4 text-xs font-black text-neon-red uppercase tracking-widest">Date d'inscription</th>
+                                        <th className="p-4 text-xs font-black text-neon-red uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredSubscribers.map((subscriber, index) => (
-                                        <motion.tr key={subscriber.email} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                                            <td className="p-4 text-white font-medium">{subscriber.email}</td>
-                                            <td className="p-4 text-gray-400">{subscriber.firstName || '-'}</td>
-                                            <td className="p-4 text-gray-400">{subscriber.lastName || '-'}</td>
-                                            <td className="p-4 text-gray-400 text-sm">{formatDate(subscriber.subscribedAt)}</td>
-                                            <td className="p-4 text-right">
-                                                <button onClick={() => setDeleteTarget(subscriber.email)} className="inline-flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 hover:bg-red-500/20 transition-all text-sm font-bold">
-                                                    <Trash2 className="w-4 h-4" />
-                                                    Supprimer
-                                                </button>
-                                            </td>
-                                        </motion.tr>
-                                    ))}
+                                    {filteredSubscribers.map((subscriber, index) => {
+                                        const isSelected = selectedEmails.includes(subscriber.email);
+                                        return (
+                                            <motion.tr
+                                                key={subscriber.email}
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.05 }}
+                                                className={`border-b border-white/5 hover:bg-white/5 transition-colors ${isSelected ? 'bg-white/5' : ''}`}
+                                            >
+                                                <td className="p-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={() => {
+                                                            if (isSelected) {
+                                                                setSelectedEmails(selectedEmails.filter(e => e !== subscriber.email));
+                                                            } else {
+                                                                setSelectedEmails([...selectedEmails, subscriber.email]);
+                                                            }
+                                                        }}
+                                                        className="w-4 h-4 rounded border-white/20 bg-black text-neon-red focus:ring-neon-red"
+                                                    />
+                                                </td>
+                                                <td className="p-4 text-white font-medium">{subscriber.email}</td>
+                                                <td className="p-4 text-gray-400">{subscriber.firstName || '-'}</td>
+                                                <td className="p-4 text-gray-400">{subscriber.lastName || '-'}</td>
+                                                <td className="p-4 text-gray-400 text-sm">{formatDate(subscriber.subscribedAt)}</td>
+                                                <td className="p-4 text-right">
+                                                    <button onClick={() => setDeleteTarget(subscriber.email)} className="inline-flex items-center gap-2 px-3 py-2 bg-red-500/10 border border-red-500/30 rounded-lg text-red-500 hover:bg-red-500/20 transition-all text-sm font-bold">
+                                                        <Trash2 className="w-4 h-4" />
+                                                        Supprimer
+                                                    </button>
+                                                </td>
+                                            </motion.tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -273,6 +354,17 @@ export function NewsletterAdmin() {
                     setDeleteTarget(null);
                 }}
                 onCancel={() => setDeleteTarget(null)}
+                accentColor="neon-red"
+            />
+
+            <ConfirmationModal
+                isOpen={bulkDeleteConfirm}
+                title="Suppression groupée"
+                message={`Êtes-vous sûr de vouloir supprimer ces ${selectedEmails.length} abonnés ?`}
+                confirmLabel="Tout supprimer"
+                cancelLabel="Annuler"
+                onConfirm={handleBulkDelete}
+                onCancel={() => setBulkDeleteConfirm(false)}
                 accentColor="neon-red"
             />
         </div>
