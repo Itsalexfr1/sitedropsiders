@@ -14,7 +14,7 @@
     "id": "recap_agenda_grid",
     "enabled": true,
     "accentColor": "orange",
-    "maxAgendaItems": 8
+    "maxAgendaItems": 7
   },
   {
     "id": "interviews",
