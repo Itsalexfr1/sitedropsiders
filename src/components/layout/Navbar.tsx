@@ -131,14 +131,26 @@ export function Navbar() {
         <nav className="fixed top-0 left-0 right-0 z-[100] bg-dark-bg/80 backdrop-blur-xl border-b border-white/10">
             <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24">
                 <div className="flex items-center justify-between h-20">
-                    {/* Logo */}
-                    <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2 shrink-0">
-                        <img
-                            src="/Logo.png"
-                            alt="DROPSIDERS"
-                            className="logo-img h-10 md:h-14 w-auto max-w-[150px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
-                        />
-                    </Link>
+                    <div className="flex flex-col items-center md:items-start group shrink-0">
+                        <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center py-0.5">
+                            <img
+                                src="/Logo.png"
+                                alt="DROPSIDERS"
+                                className="logo-img h-8 md:h-11 w-auto max-w-[150px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
+                            />
+                        </Link>
+                        <div className="flex items-center gap-4 mt-0 md:ml-1">
+                            <a href="https://instagram.com/dropsiders.eu" target="_blank" rel="noopener noreferrer" className="transition-all hover:scale-125 opacity-30 hover:opacity-100 flex items-center justify-center">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-2.5 h-2.5 md:w-3 md:h-3 grayscale hover:grayscale-0" />
+                            </a>
+                            <a href="https://tiktok.com/@dropsiders.eu" target="_blank" rel="noopener noreferrer" className="transition-all hover:scale-125 opacity-30 hover:opacity-100 flex items-center justify-center">
+                                <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-2.5 h-2.5 md:w-3 md:h-3 grayscale hover:grayscale-0" />
+                            </a>
+                            <a href="https://www.facebook.com/dropsidersfr" target="_blank" rel="noopener noreferrer" className="transition-all hover:scale-125 opacity-30 hover:opacity-100 flex items-center justify-center">
+                                <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-2.5 h-2.5 md:w-3 md:h-3 grayscale hover:grayscale-0" />
+                            </a>
+                        </div>
+                    </div>
 
                     {/* Desktop Navigation */}
                     <div className="hidden md:flex items-center gap-1">
