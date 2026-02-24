@@ -1,6 +1,30 @@
 {
   "products": [
     {
+      "name": "Tee Shirt Logo White",
+      "price": "15",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950542/dropsiders/obzog56y6ekhjpexisfc.webp",
+      "description": "I'm Here Only For The Techno",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-2",
+      "colors": [
+        "#000000",
+        "#dc2626",
+        "#6b7280",
+        "#2b65ec"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950560/dropsiders/iflkaiinzj1e7ud7vlon.webp",
+        "#dc2626": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950567/dropsiders/mvfipto2jred6hlcrvmp.avif",
+        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950588/dropsiders/txd9yufzhfq97giogr1o.avif",
+        "#2b65ec": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950598/dropsiders/wjofxlbcxxmqqoqmt1p6.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950550/dropsiders/mibqe7joejmywxjb99pz.webp",
+      "id": 24,
+      "createdAt": "2026-02-24T16:30:20.400Z"
+    },
+    {
       "name": "Polo Dropsiders Logo White",
       "price": "20",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950237/dropsiders/aqappiqi19j68xiqdtm1.webp",
