@@ -1100,6 +1100,19 @@ export default {
                     if (response.ok) results.push({ success: true, chunk: chunk.length });
                     else results.push({ success: false, error: await response.text() });
                 }
+
+                const allSuccess = results.every(r => r.success);
+
+                if (!allSuccess) {
+                    const firstError = results.find(r => !r.success)?.error || "Erreur inconnue de l'API Brevo";
+                    let parsedError = firstError;
+                    try {
+                        const j = JSON.parse(firstError);
+                        parsedError = j.message || firstError;
+                    } catch (e) { }
+                    return new Response(JSON.stringify({ error: parsedError, details: results }), { status: 500, headers });
+                }
+
                 // --- LOG NEWSLETTER ---
                 try {
                     const logPath = 'src/data/newsletters_sent.json';
