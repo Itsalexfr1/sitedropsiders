@@ -745,9 +745,13 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
     };
 
     const handleSubmit = async () => {
-        if (!title || !imageUrl) {
+        // Validation stricte de tous les champs
+        const emptyWidgets = widgets.filter(w => !w.content || !w.content.replace(/<[^>]*>/g, '').trim());
+
+        if (!title || !imageUrl || !summary || !date || (activeTab === 'News' && emptyWidgets.length > 0)) {
             setStatus('error');
-            setMessage('Veuillez remplir les champs obligatoires (Titre, Image)');
+            setMessage('Veuillez remplir TOUS les champs et blocs de texte obligatoires.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             return;
         }
 

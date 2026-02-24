@@ -295,7 +295,7 @@ export function AdminMessages() {
                             initial={{ y: 50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 50, opacity: 0 }}
-                            className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden"
+                            className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden"
                         >
                             <div className="p-6 border-b border-white/10 flex items-center justify-between">
                                 <div>
@@ -307,32 +307,75 @@ export function AdminMessages() {
                                 </button>
                             </div>
 
-                            <div className="p-6 space-y-4">
-                                <div className="text-xs text-gray-500 font-bold uppercase tracking-widest">
-                                    Re: {selected.subject}
+                            <div className="flex flex-col md:flex-row h-[600px]">
+                                {/* Editor Side */}
+                                <div className="flex-1 p-6 space-y-4 border-r border-white/10 overflow-y-auto">
+                                    <div className="text-xs text-gray-500 font-bold uppercase tracking-widest">
+                                        Re: {selected.subject}
+                                    </div>
+                                    <textarea
+                                        value={replyBody}
+                                        onChange={(e) => setReplyBody(e.target.value)}
+                                        rows={15}
+                                        placeholder="Rédigez votre réponse..."
+                                        className="w-full h-[400px] bg-black/60 border border-white/10 rounded-xl p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono"
+                                    />
+                                    {replyStatus === 'error' && (
+                                        <div className="flex items-center gap-2 text-neon-red text-sm">
+                                            <AlertCircle className="w-4 h-4" />
+                                            {replyError}
+                                        </div>
+                                    )}
+                                    {replyStatus === 'success' && (
+                                        <div className="flex items-center gap-2 text-green-400 text-sm">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Message envoyé avec succès !
+                                        </div>
+                                    )}
                                 </div>
-                                <textarea
-                                    value={replyBody}
-                                    onChange={(e) => setReplyBody(e.target.value)}
-                                    rows={10}
-                                    placeholder="Rédigez votre réponse..."
-                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono"
-                                />
-                                {replyStatus === 'error' && (
-                                    <div className="flex items-center gap-2 text-neon-red text-sm">
-                                        <AlertCircle className="w-4 h-4" />
-                                        {replyError}
+
+                                {/* Preview Side */}
+                                <div className="flex-1 bg-black p-6 overflow-y-auto hidden md:block border-l border-white/5">
+                                    <div className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Aperçu du Mail</div>
+
+                                    <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.9] origin-top">
+                                        {/* Fake Email Body */}
+                                        <div className="p-8 pb-4">
+                                            <div className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap min-h-[100px]">
+                                                {replyBody || "[Votre message apparaîtra ici]"}
+                                            </div>
+
+                                            {/* Signature Preview */}
+                                            <div className="mt-12 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-2xl overflow-hidden shadow-2xl">
+                                                <div className="p-6 text-center">
+                                                    <div className="text-white text-sm font-black italic uppercase mb-2">
+                                                        Cordialement, <br />
+                                                        L'équipe <span className="text-neon-red">Dropsiders</span>
+                                                    </div>
+
+                                                    <div className="text-neon-red text-[8px] font-black uppercase tracking-widest mb-6 pb-3 border-b border-white/5">
+                                                        NEWS · RÉCAPS · INTERVIEWS · CONCOURS
+                                                    </div>
+
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div className="bg-white/5 border border-white/10 border-b-2 border-b-neon-red py-2 px-1 rounded-lg text-[7px] font-black text-white text-center uppercase">🌐 SITE</div>
+                                                        <div className="bg-white/5 border border-white/10 border-b-2 border-b-neon-cyan py-2 px-1 rounded-lg text-[7px] font-black text-white text-center uppercase">🛍️ SHOP</div>
+                                                        <div className="bg-gradient-to-r from-neon-red to-red-600 py-2 px-1 rounded-lg text-[7px] font-black text-white text-center uppercase shadow-lg shadow-neon-red/20">📩 Newsletter</div>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-[#080808] p-3 text-center opacity-40">
+                                                    <div className="text-[10px] font-bold text-white tracking-widest italic">DROPSIDERS</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-black p-4 text-center border-t border-white/5">
+                                            <p className="text-[7px] text-gray-700 font-black tracking-widest uppercase">DROPSIDERS · TOUTE L'ACTU DES FESTIVALS</p>
+                                        </div>
                                     </div>
-                                )}
-                                {replyStatus === 'success' && (
-                                    <div className="flex items-center gap-2 text-green-400 text-sm">
-                                        <CheckCircle className="w-4 h-4" />
-                                        Message envoyé avec succès !
-                                    </div>
-                                )}
+                                </div>
                             </div>
 
-                            <div className="p-6 border-t border-white/10 flex justify-end gap-3">
+                            <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#111]">
                                 <button
                                     onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
                                     className="px-6 py-2.5 bg-white/5 text-gray-400 font-bold uppercase rounded-xl hover:bg-white/10 text-sm"
@@ -381,6 +424,6 @@ export function AdminMessages() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }
