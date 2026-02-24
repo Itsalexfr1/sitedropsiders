@@ -342,7 +342,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 )}
 
                 {/* Content Overlay */}
-                <div className="relative z-10 max-w-full mx-auto px-6 lg:px-12 pb-16 w-full">
+                <div className="relative z-10 max-w-full mx-auto px-6 lg:px-12 xl:px-16 2xl:px-24 pb-16 w-full">
                     <div className="flex justify-between items-end mb-8">
                         {/* Navigation Back */}
                         <Link
@@ -427,20 +427,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                     <div className="space-y-6">
                         {/* Meta Badges */}
-                        <div className="flex flex-wrap gap-3">
-                            <span className={`px-4 py-2 rounded-full text-white font-black text-xs uppercase tracking-widest shadow-lg ${article.isFocus
-                                    ? 'bg-yellow-500 shadow-yellow-500/20'
-                                    : (article.category || '').toLowerCase() === 'musique'
-                                        ? 'bg-neon-green shadow-neon-green/20'
-                                        : 'bg-neon-red shadow-neon-red/20'
+                        <div className="flex flex-wrap gap-2">
+                            <span className={`px-5 py-2 rounded-full text-white font-black text-[10px] uppercase tracking-widest shadow-lg ${article.isFocus
+                                ? 'bg-yellow-500 shadow-yellow-500/20'
+                                : (article.category || '').toLowerCase() === 'musique'
+                                    ? 'bg-neon-green shadow-neon-green/20'
+                                    : 'bg-neon-red shadow-neon-red/20'
                                 }`}>
                                 {article.isFocus ? t('article_detail.focus').toUpperCase() : (article.category || (type === 'recap' ? 'Recap' : 'News'))}
                             </span>
-                            <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
-                                <Clock className="w-4 h-4 text-neon-red" />
+                            <span className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest">
+                                <Clock className="w-3.5 h-3.5 text-neon-red" />
                                 {readingTime} {t('common.min_read')}
                             </span>
-                            <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
+                            <span className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest">
                                 {new Date(article.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                     year: 'numeric',
                                     month: 'long',
@@ -453,21 +453,21 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                         href={getAuthorInsta(article.author)!}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest hover:bg-white/20 hover:border-white/40 transition-all group/author"
+                                        className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest hover:bg-white/10 hover:border-white/20 transition-all group/author"
                                     >
-                                        <svg className="w-3.5 h-3.5 text-neon-red flex-shrink-0 group-hover/author:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
+                                        <svg className="w-3 h-3 text-neon-red flex-shrink-0 group-hover/author:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
                                         {article.author}
                                     </a>
                                 ) : (
-                                    <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
-                                        <svg className="w-3.5 h-3.5 text-neon-red flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
+                                    <span className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest">
+                                        <svg className="w-3 h-3 text-neon-red flex-shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" /></svg>
                                         {article.author}
                                     </span>
                                 )
                             )}
                             {type === 'recap' && article.location && (
-                                <span className="px-4 py-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white font-bold text-xs flex items-center gap-2 uppercase tracking-widest">
-                                    <MapPin className="w-4 h-4 text-neon-red" />
+                                <span className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest">
+                                    <MapPin className="w-3.5 h-3.5 text-neon-red" />
                                     {article.location}
                                 </span>
                             )}

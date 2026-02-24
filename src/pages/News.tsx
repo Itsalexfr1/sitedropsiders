@@ -15,11 +15,11 @@ import { Loader2 } from 'lucide-react';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
-const TABS: { key: TabKey; label: string; color: string; borderColor: string; glowColor: string }[] = [
-    { key: 'all', label: 'Toutes', color: 'text-white', borderColor: 'border-white/40', glowColor: 'shadow-white/10' },
-    { key: 'news', label: 'News', color: 'text-neon-red', borderColor: 'border-neon-red/60', glowColor: 'shadow-neon-red/20' },
-    { key: 'musique', label: 'Musiques', color: 'text-neon-green', borderColor: 'border-neon-green/60', glowColor: 'shadow-neon-green/20' },
-    { key: 'focus', label: 'Focus de la semaine', color: 'text-yellow-400', borderColor: 'border-yellow-400/60', glowColor: 'shadow-yellow-400/20' },
+const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
+    { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
+    { key: 'news', label: 'News', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red' },
+    { key: 'musique', label: 'Musiques', activeClass: 'bg-neon-green text-white shadow-[0_0_20px_rgba(17,255,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-green/40 hover:text-neon-green' },
+    { key: 'focus', label: 'Focus de la semaine', activeClass: 'bg-yellow-500 text-white shadow-[0_0_20px_rgba(234,179,8,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-yellow-500/40 hover:text-yellow-500' },
 ];
 
 export function News() {
@@ -166,7 +166,7 @@ export function News() {
                     <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('news.badge')}</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4">
-                    {t('news.title')} <span className="text-[10px] text-white/20">v2.1</span>
+                    {t('news.title')}
                 </h1>
                 <p className="text-gray-400 max-w-2xl text-lg">
                     {t('news.subtitle')}
@@ -180,7 +180,7 @@ export function News() {
                 transition={{ delay: 0.1 }}
                 className="mb-10"
             >
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
                     {TABS.map((tab) => {
                         const isActive = activeTab === tab.key;
                         return (
@@ -189,19 +189,13 @@ export function News() {
                                 onClick={() => handleTabChange(tab.key)}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
-                                className={`relative px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-xs transition-all duration-300 border
+                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border
                                     ${isActive
-                                        ? `${tab.color} ${tab.borderColor} bg-white/10 shadow-lg ${tab.glowColor}`
-                                        : 'text-gray-500 border-white/10 bg-white/5 hover:bg-white/10 hover:text-gray-300'
+                                        ? `${tab.activeClass} border-transparent`
+                                        : `bg-white/5 ${tab.inactiveClass}`
                                     }`}
                             >
                                 {tab.label}
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="tabUnderline"
-                                        className={`absolute bottom-0 left-4 right-4 h-0.5 rounded-full ${tab.color.replace('text-', 'bg-')}`}
-                                    />
-                                )}
                             </motion.button>
                         );
                     })}
@@ -224,7 +218,7 @@ export function News() {
                     )}
                 </AnimatePresence>
 
-                <div className="min-h-[600px] w-[90%] mx-auto overflow-hidden">
+                <div className="min-h-[600px] w-full overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
                             key={`${activeTab}-${currentPage}`}
