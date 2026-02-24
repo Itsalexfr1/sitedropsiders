@@ -106,6 +106,15 @@ export function AdminMessages() {
 
     const unreadCount = messages.filter(m => !m.read).length;
 
+    const getSubjectColor = (subject: string) => {
+        const s = subject.toLowerCase();
+        if (s.includes('question')) return 'text-neon-cyan border-neon-cyan/20 bg-neon-cyan/5';
+        if (s.includes('suggestion')) return 'text-neon-green border-neon-green/20 bg-neon-green/5';
+        if (s.includes('partenariat')) return 'text-neon-purple border-neon-purple/20 bg-neon-purple/5';
+        if (s.includes('recrutement')) return 'text-neon-orange border-neon-orange/20 bg-neon-orange/5';
+        return 'text-gray-400 border-white/10 bg-white/5';
+    };
+
     return (
         <div className="min-h-screen bg-black text-white">
             {/* Header */}
@@ -187,7 +196,11 @@ export function AdminMessages() {
                                                 <span className={`text-sm truncate ${msg.read ? 'text-gray-400 font-medium' : 'text-white font-black'}`}>{msg.name}</span>
                                                 <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                             </div>
-                                            <p className={`text-xs truncate mt-0.5 ${msg.read ? 'text-gray-600' : 'text-gray-400'}`}>{msg.subject}</p>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>
+                                                    {msg.subject}
+                                                </span>
+                                            </div>
                                             <p className="text-[11px] text-gray-700 truncate mt-1">{msg.message}</p>
                                             {msg.replied && (
                                                 <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black text-neon-cyan/70 mt-1">
@@ -221,7 +234,12 @@ export function AdminMessages() {
                             {/* Message Header */}
                             <div className="flex items-start justify-between mb-8 gap-4">
                                 <div>
-                                    <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{selected.subject}</h2>
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getSubjectColor(selected.subject)}`}>
+                                            {selected.subject}
+                                        </span>
+                                    </div>
+                                    <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{selected.name}</h2>
                                     <div className="flex items-center gap-3 text-sm text-gray-400">
                                         <div className="flex items-center gap-1.5">
                                             <User className="w-3.5 h-3.5" />

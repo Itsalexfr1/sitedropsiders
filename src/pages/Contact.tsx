@@ -117,15 +117,26 @@ export function Contact() {
 
                         <div className="space-y-2">
                             <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-2">Sujet du Message <span className="text-neon-red">*</span></label>
-                            <input
-                                required
-                                type="text"
-                                name="subject"
-                                value={formData.subject}
-                                onChange={handleChange}
-                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium"
-                                placeholder="De quoi souhaitez-vous nous parler ?"
-                            />
+                            <div className="relative">
+                                <select
+                                    required
+                                    name="subject"
+                                    value={formData.subject}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, subject: e.target.value }))}
+                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white placeholder:text-white/20 outline-none focus:border-neon-red focus:bg-white/5 transition-all text-sm font-medium appearance-none cursor-pointer"
+                                >
+                                    <option value="" disabled className="bg-dark-bg text-gray-500">Choisir un sujet...</option>
+                                    <option value="Question" className="bg-dark-bg text-white">Question</option>
+                                    <option value="Suggestion" className="bg-dark-bg text-white">Suggestion</option>
+                                    <option value="Partenariat" className="bg-dark-bg text-white">Partenariat</option>
+                                    <option value="Recrutement" className="bg-dark-bg text-white">Recrutement</option>
+                                </select>
+                                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="space-y-2">
