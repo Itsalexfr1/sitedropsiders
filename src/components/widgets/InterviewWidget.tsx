@@ -50,19 +50,31 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { acc
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                whileHover={{ scale: 1.05 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
                                 className="h-full group relative aspect-square rounded-2xl overflow-hidden cursor-pointer border border-white/10 transition-all duration-300 shadow-xl"
-                                onMouseOver={(e) => e.currentTarget.style.borderColor = color}
-                                onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.borderColor = color;
+                                    e.currentTarget.style.boxShadow = `0 0 30px ${color}60`;
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
                             >
+                                {/* Glow overlay */}
+                                <div
+                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[1]"
+                                    style={{
+                                        background: `radial-gradient(circle at center, ${color}30 0%, transparent 70%)`,
+                                    }}
+                                />
                                 <img
                                     src={item.image}
                                     alt={item.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                                <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center z-[2]">
                                     <div
                                         className="w-12 h-12 rounded-full backdrop-blur-md flex items-center justify-center border group-hover:scale-110 transition-all duration-300"
                                         style={{

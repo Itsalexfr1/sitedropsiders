@@ -185,9 +185,8 @@ export function Interviews() {
                                 currentArticles.map((item: any) => (
                                     <motion.article
                                         key={item.id}
-                                        whileHover={{ scale: 1.05 }}
                                         onMouseEnter={playHoverSound}
-                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 transition-colors duration-300 shadow-2xl flex flex-col"
+                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 shadow-2xl flex flex-col"
                                     >
                                         {isAdmin && (
                                             <button

@@ -115,7 +115,7 @@ export function SpotifyWidget({
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                             onMouseEnter={() => { hoveredRef.current = playlist.id; }}
                             onMouseLeave={() => { hoveredRef.current = null; }}
-                            className={`flex-none w-[85vw] sm:w-[${itemWidth}] md:w-[${itemWidth}] relative group rounded-[32px] snap-center transition-all duration-500 p-3 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-2xl overflow-hidden`}
+                            className={`flex-none w-[85vw] sm:w-[${itemWidth}] md:w-[${itemWidth}] relative group rounded-[32px] snap-center transition-all duration-500 p-3 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-2xl`}
                             style={{
                                 width: window.innerWidth > 640 ? itemWidth : '85vw',
                                 borderColor: isPlaying ? playlist.color : 'rgba(255,255,255,0.1)',
@@ -124,7 +124,7 @@ export function SpotifyWidget({
                         >
                             {/* Lueur de fond spécifique à la playlist (Extérieure) */}
                             <div
-                                className="absolute -inset-20 opacity-0 group-hover:opacity-20 blur-[60px] transition-all duration-700 pointer-events-none"
+                                className="absolute -inset-10 opacity-0 group-hover:opacity-30 blur-[60px] transition-all duration-700 pointer-events-none rounded-[32px]"
                                 style={{
                                     background: `radial-gradient(circle at center, ${playlist.color} 0%, transparent 70%)`,
                                     zIndex: 0
@@ -133,29 +133,30 @@ export function SpotifyWidget({
 
                             {/* Lueur de fond spécifique à la playlist (Intérieure) */}
                             <div
-                                className="absolute inset-0 opacity-10 group-hover:opacity-30 blur-[40px] transition-all duration-700 pointer-events-none"
+                                className="absolute inset-0 opacity-0 group-hover:opacity-20 blur-[30px] transition-all duration-700 pointer-events-none rounded-[32px]"
                                 style={{
                                     background: `radial-gradient(circle at center, ${playlist.color} 0%, transparent 70%)`,
-                                    transform: 'scale(1.5)',
                                     zIndex: 1
                                 }}
                             />
 
-                            <iframe
-                                data-playlist-id={playlist.id}
-                                style={{ borderRadius: '16px', position: 'relative', zIndex: 10 }}
-                                src={playlist.url}
-                                width="100%"
-                                height={height}
-                                frameBorder="0"
-                                allowFullScreen
-                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                loading="lazy"
-                                className={`w-full transition-all duration-500 shadow-2xl ${isPlaying
-                                    ? 'grayscale-0 opacity-100'
-                                    : 'grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-90'
-                                    }`}
-                            />
+                            <div className="relative z-10 rounded-[24px] overflow-hidden">
+                                <iframe
+                                    data-playlist-id={playlist.id}
+                                    style={{ borderRadius: '16px' }}
+                                    src={playlist.url}
+                                    width="100%"
+                                    height={height}
+                                    frameBorder="0"
+                                    allowFullScreen
+                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                    loading="lazy"
+                                    className={`w-full transition-all duration-500 shadow-2xl ${isPlaying
+                                        ? 'grayscale-0 opacity-100'
+                                        : 'grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-90'
+                                        }`}
+                                />
+                            </div>
                         </motion.div>
                     );
                 })}
