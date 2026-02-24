@@ -360,43 +360,43 @@ export function Agenda() {
                 </motion.div>
             )}
 
-            {months.length > 0 ? (
-                <div className="mb-12 flex justify-center">
-                    <div className="flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl gap-4 md:gap-8 shadow-xl">
-                        <button
-                            onClick={() => {
-                                const currentIndex = months.indexOf(selectedMonth || '');
-                                if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
-                            }}
-                            disabled={months.indexOf(selectedMonth || '') <= 0}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 transition-all group"
-                            onMouseEnter={playHoverSound}
-                        >
-                            <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                        </button>
+            <div className="mb-12 flex justify-center">
+                <div className="flex items-center justify-center p-4 bg-white/5 border border-white/10 rounded-3xl gap-4 md:gap-8 shadow-xl">
+                    <button
+                        onClick={() => {
+                            const currentIndex = months.indexOf(selectedMonth || '');
+                            if (currentIndex > 0) setSelectedMonth(months[currentIndex - 1]);
+                        }}
+                        disabled={months.length === 0 || months.indexOf(selectedMonth || '') <= 0}
+                        className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 transition-all group"
+                        onMouseEnter={playHoverSound}
+                    >
+                        <ChevronLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                    </button>
 
-                        <div className="w-64 md:w-80 text-center">
-                            <h2 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                {selectedMonth ? formatMonthName(selectedMonth) : '—'}
-                            </h2>
-                        </div>
-
-                        <button
-                            onClick={() => {
-                                const currentIndex = months.indexOf(selectedMonth || '');
-                                if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
-                            }}
-                            disabled={selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 transition-all group"
-                            onMouseEnter={playHoverSound}
-                        >
-                            <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                        </button>
+                    <div className="w-64 md:w-80 text-center">
+                        <h2 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                            {selectedMonth ? formatMonthName(selectedMonth) : '—'}
+                        </h2>
                     </div>
+
+                    <button
+                        onClick={() => {
+                            const currentIndex = months.indexOf(selectedMonth || '');
+                            if (currentIndex !== -1 && currentIndex < months.length - 1) setSelectedMonth(months[currentIndex + 1]);
+                        }}
+                        disabled={months.length === 0 || (selectedMonth ? months.indexOf(selectedMonth) >= months.length - 1 : true)}
+                        className="p-3 rounded-xl border border-white/10 bg-white/5 text-white hover:border-neon-red hover:text-neon-red disabled:opacity-20 transition-all group"
+                        onMouseEnter={playHoverSound}
+                    >
+                        <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                    </button>
                 </div>
-            ) : (
-                <div className="mb-12 flex flex-col items-center justify-center py-20 gap-4">
-                    <p className="text-gray-500 font-display font-black uppercase tracking-widest text-lg">
+            </div>
+
+            {months.length === 0 && (
+                <div className="mb-8 flex justify-center">
+                    <p className="text-gray-500 font-display font-black uppercase tracking-widest text-sm">
                         {t('agenda.no_results')}
                     </p>
                 </div>
