@@ -23,7 +23,9 @@ export function AdminDashboard() {
         enabled: false,
         text: '',
         color: '#ffffff',
-        bgColor: '#ff0033'
+        bgColor: '#ff0033',
+        opacity: 100,
+        size: 'medium'
     });
     const navigate = useNavigate();
 
@@ -72,7 +74,9 @@ export function AdminDashboard() {
                     enabled: data.announcement_banner?.enabled || false,
                     text: data.announcement_banner?.text || '',
                     color: data.announcement_banner?.color || '#ffffff',
-                    bgColor: data.announcement_banner?.bgColor || '#ff0033'
+                    bgColor: data.announcement_banner?.bgColor || '#ff0033',
+                    opacity: data.announcement_banner?.opacity || 100,
+                    size: data.announcement_banner?.size || 'medium'
                 });
             }
         } catch (e) { }
@@ -722,56 +726,93 @@ export function AdminDashboard() {
                                             />
                                         </div>
 
-                                        {/* Color Pickers */}
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                    <Palette className="w-3 h-3" /> Fond (Background)
-                                                </label>
-                                                <div className="relative group/color">
-                                                    <div
-                                                        className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
-                                                        style={{ borderLeft: `4px solid ${bannerState.bgColor}` }}
-                                                    >
-                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.bgColor }} />
-                                                        <span className="text-xs font-mono text-gray-400">{bannerState.bgColor}</span>
+                                        {/* Color & Opacity Pickers */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                        <Palette className="w-3 h-3" /> Fond (Background)
+                                                    </label>
+                                                    <div className="relative group/color">
+                                                        <div
+                                                            className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
+                                                            style={{ borderLeft: `4px solid ${bannerState.bgColor}` }}
+                                                        >
+                                                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.bgColor }} />
+                                                            <span className="text-xs font-mono text-gray-400">{bannerState.bgColor}</span>
+                                                        </div>
+                                                        <input
+                                                            type="color"
+                                                            value={bannerState.bgColor}
+                                                            onChange={(e) => setBannerState({ ...bannerState, bgColor: e.target.value })}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        />
                                                     </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="flex items-center justify-between text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                        <span>Opacité du fond</span>
+                                                        <span className="text-neon-orange">{bannerState.opacity}%</span>
+                                                    </label>
                                                     <input
-                                                        type="color"
-                                                        value={bannerState.bgColor}
-                                                        onChange={(e) => setBannerState({ ...bannerState, bgColor: e.target.value })}
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        value={bannerState.opacity}
+                                                        onChange={(e) => setBannerState({ ...bannerState, opacity: parseInt(e.target.value) })}
+                                                        className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-neon-orange"
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="space-y-2">
-                                                <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                    <Palette className="w-3 h-3" /> Texte
-                                                </label>
-                                                <div className="relative">
-                                                    <div
-                                                        className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
-                                                        style={{ borderLeft: `4px solid ${bannerState.color}` }}
-                                                    >
-                                                        <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.color }} />
-                                                        <span className="text-xs font-mono text-gray-400">{bannerState.color}</span>
+
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                        <Palette className="w-3 h-3" /> Texte
+                                                    </label>
+                                                    <div className="relative">
+                                                        <div
+                                                            className="w-full h-12 rounded-xl border border-white/10 cursor-pointer flex items-center px-4 gap-3 bg-black/40"
+                                                            style={{ borderLeft: `4px solid ${bannerState.color}` }}
+                                                        >
+                                                            <div className="w-4 h-4 rounded-full" style={{ backgroundColor: bannerState.color }} />
+                                                            <span className="text-xs font-mono text-gray-400">{bannerState.color}</span>
+                                                        </div>
+                                                        <input
+                                                            type="color"
+                                                            value={bannerState.color}
+                                                            onChange={(e) => setBannerState({ ...bannerState, color: e.target.value })}
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        />
                                                     </div>
-                                                    <input
-                                                        type="color"
-                                                        value={bannerState.color}
-                                                        onChange={(e) => setBannerState({ ...bannerState, color: e.target.value })}
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 mb-2">Taille du bandeau</label>
+                                                    <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
+                                                        {['small', 'medium', 'large'].map((s) => (
+                                                            <button
+                                                                key={s}
+                                                                onClick={() => setBannerState({ ...bannerState, size: s as any })}
+                                                                className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${bannerState.size === s ? 'bg-neon-orange text-white' : 'text-gray-500 hover:text-white'}`}
+                                                            >
+                                                                {s === 'small' ? 'Petit' : s === 'medium' ? 'Moyen' : 'Grand'}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Preview */}
                                         <div className="pt-4 border-t border-white/5">
-                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct</div>
+                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct (taille approx.)</div>
                                             <div
-                                                className="h-8 rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative"
-                                                style={{ backgroundColor: bannerState.bgColor }}
+                                                className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
+                                                style={{
+                                                    backgroundColor: `rgba(${parseInt(bannerState.bgColor.slice(1, 3), 16)}, ${parseInt(bannerState.bgColor.slice(3, 5), 16)}, ${parseInt(bannerState.bgColor.slice(5, 7), 16)}, ${bannerState.opacity / 100})`
+                                                }}
                                             >
                                                 <span
                                                     className="text-[10px] font-black uppercase tracking-tighter italic whitespace-nowrap"

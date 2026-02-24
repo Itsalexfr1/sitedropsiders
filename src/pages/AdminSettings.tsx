@@ -20,6 +20,8 @@ export function AdminSettings() {
     const [bannerText, setBannerText] = useState('');
     const [bannerColor, setBannerColor] = useState('#ff0033');
     const [bannerBgColor, setBannerBgColor] = useState('#0a0a0a');
+    const [bannerOpacity, setBannerOpacity] = useState(100);
+    const [bannerSize, setBannerSize] = useState<'small' | 'medium' | 'large'>('medium');
 
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -47,6 +49,8 @@ export function AdminSettings() {
                         setBannerText(data.announcement_banner.text || '');
                         setBannerColor(data.announcement_banner.color || '#ff0033');
                         setBannerBgColor(data.announcement_banner.bgColor || '#0a0a0a');
+                        setBannerOpacity(data.announcement_banner.opacity || 100);
+                        setBannerSize(data.announcement_banner.size || 'medium');
                     }
                 }
 
@@ -79,7 +83,9 @@ export function AdminSettings() {
                     enabled: bannerEnabled,
                     text: bannerText,
                     color: bannerColor,
-                    bgColor: bannerBgColor
+                    bgColor: bannerBgColor,
+                    opacity: bannerOpacity,
+                    size: bannerSize
                 }
             };
 
@@ -304,30 +310,67 @@ export function AdminSettings() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex-1">
-                                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR FOND</label>
-                                                <div className="flex items-center gap-4">
-                                                    <div
-                                                        className="w-12 h-12 rounded-xl border border-white/20 relative"
-                                                        style={{ backgroundColor: bannerBgColor }}
-                                                    >
+                                            <div className="flex-1 space-y-4">
+                                                <div className="flex-1">
+                                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">COULEUR FOND</label>
+                                                    <div className="flex items-center gap-4">
+                                                        <div
+                                                            className="w-12 h-12 rounded-xl border border-white/20 relative"
+                                                            style={{ backgroundColor: bannerBgColor }}
+                                                        >
+                                                            <input
+                                                                type="color"
+                                                                value={bannerBgColor}
+                                                                onChange={(e) => setBannerBgColor(e.target.value)}
+                                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                            />
+                                                        </div>
                                                         <input
-                                                            type="color"
+                                                            type="text"
                                                             value={bannerBgColor}
                                                             onChange={(e) => setBannerBgColor(e.target.value)}
-                                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
                                                         />
                                                     </div>
+                                                </div>
+
+                                                <div className="flex-1">
+                                                    <label className="flex items-center justify-between text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                                        <span>OPACITÉ FOND</span>
+                                                        <span className="text-neon-orange">{bannerOpacity}%</span>
+                                                    </label>
                                                     <input
-                                                        type="text"
-                                                        value={bannerBgColor}
-                                                        onChange={(e) => setBannerBgColor(e.target.value)}
-                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm uppercase focus:outline-none focus:border-neon-orange transition-all"
+                                                        type="range"
+                                                        min="0"
+                                                        max="100"
+                                                        value={bannerOpacity}
+                                                        onChange={(e) => setBannerOpacity(parseInt(e.target.value))}
+                                                        className="w-full h-1.5 bg-white/5 rounded-lg appearance-none cursor-pointer accent-neon-orange"
                                                     />
+                                                </div>
+
+                                                <div className="flex-1">
+                                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">TAILLE BANDAU</label>
+                                                    <div className="flex bg-black/40 border border-white/10 rounded-xl p-1">
+                                                        {['small', 'medium', 'large'].map((s) => (
+                                                            <button
+                                                                key={s}
+                                                                onClick={() => setBannerSize(s as any)}
+                                                                className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all ${bannerSize === s ? 'bg-neon-orange text-white' : 'text-gray-500 hover:text-white'}`}
+                                                            >
+                                                                {s === 'small' ? 'Petit' : s === 'medium' ? 'Moyen' : 'Grand'}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="flex-1 p-4 border border-white/5 rounded-2xl relative overflow-hidden h-12 flex items-center" style={{ backgroundColor: bannerBgColor }}>
+                                        <div
+                                            className={`flex-1 p-4 border border-white/5 rounded-2xl relative overflow-hidden flex items-center ${bannerSize === 'small' ? 'h-6' : bannerSize === 'large' ? 'h-12' : 'h-8'}`}
+                                            style={{
+                                                backgroundColor: `rgba(${parseInt(bannerBgColor.slice(1, 3), 16)}, ${parseInt(bannerBgColor.slice(3, 5), 16)}, ${parseInt(bannerBgColor.slice(5, 7), 16)}, ${bannerOpacity / 100})`
+                                            }}
+                                        >
                                             <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                                             <p
                                                 className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap animate-marquee"

@@ -9,6 +9,8 @@
     "enabled": true,
     "text": "BIENVENUE SUR DROPSIDERS - RECRUTEMENT OUVERT",
     "color": "#ffffff",
-    "bgColor": "#ff0000"
+    "bgColor": "#ff0000",
+    "opacity": 100,
+    "size": "medium"
   }
 }
