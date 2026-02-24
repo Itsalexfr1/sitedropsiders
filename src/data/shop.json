@@ -1,6 +1,26 @@
 {
   "products": [
     {
+      "name": "Polo Dropsiders Logo White",
+      "price": "20",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950237/dropsiders/aqappiqi19j68xiqdtm1.webp",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/admin/dashboard/products/all/5e3ecc02-60fa-49ec-b917-2c1ef3c07bf4/",
+      "colors": [
+        "#000000",
+        "#2b65ec"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950256/dropsiders/xahyrexuek93uhxxkiv7.webp",
+        "#2b65ec": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950323/dropsiders/jijscmmcdbv6axs4eows.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950245/dropsiders/pdsbj0kx9zdsrhn3y7gy.webp",
+      "id": 23,
+      "createdAt": "2026-02-24T16:25:53.893Z"
+    },
+    {
       "name": "Sacoche Dropsiders",
       "price": "21.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771724160004-image_2026-02-22_023537913.png",
