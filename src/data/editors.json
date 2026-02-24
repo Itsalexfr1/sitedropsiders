@@ -13,7 +13,8 @@
     "password": "2026",
     "name": "Tanguy",
     "permissions": [
-      "publications"
+      "publications",
+      "messages"
     ],
     "created": "2026-02-24T03:38:19.957Z"
   },
