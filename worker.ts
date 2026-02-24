@@ -215,7 +215,8 @@ export default {
             path === '/api/shop/update' ||
             path === '/api/shop/delete' ||
             path === '/api/dashboard-actions/update' ||
-            path.startsWith('/api/editors')
+            path.startsWith('/api/editors') ||
+            path.startsWith('/api/contacts')
         );
 
         if (isAuthRoute) {
@@ -1236,6 +1237,113 @@ export default {
                 }
             }
             return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
+        }
+
+        // --- API: CONTACT FORM (Public POST) ---
+        if (path === '/api/contact' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { name, email, subject, message } = body;
+                if (!name || !email || !subject || !message) {
+                    return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+                }
+                const CONTACTS_PATH = 'src/data/contacts.json';
+                const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                const contacts = Array.isArray(file.content) ? file.content : [];
+                const newMsg = {
+                    id: Date.now().toString(),
+                    name, email, subject, message,
+                    date: new Date().toISOString(),
+                    read: false,
+                    replied: false
+                };
+                contacts.push(newMsg);
+                await saveGitHubFile(CONTACTS_PATH, contacts, `New contact: ${name} [skip ci] [CF-Pages-Skip]`, file.sha);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: GET CONTACTS (admin) ---
+        if (path === '/api/contacts' && request.method === 'GET') {
+            try {
+                const file = await fetchGitHubFile('src/data/contacts.json') || { content: [] };
+                return new Response(JSON.stringify(file.content || []), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: MARK CONTACT AS READ ---
+        if (path === '/api/contacts/read' && request.method === 'POST') {
+            try {
+                const { id } = await request.json();
+                const CONTACTS_PATH = 'src/data/contacts.json';
+                const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                const contacts = Array.isArray(file.content) ? file.content : [];
+                const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: DELETE CONTACT ---
+        if (path === '/api/contacts/delete' && request.method === 'POST') {
+            try {
+                const { id } = await request.json();
+                const CONTACTS_PATH = 'src/data/contacts.json';
+                const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                const contacts = Array.isArray(file.content) ? file.content : [];
+                const updated = contacts.filter(c => c.id !== id);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id} [skip ci] [CF-Pages-Skip]`, file.sha);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: REPLY TO CONTACT VIA BREVO ---
+        if (path === '/api/contacts/reply' && request.method === 'POST') {
+            const BREVO_KEY = env.BREVO_API_KEY;
+            if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
+            try {
+                const { to, name, subject, message } = await request.json();
+                if (!to || !subject || !message) {
+                    return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+                }
+                const payload = {
+                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
+                    to: [{ email: to, name: name || to }],
+                    subject: subject,
+                    htmlContent: `<div style="font-family:sans-serif;color:#fff;background:#111;padding:24px;border-radius:12px;max-width:600px">${message.replace(/\n/g, '<br>')}<br><br><hr style="border-color:#333"><p style="color:#888;font-size:12px">Dropsiders · contact@dropsiders.fr</p></div>`,
+                    replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
+                };
+                const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!brevoRes.ok) {
+                    const errText = await brevoRes.text();
+                    let parsedErr = errText;
+                    try { parsedErr = JSON.parse(errText).message || errText; } catch (e) { }
+                    return new Response(JSON.stringify({ error: parsedErr }), { status: 500, headers });
+                }
+                // Mark as replied
+                try {
+                    const CONTACTS_PATH = 'src/data/contacts.json';
+                    const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                    const contacts = Array.isArray(file.content) ? file.content : [];
+                    const updatedContacts = contacts.map(c => c.email === to ? { ...c, replied: true, read: true } : c);
+                    await saveGitHubFile(CONTACTS_PATH, updatedContacts, `Reply sent to: ${to} [skip ci] [CF-Pages-Skip]`, file.sha);
+                } catch (e) { console.error('Failed to mark replied:', e); }
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
         if (path.startsWith('/api/')) {

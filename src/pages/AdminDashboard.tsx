@@ -101,7 +101,8 @@ export function AdminDashboard() {
         { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
         { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
         { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "all", baseColor: "blue", columns: 3 },
-        { title: "Mots de passe", description: "Accès & Sécurité", icon: "Lock", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 }
+        { title: "Mots de passe", description: "Accès & Sécurité", icon: "Lock", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
+        { title: "Messages", description: "Formulaire contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "all", baseColor: "orange", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -355,6 +356,12 @@ export function AdminDashboard() {
                         <p className="text-gray-400 text-lg max-w-2xl">
                             Bienvenue dans votre espace d'administration. {isAdmin && "Déplacez les cartes pour réorganiser."}
                         </p>
+                        <div className="mt-4">
+                            <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group">
+                                <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
+                                Retour au site
+                            </Link>
+                        </div>
                     </div>
 
                     <div className="flex flex-col gap-4 w-full md:w-auto">

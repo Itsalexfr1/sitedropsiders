@@ -35,6 +35,7 @@ import { AdminShop } from './pages/AdminShop';
 import KitMedia from './pages/KitMedia';
 import { AdminHome } from './pages/AdminHome';
 import { AdminSettings } from './pages/AdminSettings';
+import { AdminMessages } from './pages/AdminMessages';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import { CookieConsent } from './components/ui/CookieConsent';
@@ -88,6 +89,7 @@ const router = createBrowserRouter([
       { path: "admin/home", element: <ProtectedRoute><AdminHome /></ProtectedRoute> },
       { path: "admin/shop", element: <ProtectedRoute><AdminShop /></ProtectedRoute> },
       { path: "admin/settings", element: <ProtectedRoute><AdminSettings /></ProtectedRoute> },
+      { path: "admin/messages", element: <ProtectedRoute><AdminMessages /></ProtectedRoute> },
 
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },
