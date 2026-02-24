@@ -43,7 +43,8 @@
     "password": "2026",
     "name": "Kevin",
     "permissions": [
-      "publications"
+      "publications",
+      "messages"
     ],
     "created": "2026-02-24T03:41:19.585Z"
   },
