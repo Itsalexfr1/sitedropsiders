@@ -228,6 +228,9 @@ export function AdminManage() {
 
     const handleEdit = async (item: any) => {
         setLoadingEditId(item.id);
+        const isInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video' || activeTab === 'Interviews';
+        const isMusique = item.category === 'Musique' || activeTab === 'Musique';
+
         try {
             const contentEndpoint =
                 activeTab === 'Recaps' ? `/api/recaps/content?id=${item.id}` : `/api/news/content?id=${item.id}`;
@@ -244,16 +247,32 @@ export function AdminManage() {
                 }
             }
 
-            const editPath =
-                (activeTab === 'Recaps' ? '/recaps/create' :
-                    activeTab === 'Interviews' ? '/news/create?type=Interview' :
-                        activeTab === 'Agenda' ? '/agenda/create' :
-                            activeTab === 'Galeries' ? '/galerie/create' :
-                                '/news/create') + `?id=${item.id}`;
+            let editPath = '';
+            if (activeTab === 'Recaps') {
+                editPath = `/recaps/create?id=${item.id}`;
+            } else if (isInterview) {
+                editPath = `/news/create?type=Interview&id=${item.id}`;
+            } else if (isMusique) {
+                editPath = `/news/create?type=Musique&id=${item.id}`;
+            } else if (activeTab === 'Agenda') {
+                editPath = `/agenda/create?id=${item.id}`;
+            } else if (activeTab === 'Galeries') {
+                editPath = `/galerie/create?id=${item.id}`;
+            } else {
+                editPath = `/news/create?id=${item.id}`;
+            }
 
             navigate(editPath, { state: { isEditing: true, item: fullItem } });
         } catch (e) {
             console.error('Error fetching content for edit:', e);
+            // Toujours naviguer même en cas d'erreur de chargement du contenu
+            let fallbackPath = isInterview ? `/news/create?type=Interview&id=${item.id}` :
+                isMusique ? `/news/create?type=Musique&id=${item.id}` :
+                    activeTab === 'Recaps' ? `/recaps/create?id=${item.id}` :
+                        activeTab === 'Agenda' ? `/agenda/create?id=${item.id}` :
+                            activeTab === 'Galeries' ? `/galerie/create?id=${item.id}` :
+                                `/news/create?id=${item.id}`;
+            navigate(fallbackPath, { state: { isEditing: true, item: item } });
         } finally {
             setLoadingEditId(null);
         }

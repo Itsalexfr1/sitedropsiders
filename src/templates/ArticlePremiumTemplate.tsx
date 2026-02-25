@@ -352,8 +352,17 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
 
 
+    const getThumbUrl = (url: string) => {
+        if (!url) return '';
+        if (url.includes('cloudinary.com')) {
+            // Add face-centered square crop if it's a Cloudinary URL
+            return url.replace('/upload/', '/upload/ar_1:1,c_fill,g_auto,w_200/');
+        }
+        return url;
+    };
+
     return (
-        <div className={`article-premium-wrapper ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}>
+        <div className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}>
             {/* Lightbox */}
             <AnimatePresence>
                 {selectedImage && (
@@ -679,8 +688,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         </span>
                                                         <div className="flex items-center gap-4">
                                                             {previousArticle.image && (
-                                                                <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10">
-                                                                    <img src={previousArticle.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                                <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                                                                    <img
+                                                                        src={getThumbUrl(previousArticle.image)}
+                                                                        alt=""
+                                                                        className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
+                                                                    />
                                                                 </div>
                                                             )}
                                                             <div className="flex flex-col gap-1 min-w-0">
@@ -706,8 +719,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         </span>
                                                         <div className="flex items-center gap-4 flex-row-reverse">
                                                             {nextArticle.image && (
-                                                                <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10">
-                                                                    <img src={nextArticle.image} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                                <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10 bg-black/20">
+                                                                    <img
+                                                                        src={getThumbUrl(nextArticle.image)}
+                                                                        alt=""
+                                                                        className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
+                                                                    />
                                                                 </div>
                                                             )}
                                                             <div className="flex flex-col gap-1 min-w-0 text-right">

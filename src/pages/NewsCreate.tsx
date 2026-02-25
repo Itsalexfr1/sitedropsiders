@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, Twitter, PartyPopper, ChevronUp, ChevronDown } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, Twitter, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -77,9 +77,15 @@ export function NewsCreate() {
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
     const [interviewSubtype, setInterviewSubtype] = useState<'written' | 'video'>((searchParams.get('subtype') as 'written' | 'video') || 'written');
-    const [author, setAuthor] = useState(
-        localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex'
-    );
+    const [author, setAuthor] = useState(() => {
+        const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+        const found = (editorsData as any[]).find(e =>
+            e.name.toLowerCase() === stored.toLowerCase() ||
+            e.username.toLowerCase() === stored.toLowerCase()
+        );
+        return found ? found.name : 'Alex';
+    });
+    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
 
 
 
@@ -135,154 +141,172 @@ export function NewsCreate() {
     // Fetch item if missing from state but ID is present
     useEffect(() => {
         const id = searchParams.get('id');
-        if (isEditing && !editingItem && id) {
+        if (!isEditing || !id) {
+            setIsLoading(false);
+            return;
+        }
+
+        const parseAndInitialize = (articleData: any, fullContent: string) => {
+            setTitle(articleData.title || '');
+            setSummary(articleData.summary || '');
+            setImageUrl(articleData.image || '');
+            setDate(articleData.date || new Date().toISOString().split('T')[0]);
+            setCategory(articleData.category || 'News');
+            setYoutubeId(articleData.youtubeId || '');
+            setShowVideo(articleData.showVideo !== undefined ? articleData.showVideo : (articleData.category !== 'Interview' && articleData.category !== 'Interviews' && articleData.category !== 'Interview Video'));
+            setIsFeatured(articleData.isFeatured || false);
+            setAuthor(articleData.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
+            setIsAuthorConfirmed(true);
+
+            // Parse Content Base
+            let c = fullContent || articleData.content || '';
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(c, 'text/html');
+
+            // Parse Socials via DOM
+            const artistSocialsContainer = doc.querySelector('.artist-socials-premium');
+            if (artistSocialsContainer) {
+                const newSocials = {
+                    website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: ''
+                };
+                artistSocialsContainer.querySelectorAll('a').forEach(a => {
+                    const platform = a.getAttribute('data-platform');
+                    const url = a.getAttribute('href');
+                    if (platform && url && platform in newSocials) {
+                        (newSocials as any)[platform] = url;
+                    }
+                });
+                setArtistSocials(newSocials);
+            }
+
+            const festSocialsContainer = doc.querySelector('.festival-socials-premium');
+            if (festSocialsContainer) {
+                const newSocials = {
+                    website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: ''
+                };
+                festSocialsContainer.querySelectorAll('a').forEach(a => {
+                    const platform = a.getAttribute('data-platform');
+                    const url = a.getAttribute('href');
+                    if (platform && url && platform in newSocials) {
+                        (newSocials as any)[platform] = url;
+                    }
+                });
+                setFestivalSocials(newSocials);
+            }
+
+            // Parse Content
+            const foundWidgets: { id: string, content: string }[] = [];
+            const foundQuestions: any[] = [];
+
+            const sections = doc.querySelectorAll('.article-section');
+
+            if (sections.length > 0) {
+                sections.forEach(section => {
+                    const html = section.innerHTML.trim();
+
+                    // Identify Interview Blocks (QA, Image, Video)
+                    if (section.classList.contains('interview-qa-block') || (articleData.category === 'Interview' && (html.includes('DROPSIDERS :') || html.includes('interview-q')))) {
+                        const artistNameAttr = section.getAttribute('data-artist-name') || '';
+                        const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
+
+                        const qaMatches = Array.from(html.matchAll(/(?:<strong[^>]*|<span[^>]*class=["']interview-q["'][^>]*)>(.*?)<\/(?:strong|span)>\s*(.*?)(?:<\/p|$)/gi));
+
+                        if (qaMatches.length >= 2) {
+                            const qText = qaMatches[0][2].trim();
+                            const aText = qaMatches[1][2].trim();
+                            const artistLabel = qaMatches[1][1].replace(/[:]/g, '').trim();
+
+                            foundQuestions.push({
+                                id: Math.random().toString(36).substr(2, 9),
+                                type: 'qa',
+                                artistName: artistNameAttr || artistLabel,
+                                artistColor: artistColor,
+                                question: qText,
+                                answer: aText
+                            });
+                        }
+                    } else if (section.classList.contains('interview-image-block') || (articleData.category === 'Interview' && section.querySelector('.image-premium-wrapper'))) {
+                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('img')?.src || '';
+                        foundQuestions.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            type: 'image',
+                            mediaUrl
+                        });
+                    } else if (section.classList.contains('interview-video-block') || (articleData.category === 'Interview' && section.querySelector('.youtube-player-widget'))) {
+                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1] || '';
+                        foundQuestions.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            type: 'video',
+                            mediaUrl
+                        });
+                    } else if (html.includes('artist-socials-premium') || html.includes('festival-socials-premium')) {
+                        // Skip socials block
+                    } else {
+                        foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: html });
+                    }
+                });
+            }
+
+            if (foundWidgets.length > 0) setWidgets(foundWidgets);
+            else if (c && !c.includes('article-section')) setWidgets([{ id: 'legacy-1', content: c }]);
+
+            if (foundQuestions.length > 0) {
+                setInterviewQuestions(foundQuestions);
+                setWidgets([]); // Ensure widgets are empty for interviews
+            }
+
+            if (articleData.category === 'Musique') {
+                setActiveTab('Musique');
+                const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
+                const foundMusic = [];
+                let match;
+                while ((match = musicSectionRegex.exec(c)) !== null) {
+                    foundMusic.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        title: match[1].trim(),
+                        media: match[2].trim()
+                    });
+                }
+                if (foundMusic.length > 0) setMusicItems(foundMusic);
+            } else if (articleData.category === 'Interview Video' || articleData.category === 'Interview') {
+                if (articleData.category === 'Interview Video') setInterviewSubtype('video');
+                else setInterviewSubtype('written');
+            } else if (articleData.isFocus) {
+                setActiveTab('Focus');
+            }
+
+            setIsLoading(false);
+            initialDataLoaded.current = true;
+        };
+
+        if (editingItem) {
+            console.log('[NewsCreate] Using item from state:', editingItem.id);
+            parseAndInitialize(editingItem, editingItem.content || '');
+        } else {
+            console.log('[NewsCreate] Fetching item from API:', id);
             setIsLoading(true);
             const fetchFullItem = async () => {
                 try {
-                    // We need to fetch both base info and content
-                    // Often /api/news returns the list, and /api/news/content returns content
                     const response = await fetch(`/api/news/content?id=${id}`, { headers: getAuthHeaders() });
                     if (response.ok) {
                         const data = await response.json();
-                        // If we have an article object back, use it
                         if (data.article) {
-                            setTitle(data.article.title);
-                            setSummary(data.article.summary);
-                            setImageUrl(data.article.image);
-                            setDate(data.article.date);
-                            setCategory(data.article.category);
-                            setYoutubeId(data.article.youtubeId || '');
-                            setShowVideo(data.article.showVideo !== undefined ? data.article.showVideo : (data.article.category !== 'Interview' && data.article.category !== 'Interviews' && data.article.category !== 'Interview Video'));
-                            setIsFeatured(data.article.isFeatured || false);
-
-                            // Parse Content
-                            let c = data.content || data.article.content || '';
-                            const foundWidgets: { id: string, content: string }[] = [];
-                            const foundQuestions: any[] = [];
-
-                            const parser = new DOMParser();
-                            const doc = parser.parseFromString(c, 'text/html');
-                            const sections = doc.querySelectorAll('.article-section');
-
-                            if (sections.length > 0) {
-                                sections.forEach(section => {
-                                    const html = section.innerHTML.trim();
-
-                                    // Identify Interview Blocks
-                                    if (section.classList.contains('interview-qa-block') || (data.article.category === 'Interview' && html.includes('DROPSIDERS :'))) {
-                                        const artistName = section.getAttribute('data-artist-name') || '';
-                                        const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
-
-                                        // Simple regex to extract Q&A from legacy or new HTML
-                                        const aMatch = html.match(/(?:<strong>)?\s*([^:]+)\s*:\s*(?:<\/strong>)?\s*(.*)/i); // Fallback for answer
-
-                                        // More specific regex for answer to skip the first DROPSIDERS match
-                                        const matches = Array.from(html.matchAll(/:\s*(?:<\/strong>)?\s*(.*?)(?:<\/p|$)/gi));
-                                        const question = matches[0] ? matches[0][1].trim() : '';
-                                        const answer = matches[1] ? matches[1][1].trim() : '';
-                                        const detectedArtist = aMatch && aMatch[1].trim() !== 'DROPSIDERS' ? aMatch[1].trim() : artistName;
-
-                                        foundQuestions.push({
-                                            id: Math.random().toString(36).substr(2, 9),
-                                            type: 'qa',
-                                            artistName: detectedArtist,
-                                            artistColor: artistColor,
-                                            question,
-                                            answer
-                                        });
-                                    } else if (section.classList.contains('interview-image-block') || (data.article.category === 'Interview' && section.querySelector('.image-premium-wrapper'))) {
-                                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('img')?.src || '';
-                                        foundQuestions.push({
-                                            id: Math.random().toString(36).substr(2, 9),
-                                            type: 'image',
-                                            mediaUrl
-                                        });
-                                    } else if (section.classList.contains('interview-video-block') || (data.article.category === 'Interview' && section.querySelector('.youtube-player-widget'))) {
-                                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1] || '';
-                                        foundQuestions.push({
-                                            id: Math.random().toString(36).substr(2, 9),
-                                            type: 'video',
-                                            mediaUrl
-                                        });
-                                    } else if (html.includes('artist-socials-premium') || html.includes('festival-socials-premium')) {
-                                        // Skip socials block from widgets as they are auto-generated
-                                    } else {
-                                        // Regular Widget
-                                        foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: html });
-                                    }
-                                });
-                            }
-
-                            if (foundWidgets.length > 0) setWidgets(foundWidgets);
-                            else if (!c.includes('article-section')) setWidgets([{ id: 'legacy-1', content: c }]);
-
-                            if (foundQuestions.length > 0) setInterviewQuestions(foundQuestions);
-
-                            if (data.article.category === 'Musique') {
-                                setActiveTab('Musique');
-                                const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                                const foundMusic = [];
-                                let match;
-                                while ((match = musicSectionRegex.exec(data.article.content || '')) !== null) {
-                                    foundMusic.push({
-                                        id: Math.random().toString(36).substr(2, 9),
-                                        title: match[1].trim(),
-                                        media: match[2].trim()
-                                    });
-                                }
-                                if (foundMusic.length > 0) setMusicItems(foundMusic);
-                            } else if (data.article.category === 'Interview Video') {
-                                setInterviewSubtype('video');
-                            } else if (data.article.isFocus) {
-                                setActiveTab('Focus');
-                            }
+                            parseAndInitialize(data.article, data.content || data.article.content || '');
                         } else if (data.content) {
-                            // Only content returned, try to find metadata in newsData
                             const localItem = (newsData as any[]).find(n => String(n.id) === String(id));
-                            if (localItem) {
-                                setTitle(localItem.title);
-                                setSummary(localItem.summary);
-                                setImageUrl(localItem.image);
-                                setDate(localItem.date);
-                                setCategory(localItem.category);
-                                setIsFeatured(localItem.isFeatured || false);
-                                if (localItem.category === 'Interview Video') {
-                                    setInterviewSubtype('video');
-                                }
-                                setShowVideo(localItem.showVideo !== undefined ? localItem.showVideo : (localItem.category !== 'Interview' && localItem.category !== 'Interviews' && localItem.category !== 'Interview Video'));
-
-                                if (localItem.category === 'Musique') {
-                                    setActiveTab('Musique');
-                                    const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                                    const foundMusic = [];
-                                    let match;
-                                    while ((match = musicSectionRegex.exec(data.content || '')) !== null) {
-                                        foundMusic.push({
-                                            id: Math.random().toString(36).substr(2, 9),
-                                            title: match[1].trim(),
-                                            media: match[2].trim()
-                                        });
-                                    }
-                                    if (foundMusic.length > 0) setMusicItems(foundMusic);
-                                } else if (localItem.isFocus) {
-                                    setActiveTab('Focus');
-                                }
-                            }
-                            setWidgets([{ id: 'legacy-1', content: data.content }]);
+                            parseAndInitialize(localItem || {}, data.content);
                         }
+                    } else {
+                        // Fallback to local data if API fails
+                        const localItem = (newsData as any[]).find(n => String(n.id) === String(id));
+                        if (localItem) parseAndInitialize(localItem, localItem.content || '');
                     }
                 } catch (e) {
                     console.error("Failed to fetch item for edit", e);
-                } finally {
-                    console.log('[NewsCreate] Fetch complete');
                     setIsLoading(false);
-                    // Ensure tracking works after fetch
-                    initialDataLoaded.current = true;
                 }
             };
             fetchFullItem();
-        } else {
-            setIsLoading(false);
         }
     }, [isEditing, editingItem, searchParams, type]);
 
@@ -365,153 +389,11 @@ export function NewsCreate() {
 
 
     useEffect(() => {
-        if (isEditing && editingItem) {
-            setTitle(editingItem.title);
-            setSummary(editingItem.summary);
-            setImageUrl(editingItem.image);
-            setDate(editingItem.date);
-            setCategory(editingItem.category);
-            setYoutubeId(editingItem.youtubeId || '');
-            setShowVideo(editingItem.showVideo !== false);
-            setIsFeatured(editingItem.isFeatured || false);
-            setAuthor(editingItem.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
-            if (editingItem.category === 'Interview') {
-                setInterviewSubtype('written');
-                // Try to parse Q&A and Media
-                const singleSectionPattern = /<div class="article-section">([\s\S]*?)<\/div>/g;
-                const qnaRegex = /<p><strong[^>]*>DROPSIDERS\s*:\s*<\/strong>\s*([\s\S]*?)<\/p>\s*<p><strong[^>]*>(.*?)\s*:\s*<\/strong>\s*([\s\S]*?)<\/p>/i;
-                const imgRegex = /<div class="image-premium-wrapper[^>]*>[\s\S]*?<img src="([^"]*)"/i;
-                const vidRegex = /<div class="youtube-player-widget[^>]*>[\s\S]*?src="https:\/\/www\.youtube\.com\/embed\/([^"? ]*)/i;
-                const socialsRegex = /<div class="artist-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
-                const socialLinkRegex = /href="([^"]+)"[^>]*data-platform="([^"]+)"/g;
-
-                const socialsMatch = (editingItem.content || '').match(socialsRegex);
-                if (socialsMatch) {
-                    const socialsContent = socialsMatch[1];
-                    let linkMatch;
-                    const newSocials = { ...artistSocials };
-                    while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
-                        const [_, url, platform] = linkMatch;
-                        if (platform in newSocials) {
-                            (newSocials as any)[platform] = url;
-                        }
-                    }
-                    setArtistSocials(newSocials);
-                }
-
-                const festSocialsRegex = /<div class="festival-socials-premium[^>]*>([\s\S]*?)<\/div>/i;
-                const festSocialsMatch = (editingItem.content || '').match(festSocialsRegex);
-                if (festSocialsMatch) {
-                    const socialsContent = festSocialsMatch[1];
-                    let linkMatch;
-                    const newSocials = { ...festivalSocials };
-                    while ((linkMatch = socialLinkRegex.exec(socialsContent)) !== null) {
-                        const [_, url, platform] = linkMatch;
-                        if (platform in newSocials) {
-                            (newSocials as any)[platform] = url;
-                        }
-                    }
-                    setFestivalSocials(newSocials);
-                }
-
-                const foundBlocks: { id: string, type: 'qa' | 'image' | 'video', question?: string, artistName?: string, answer?: string, mediaUrl?: string }[] = [];
-                let sectionMatch;
-                while ((sectionMatch = singleSectionPattern.exec(editingItem.content || '')) !== null) {
-                    const sectionContent = sectionMatch[1];
-                    const qnaMatch = sectionContent.match(qnaRegex);
-                    const imgMatch = sectionContent.match(imgRegex);
-                    const vidMatch = sectionContent.match(vidRegex);
-
-                    if (qnaMatch) {
-                        foundBlocks.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            type: 'qa',
-                            question: qnaMatch[1].trim(),
-                            artistName: qnaMatch[2].trim(),
-                            answer: qnaMatch[3].trim()
-                        });
-                    } else if (imgMatch) {
-                        foundBlocks.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            type: 'image',
-                            mediaUrl: imgMatch[1]
-                        });
-                    } else if (vidMatch) {
-                        foundBlocks.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            type: 'video',
-                            mediaUrl: vidMatch[1]
-                        });
-                    }
-                }
-                if (foundBlocks.length > 0) {
-                    setInterviewQuestions(foundBlocks);
-                    // Also clear widgets to avoid duplicate editing UI
-                    setWidgets([]);
-                }
-            } else if (editingItem.category === 'Musique') {
-                setActiveTab('Musique');
-                // Try to parse music items
-                const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                const foundMusic = [];
-                let match;
-                while ((match = musicSectionRegex.exec(editingItem.content || '')) !== null) {
-                    foundMusic.push({
-                        id: Math.random().toString(36).substr(2, 9),
-                        title: match[1].trim(),
-                        media: match[2].trim()
-                    });
-                }
-                if (foundMusic.length > 0) setMusicItems(foundMusic);
-            } else if (editingItem.isFocus) {
-                setActiveTab('Focus');
-            }
-
-            // Parse Content into Widgets
-            let c = editingItem.content || '';
-            // Basic cleanup of wrapper if present from old system
-            if (typeof c === 'string' && c.startsWith('<div class="markdown-content">')) {
-                c = c.replace('<div class="markdown-content">', '').replace(/<\/div>$/, '').replace(/<br>/g, '\n');
-            }
-            if (typeof c === 'string' && c.startsWith('<div class="article-section">')) {
-                // Optimization: if it's Just one big section, we might want to keep it as one widget
-            }
-
-            const foundWidgets: { id: string, content: string }[] = [];
-            const articleSectionPattern = '<div class="article-section';
-            if (c.includes(articleSectionPattern)) {
-                const parts = c.split(articleSectionPattern);
-                for (let i = 1; i < parts.length; i++) {
-                    const part = parts[i];
-                    const openTagEnd = part.indexOf('>');
-                    if (openTagEnd !== -1) {
-                        let content = part.substring(openTagEnd + 1);
-                        const lastCloseIdx = content.lastIndexOf('</div>');
-                        if (lastCloseIdx !== -1) {
-                            content = content.substring(0, lastCloseIdx);
-                        }
-                        foundWidgets.push({
-                            id: Math.random().toString(36).substring(2, 11),
-                            content: content.trim()
-                        });
-                    }
-                }
-            }
-
-            if (foundWidgets.length > 0) {
-                setWidgets(foundWidgets);
-            } else {
-                // FALLBACK: If no sections found but content exists, don't leave it empty
-                setWidgets([{ id: 'legacy-1', content: c || '' }]);
-            }
-        } else if (!isEditing) {
-            setCategory(type);
+        if (!isEditing) {
+            setCategory(type || 'News');
         }
-    }, [type, isEditing, editingItem]);
+    }, [type, isEditing]);
 
-    const pageTitle = isEditing
-        ? `Modifier ${type === 'Interview' ? 'l\'Interview' : 'l\'Article'}`
-        : (type === 'Interview' ? 'Ajouter une Interview' : 'Ajouter une News');
 
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -1020,6 +902,17 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
+        if (!isAuthorConfirmed) {
+            setStatus('error');
+            setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
+            // Scroll to the editor section
+            const editorLabel = document.querySelector('[data-section="editor-selection"]');
+            if (editorLabel) {
+                editorLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         if (isInterviewVideo && !youtubeId) {
             setStatus('error');
             setMessage('Le lien vidéo est obligatoire pour une interview vidéo');
@@ -1102,8 +995,9 @@ ${generateFestivalSocialsHtml()}
                     `<div class="article-section">\n\n${w.content}\n\n</div>`
                 ).join('\n\n');
 
-                if (generateFestivalSocialsHtml()) {
-                    finalContent += `\n\n<div class="article-section">${generateFestivalSocialsHtml()}</div>`;
+                const socialsHtml = generateSocialsHtml() + generateFestivalSocialsHtml();
+                if (socialsHtml) {
+                    finalContent += `\n\n<div class="article-section">${socialsHtml}</div>`;
                 }
             }
 
@@ -1184,26 +1078,37 @@ ${generateFestivalSocialsHtml()}
     return (
         <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
-                    <div className="flex items-center gap-4 md:gap-6">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                    <div className="flex items-center gap-6">
                         <button
-                            onClick={() => {
-                                if (window.history.length > 1) navigate(-1);
-                                else navigate('/admin/manage');
-                            }}
-                            className="p-3 md:p-4 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl hover:bg-white/10 transition-all text-white group"
-                            title="Retour"
+                            onClick={() => navigate(-1)}
+                            className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-white group"
                         >
-                            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
+                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                         </button>
                         <div>
-                            <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                Studio <span className="text-neon-red">Editor</span>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'
+                                    }`}>
+                                    {isEditing ? 'Mode Édition' : 'Nouvel Article'}
+                                </span>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                    <User className="w-3 h-3 text-gray-500" />
+                                    <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                        Éditeur : <span className="text-neon-cyan">{author}</span>
+                                    </span>
+                                    {isAuthorConfirmed ? (
+                                        <CheckCircle2 className="w-3 h-3 text-neon-green" />
+                                    ) : (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                    )}
+                                </div>
+                            </div>
+                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Musique' : 'une Actualité'}</span>
                             </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">{pageTitle}</p>
                         </div>
                     </div>
-
                     <div className="flex items-center gap-3 w-full md:w-auto">
                         {isEditing && (
                             <button
@@ -1344,25 +1249,65 @@ ${generateFestivalSocialsHtml()}
                         </div>
 
                         {/* Author Selector */}
-                        <div>
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                <User className="w-4 h-4" /> Éditeur
+                        <div data-section="editor-selection" className="space-y-6">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
                             </label>
-                            <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 pointer-events-none" />
-                                <select
-                                    value={author}
-                                    onChange={(e) => setAuthor(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none appearance-none cursor-pointer"
-                                >
-                                    {(editorsData as any[]).map((editor: any) => (
-                                        <option key={editor.username} value={editor.name} className="bg-dark-bg text-white">
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                {(editorsData as any[]).map((editor: any) => (
+                                    <button
+                                        key={editor.username}
+                                        type="button"
+                                        onClick={() => {
+                                            setAuthor(editor.name);
+                                            setIsAuthorConfirmed(false);
+                                        }}
+                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
+                                            ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
+                                            : 'bg-black/40 border-white/10 hover:border-white/20'
+                                            }`}
+                                    >
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
+                                            }`}>
+                                            <User className="w-5 h-5" />
+                                        </div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
+                                            }`}>
                                             {editor.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                        </span>
+                                        {author === editor.name && (
+                                            <div className="absolute top-2 right-2">
+                                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div
+                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
+                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
+                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
+                                    }`}
+                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
+                            >
+                                <button
+                                    type="button"
+                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
+                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                                        : 'bg-black/40 border-white/20'
+                                        }`}
+                                >
+                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
+                                        Confirmer l'Éditeur
+                                    </span>
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce contenu
+                                    </span>
                                 </div>
                             </div>
                         </div>

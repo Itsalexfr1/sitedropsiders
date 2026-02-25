@@ -43,10 +43,14 @@ export function News() {
                 const data = await res.json();
                 fullItem.content = data.content || '';
             }
-            navigate(`/news/create?id=${item.id}`, { state: { isEditing: true, item: fullItem } });
+            const isItemInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video';
+            const editUrl = isItemInterview ? `/news/create?type=Interview&id=${item.id}` : `/news/create?id=${item.id}`;
+            navigate(editUrl, { state: { isEditing: true, item: fullItem } });
         } catch (e) {
             console.error('Error fetching content:', e);
-            navigate(`/news/create?id=${item.id}`, { state: { isEditing: true, item: item } });
+            const isItemInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video';
+            const editUrl = isItemInterview ? `/news/create?type=Interview&id=${item.id}` : `/news/create?id=${item.id}`;
+            navigate(editUrl, { state: { isEditing: true, item: item } });
         } finally {
             setLoadingEditId(null);
         }
