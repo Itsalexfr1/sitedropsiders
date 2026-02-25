@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus } from 'lucide-react';
-import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
-// import { uploadValidation, uploadToCloudinary } from '../utils/uploadService'; // Unused
+import editorsData from '../data/editors.json';
+import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus, Youtube, Link2, Ghost, PartyPopper } from 'lucide-react';
+import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
@@ -25,6 +25,16 @@ export function GalerieCreate() {
     const [replaceIndex, setReplaceIndex] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
     const [showRawLinks, setShowRawLinks] = useState(false);
+
+    const [author, setAuthor] = useState(() => {
+        const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+        const found = (editorsData as any[]).find(e =>
+            e.name.toLowerCase() === stored.toLowerCase() ||
+            e.username.toLowerCase() === stored.toLowerCase()
+        );
+        return found ? found.name : 'Alex';
+    });
+    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
 
     // Fetch item if missing from state but ID is present
     useEffect(() => {
@@ -124,6 +134,13 @@ export function GalerieCreate() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!isAuthorConfirmed) {
+            setStatus('error');
+            setMessage("Veuillez confirmer l'éditeur de l'album en cochant la case correspondante.");
+            return;
+        }
+
         setStatus('loading');
         setMessage('Publication en cours...');
 
@@ -148,7 +165,8 @@ export function GalerieCreate() {
                     category,
                     cover: finalCover,
                     hoverMedia: hoverMediaUrl,
-                    images: images
+                    images: images,
+                    author: author
                 }),
             });
 
@@ -176,6 +194,7 @@ export function GalerieCreate() {
                 setCoverUrl('');
                 setHoverMediaUrl('');
                 setImageUrls('');
+                setIsAuthorConfirmed(false);
                 setTimeout(() => setStatus('idle'), 3000);
             } else {
                 setTimeout(() => navigate('/admin/manage'), 2000);
@@ -239,6 +258,69 @@ export function GalerieCreate() {
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8">
                     <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* Author Selector */}
+                        <div data-section="editor-selection" className="space-y-6 pb-8 border-b border-white/10 mb-8">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <User className="w-3 h-3 text-neon-pink" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
+                            </label>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                {(editorsData as any[]).map((editor: any) => (
+                                    <button
+                                        key={editor.username}
+                                        type="button"
+                                        onClick={() => {
+                                            setAuthor(editor.name);
+                                            setIsAuthorConfirmed(false);
+                                        }}
+                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
+                                            ? 'bg-neon-pink/10 border-neon-pink shadow-[0_0_15px_rgba(255,18,65,0.2)]'
+                                            : 'bg-black/40 border-white/10 hover:border-white/20'
+                                            }`}
+                                    >
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-pink text-black' : 'bg-white/5 text-gray-400'
+                                            }`}>
+                                            <User className="w-5 h-5" />
+                                        </div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-pink' : 'text-gray-500'
+                                            }`}>
+                                            {editor.name}
+                                        </span>
+                                        {author === editor.name && (
+                                            <div className="absolute top-2 right-2">
+                                                <div className="w-2 h-2 rounded-full bg-neon-pink animate-pulse" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div
+                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
+                                    ? 'bg-neon-pink/5 border-neon-pink/30'
+                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
+                                    }`}
+                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
+                            >
+                                <button
+                                    type="button"
+                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
+                                        ? 'bg-neon-pink border-neon-pink shadow-[0_0_10px_rgba(255,18,65,0.3)]'
+                                        : 'bg-black/40 border-white/20'
+                                        }`}
+                                >
+                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
+                                        Confirmer l'Éditeur
+                                    </span>
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        Je certifie que <span className="text-neon-pink font-black">{author}</span> est bien l'auteur de cet album
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                         {/* Title */}
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre de l'Album <span className="text-neon-red">*</span></label>

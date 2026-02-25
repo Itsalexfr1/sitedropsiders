@@ -698,6 +698,12 @@ export function RecapCreate() {
             return;
         }
 
+        if (!coverImage) {
+            setStatus('error');
+            setMessage('Veuillez ajouter une image de couverture.');
+            return;
+        }
+
         setStatus('loading');
         setMessage('Publication en cours...');
 
@@ -762,6 +768,15 @@ export function RecapCreate() {
                 setLocationInput('');
                 setYoutubeId('');
                 setIsFeatured(false);
+                setIsAuthorConfirmed(false);
+                setFestivalSocials({
+                    website: '',
+                    instagram: '',
+                    tiktok: '',
+                    youtube: '',
+                    facebook: '',
+                    x: ''
+                });
                 setIsDirty(false); // Reset dirty state
                 // Clear status after a while
                 setTimeout(() => setStatus('idle'), 3000);

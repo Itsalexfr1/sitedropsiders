@@ -923,7 +923,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
     const handleSubmit = async () => {
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
-        if (!title || (!imageUrl && !isInterviewVideo)) {
+        if (!title || !imageUrl) {
             setStatus('error');
             setMessage('Veuillez remplir les champs obligatoires (Titre, Image)');
             return;
@@ -935,7 +935,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
-        if (!isAuthorConfirmed && !isInterviewVideo) {
+        if (!isAuthorConfirmed) {
             setStatus('error');
             setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
             // Scroll to the editor section
@@ -1072,8 +1072,22 @@ ${generateFestivalSocialsHtml()}
                     setImageUrl('');
                     setYoutubeId('');
                     setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
+                    setArtistNameLabel('');
+                    setFestivalNameLabel('');
+                    setArtistSocials({
+                        website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
+                    });
+                    setFestivalSocials({
+                        website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: ''
+                    });
+                    setInterviewQuestions([
+                        { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
+                    ]);
                     setIsFeatured(false);
+                    setIsAuthorConfirmed(false);
                     setIsDirty(false); // Reset dirty state after successful publication
+                    setActiveTab('News');
+                    setShowVideo(type !== 'Interview');
                     // Clear status after a while
                     setTimeout(() => setStatus('idle'), 3000);
                 } else {
@@ -1282,70 +1296,68 @@ ${generateFestivalSocialsHtml()}
                         </div>
 
                         {/* Author Selector */}
-                        {!(type === 'Interview' && interviewSubtype === 'video') && (
-                            <div data-section="editor-selection" className="space-y-6">
-                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                    <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
-                                </label>
+                        <div data-section="editor-selection" className="space-y-6">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
+                            </label>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                    {(editorsData as any[]).map((editor: any) => (
-                                        <button
-                                            key={editor.username}
-                                            type="button"
-                                            onClick={() => {
-                                                setAuthor(editor.name);
-                                                setIsAuthorConfirmed(false);
-                                            }}
-                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
-                                                ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
-                                                : 'bg-black/40 border-white/10 hover:border-white/20'
-                                                }`}
-                                        >
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
-                                                }`}>
-                                                <User className="w-5 h-5" />
-                                            </div>
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
-                                                }`}>
-                                                {editor.name}
-                                            </span>
-                                            {author === editor.name && (
-                                                <div className="absolute top-2 right-2">
-                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-
-                                <div
-                                    className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
-                                        ? 'bg-neon-cyan/5 border-neon-cyan/30'
-                                        : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
-                                        }`}
-                                    onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
-                                >
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                {(editorsData as any[]).map((editor: any) => (
                                     <button
+                                        key={editor.username}
                                         type="button"
-                                        className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
-                                            ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
-                                            : 'bg-black/40 border-white/20'
+                                        onClick={() => {
+                                            setAuthor(editor.name);
+                                            setIsAuthorConfirmed(false);
+                                        }}
+                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
+                                            ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
+                                            : 'bg-black/40 border-white/10 hover:border-white/20'
                                             }`}
                                     >
-                                        {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
+                                            }`}>
+                                            <User className="w-5 h-5" />
+                                        </div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
+                                            }`}>
+                                            {editor.name}
+                                        </span>
+                                        {author === editor.name && (
+                                            <div className="absolute top-2 right-2">
+                                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                                            </div>
+                                        )}
                                     </button>
-                                    <div className="flex flex-col">
-                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
-                                            Confirmer l'Éditeur
-                                        </span>
-                                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                            Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce contenu
-                                        </span>
-                                    </div>
+                                ))}
+                            </div>
+
+                            <div
+                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
+                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
+                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
+                                    }`}
+                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
+                            >
+                                <button
+                                    type="button"
+                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
+                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                                        : 'bg-black/40 border-white/20'
+                                        }`}
+                                >
+                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
+                                        Confirmer l'Éditeur
+                                    </span>
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce contenu
+                                    </span>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
                         {(activeTab !== 'Musique' && !(type === 'Interview' && interviewSubtype === 'video')) && (
                             <div>
@@ -1459,58 +1471,56 @@ ${generateFestivalSocialsHtml()}
                             </div>
                         </div>
 
-                        {/* ARTIST SOCIALS (Only for Interviews) */}
-                        {type === 'Interview' && (
-                            <div className="pt-8 border-t border-white/10 mt-4">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                        <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
-                                    </label>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[9px] font-black text-gray-500 uppercase">Suivre :</span>
-                                        <input
-                                            type="text"
-                                            value={artistNameLabel}
-                                            onChange={(e) => setArtistNameLabel(e.target.value)}
-                                            className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest"
-                                            placeholder="NOM DE L'ARTISTE"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                    {[
-                                        { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
-                                        { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                        { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                        { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                        { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                        { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
-                                        { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
-                                        { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
-                                        { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
-                                    ].map((social) => (
-                                        <div key={social.id}>
-                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
-                                                {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
-                                            </label>
-                                            <div className="relative group">
-                                                <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                                    <social.icon className="w-full h-full" />
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    value={(artistSocials as any)[social.id]}
-                                                    onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
-                                                    className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
-                                                    placeholder="URL Artiste..."
-                                                />
-                                            </div>
-                                        </div>
-                                    ))}
+                        {/* ARTIST SOCIALS (Everywhere) */}
+                        <div className="pt-8 border-t border-white/10 mt-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-black text-gray-500 uppercase">Suivre :</span>
+                                    <input
+                                        type="text"
+                                        value={artistNameLabel}
+                                        onChange={(e) => setArtistNameLabel(e.target.value)}
+                                        className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest"
+                                        placeholder="NOM DE L'ARTISTE"
+                                    />
                                 </div>
                             </div>
-                        )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
+                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                    { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
+                                    { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
+                                    { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
+                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                                ].map((social) => (
+                                    <div key={social.id}>
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                            {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
+                                        </label>
+                                        <div className="relative group">
+                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                <social.icon className="w-full h-full" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={(artistSocials as any)[social.id]}
+                                                onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
+                                                className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                                placeholder="URL Artiste..."
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
 
+                        </div>
 
                         {/* FESTIVAL SOCIALS (For all News/Interviews) */}
                         <div className="pt-8 border-t border-white/10 mt-4">
