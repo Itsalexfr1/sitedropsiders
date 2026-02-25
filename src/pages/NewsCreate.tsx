@@ -1407,44 +1407,42 @@ ${generateFestivalSocialsHtml()}
 
                         {/* Image & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {!(type === 'Interview' && interviewSubtype === 'video') && (
-                                <div>
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                        <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={imageUrl}
-                                            onChange={(e) => setImageUrl(e.target.value)}
-                                            className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                            placeholder="https://..."
-                                        />
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <ImageIcon className="w-4 h-4" /> Image <span className="text-neon-red">*</span>
+                                </label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={imageUrl}
+                                        onChange={(e) => setImageUrl(e.target.value)}
+                                        className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                        placeholder="https://..."
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUploadTarget({ type: 'main' });
+                                            setShowUploadModal(true);
+                                        }}
+                                        className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                    >
+                                        Upload
+                                    </button>
+                                    {imageUrl && (
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                setUploadTarget({ type: 'main' });
-                                                setShowUploadModal(true);
-                                            }}
-                                            className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                            onClick={() => setImageUrl('')}
+                                            className="p-3 bg-red-600/10 border border-red-600/20 text-red-600 rounded-xl hover:bg-red-600/20 transition-all flex items-center justify-center h-full"
+                                            title="Supprimer l'image"
                                         >
-                                            Upload
+                                            <Trash2 className="w-5 h-5" />
                                         </button>
-                                        {imageUrl && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setImageUrl('')}
-                                                className="p-3 bg-red-600/10 border border-red-600/20 text-red-600 rounded-xl hover:bg-red-600/20 transition-all flex items-center justify-center h-full"
-                                                title="Supprimer l'image"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                            </button>
-                                        )}
+                                    )}
 
-                                    </div>
                                 </div>
-                            )}
-                            <div className={type === 'Interview' && interviewSubtype === 'video' ? 'md:col-span-2' : ''}>
+                            </div>
+                            <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                         <Youtube className="w-4 h-4" /> {type === 'Interview' && interviewSubtype === 'video' ? 'Lien Vidéo (ID ou URL)' : 'Vidéo de l\'article'}
@@ -1495,113 +1493,115 @@ ${generateFestivalSocialsHtml()}
                                 )}
                             </div>
                         </div>
+                    </div>
 
-                        {/* ARTIST SOCIALS (Everywhere) */}
-                        <div className="pt-8 border-t border-white/10 mt-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                    <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-black text-gray-500 uppercase">Suivre :</span>
-                                    <input
-                                        type="text"
-                                        value={artistNameLabel}
-                                        onChange={(e) => setArtistNameLabel(e.target.value)}
-                                        className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest"
-                                        placeholder="NOM DE L'ARTISTE"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {[
-                                    { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
-                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                    { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
-                                    { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
-                                    { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
-                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
-                                ].map((social) => (
-                                    <div key={social.id}>
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
-                                            {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
-                                        </label>
-                                        <div className="relative group">
-                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                                <social.icon className="w-full h-full" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                value={(artistSocials as any)[social.id]}
-                                                onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
-                                                className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
-                                                placeholder="URL Artiste..."
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                        </div>
-
-                        {/* FESTIVAL SOCIALS (For all News/Interviews) */}
-                        <div className="pt-8 border-t border-white/10 mt-4">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                    <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Suivre :</span>
-                                    <input
-                                        type="text"
-                                        value={festivalNameLabel}
-                                        onChange={(e) => setFestivalNameLabel(e.target.value)}
-                                        className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-red w-48 font-bold uppercase tracking-widest"
-                                        placeholder="NOM DU FESTIVAL / EVENT"
-                                    />
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[
-                                    { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
-                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                    { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
-                                ].map((social) => (
-                                    <div key={social.id}>
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
-                                        <div className="relative group">
-                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                                <social.icon className="w-full h-full" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                value={(festivalSocials as any)[social.id]}
-                                                onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
-                                                className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
-                                                placeholder="URL Festival..."
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
+                    {/* ARTIST SOCIALS (Everywhere) */}
+                    <div className="pt-8 border-t border-white/10 mt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black text-gray-500 uppercase">Suivre :</span>
+                                <input
+                                    type="text"
+                                    value={artistNameLabel}
+                                    onChange={(e) => setArtistNameLabel(e.target.value)}
+                                    className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest"
+                                    placeholder="NOM DE L'ARTISTE"
+                                />
                             </div>
                         </div>
-
-
-
-                        {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
-                        {((activeTab === 'News' || activeTab === 'Focus' || type === 'Interview')) && (
-                            <div className="pt-8 border-t border-white/10">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                    <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                        <FileText className="w-4 h-4 text-neon-cyan" /> WIDGETS
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                                { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
+                                { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
+                                { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
+                                { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
+                                { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                            ].map((social) => (
+                                <div key={social.id}>
+                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                        {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
                                     </label>
-                                    <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+                                    <div className="relative group">
+                                        <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                            <social.icon className="w-full h-full" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={(artistSocials as any)[social.id]}
+                                            onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
+                                            className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                            placeholder="URL Artiste..."
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                    </div>
+
+                    {/* FESTIVAL SOCIALS (For all News/Interviews) */}
+                    <div className="pt-8 border-t border-white/10 mt-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Suivre :</span>
+                                <input
+                                    type="text"
+                                    value={festivalNameLabel}
+                                    onChange={(e) => setFestivalNameLabel(e.target.value)}
+                                    className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-red w-48 font-bold uppercase tracking-widest"
+                                    placeholder="NOM DU FESTIVAL / EVENT"
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[
+                                { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
+                                { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
+                            ].map((social) => (
+                                <div key={social.id}>
+                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                    <div className="relative group">
+                                        <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                            <social.icon className="w-full h-full" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={(festivalSocials as any)[social.id]}
+                                            onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
+                                            className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                            placeholder="URL Festival..."
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+
+
+                    {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
+                    {((activeTab === 'News' || activeTab === 'Focus' || type === 'Interview')) && (
+                        <div className="pt-8 border-t border-white/10">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <FileText className="w-4 h-4 text-neon-cyan" /> WIDGETS
+                                </label>
+                                <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0 -mx-4 px-4 sm:mx-0 sm:px-0">
+                                    {!(type === 'Interview' && interviewSubtype === 'video') && (
                                         <button
                                             onClick={() => {
                                                 const id = Math.random().toString(36).substr(2, 9);
@@ -1611,896 +1611,897 @@ ${generateFestivalSocialsHtml()}
                                         >
                                             <Plus className="w-3 h-3" /> Titre
                                         </button>
-                                        <button
-                                            onClick={() => addWidget()}
-                                            className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Plus className="w-3 h-3" /> Texte
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setMediaModal({ show: true, type: 'video', url: '', urls: '' })}
-                                            className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-red-600/20 border border-red-600/30 text-red-600 rounded-full hover:bg-red-600/30 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Youtube className="w-3 h-3" /> Vidéo
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setUploadTarget({ type: 'widget' });
-                                                setShowUploadModal(true);
-                                            }}
-                                            className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Upload className="w-3 h-3" /> Upload
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
-                                            className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Columns className="w-3 h-3" /> Duo
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setMediaModal({ show: true, type: 'gallery', url: '', urls: '' })}
-                                            className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Plus className="w-3 h-3" /> Galerie
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4">
-                                    {widgets.map((widget, index) => (
-                                        <div key={widget.id} className="space-y-4">
-                                            <div className="relative group bg-white/5 border border-white/10 rounded-2xl p-3 md:p-6 transition-all hover:border-white/20">
-                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black text-gray-400">
-                                                            {index + 1}
-                                                        </span>
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                                                            {widget.content.startsWith('<h2') ? 'Titre' :
-                                                                widget.content.includes('duo-photos-premium') ? 'Duo Photos' :
-                                                                    widget.content.includes('image-premium-wrapper') ? 'Image' :
-                                                                        widget.content.includes('gallery-premium-grid') ? 'Galerie' : 'Texte'}
-                                                        </span>
-
-                                                        {/* Movement Arrows */}
-                                                        <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => moveWidgetUp(index)}
-                                                                className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
-                                                                disabled={index === 0}
-                                                                title="Monter"
-                                                            >
-                                                                <ChevronUp className="w-3.5 h-3.5" />
-                                                            </button>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => moveWidgetDown(index)}
-                                                                className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
-                                                                disabled={index === widgets.length - 1}
-                                                                title="Descendre"
-                                                            >
-                                                                <ChevronDown className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex flex-wrap items-center gap-2">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => insertLinkToActiveWidget(widget.id)}
-                                                            className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
-                                                            title="Ajouter un lien"
-                                                        >
-                                                            <Link2 className="w-4 h-4" /> Lien
-                                                        </button>
-                                                        {(!widget.content.startsWith('<h2') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
-                                                            <>
-                                                                <button
-                                                                    type="button"
-                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'font-display')}
-                                                                    className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('font-display') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
-                                                                    title="Changer Police (Display)"
-                                                                >
-                                                                    <Type className="w-4 h-4" /> Police
-                                                                </button>
-                                                                <button
-                                                                    type="button"
-                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'uppercase')}
-                                                                    className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('uppercase') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
-                                                                    title="Tout en Majuscules"
-                                                                >
-                                                                    <CaseUpper className="w-4 h-4" /> MAJ
-                                                                </button>
-                                                                <div className="flex bg-black/40 rounded-lg border border-white/5 p-0.5">
-                                                                    <button
-                                                                        type="button"
-                                                                        onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-sm')}
-                                                                        className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-sm') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
-                                                                        title="Petit"
-                                                                    >
-                                                                        S
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-2xl')}
-                                                                        className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-2xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
-                                                                        title="Grand"
-                                                                    >
-                                                                        L
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-5xl')}
-                                                                        className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-5xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
-                                                                        title="Énorme"
-                                                                    >
-                                                                        XL
-                                                                    </button>
-                                                                </div>
-
-                                                                <div className="flex bg-black/40 rounded-lg border border-white/5 p-1">
-                                                                    <button
-                                                                        type="button"
-                                                                        onMouseDown={e => e.preventDefault()}
-                                                                        onClick={() => applyFormat('bold')}
-                                                                        className="p-1.5 text-gray-500 hover:text-white"
-                                                                        title="Gras"
-                                                                    >
-                                                                        <Bold className="w-4 h-4" />
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onMouseDown={e => e.preventDefault()}
-                                                                        onClick={() => applyFormat('italic')}
-                                                                        className="p-1.5 text-gray-500 hover:text-white"
-                                                                        title="Italique"
-                                                                    >
-                                                                        <Italic className="w-4 h-4" />
-                                                                    </button>
-                                                                    <button
-                                                                        type="button"
-                                                                        onMouseDown={e => e.preventDefault()}
-                                                                        onClick={() => applyFormat('underline')}
-                                                                        className="p-1.5 text-gray-500 hover:text-white"
-                                                                        title="Souligner"
-                                                                    >
-                                                                        <UnderlineIcon className="w-4 h-4" />
-                                                                    </button>
-                                                                </div>
-
-                                                                <div className="flex flex-wrap bg-black/40 rounded-lg border border-white/5 p-1 gap-1 max-w-[160px]">
-                                                                    {[
-                                                                        '#ffffff', '#000000', '#6b7280', '#f5f5dc', '#ff1241', '#dc2626', '#991b1b',
-                                                                        '#7f1d1d', '#7c3aed', '#bd00ff', '#ff00ff', '#f472b6', '#c084fc', '#fbcfe8',
-                                                                        '#db2777', '#fb7185', '#fca5a5', '#fdba74', '#fb923c', '#fde047', '#facc15',
-                                                                        '#bef264', '#86efac', '#22c55e', '#f87171', '#16a34a', '#10b981', '#84cc16',
-                                                                        '#2dd4bf', '#99f6e4', '#2b65ec', '#38bdf8', '#00fff3'
-                                                                    ].map(color => (
-                                                                        <button
-                                                                            key={color}
-                                                                            type="button"
-                                                                            onMouseDown={e => e.preventDefault()}
-                                                                            onClick={() => applyColorToSelection(widget.id, color)}
-                                                                            className="w-3 h-3 rounded-full border border-white/10 hover:scale-125 transition-transform"
-                                                                            style={{ backgroundColor: color }}
-                                                                        />
-                                                                    ))}
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                                const activeEl = document.activeElement;
-                                                                const isVisualEditor = activeEl && activeEl.classList.contains('visual-editor-content');
-
-                                                                if (isVisualEditor) {
-                                                                    document.execCommand('insertUnorderedList', false);
-                                                                    return;
-                                                                }
-
-                                                                const ta = activeEl as HTMLTextAreaElement;
-                                                                const isCorrectTextarea = ta && ta.tagName === 'TEXTAREA';
-                                                                if (!isCorrectTextarea) return;
-
-                                                                const start = ta.selectionStart;
-                                                                const end = ta.selectionEnd;
-                                                                const val = ta.value;
-                                                                const bullet = '• ';
-
-                                                                setWidgets(widgets.map(w => {
-                                                                    if (w.id === widget.id) {
-                                                                        const before = val.substring(0, start);
-                                                                        const after = val.substring(end);
-                                                                        return { ...w, content: before + bullet + after };
-                                                                    }
-                                                                    return w;
-                                                                }));
-                                                            }}
-                                                            className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
-                                                            title="Ajouter une puce"
-                                                        >
-                                                            <List className="w-4 h-4" /> Puce
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => fixWidgetEncoding(widget.id)}
-                                                            className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-colors"
-                                                            title="Réparer les caractères"
-                                                        >
-                                                            <Wand2 className="w-4 h-4" />
-                                                        </button>
-                                                        {(widget.content.includes('youtube-player-widget') || widget.content.includes('image-premium-wrapper')) && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    if (widget.content.includes('duo-photos-premium')) {
-                                                                        const extracted = extractDuoUrls(widget.content);
-                                                                        setDuoModal({
-                                                                            show: true,
-                                                                            url1: extracted.urls[0] || '',
-                                                                            url2: extracted.urls[1] || '',
-                                                                            widgetIndex: undefined,
-                                                                            widgetId: widget.id,
-                                                                            aspectRatio: extracted.ratio
-                                                                        });
-                                                                    } else if (widget.content.includes('video-group-premium')) {
-                                                                        const extracted = extractVideoUrls(widget.content);
-                                                                        setVideoGroupModal({
-                                                                            show: true,
-                                                                            urls: [...extracted.urls, '', ''].slice(0, 3),
-                                                                            count: extracted.count,
-                                                                            widgetId: widget.id
-                                                                        });
-                                                                    } else if (widget.content.includes('youtube-player-widget')) {
-                                                                        const val = prompt('Nouvelle URL YouTube ou ID');
-                                                                        if (!val) return;
-                                                                        let id = val;
-                                                                        if (val.includes('youtube.com/watch?v=')) {
-                                                                            id = val.split('v=')[1].split('&')[0];
-                                                                        } else if (val.includes('youtu.be/')) {
-                                                                            id = val.split('youtu.be/')[1];
-                                                                        }
-                                                                        const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
-                                                                        updateWidget(widget.id, videoWidget);
-                                                                    } else if (widget.content.includes('image-premium-wrapper')) {
-                                                                        const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
-                                                                        setMediaModal({
-                                                                            show: true,
-                                                                            type: 'image',
-                                                                            url: url,
-                                                                            urls: '',
-                                                                            aspectRatio: ratio,
-                                                                            widgetId: widget.id
-                                                                        });
-                                                                    }
-                                                                }}
-                                                                className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors"
-                                                                title="Éditer le widget"
-                                                            >
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </button>
-                                                        )}
-                                                        {widgets.length > 1 && (
-                                                            <button
-                                                                onClick={() => removeWidget(widget.id)}
-                                                                className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                </div>
-
-                                                {/* Le rendu final est désormais directement éditable au-dessus */}
-
-                                                {/* Title Block Editor */}
-                                                {widget.content.startsWith('<h2 class="premium-section-title">') && widget.content.endsWith('</h2>') ? (
-                                                    <div className="bg-black/60 border-l-4 border-neon-red pl-4 py-4 rounded-r-xl">
-                                                        <input
-                                                            type="text"
-                                                            value={widget.content.replace('<h2 class="premium-section-title">', '').replace('</h2>', '')}
-                                                            onChange={(e) => updateWidget(widget.id, `<h2 class="premium-section-title">${e.target.value}</h2>`)}
-                                                            className="w-full bg-transparent text-xl font-display font-black text-white uppercase italic tracking-tighter border-none focus:ring-0 placeholder-gray-700"
-                                                            placeholder="VOTRE TITRE DE SECTION..."
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    !widget.content.includes('youtube-player-widget') &&
-                                                        !widget.content.includes('image-premium-wrapper') &&
-                                                        !widget.content.includes('gallery-premium-grid') &&
-                                                        !widget.content.includes('duo-photos-premium') ? (
-                                                        <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
-                                                            <VisualEditor
-                                                                content={widget.content}
-                                                                onChange={(html) => updateWidget(widget.id, html)}
-                                                                className="visual-editor-content p-4 md:p-8 min-h-[150px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm md:text-base"
-                                                                widgetId={widget.id}
-                                                                onFocus={(e) => {
-                                                                    if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
-                                                                }}
-                                                            />
-                                                        </div>
-                                                    ) : (
-                                                        <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
-                                                            <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
-                                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                                                                <div className="bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
-                                                                    <ImageIcon className="w-8 h-8 text-white" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                )}
-                                            </div>
-
-                                            {/* Add Button BETWEEN widgets */}
-                                            <div className="flex items-center gap-4 py-2 group/adder">
-                                                <div className="h-px flex-1 bg-white/10 group-hover/adder:bg-neon-cyan/30 transition-colors" />
-                                                <div className="flex gap-2">
-                                                    <button
-                                                        onClick={() => addWidget(index, '<h2 class="premium-section-title">NOUVEAU TITRE</h2>')}
-                                                        className="w-8 h-8 rounded-full bg-neon-red/10 border border-neon-red/30 text-neon-red flex items-center justify-center hover:bg-neon-red/20 transition-all"
-                                                        title="Ajouter un titre ici"
-                                                    >
-                                                        <Plus className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={() => addWidget(index)}
-                                                        className="w-8 h-8 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan flex items-center justify-center hover:bg-neon-cyan/20 transition-all"
-                                                        title="Ajouter du texte ici"
-                                                    >
-                                                        <FileText className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setUploadTarget({ type: 'widget', index });
-                                                            setShowUploadModal(true);
-                                                        }}
-                                                        className="w-8 h-8 rounded-full bg-neon-red/10 border border-neon-red/30 text-neon-red flex items-center justify-center hover:bg-neon-red/20 transition-all"
-                                                        title="Verser une image ici"
-                                                    >
-                                                        <Upload className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setMediaModal({ show: true, type: 'video', url: '', urls: '', widgetIndex: index } as any)}
-                                                        className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all"
-                                                        title="Ajouter une vidéo ici"
-                                                    >
-                                                        <Youtube className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setVideoGroupModal({ show: true, urls: ['', '', ''], count: 2, widgetIndex: index })}
-                                                        className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all font-bold text-[10px]"
-                                                        title="Ajouter un groupe de vidéos (1, 2 ou 3 en ligne)"
-                                                    >
-                                                        3x
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined, aspectRatio: '3/4' })}
-                                                        className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all"
-                                                        title="Ajouter un Duo Photo ici"
-                                                    >
-                                                        <Columns className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                                <div className="h-px flex-1 bg-white/10 group-hover/adder:bg-neon-cyan/30 transition-colors" />
-                                            </div>
-                                        </div>
-                                    ))}
+                                    )}
+                                    <button
+                                        onClick={() => addWidget()}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Plus className="w-3 h-3" /> Texte
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'video', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-red-600/20 border border-red-600/30 text-red-600 rounded-full hover:bg-red-600/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Youtube className="w-3 h-3" /> Vidéo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUploadTarget({ type: 'widget' });
+                                            setShowUploadModal(true);
+                                        }}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Upload className="w-3 h-3" /> Upload
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Columns className="w-3 h-3" /> Duo
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setMediaModal({ show: true, type: 'gallery', url: '', urls: '' })}
+                                        className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-pink/10 border border-neon-pink/30 text-neon-pink rounded-full hover:bg-neon-pink/20 transition-all font-bold uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Plus className="w-3 h-3" /> Galerie
+                                    </button>
                                 </div>
                             </div>
-                        )}
 
-
-                        {/* WRITTEN INTERVIEW Q&A EDITOR */}
-                        {(type === 'Interview' && interviewSubtype === 'written') && (
-                            <div className="pt-8 border-t border-white/10 mt-8">
-                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                                    <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                        <List className="w-4 h-4 text-neon-purple" /> Studio Interview
-                                    </label>
-                                    <div className="flex flex-wrap gap-2">
-                                        <button
-                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: interviewQuestions.find(q => q.type === 'qa')?.artistName || '', artistColor: interviewQuestions.find(q => q.type === 'qa')?.artistColor || '#ff1241', question: '', answer: '' }])}
-                                            className="flex items-center gap-2 px-4 py-2 bg-neon-purple text-white rounded-full hover:bg-neon-purple/80 transition-all font-black uppercase tracking-widest text-[9px] shadow-lg shadow-neon-purple/20"
-                                        >
-                                            <Plus className="w-3.5 h-3.5" /> Question
-                                        </button>
-                                        <button
-                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' }])}
-                                            className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-black uppercase tracking-widest text-[9px]"
-                                        >
-                                            <ImageIcon className="w-3.5 h-3.5" /> Photo
-                                        </button>
-                                        <button
-                                            onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' }])}
-                                            className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/30 text-red-600 rounded-full hover:bg-red-600/20 transition-all font-black uppercase tracking-widest text-[9px]"
-                                        >
-                                            <Youtube className="w-3.5 h-3.5" /> Vidéo
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6">
-                                    {interviewQuestions.map((q, idx) => (
-                                        <Fragment key={q.id}>
-                                            <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
-                                                <div className="flex items-center gap-3 mb-6">
-                                                    <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
-                                                        {idx + 1}
+                            <div className="space-y-4">
+                                {widgets.map((widget, index) => (
+                                    <div key={widget.id} className="space-y-4">
+                                        <div className="relative group bg-white/5 border border-white/10 rounded-2xl p-3 md:p-6 transition-all hover:border-white/20">
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black text-gray-400">
+                                                        {index + 1}
                                                     </span>
-                                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                                        {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : 'Bloc Vidéo'}
-                                                    </h4>
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                                        {widget.content.startsWith('<h2') ? 'Titre' :
+                                                            widget.content.includes('duo-photos-premium') ? 'Duo Photos' :
+                                                                widget.content.includes('image-premium-wrapper') ? 'Image' :
+                                                                    widget.content.includes('gallery-premium-grid') ? 'Galerie' : 'Texte'}
+                                                    </span>
 
                                                     {/* Movement Arrows */}
-                                                    <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             type="button"
-                                                            onClick={() => moveInterviewQuestionUp(idx)}
+                                                            onClick={() => moveWidgetUp(index)}
                                                             className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
-                                                            disabled={idx === 0}
+                                                            disabled={index === 0}
                                                             title="Monter"
                                                         >
                                                             <ChevronUp className="w-3.5 h-3.5" />
                                                         </button>
                                                         <button
                                                             type="button"
-                                                            onClick={() => moveInterviewQuestionDown(idx)}
+                                                            onClick={() => moveWidgetDown(index)}
                                                             className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
-                                                            disabled={idx === interviewQuestions.length - 1}
+                                                            disabled={index === widgets.length - 1}
                                                             title="Descendre"
                                                         >
                                                             <ChevronDown className="w-3.5 h-3.5" />
                                                         </button>
                                                     </div>
                                                 </div>
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => insertLinkToActiveWidget(widget.id)}
+                                                        className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
+                                                        title="Ajouter un lien"
+                                                    >
+                                                        <Link2 className="w-4 h-4" /> Lien
+                                                    </button>
+                                                    {(!widget.content.startsWith('<h2') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'font-display')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('font-display') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Changer Police (Display)"
+                                                            >
+                                                                <Type className="w-4 h-4" /> Police
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'uppercase')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('uppercase') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Tout en Majuscules"
+                                                            >
+                                                                <CaseUpper className="w-4 h-4" /> MAJ
+                                                            </button>
+                                                            <div className="flex bg-black/40 rounded-lg border border-white/5 p-0.5">
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-sm')}
+                                                                    className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-sm') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
+                                                                    title="Petit"
+                                                                >
+                                                                    S
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-2xl')}
+                                                                    className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-2xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
+                                                                    title="Grand"
+                                                                >
+                                                                    L
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-5xl')}
+                                                                    className={`px-2 py-1 rounded transition-colors text-[10px] font-bold ${widget.content.includes('text-5xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-white'}`}
+                                                                    title="Énorme"
+                                                                >
+                                                                    XL
+                                                                </button>
+                                                            </div>
 
-                                                <div className="space-y-6">
-                                                    {q.type === 'qa' ? (
-                                                        <div className="grid grid-cols-1 gap-4">
-                                                            <div className="space-y-2">
+                                                            <div className="flex bg-black/40 rounded-lg border border-white/5 p-1">
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()}
+                                                                    onClick={() => applyFormat('bold')}
+                                                                    className="p-1.5 text-gray-500 hover:text-white"
+                                                                    title="Gras"
+                                                                >
+                                                                    <Bold className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()}
+                                                                    onClick={() => applyFormat('italic')}
+                                                                    className="p-1.5 text-gray-500 hover:text-white"
+                                                                    title="Italique"
+                                                                >
+                                                                    <Italic className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    onMouseDown={e => e.preventDefault()}
+                                                                    onClick={() => applyFormat('underline')}
+                                                                    className="p-1.5 text-gray-500 hover:text-white"
+                                                                    title="Souligner"
+                                                                >
+                                                                    <UnderlineIcon className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="flex flex-wrap bg-black/40 rounded-lg border border-white/5 p-1 gap-1 max-w-[160px]">
+                                                                {[
+                                                                    '#ffffff', '#000000', '#6b7280', '#f5f5dc', '#ff1241', '#dc2626', '#991b1b',
+                                                                    '#7f1d1d', '#7c3aed', '#bd00ff', '#ff00ff', '#f472b6', '#c084fc', '#fbcfe8',
+                                                                    '#db2777', '#fb7185', '#fca5a5', '#fdba74', '#fb923c', '#fde047', '#facc15',
+                                                                    '#bef264', '#86efac', '#22c55e', '#f87171', '#16a34a', '#10b981', '#84cc16',
+                                                                    '#2dd4bf', '#99f6e4', '#2b65ec', '#38bdf8', '#00fff3'
+                                                                ].map(color => (
+                                                                    <button
+                                                                        key={color}
+                                                                        type="button"
+                                                                        onMouseDown={e => e.preventDefault()}
+                                                                        onClick={() => applyColorToSelection(widget.id, color)}
+                                                                        className="w-3 h-3 rounded-full border border-white/10 hover:scale-125 transition-transform"
+                                                                        style={{ backgroundColor: color }}
+                                                                    />
+                                                                ))}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const activeEl = document.activeElement;
+                                                            const isVisualEditor = activeEl && activeEl.classList.contains('visual-editor-content');
+
+                                                            if (isVisualEditor) {
+                                                                document.execCommand('insertUnorderedList', false);
+                                                                return;
+                                                            }
+
+                                                            const ta = activeEl as HTMLTextAreaElement;
+                                                            const isCorrectTextarea = ta && ta.tagName === 'TEXTAREA';
+                                                            if (!isCorrectTextarea) return;
+
+                                                            const start = ta.selectionStart;
+                                                            const end = ta.selectionEnd;
+                                                            const val = ta.value;
+                                                            const bullet = '• ';
+
+                                                            setWidgets(widgets.map(w => {
+                                                                if (w.id === widget.id) {
+                                                                    const before = val.substring(0, start);
+                                                                    const after = val.substring(end);
+                                                                    return { ...w, content: before + bullet + after };
+                                                                }
+                                                                return w;
+                                                            }));
+                                                        }}
+                                                        className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
+                                                        title="Ajouter une puce"
+                                                    >
+                                                        <List className="w-4 h-4" /> Puce
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => fixWidgetEncoding(widget.id)}
+                                                        className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-colors"
+                                                        title="Réparer les caractères"
+                                                    >
+                                                        <Wand2 className="w-4 h-4" />
+                                                    </button>
+                                                    {(widget.content.includes('youtube-player-widget') || widget.content.includes('image-premium-wrapper')) && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (widget.content.includes('duo-photos-premium')) {
+                                                                    const extracted = extractDuoUrls(widget.content);
+                                                                    setDuoModal({
+                                                                        show: true,
+                                                                        url1: extracted.urls[0] || '',
+                                                                        url2: extracted.urls[1] || '',
+                                                                        widgetIndex: undefined,
+                                                                        widgetId: widget.id,
+                                                                        aspectRatio: extracted.ratio
+                                                                    });
+                                                                } else if (widget.content.includes('video-group-premium')) {
+                                                                    const extracted = extractVideoUrls(widget.content);
+                                                                    setVideoGroupModal({
+                                                                        show: true,
+                                                                        urls: [...extracted.urls, '', ''].slice(0, 3),
+                                                                        count: extracted.count,
+                                                                        widgetId: widget.id
+                                                                    });
+                                                                } else if (widget.content.includes('youtube-player-widget')) {
+                                                                    const val = prompt('Nouvelle URL YouTube ou ID');
+                                                                    if (!val) return;
+                                                                    let id = val;
+                                                                    if (val.includes('youtube.com/watch?v=')) {
+                                                                        id = val.split('v=')[1].split('&')[0];
+                                                                    } else if (val.includes('youtu.be/')) {
+                                                                        id = val.split('youtu.be/')[1];
+                                                                    }
+                                                                    const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
+                                                                    updateWidget(widget.id, videoWidget);
+                                                                } else if (widget.content.includes('image-premium-wrapper')) {
+                                                                    const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
+                                                                    setMediaModal({
+                                                                        show: true,
+                                                                        type: 'image',
+                                                                        url: url,
+                                                                        urls: '',
+                                                                        aspectRatio: ratio,
+                                                                        widgetId: widget.id
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors"
+                                                            title="Éditer le widget"
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                    {widgets.length > 1 && (
+                                                        <button
+                                                            onClick={() => removeWidget(widget.id)}
+                                                            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Le rendu final est désormais directement éditable au-dessus */}
+
+                                            {/* Title Block Editor */}
+                                            {widget.content.startsWith('<h2 class="premium-section-title">') && widget.content.endsWith('</h2>') ? (
+                                                <div className="bg-black/60 border-l-4 border-neon-red pl-4 py-4 rounded-r-xl">
+                                                    <input
+                                                        type="text"
+                                                        value={widget.content.replace('<h2 class="premium-section-title">', '').replace('</h2>', '')}
+                                                        onChange={(e) => updateWidget(widget.id, `<h2 class="premium-section-title">${e.target.value}</h2>`)}
+                                                        className="w-full bg-transparent text-xl font-display font-black text-white uppercase italic tracking-tighter border-none focus:ring-0 placeholder-gray-700"
+                                                        placeholder="VOTRE TITRE DE SECTION..."
+                                                    />
+                                                </div>
+                                            ) : (
+                                                !widget.content.includes('youtube-player-widget') &&
+                                                    !widget.content.includes('image-premium-wrapper') &&
+                                                    !widget.content.includes('gallery-premium-grid') &&
+                                                    !widget.content.includes('duo-photos-premium') ? (
+                                                    <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                                                        <VisualEditor
+                                                            content={widget.content}
+                                                            onChange={(html) => updateWidget(widget.id, html)}
+                                                            className="visual-editor-content p-4 md:p-8 min-h-[150px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm md:text-base"
+                                                            widgetId={widget.id}
+                                                            onFocus={(e) => {
+                                                                if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
+                                                            }}
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/40 p-4 shadow-xl">
+                                                        <div className="article-body-premium transform scale-[0.8] origin-top opacity-90 pointer-events-none mb-[-20%]" dangerouslySetInnerHTML={{ __html: standardizeContent(widget.content) }} />
+                                                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                                                            <div className="bg-white/10 backdrop-blur-md rounded-full p-4 border border-white/20">
+                                                                <ImageIcon className="w-8 h-8 text-white" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+
+                                        {/* Add Button BETWEEN widgets */}
+                                        <div className="flex items-center gap-4 py-2 group/adder">
+                                            <div className="h-px flex-1 bg-white/10 group-hover/adder:bg-neon-cyan/30 transition-colors" />
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => addWidget(index, '<h2 class="premium-section-title">NOUVEAU TITRE</h2>')}
+                                                    className="w-8 h-8 rounded-full bg-neon-red/10 border border-neon-red/30 text-neon-red flex items-center justify-center hover:bg-neon-red/20 transition-all"
+                                                    title="Ajouter un titre ici"
+                                                >
+                                                    <Plus className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => addWidget(index)}
+                                                    className="w-8 h-8 rounded-full bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan flex items-center justify-center hover:bg-neon-cyan/20 transition-all"
+                                                    title="Ajouter du texte ici"
+                                                >
+                                                    <FileText className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setUploadTarget({ type: 'widget', index });
+                                                        setShowUploadModal(true);
+                                                    }}
+                                                    className="w-8 h-8 rounded-full bg-neon-red/10 border border-neon-red/30 text-neon-red flex items-center justify-center hover:bg-neon-red/20 transition-all"
+                                                    title="Verser une image ici"
+                                                >
+                                                    <Upload className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ show: true, type: 'video', url: '', urls: '', widgetIndex: index } as any)}
+                                                    className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all"
+                                                    title="Ajouter une vidéo ici"
+                                                >
+                                                    <Youtube className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setVideoGroupModal({ show: true, urls: ['', '', ''], count: 2, widgetIndex: index })}
+                                                    className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all font-bold text-[10px]"
+                                                    title="Ajouter un groupe de vidéos (1, 2 ou 3 en ligne)"
+                                                >
+                                                    3x
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined, aspectRatio: '3/4' })}
+                                                    className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all"
+                                                    title="Ajouter un Duo Photo ici"
+                                                >
+                                                    <Columns className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            <div className="h-px flex-1 bg-white/10 group-hover/adder:bg-neon-cyan/30 transition-colors" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
+                    {/* WRITTEN INTERVIEW Q&A EDITOR */}
+                    {(type === 'Interview' && interviewSubtype === 'written') && (
+                        <div className="pt-8 border-t border-white/10 mt-8">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <List className="w-4 h-4 text-neon-purple" /> Studio Interview
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: interviewQuestions.find(q => q.type === 'qa')?.artistName || '', artistColor: interviewQuestions.find(q => q.type === 'qa')?.artistColor || '#ff1241', question: '', answer: '' }])}
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-purple text-white rounded-full hover:bg-neon-purple/80 transition-all font-black uppercase tracking-widest text-[9px] shadow-lg shadow-neon-purple/20"
+                                    >
+                                        <Plus className="w-3.5 h-3.5" /> Question
+                                    </button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/20 transition-all font-black uppercase tracking-widest text-[9px]"
+                                    >
+                                        <ImageIcon className="w-3.5 h-3.5" /> Photo
+                                    </button>
+                                    <button
+                                        onClick={() => setInterviewQuestions([...interviewQuestions, { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' }])}
+                                        className="flex items-center gap-2 px-4 py-2 bg-red-600/10 border border-red-600/30 text-red-600 rounded-full hover:bg-red-600/20 transition-all font-black uppercase tracking-widest text-[9px]"
+                                    >
+                                        <Youtube className="w-3.5 h-3.5" /> Vidéo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-6">
+                                {interviewQuestions.map((q, idx) => (
+                                    <Fragment key={q.id}>
+                                        <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 relative group">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                <span className={`w-8 h-8 rounded-2xl flex items-center justify-center text-xs font-black ${q.type === 'qa' ? 'bg-neon-purple/10 border border-neon-purple/20 text-neon-purple' : q.type === 'image' ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan' : 'bg-red-600/10 border border-red-600/20 text-red-600'}`}>
+                                                    {idx + 1}
+                                                </span>
+                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                                    {q.type === 'qa' ? 'Bloc Question/Réponse' : q.type === 'image' ? 'Bloc Photo' : 'Bloc Vidéo'}
+                                                </h4>
+
+                                                {/* Movement Arrows */}
+                                                <div className="flex items-center gap-1 ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveInterviewQuestionUp(idx)}
+                                                        className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                        disabled={idx === 0}
+                                                        title="Monter"
+                                                    >
+                                                        <ChevronUp className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => moveInterviewQuestionDown(idx)}
+                                                        className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white transition-all disabled:opacity-20"
+                                                        disabled={idx === interviewQuestions.length - 1}
+                                                        title="Descendre"
+                                                    >
+                                                        <ChevronDown className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-6">
+                                                {q.type === 'qa' ? (
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        <div className="space-y-2">
+                                                            <div className="flex items-center justify-between px-1">
+                                                                <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
+                                                                    DROPSIDERS (Question)
+                                                                </label>
+                                                                <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré</span>
+                                                            </div>
+                                                            <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                                                                <VisualEditor
+                                                                    content={q.question || ''}
+                                                                    onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: html } : item))}
+                                                                    className="visual-editor-content p-6 min-h-[80px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
+                                                                    widgetId={q.id + '-question'}
+                                                                />
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-2">
+                                                                    <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
+                                                                        NOM ARTISTE
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={q.artistName}
+                                                                        onChange={(e) => {
+                                                                            const newName = e.target.value;
+                                                                            setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistName: newName } : item));
+                                                                        }}
+                                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none uppercase font-bold"
+                                                                        placeholder="Ex: ANYMA"
+                                                                        style={{ color: q.artistColor || '#ff1241' }}
+                                                                    />
+                                                                </div>
+
+                                                                <div className="space-y-2">
+                                                                    <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
+                                                                        COULEUR ARTISTE
+                                                                    </label>
+                                                                    <div className="flex flex-wrap bg-black/40 rounded-xl border border-white/5 p-2 gap-1.5">
+                                                                        {[
+                                                                            '#ffffff', '#ff1241', '#7c3aed', '#00fff3', '#bef264', '#facc15', '#fb923c', '#ff00ff'
+                                                                        ].map(color => (
+                                                                            <button
+                                                                                key={color}
+                                                                                type="button"
+                                                                                onClick={() => setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistColor: color } : item))}
+                                                                                className={`w-5 h-5 rounded-full border transition-all ${q.artistColor === color ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'border-white/10 hover:scale-110'}`}
+                                                                                style={{ backgroundColor: color }}
+                                                                            />
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="md:col-span-3 space-y-2">
                                                                 <div className="flex items-center justify-between px-1">
                                                                     <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
-                                                                        DROPSIDERS (Question)
+                                                                        RÉPONSE (Artiste)
                                                                     </label>
-                                                                    <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré</span>
+                                                                    <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré (<span style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()}</span> :)</span>
                                                                 </div>
                                                                 <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
                                                                     <VisualEditor
-                                                                        content={q.question || ''}
-                                                                        onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, question: html } : item))}
-                                                                        className="visual-editor-content p-6 min-h-[80px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
-                                                                        widgetId={q.id + '-question'}
+                                                                        content={q.answer || ''}
+                                                                        onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: html } : item))}
+                                                                        className="visual-editor-content p-6 min-h-[120px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
+                                                                        widgetId={q.id + '-answer'}
                                                                     />
                                                                 </div>
                                                             </div>
-
-                                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                                <div className="space-y-4">
-                                                                    <div className="space-y-2">
-                                                                        <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest ml-1">
-                                                                            NOM ARTISTE
-                                                                        </label>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={q.artistName}
-                                                                            onChange={(e) => {
-                                                                                const newName = e.target.value;
-                                                                                setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistName: newName } : item));
-                                                                            }}
-                                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none uppercase font-bold"
-                                                                            placeholder="Ex: ANYMA"
-                                                                            style={{ color: q.artistColor || '#ff1241' }}
-                                                                        />
-                                                                    </div>
-
-                                                                    <div className="space-y-2">
-                                                                        <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
-                                                                            COULEUR ARTISTE
-                                                                        </label>
-                                                                        <div className="flex flex-wrap bg-black/40 rounded-xl border border-white/5 p-2 gap-1.5">
-                                                                            {[
-                                                                                '#ffffff', '#ff1241', '#7c3aed', '#00fff3', '#bef264', '#facc15', '#fb923c', '#ff00ff'
-                                                                            ].map(color => (
-                                                                                <button
-                                                                                    key={color}
-                                                                                    type="button"
-                                                                                    onClick={() => setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistColor: color } : item))}
-                                                                                    className={`w-5 h-5 rounded-full border transition-all ${q.artistColor === color ? 'border-white scale-110 shadow-[0_0_10px_rgba(255,255,255,0.3)]' : 'border-white/10 hover:scale-110'}`}
-                                                                                    style={{ backgroundColor: color }}
-                                                                                />
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="md:col-span-3 space-y-2">
-                                                                    <div className="flex items-center justify-between px-1">
-                                                                        <label className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest">
-                                                                            RÉPONSE (Artiste)
-                                                                        </label>
-                                                                        <span className="text-[9px] font-bold text-gray-600 uppercase italic">Label auto-généré (<span style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()}</span> :)</span>
-                                                                    </div>
-                                                                    <div className="admin-editor-container bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                                                                        <VisualEditor
-                                                                            content={q.answer || ''}
-                                                                            onChange={(html) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, answer: html } : item))}
-                                                                            className="visual-editor-content p-6 min-h-[120px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm"
-                                                                            widgetId={q.id + '-answer'}
-                                                                        />
-                                                                    </div>
-                                                                </div>
+                                                        </div>
+                                                    </div>
+                                                ) : q.type === 'image' ? (
+                                                    <div className="flex gap-4 items-center">
+                                                        <div className="flex-1 space-y-2">
+                                                            <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest ml-1">URL de l'image</label>
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={q.mediaUrl}
+                                                                    onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: e.target.value } : item))}
+                                                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-neon-cyan"
+                                                                    placeholder="https://..."
+                                                                />
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setUploadTarget({ type: 'interview-media', interviewBlockId: q.id });
+                                                                        setShowUploadModal(true);
+                                                                    }}
+                                                                    className="px-4 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl font-bold text-[10px] uppercase hover:bg-neon-cyan/30 transition-all"
+                                                                >
+                                                                    Upload
+                                                                </button>
                                                             </div>
                                                         </div>
-                                                    ) : q.type === 'image' ? (
-                                                        <div className="flex gap-4 items-center">
-                                                            <div className="flex-1 space-y-2">
-                                                                <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest ml-1">URL de l'image</label>
-                                                                <div className="flex gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={q.mediaUrl}
-                                                                        onChange={(e) => setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: e.target.value } : item))}
-                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-neon-cyan"
-                                                                        placeholder="https://..."
-                                                                    />
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setUploadTarget({ type: 'interview-media', interviewBlockId: q.id });
-                                                                            setShowUploadModal(true);
-                                                                        }}
-                                                                        className="px-4 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl font-bold text-[10px] uppercase hover:bg-neon-cyan/30 transition-all"
-                                                                    >
-                                                                        Upload
-                                                                    </button>
-                                                                </div>
+                                                        {q.mediaUrl && (
+                                                            <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
+                                                                <img src={q.mediaUrl} alt="Preview" className="w-full h-full object-cover" />
                                                             </div>
-                                                            {q.mediaUrl && (
-                                                                <div className="w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                                                                    <img src={q.mediaUrl} alt="Preview" className="w-full h-full object-cover" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    ) : (
-                                                        <div className="space-y-2">
-                                                            <label className="text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">Lien ou ID YouTube</label>
-                                                            <input
-                                                                type="text"
-                                                                value={q.mediaUrl}
-                                                                onChange={(e) => {
-                                                                    let val = e.target.value;
-                                                                    if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
-                                                                    else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
-                                                                    setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
-                                                                }}
-                                                                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-red-600"
-                                                                placeholder="Ex: dQw4w9WgXcQ"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-
-                                                <button
-                                                    onClick={() => setInterviewQuestions(interviewQuestions.filter(item => item.id !== q.id))}
-                                                    className="absolute top-6 right-6 p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all bg-white/5 rounded-xl hover:bg-neon-red/10 border border-transparent hover:border-neon-red/20"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-red-600 uppercase tracking-widest ml-1">Lien ou ID YouTube</label>
+                                                        <input
+                                                            type="text"
+                                                            value={q.mediaUrl}
+                                                            onChange={(e) => {
+                                                                let val = e.target.value;
+                                                                if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
+                                                                else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
+                                                                setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+                                                            }}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-red-600"
+                                                            placeholder="Ex: dQw4w9WgXcQ"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
 
-                                            {/* Quick Insert Buttons BELOW each block */}
-                                            <div className="flex justify-center -my-2 opacity-0 hover:opacity-100 transition-opacity relative z-10">
-                                                <div className="flex items-center bg-black/80 backdrop-blur-md border border-white/10 rounded-full p-1 gap-1 shadow-2xl">
-                                                    <button
-                                                        onClick={() => {
-                                                            const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: q.artistName || '', artistColor: q.artistColor || '#ff1241', question: '', answer: '' };
-                                                            const updated = [...interviewQuestions];
-                                                            updated.splice(idx + 1, 0, newBlock as any);
-                                                            setInterviewQuestions(updated);
-                                                        }}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neon-purple/20 text-neon-purple rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
-                                                    >
-                                                        <Plus className="w-3 h-3" /> Q&A
-                                                    </button>
-                                                    <div className="w-px h-3 bg-white/10" />
-                                                    <button
-                                                        onClick={() => {
-                                                            const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' };
-                                                            const updated = [...interviewQuestions];
-                                                            updated.splice(idx + 1, 0, newBlock as any);
-                                                            setInterviewQuestions(updated);
-                                                        }}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neon-cyan/20 text-neon-cyan rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
-                                                    >
-                                                        <ImageIcon className="w-3 h-3" /> Photo
-                                                    </button>
-                                                    <div className="w-px h-3 bg-white/10" />
-                                                    <button
-                                                        onClick={() => {
-                                                            const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' };
-                                                            const updated = [...interviewQuestions];
-                                                            updated.splice(idx + 1, 0, newBlock as any);
-                                                            setInterviewQuestions(updated);
-                                                        }}
-                                                        className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-red-600/20 text-red-600 rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
-                                                    >
-                                                        <Youtube className="w-3 h-3" /> Vidéo
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </Fragment>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* MUSIC TOP LIST EDITOR */}
-                        {activeTab === 'Musique' && (
-                            <div className="pt-8 border-t border-white/10">
-                                <div className="flex justify-between items-center mb-6">
-                                    <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                        <Music className="w-4 h-4 text-neon-cyan" /> TOP LISTE MUSIQUE
-                                    </label>
-                                    <button
-                                        onClick={addMusicItem}
-                                        className="flex items-center gap-2 px-6 py-2 bg-neon-cyan text-black rounded-full hover:bg-neon-cyan/80 transition-all font-bold uppercase tracking-widest text-[10px]"
-                                    >
-                                        <Plus className="w-3.5 h-3.5" /> Ajouter un morceau
-                                    </button>
-                                </div>
-
-                                <div className="space-y-6">
-                                    {musicItems.map((item) => (
-                                        <div key={item.id} className="bg-black/40 border border-white/5 rounded-2xl p-6 relative group overflow-hidden">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du morceau / Artiste</label>
-                                                    <input
-                                                        type="text"
-                                                        value={item.title}
-                                                        onChange={(e) => updateMusicItem(item.id, 'title', e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                                        placeholder="Ex: Anyma - Pictures Of You"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Lien YouTube ou Spotify</label>
-                                                    <input
-                                                        type="text"
-                                                        value={item.media}
-                                                        onChange={(e) => updateMusicItem(item.id, 'media', e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                                        placeholder="URL du morceau..."
-                                                    />
-                                                </div>
-                                            </div>
                                             <button
-                                                onClick={() => removeMusicItem(item.id)}
-                                                className="absolute top-2 right-2 p-1.5 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all"
+                                                onClick={() => setInterviewQuestions(interviewQuestions.filter(item => item.id !== q.id))}
+                                                className="absolute top-6 right-6 p-2 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all bg-white/5 rounded-xl hover:bg-neon-red/10 border border-transparent hover:border-neon-red/20"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
-
-                                            {item.media && (
-                                                <div className="mt-4 pt-4 border-t border-white/5">
-                                                    <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Aperçu Media</div>
-                                                    <div className="max-w-md" dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media) }} />
-                                                </div>
-                                            )}
                                         </div>
-                                    ))}
+
+                                        {/* Quick Insert Buttons BELOW each block */}
+                                        <div className="flex justify-center -my-2 opacity-0 hover:opacity-100 transition-opacity relative z-10">
+                                            <div className="flex items-center bg-black/80 backdrop-blur-md border border-white/10 rounded-full p-1 gap-1 shadow-2xl">
+                                                <button
+                                                    onClick={() => {
+                                                        const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: q.artistName || '', artistColor: q.artistColor || '#ff1241', question: '', answer: '' };
+                                                        const updated = [...interviewQuestions];
+                                                        updated.splice(idx + 1, 0, newBlock as any);
+                                                        setInterviewQuestions(updated);
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neon-purple/20 text-neon-purple rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
+                                                >
+                                                    <Plus className="w-3 h-3" /> Q&A
+                                                </button>
+                                                <div className="w-px h-3 bg-white/10" />
+                                                <button
+                                                    onClick={() => {
+                                                        const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: '' };
+                                                        const updated = [...interviewQuestions];
+                                                        updated.splice(idx + 1, 0, newBlock as any);
+                                                        setInterviewQuestions(updated);
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-neon-cyan/20 text-neon-cyan rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
+                                                >
+                                                    <ImageIcon className="w-3 h-3" /> Photo
+                                                </button>
+                                                <div className="w-px h-3 bg-white/10" />
+                                                <button
+                                                    onClick={() => {
+                                                        const newBlock = { id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: '' };
+                                                        const updated = [...interviewQuestions];
+                                                        updated.splice(idx + 1, 0, newBlock as any);
+                                                        setInterviewQuestions(updated);
+                                                    }}
+                                                    className="flex items-center gap-1.5 px-3 py-1.5 hover:bg-red-600/20 text-red-600 rounded-full transition-all text-[8px] font-black uppercase tracking-widest"
+                                                >
+                                                    <Youtube className="w-3 h-3" /> Vidéo
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </Fragment>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MUSIC TOP LIST EDITOR */}
+                    {activeTab === 'Musique' && (
+                        <div className="pt-8 border-t border-white/10">
+                            <div className="flex justify-between items-center mb-6">
+                                <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                                    <Music className="w-4 h-4 text-neon-cyan" /> TOP LISTE MUSIQUE
+                                </label>
+                                <button
+                                    onClick={addMusicItem}
+                                    className="flex items-center gap-2 px-6 py-2 bg-neon-cyan text-black rounded-full hover:bg-neon-cyan/80 transition-all font-bold uppercase tracking-widest text-[10px]"
+                                >
+                                    <Plus className="w-3.5 h-3.5" /> Ajouter un morceau
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                {musicItems.map((item) => (
+                                    <div key={item.id} className="bg-black/40 border border-white/5 rounded-2xl p-6 relative group overflow-hidden">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du morceau / Artiste</label>
+                                                <input
+                                                    type="text"
+                                                    value={item.title}
+                                                    onChange={(e) => updateMusicItem(item.id, 'title', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                                    placeholder="Ex: Anyma - Pictures Of You"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Lien YouTube ou Spotify</label>
+                                                <input
+                                                    type="text"
+                                                    value={item.media}
+                                                    onChange={(e) => updateMusicItem(item.id, 'media', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                                    placeholder="URL du morceau..."
+                                                />
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => removeMusicItem(item.id)}
+                                            className="absolute top-2 right-2 p-1.5 text-gray-600 hover:text-neon-red opacity-0 group-hover:opacity-100 transition-all"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+
+                                        {item.media && (
+                                            <div className="mt-4 pt-4 border-t border-white/5">
+                                                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Aperçu Media</div>
+                                                <div className="max-w-md" dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media) }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* LIVE PREVIEW SECTION */}
+                    <div className="pt-12 border-t border-white/10 mt-12 bg-black/20 rounded-[40px] p-2 sm:p-4 border-2 border-dashed border-white/5">
+                        <div className="flex items-center justify-between mb-8 px-4">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/30">
+                                    <Eye className="w-5 h-5 text-neon-cyan" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Aperçu <span className="text-neon-cyan">Final</span></h3>
+                                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Rendu exact tel qu'affiché sur le site</p>
                                 </div>
                             </div>
-                        )}
-
-                        {/* LIVE PREVIEW SECTION */}
-                        <div className="pt-12 border-t border-white/10 mt-12 bg-black/20 rounded-[40px] p-2 sm:p-4 border-2 border-dashed border-white/5">
-                            <div className="flex items-center justify-between mb-8 px-4">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-2xl bg-neon-cyan/10 flex items-center justify-center border border-neon-cyan/30">
-                                        <Eye className="w-5 h-5 text-neon-cyan" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Aperçu <span className="text-neon-cyan">Final</span></h3>
-                                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Rendu exact tel qu'affiché sur le site</p>
-                                    </div>
-                                </div>
-                                <div className="px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
-                                    <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest animate-pulse">Mode Visualisation</span>
-                                </div>
+                            <div className="px-4 py-1.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full">
+                                <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest animate-pulse">Mode Visualisation</span>
                             </div>
+                        </div>
 
-                            <div className="bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]">
-                                {/* Aperçu de l'En-tête */}
-                                <div className="mb-12 border-b border-white/10 pb-8">
-                                    <div className="flex flex-wrap gap-2 mb-6">
-                                        <span className={`px-4 py-1.5 rounded-full text-white font-black text-[9px] uppercase tracking-widest shadow-lg ${activeTab === 'Focus' ? 'bg-yellow-500 shadow-yellow-500/20' : activeTab === 'Musique' ? 'bg-neon-green shadow-neon-green/20' : 'bg-neon-red shadow-neon-red/20'}`}>
-                                            {activeTab === 'Focus' ? 'FOCUS' : activeTab === 'Musique' ? 'MUSIQUE' : (category || 'NEWS')}
-                                        </span>
-                                        <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
-                                            <Clock className="w-3 h-3 text-neon-red" />
-                                            LECTURE RAPIDE
-                                        </span>
-                                        <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
-                                            {new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                        </span>
-                                        <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
-                                            <User className="w-3 h-3 text-neon-red" />
-                                            {author || 'Alex'}
-                                        </span>
-                                    </div>
-                                    <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(title || 'TITRE DE L\'ARTICLE') }} />
-                                    {summary && (
-                                        <p className="article-body-premium text-gray-400 text-lg md:text-xl leading-relaxed italic" dangerouslySetInnerHTML={{ __html: standardizeContent(summary) }} />
-                                    )}
+                        <div className="bg-black border border-white/10 rounded-[32px] p-8 md:p-12 article-body-premium shadow-[0_0_50px_rgba(0,0,0,0.5)] min-h-[400px]">
+                            {/* Aperçu de l'En-tête */}
+                            <div className="mb-12 border-b border-white/10 pb-8">
+                                <div className="flex flex-wrap gap-2 mb-6">
+                                    <span className={`px-4 py-1.5 rounded-full text-white font-black text-[9px] uppercase tracking-widest shadow-lg ${activeTab === 'Focus' ? 'bg-yellow-500 shadow-yellow-500/20' : activeTab === 'Musique' ? 'bg-neon-green shadow-neon-green/20' : 'bg-neon-red shadow-neon-red/20'}`}>
+                                        {activeTab === 'Focus' ? 'FOCUS' : activeTab === 'Musique' ? 'MUSIQUE' : (category || 'NEWS')}
+                                    </span>
+                                    <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                        <Clock className="w-3 h-3 text-neon-red" />
+                                        LECTURE RAPIDE
+                                    </span>
+                                    <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                        {new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                    </span>
+                                    <span className="px-4 py-1.5 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
+                                        <User className="w-3 h-3 text-neon-red" />
+                                        {author || 'Alex'}
+                                    </span>
                                 </div>
-                                {activeTab === 'Musique' ? (
-                                    <div className="music-top-section">
-                                        {musicItems.map((item) => (
-                                            <div key={item.id} className="music-top-item-premium mb-12 last:mb-0">
-                                                <div className="flex items-center gap-6 mb-6">
-                                                    <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">{item.title || 'Titre du morceau'}</h3>
-                                                </div>
-                                                <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
-                                                    <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media) }} />
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {youtubeId && (
-                                            <div className="mt-16 mb-16">
-                                                <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
-                                                    <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
-                                                        <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
-                                                            width: '0',
-                                                            height: '0',
-                                                            borderTop: '8px solid transparent',
-                                                            borderBottom: '8px solid transparent',
-                                                            borderLeft: '12px solid currentColor',
-                                                            marginLeft: '4px'
-                                                        }} />
-                                                    </div>
-                                                    <div className="flex flex-col text-left">
-                                                        <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
-                                                        LA VIDÉO DE L'ARTICLE
-                                                    </div>
-                                                </h3>
-                                                <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
-                                                    <iframe
-                                                        src={`https://www.youtube.com/embed/${youtubeId}`}
-                                                        className="absolute top-0 left-0 w-full h-full"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <>
-                                        {/* Widgets Content Rendering in Preview */}
-                                        {widgets.map(w => (
-                                            <div key={w.id} className="article-section">
-                                                <div dangerouslySetInnerHTML={{ __html: standardizeContent(w.content) }} />
-                                            </div>
-                                        ))}
-
-                                        {/* Interview Content Rendering in Preview */}
-                                        {type === 'Interview' && interviewSubtype === 'written' && interviewQuestions.map((q) => (
-                                            <div key={q.id} className="article-section">
-                                                {q.type === 'qa' ? (
-                                                    <div className="space-y-4">
-                                                        <p className="article-body-premium mb-4"><strong style={{ color: '#ff1241' }}>DROPSIDERS :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.question || '') }} /></p>
-                                                        <p className="article-body-premium" style={{ color: q.artistColor || '#ff1241' }}><strong style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
-                                                    </div>
-                                                ) : q.type === 'image' ? (
-                                                    <div className="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
-                                                        <img src={q.mediaUrl} alt="Interview Image" className="w-full h-auto object-cover" />
-                                                    </div>
-                                                ) : q.type === 'video' ? (
-                                                    <div className="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
-                                                        <iframe src={`https://www.youtube.com/embed/${q.mediaUrl}`} className="absolute inset-0 w-full h-full" allowFullScreen />
-                                                    </div>
-                                                ) : null}
-                                            </div>
-                                        ))}
-
-                                        {youtubeId && showVideo && (
-                                            <div className="mt-16 mb-16">
-                                                <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
-                                                    <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
-                                                        <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
-                                                            width: '0',
-                                                            height: '0',
-                                                            borderTop: '8px solid transparent',
-                                                            borderBottom: '8px solid transparent',
-                                                            borderLeft: '12px solid currentColor',
-                                                            marginLeft: '4px'
-                                                        }} />
-                                                    </div>
-                                                    <div className="flex flex-col text-left">
-                                                        <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
-                                                        LA VIDÉO DE L'ARTICLE
-                                                    </div>
-                                                </h3>
-                                                <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
-                                                    <iframe
-                                                        src={`https://www.youtube.com/embed/${youtubeId}`}
-                                                        className="absolute top-0 left-0 w-full h-full"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Socials Preview */}
-                                        {(Object.values(artistSocials).some(v => v) || Object.values(festivalSocials).some(v => v)) && (
-                                            <div className="article-section pt-12 border-t border-white/5 mt-12">
-                                                {Object.values(artistSocials).some(v => v) && (
-                                                    <div dangerouslySetInnerHTML={{
-                                                        __html: generateSocialsHtml(
-                                                            (type === 'Interview' ? (interviewQuestions.find(q => q.type === 'qa')?.artistName || artistNameLabel) : artistNameLabel),
-                                                            (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
-                                                        )
-                                                    }} />
-                                                )}
-                                                {Object.values(festivalSocials).some(v => v) && (
-                                                    <div dangerouslySetInnerHTML={{ __html: generateFestivalSocialsHtml() }} />
-                                                )}
-                                            </div>
-                                        )}
-                                    </>
+                                <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(title || 'TITRE DE L\'ARTICLE') }} />
+                                {summary && (
+                                    <p className="article-body-premium text-gray-400 text-lg md:text-xl leading-relaxed italic" dangerouslySetInnerHTML={{ __html: standardizeContent(summary) }} />
                                 )}
                             </div>
-                        </div>
+                            {activeTab === 'Musique' ? (
+                                <div className="music-top-section">
+                                    {musicItems.map((item) => (
+                                        <div key={item.id} className="music-top-item-premium mb-12 last:mb-0">
+                                            <div className="flex items-center gap-6 mb-6">
+                                                <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">{item.title || 'Titre du morceau'}</h3>
+                                            </div>
+                                            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+                                                <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media) }} />
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {youtubeId && (
+                                        <div className="mt-16 mb-16">
+                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
+                                                    <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
+                                                        width: '0',
+                                                        height: '0',
+                                                        borderTop: '8px solid transparent',
+                                                        borderBottom: '8px solid transparent',
+                                                        borderLeft: '12px solid currentColor',
+                                                        marginLeft: '4px'
+                                                    }} />
+                                                </div>
+                                                <div className="flex flex-col text-left">
+                                                    <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
+                                                    LA VIDÉO DE L'ARTICLE
+                                                </div>
+                                            </h3>
+                                            <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
+                                                <iframe
+                                                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <>
+                                    {/* Widgets Content Rendering in Preview */}
+                                    {widgets.map(w => (
+                                        <div key={w.id} className="article-section">
+                                            <div dangerouslySetInnerHTML={{ __html: standardizeContent(w.content) }} />
+                                        </div>
+                                    ))}
 
-                        <div className="pt-6">
-                            <button
-                                onClick={handleSubmit}
-                                disabled={status === 'loading'}
-                                className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed'
-                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)]'
-                                    } text-white`}
-                            >
-                                {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : 'Publier l\'article')}
-                            </button>
+                                    {/* Interview Content Rendering in Preview */}
+                                    {type === 'Interview' && interviewSubtype === 'written' && interviewQuestions.map((q) => (
+                                        <div key={q.id} className="article-section">
+                                            {q.type === 'qa' ? (
+                                                <div className="space-y-4">
+                                                    <p className="article-body-premium mb-4"><strong style={{ color: '#ff1241' }}>DROPSIDERS :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.question || '') }} /></p>
+                                                    <p className="article-body-premium" style={{ color: q.artistColor || '#ff1241' }}><strong style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
+                                                </div>
+                                            ) : q.type === 'image' ? (
+                                                <div className="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+                                                    <img src={q.mediaUrl} alt="Interview Image" className="w-full h-auto object-cover" />
+                                                </div>
+                                            ) : q.type === 'video' ? (
+                                                <div className="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+                                                    <iframe src={`https://www.youtube.com/embed/${q.mediaUrl}`} className="absolute inset-0 w-full h-full" allowFullScreen />
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    ))}
 
-                            {isEditing && (
-                                <button
-                                    onClick={() => setShowDeleteConfirm(true)}
-                                    type="button"
-                                    className="w-full mt-4 py-4 rounded-xl font-bold uppercase tracking-widest transition-all bg-red-600/10 border border-red-600/20 text-red-600 hover:bg-red-600/20 flex items-center justify-center gap-2"
-                                >
-                                    <Trash2 className="w-5 h-5" /> Supprimer cet article
-                                </button>
+                                    {youtubeId && showVideo && (
+                                        <div className="mt-16 mb-16">
+                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
+                                                    <div className="w-6 h-6 text-neon-red fill-neon-red" style={{
+                                                        width: '0',
+                                                        height: '0',
+                                                        borderTop: '8px solid transparent',
+                                                        borderBottom: '8px solid transparent',
+                                                        borderLeft: '12px solid currentColor',
+                                                        marginLeft: '4px'
+                                                    }} />
+                                                </div>
+                                                <div className="flex flex-col text-left">
+                                                    <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1 italic">À NE PAS MANQUER</span>
+                                                    LA VIDÉO DE L'ARTICLE
+                                                </div>
+                                            </h3>
+                                            <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
+                                                <iframe
+                                                    src={`https://www.youtube.com/embed/${youtubeId}`}
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Socials Preview */}
+                                    {(Object.values(artistSocials).some(v => v) || Object.values(festivalSocials).some(v => v)) && (
+                                        <div className="article-section pt-12 border-t border-white/5 mt-12">
+                                            {Object.values(artistSocials).some(v => v) && (
+                                                <div dangerouslySetInnerHTML={{
+                                                    __html: generateSocialsHtml(
+                                                        (type === 'Interview' ? (interviewQuestions.find(q => q.type === 'qa')?.artistName || artistNameLabel) : artistNameLabel),
+                                                        (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
+                                                    )
+                                                }} />
+                                            )}
+                                            {Object.values(festivalSocials).some(v => v) && (
+                                                <div dangerouslySetInnerHTML={{ __html: generateFestivalSocialsHtml() }} />
+                                            )}
+                                        </div>
+                                    )}
+                                </>
                             )}
-
-                            {status && status !== 'loading' && message && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className={`mt-4 p-4 rounded-xl text-center font-bold uppercase tracking-widest text-[10px] border ${status === 'success' ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-red-500/10 border-red-500/50 text-red-500'
-                                        }`}
-                                >
-                                    {message}
-                                </motion.div>
-                            )}
                         </div>
-
                     </div>
-                </div >
-                <style>{`
+
+                    <div className="pt-6">
+                        <button
+                            onClick={handleSubmit}
+                            disabled={status === 'loading'}
+                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed'
+                                : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)]'
+                                } text-white`}
+                        >
+                            {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : 'Publier l\'article')}
+                        </button>
+
+                        {isEditing && (
+                            <button
+                                onClick={() => setShowDeleteConfirm(true)}
+                                type="button"
+                                className="w-full mt-4 py-4 rounded-xl font-bold uppercase tracking-widest transition-all bg-red-600/10 border border-red-600/20 text-red-600 hover:bg-red-600/20 flex items-center justify-center gap-2"
+                            >
+                                <Trash2 className="w-5 h-5" /> Supprimer cet article
+                            </button>
+                        )}
+
+                        {status && status !== 'loading' && message && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className={`mt-4 p-4 rounded-xl text-center font-bold uppercase tracking-widest text-[10px] border ${status === 'success' ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-red-500/10 border-red-500/50 text-red-500'
+                                    }`}
+                            >
+                                {message}
+                            </motion.div>
+                        )}
+                    </div>
+
+                </div>
+            </div >
+            <style>{`
                 .admin-editor-container .w-md-editor {
                     border: 1px solid rgba(255,255,255,0.1) !important;
                     background: #000 !important;
@@ -2554,449 +2555,448 @@ ${generateFestivalSocialsHtml()}
                     pointer-events: none; /* Prevent navigation during edit */
                 }
             `}</style>
-                {/* Media Selection Modal */}
-                <AnimatePresence>
-                    {mediaModal.show && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
+            {/* Media Selection Modal */}
+            <AnimatePresence>
+                {mediaModal.show && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMediaModal({ ...mediaModal, show: false })}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-md bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                        >
+                            <button
                                 onClick={() => setMediaModal({ ...mediaModal, show: false })}
-                                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                                className="relative w-full max-w-md bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
-                                <button
-                                    onClick={() => setMediaModal({ ...mediaModal, show: false })}
-                                    className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                                <X className="w-5 h-5" />
+                            </button>
 
-                                <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
-                                    {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : 'Ajouter une galerie'}
-                                </h3>
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
+                                {mediaModal.type === 'image' ? 'Ajouter une photo' : mediaModal.type === 'video' ? 'Ajouter une vidéo' : 'Ajouter une galerie'}
+                            </h3>
 
-                                <div className="space-y-4">
-                                    {mediaModal.type === 'gallery' ? (
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URLs des images (une par ligne)</label>
-                                            <textarea
-                                                value={mediaModal.urls}
-                                                onChange={e => setMediaModal({ ...mediaModal, urls: e.target.value })}
-                                                className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-red transition-all resize-none text-xs"
-                                                placeholder="https://image1.jpg&#10;https://image2.jpg"
-                                                autoFocus
-                                            />
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URL {mediaModal.type === 'video' ? 'YouTube / ID' : 'de l\'image'}</label>
-                                            <input
-                                                type="text"
-                                                value={mediaModal.url}
-                                                onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-red transition-all text-xs"
-                                                placeholder={mediaModal.type === 'video' ? "Ex: https://youtube.com/watch?v=..." : "https://site.com/image.jpg"}
-                                                autoFocus
-                                            />
-                                        </div>
-                                    )}
-
-                                    {mediaModal.type === 'image' && (
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">Format de l'image</label>
-                                            <div className="grid grid-cols-4 gap-2">
-                                                {['auto', '1/1', '3/4', '16/9'].map(ratio => (
-                                                    <button
-                                                        key={ratio}
-                                                        type="button"
-                                                        onClick={() => setMediaModal({ ...mediaModal, aspectRatio: ratio })}
-                                                        className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${mediaModal.aspectRatio === ratio ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-                                                    >
-                                                        {ratio === 'auto' ? 'Orig' : ratio}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-4">
-                                        <button
-                                            onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
-                                            className="flex-1 flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                                        >
-                                            <Upload className="w-5 h-5 text-neon-red group-hover:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-white">Upload</span>
-                                        </button>
-
-                                        <button
-                                            onClick={() => handleMediaConfirm((mediaModal as any).widgetIndex)}
-                                            className="flex-1 flex flex-col items-center gap-2 p-4 bg-neon-red text-white border border-neon-red rounded-2xl hover:bg-neon-red/80 transition-all font-bold group"
-                                        >
-                                            <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                            <span className="text-[10px] font-black uppercase tracking-widest">Confirmer</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                {/* Link Insertion Modal */}
-                <AnimatePresence>
-                    {linkModal.show && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setLinkModal({ ...linkModal, show: false })}
-                                className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-                            />
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                                className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
-                            >
-                                <button
-                                    onClick={() => setLinkModal({ ...linkModal, show: false })}
-                                    className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-
-                                <div className="w-12 h-12 bg-neon-cyan/10 rounded-2xl flex items-center justify-center border border-neon-cyan/30 mb-6">
-                                    <Link2 className="w-6 h-6 text-neon-cyan" />
-                                </div>
-
-                                <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
-                                    Insérer un lien
-                                </h3>
-
-                                <div className="space-y-4">
+                            <div className="space-y-4">
+                                {mediaModal.type === 'gallery' ? (
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte à afficher</label>
-                                        <input
-                                            type="text"
-                                            value={linkModal.text}
-                                            onChange={(e) => setLinkModal({ ...linkModal, text: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-neon-cyan outline-none"
-                                            placeholder="Ex: Cliquez ici"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">URL du lien</label>
-                                        <input
-                                            type="text"
-                                            value={linkModal.url}
-                                            onChange={(e) => setLinkModal({ ...linkModal, url: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-neon-cyan outline-none"
-                                            placeholder="https://..."
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URLs des images (une par ligne)</label>
+                                        <textarea
+                                            value={mediaModal.urls}
+                                            onChange={e => setMediaModal({ ...mediaModal, urls: e.target.value })}
+                                            className="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-red transition-all resize-none text-xs"
+                                            placeholder="https://image1.jpg&#10;https://image2.jpg"
                                             autoFocus
                                         />
                                     </div>
-
-                                    <button
-                                        onClick={confirmLinkInsertion}
-                                        disabled={!linkModal.url}
-                                        className="w-full py-4 bg-neon-cyan text-black rounded-xl font-bold uppercase tracking-widest hover:bg-neon-cyan/80 transition-all mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        Confirmer le lien
-                                    </button>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                {/* Upload Modal */}
-                <ImageUploadModal
-                    isOpen={showUploadModal}
-                    onClose={() => setShowUploadModal(false)}
-                    onUploadSuccess={(url) => {
-                        const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
-                        const mediaTag = isVideo
-                            ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
-                            : `<img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
-
-                        if (uploadTarget.type === 'main') {
-                            setImageUrl(url);
-                        } else if (uploadTarget.type === 'duo1' as any) {
-                            setDuoModal(prev => ({ ...prev, url1: url }));
-                        } else if (uploadTarget.type === 'duo2' as any) {
-                            setDuoModal(prev => ({ ...prev, url2: url }));
-                        } else if (uploadTarget.type === 'interview-media') {
-                            setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: url } : q));
-                        } else if (uploadTarget.type === 'widget-edit' as any) {
-                            const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
-                            updateWidget(uploadTarget.widgetId!, imgWidget);
-                        } else {
-                            // Create a new image widget
-                            const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
-                            addWidget(uploadTarget.index, imgWidget);
-                        }
-                    }}
-                    accentColor={type === 'Interview' ? 'neon-purple' : 'neon-red'}
-                />
-
-                {/* Duo Photos Modal */}
-                <AnimatePresence>
-                    {duoModal.show && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
-                            >
-                                <button
-                                    onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
-                                    className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-
-                                <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Ajouter Duo Photos</h3>
-                                <div className="space-y-4">
+                                ) : (
                                     <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Gauche (URL)</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={duoModal.url1}
-                                                onChange={e => setDuoModal({ ...duoModal, url1: e.target.value })}
-                                                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-purple transition-all"
-                                                placeholder="https://..."
-                                                autoFocus
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setUploadTarget({ type: 'duo1' as any });
-                                                    setShowUploadModal(true);
-                                                }}
-                                                className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
-                                            >
-                                                Upload
-                                            </button>
-                                        </div>
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URL {mediaModal.type === 'video' ? 'YouTube / ID' : 'de l\'image'}</label>
+                                        <input
+                                            type="text"
+                                            value={mediaModal.url}
+                                            onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-red transition-all text-xs"
+                                            placeholder={mediaModal.type === 'video' ? "Ex: https://youtube.com/watch?v=..." : "https://site.com/image.jpg"}
+                                            autoFocus
+                                        />
                                     </div>
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Droite (URL)</label>
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={duoModal.url2}
-                                                onChange={e => setDuoModal({ ...duoModal, url2: e.target.value })}
-                                                className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-purple transition-all"
-                                                placeholder="https://..."
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setUploadTarget({ type: 'duo2' as any });
-                                                    setShowUploadModal(true);
-                                                }}
-                                                className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
-                                            >
-                                                Upload
-                                            </button>
-                                        </div>
-                                    </div>
+                                )}
 
-                                    <div>
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Format du duo</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {['1/1', '3/4', '16/9'].map(ratio => (
+                                {mediaModal.type === 'image' && (
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">Format de l'image</label>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {['auto', '1/1', '3/4', '16/9'].map(ratio => (
                                                 <button
                                                     key={ratio}
                                                     type="button"
-                                                    onClick={() => setDuoModal({ ...duoModal, aspectRatio: ratio })}
-                                                    className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.aspectRatio === ratio ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                                    onClick={() => setMediaModal({ ...mediaModal, aspectRatio: ratio })}
+                                                    className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${mediaModal.aspectRatio === ratio ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
                                                 >
-                                                    {ratio}
+                                                    {ratio === 'auto' ? 'Orig' : ratio}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="flex gap-4 pt-4">
+                                )}
+
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                        className="flex-1 flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                    >
+                                        <Upload className="w-5 h-5 text-neon-red group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Upload</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleMediaConfirm((mediaModal as any).widgetIndex)}
+                                        className="flex-1 flex flex-col items-center gap-2 p-4 bg-neon-red text-white border border-neon-red rounded-2xl hover:bg-neon-red/80 transition-all font-bold group"
+                                    >
+                                        <Plus className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Confirmer</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Link Insertion Modal */}
+            <AnimatePresence>
+                {linkModal.show && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setLinkModal({ ...linkModal, show: false })}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                        >
+                            <button
+                                onClick={() => setLinkModal({ ...linkModal, show: false })}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="w-12 h-12 bg-neon-cyan/10 rounded-2xl flex items-center justify-center border border-neon-cyan/30 mb-6">
+                                <Link2 className="w-6 h-6 text-neon-cyan" />
+                            </div>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">
+                                Insérer un lien
+                            </h3>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte à afficher</label>
+                                    <input
+                                        type="text"
+                                        value={linkModal.text}
+                                        onChange={(e) => setLinkModal({ ...linkModal, text: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-neon-cyan outline-none"
+                                        placeholder="Ex: Cliquez ici"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">URL du lien</label>
+                                    <input
+                                        type="text"
+                                        value={linkModal.url}
+                                        onChange={(e) => setLinkModal({ ...linkModal, url: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-neon-cyan outline-none"
+                                        placeholder="https://..."
+                                        autoFocus
+                                    />
+                                </div>
+
+                                <button
+                                    onClick={confirmLinkInsertion}
+                                    disabled={!linkModal.url}
+                                    className="w-full py-4 bg-neon-cyan text-black rounded-xl font-bold uppercase tracking-widest hover:bg-neon-cyan/80 transition-all mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Confirmer le lien
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Upload Modal */}
+            <ImageUploadModal
+                isOpen={showUploadModal}
+                onClose={() => setShowUploadModal(false)}
+                onUploadSuccess={(url) => {
+                    const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
+                    const mediaTag = isVideo
+                        ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
+                        : `<img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+
+                    if (uploadTarget.type === 'main') {
+                        setImageUrl(url);
+                    } else if (uploadTarget.type === 'duo1' as any) {
+                        setDuoModal(prev => ({ ...prev, url1: url }));
+                    } else if (uploadTarget.type === 'duo2' as any) {
+                        setDuoModal(prev => ({ ...prev, url2: url }));
+                    } else if (uploadTarget.type === 'interview-media') {
+                        setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: url } : q));
+                    } else if (uploadTarget.type === 'widget-edit' as any) {
+                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
+                        updateWidget(uploadTarget.widgetId!, imgWidget);
+                    } else {
+                        // Create a new image widget
+                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
+                        addWidget(uploadTarget.index, imgWidget);
+                    }
+                }}
+                accentColor={type === 'Interview' ? 'neon-purple' : 'neon-red'}
+            />
+
+            {/* Duo Photos Modal */}
+            <AnimatePresence>
+                {duoModal.show && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
+                        >
+                            <button
+                                onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Ajouter Duo Photos</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Gauche (URL)</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={duoModal.url1}
+                                            onChange={e => setDuoModal({ ...duoModal, url1: e.target.value })}
+                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-purple transition-all"
+                                            placeholder="https://..."
+                                            autoFocus
+                                        />
                                         <button
-                                            onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
-                                            className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
-                                        >
-                                            Annuler
-                                        </button>
-                                        <button
+                                            type="button"
                                             onClick={() => {
-                                                if (!duoModal.url1 || !duoModal.url2) return;
-
-                                                const isV1 = duoModal.url1.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url1.includes('/video/upload/');
-                                                const isV2 = duoModal.url2.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url2.includes('/video/upload/');
-
-                                                const media1 = isV1
-                                                    ? `<video src="${duoModal.url1}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
-                                                    : `<img src="${duoModal.url1}" alt="Portrait 1" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
-
-                                                const media2 = isV2
-                                                    ? `<video src="${duoModal.url2}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
-                                                    : `<img src="${duoModal.url2}" alt="Portrait 2" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
-
-                                                const duoWidget = `<div class="duo-photos-premium flex flex-row gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media1}\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media2}\n  </div>\n</div>`;
-
-                                                if (duoModal.widgetId) {
-                                                    updateWidget(duoModal.widgetId, duoWidget);
-                                                } else if (duoModal.widgetIndex !== undefined) {
-                                                    addWidget(duoModal.widgetIndex, duoWidget);
-                                                } else {
-                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: duoWidget }]);
-                                                }
-                                                setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
+                                                setUploadTarget({ type: 'duo1' as any });
+                                                setShowUploadModal(true);
                                             }}
-                                            className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
+                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
                                         >
-                                            Confirmer
+                                            Upload
                                         </button>
                                     </div>
                                 </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                <ConfirmationModal
-                    isOpen={showDeleteConfirm}
-                    onCancel={() => setShowDeleteConfirm(false)}
-                    onConfirm={handleDelete}
-                    title="Supprimer l'article ?"
-                    message="Cette action est irréversible. Voulez-vous vraiment supprimer cet article ?"
-                    confirmLabel="Oui, supprimer"
-                    cancelLabel="Annuler"
-                    accentColor="neon-red"
-                />
-
-                <AnimatePresence>
-                    {videoGroupModal.show && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative"
-                            >
-                                <button
-                                    onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
-                                    className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-
-                                <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Groupe de Vidéos en ligne</h3>
-
-                                <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre de vidéos par ligne</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {[1, 2, 3].map(n => (
-                                                <button
-                                                    key={n}
-                                                    type="button"
-                                                    onClick={() => setVideoGroupModal({ ...videoGroupModal, count: n })}
-                                                    className={`py-3 rounded-xl text-sm font-black transition-all border ${videoGroupModal.count === n ? 'bg-red-600 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
-                                                >
-                                                    {n} VIDÉO{n > 1 ? 'S' : ''}
-                                                </button>
-                                            ))}
-                                        </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Droite (URL)</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={duoModal.url2}
+                                            onChange={e => setDuoModal({ ...duoModal, url2: e.target.value })}
+                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-purple transition-all"
+                                            placeholder="https://..."
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setUploadTarget({ type: 'duo2' as any });
+                                                setShowUploadModal(true);
+                                            }}
+                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
+                                        >
+                                            Upload
+                                        </button>
                                     </div>
+                                </div>
 
-                                    <div className="space-y-4">
-                                        {[...Array(videoGroupModal.count)].map((_, i) => (
-                                            <div key={i}>
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-neon-red">Vidéo {i + 1} (URL ou ID)</label>
-                                                <input
-                                                    type="text"
-                                                    value={videoGroupModal.urls[i] || ''}
-                                                    onChange={e => {
-                                                        const newUrls = [...videoGroupModal.urls];
-                                                        newUrls[i] = e.target.value;
-                                                        setVideoGroupModal({ ...videoGroupModal, urls: newUrls });
-                                                    }}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-red-600 transition-all text-sm"
-                                                    placeholder="Lien YouTube..."
-                                                />
-                                            </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Format du duo</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {['1/1', '3/4', '16/9'].map(ratio => (
+                                            <button
+                                                key={ratio}
+                                                type="button"
+                                                onClick={() => setDuoModal({ ...duoModal, aspectRatio: ratio })}
+                                                className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${duoModal.aspectRatio === ratio ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                            >
+                                                {ratio}
+                                            </button>
                                         ))}
                                     </div>
+                                </div>
+                                <div className="flex gap-4 pt-4">
+                                    <button
+                                        onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
+                                        className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (!duoModal.url1 || !duoModal.url2) return;
 
-                                    <div className="flex gap-4 pt-4">
-                                        <button
-                                            onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
-                                            className="flex-1 py-4 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
-                                        >
-                                            Annuler
-                                        </button>
-                                        <button
-                                            onClick={() => {
-                                                const validUrls = videoGroupModal.urls.slice(0, videoGroupModal.count).filter(u => u.trim());
-                                                if (validUrls.length === 0) return;
+                                            const isV1 = duoModal.url1.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url1.includes('/video/upload/');
+                                            const isV2 = duoModal.url2.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url2.includes('/video/upload/');
 
-                                                const processedUrls = validUrls.map(val => {
-                                                    let id = val;
-                                                    if (val.includes('youtube.com/watch?v=')) {
-                                                        id = val.split('v=')[1].split('&')[0];
-                                                    } else if (val.includes('youtu.be/')) {
-                                                        id = val.split('youtu.be/')[1];
-                                                    } else if (val.includes('youtube.com/embed/')) {
-                                                        id = val.split('youtube.com/embed/')[1].split('?')[0];
-                                                    }
-                                                    return `https://www.youtube.com/embed/${id}`;
-                                                });
+                                            const media1 = isV1
+                                                ? `<video src="${duoModal.url1}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
+                                                : `<img src="${duoModal.url1}" alt="Portrait 1" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
 
-                                                const videoItems = processedUrls.map(url => `
+                                            const media2 = isV2
+                                                ? `<video src="${duoModal.url2}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
+                                                : `<img src="${duoModal.url2}" alt="Portrait 2" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+
+                                            const duoWidget = `<div class="duo-photos-premium flex flex-row gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media1}\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n    ${media2}\n  </div>\n</div>`;
+
+                                            if (duoModal.widgetId) {
+                                                updateWidget(duoModal.widgetId, duoWidget);
+                                            } else if (duoModal.widgetIndex !== undefined) {
+                                                addWidget(duoModal.widgetIndex, duoWidget);
+                                            } else {
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: duoWidget }]);
+                                            }
+                                            setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
+                                        }}
+                                        className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
+                                    >
+                                        Confirmer
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                onCancel={() => setShowDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title="Supprimer l'article ?"
+                message="Cette action est irréversible. Voulez-vous vraiment supprimer cet article ?"
+                confirmLabel="Oui, supprimer"
+                cancelLabel="Annuler"
+                accentColor="neon-red"
+            />
+
+            <AnimatePresence>
+                {videoGroupModal.show && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative"
+                        >
+                            <button
+                                onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Groupe de Vidéos en ligne</h3>
+
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre de vidéos par ligne</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[1, 2, 3].map(n => (
+                                            <button
+                                                key={n}
+                                                type="button"
+                                                onClick={() => setVideoGroupModal({ ...videoGroupModal, count: n })}
+                                                className={`py-3 rounded-xl text-sm font-black transition-all border ${videoGroupModal.count === n ? 'bg-red-600 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                            >
+                                                {n} VIDÉO{n > 1 ? 'S' : ''}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {[...Array(videoGroupModal.count)].map((_, i) => (
+                                        <div key={i}>
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-neon-red">Vidéo {i + 1} (URL ou ID)</label>
+                                            <input
+                                                type="text"
+                                                value={videoGroupModal.urls[i] || ''}
+                                                onChange={e => {
+                                                    const newUrls = [...videoGroupModal.urls];
+                                                    newUrls[i] = e.target.value;
+                                                    setVideoGroupModal({ ...videoGroupModal, urls: newUrls });
+                                                }}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-red-600 transition-all text-sm"
+                                                placeholder="Lien YouTube..."
+                                            />
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex gap-4 pt-4">
+                                    <button
+                                        onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
+                                        className="flex-1 py-4 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            const validUrls = videoGroupModal.urls.slice(0, videoGroupModal.count).filter(u => u.trim());
+                                            if (validUrls.length === 0) return;
+
+                                            const processedUrls = validUrls.map(val => {
+                                                let id = val;
+                                                if (val.includes('youtube.com/watch?v=')) {
+                                                    id = val.split('v=')[1].split('&')[0];
+                                                } else if (val.includes('youtu.be/')) {
+                                                    id = val.split('youtu.be/')[1];
+                                                } else if (val.includes('youtube.com/embed/')) {
+                                                    id = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                }
+                                                return `https://www.youtube.com/embed/${id}`;
+                                            });
+
+                                            const videoItems = processedUrls.map(url => `
     <div className="video-wrapper flex-1 relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">
       <iframe src="${url}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>
     </div>`).join('');
 
-                                                const videoWidget = `<div class="video-group-premium flex flex-col md:flex-row gap-4 my-12">\n${videoItems}\n</div>`;
+                                            const videoWidget = `<div class="video-group-premium flex flex-col md:flex-row gap-4 my-12">\n${videoItems}\n</div>`;
 
-                                                if (videoGroupModal.widgetId) {
-                                                    updateWidget(videoGroupModal.widgetId, videoWidget);
-                                                } else if (videoGroupModal.widgetIndex !== undefined) {
-                                                    addWidget(videoGroupModal.widgetIndex, videoWidget);
-                                                } else {
-                                                    setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: videoWidget }]);
-                                                }
-                                                setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 });
-                                            }}
-                                            className="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                        >
-                                            Confirmer
-                                        </button>
-                                    </div>
+                                            if (videoGroupModal.widgetId) {
+                                                updateWidget(videoGroupModal.widgetId, videoWidget);
+                                            } else if (videoGroupModal.widgetIndex !== undefined) {
+                                                addWidget(videoGroupModal.widgetIndex, videoWidget);
+                                            } else {
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: videoWidget }]);
+                                            }
+                                            setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 });
+                                        }}
+                                        className="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                    >
+                                        Confirmer
+                                    </button>
                                 </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
-                <ConfirmationModal
-                    isOpen={blocker.state === "blocked"}
-                    title="Modifications non enregistrées"
-                    message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
-                    onConfirm={() => blocker.proceed?.()}
-                    onCancel={() => blocker.reset?.()}
-                    accentColor="neon-red"
-                />
-            </div >
-        </div >
+            <ConfirmationModal
+                isOpen={blocker.state === "blocked"}
+                title="Modifications non enregistrées"
+                message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
+                onConfirm={() => blocker.proceed?.()}
+                onCancel={() => blocker.reset?.()}
+                accentColor="neon-red"
+            />
+        </div>
     );
 }
 
