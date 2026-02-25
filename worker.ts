@@ -1228,111 +1228,7 @@ export default {
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
-        // --- API: DELETE CONTENT ---
-        if (path.endsWith('/delete') && request.method === 'POST') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
-
-            try {
-                const { id } = await request.json();
-                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
-
-                let FILE_PATH = '';
-                let CONTENT_FILES = [];
-
-                if (path.includes('/news')) {
-                    FILE_PATH = 'src/data/news.json';
-                    CONTENT_FILES = NEWS_CONTENT_FILES;
-                } else if (path.includes('/recaps')) {
-                    FILE_PATH = 'src/data/recaps.json';
-                    CONTENT_FILES = RECAPS_CONTENT_FILES;
-                } else if (path.includes('/agenda')) {
-                    FILE_PATH = 'src/data/agenda.json';
-                } else if (path.includes('/galerie')) {
-                    FILE_PATH = 'src/data/galerie.json';
-                }
-
-                if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid path' }), { status: 400, headers });
-
-                // 1. Delete Metadata
-                const file = await fetchGitHubFile(FILE_PATH);
-                if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
-
-                const updatedData = file.content.filter(item => String(item.id) !== String(id));
-                if (updatedData.length === file.content.length) {
-                    return new Response(JSON.stringify({ error: 'Item not found in metadata' }), { status: 404, headers });
-                }
-
-                await saveGitHubFile(FILE_PATH, updatedData, `Delete content: ${id}`, file.sha);
-
-                // 2. Delete Content (News/Recaps)
-                if (CONTENT_FILES.length > 0) {
-                    for (const cp of CONTENT_FILES) {
-                        const cf = await fetchGitHubFile(cp);
-                        if (cf) {
-                            const newCfContent = cf.content.filter(item => String(item.id) !== String(id));
-                            if (newCfContent.length !== cf.content.length) {
-                                await saveGitHubFile(cp, newCfContent, `Delete content body: ${id}`, cf.sha);
-                            }
-                        }
-                    }
-                }
-
-                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
-
-        // --- API: SUBSCRIBERS --- (GET)
-        if (path === '/api/subscribers' && request.method === 'GET') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
-
-            try {
-                const file = await fetchGitHubFile(PATH);
-                if (!file) {
-                    // Empty file or error -> Return empty list to prevent frontend crash
-                    return new Response(JSON.stringify([]), { status: 200, headers });
-                }
-
-                return new Response(JSON.stringify(file.content), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
-
-        // --- STATIC ASSETS & FALLBACK ---
-
-        // --- API: GET NEWS CONTENT ---
-        if (path === '/api/news/content' && request.method === 'GET') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
-            const id = parseInt(url.searchParams.get('id') || '0');
-            if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
-            for (const filePath of NEWS_CONTENT_FILES) {
-                const cFile = await fetchGitHubFile(filePath);
-                if (cFile && Array.isArray(cFile.content)) {
-                    const item = cFile.content.find(i => i.id === id);
-                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
-                }
-            }
-            return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
-        }
-
-        // --- API: GET RECAPS CONTENT ---
-        if (path === '/api/recaps/content' && request.method === 'GET') {
-            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
-            const id = parseInt(url.searchParams.get('id') || '0');
-            if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
-            for (const filePath of RECAPS_CONTENT_FILES) {
-                const cFile = await fetchGitHubFile(filePath);
-                if (cFile && Array.isArray(cFile.content)) {
-                    const item = cFile.content.find(i => i.id === id);
-                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
-                }
-            }
-            return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
-        }
-
-        // --- API: CONTACT FORM (Public POST) ---
+        // --- API: CONTACTS MANAGEMENT ---
         if (path === '/api/contact' && request.method === 'POST') {
             try {
                 const body = await request.json();
@@ -1450,7 +1346,6 @@ export default {
             }
         }
 
-        // --- API: GET CONTACTS (admin) ---
         if (path === '/api/contacts' && request.method === 'GET') {
             try {
                 const file = await fetchGitHubFile('src/data/contacts.json') || { content: [] };
@@ -1460,7 +1355,6 @@ export default {
             }
         }
 
-        // --- API: MARK CONTACT AS READ ---
         if (path === '/api/contacts/read' && request.method === 'POST') {
             try {
                 const { id } = await request.json();
@@ -1475,7 +1369,6 @@ export default {
             }
         }
 
-        // --- API: DELETE CONTACT ---
         if (path === '/api/contacts/delete' && request.method === 'POST') {
             try {
                 const { id } = await request.json();
@@ -1490,7 +1383,6 @@ export default {
             }
         }
 
-        // --- API: REPLY TO CONTACT VIA BREVO ---
         if (path === '/api/contacts/reply' && request.method === 'POST') {
             const BREVO_KEY = env.BREVO_API_KEY;
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
@@ -1586,6 +1478,112 @@ export default {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }
+
+        // --- API: DELETE CONTENT ---
+        if (path.endsWith('/delete') && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+
+            try {
+                const { id } = await request.json();
+                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+
+                let FILE_PATH = '';
+                let CONTENT_FILES = [];
+
+                if (path.includes('/news')) {
+                    FILE_PATH = 'src/data/news.json';
+                    CONTENT_FILES = NEWS_CONTENT_FILES;
+                } else if (path.includes('/recaps')) {
+                    FILE_PATH = 'src/data/recaps.json';
+                    CONTENT_FILES = RECAPS_CONTENT_FILES;
+                } else if (path.includes('/agenda')) {
+                    FILE_PATH = 'src/data/agenda.json';
+                } else if (path.includes('/galerie')) {
+                    FILE_PATH = 'src/data/galerie.json';
+                }
+
+                if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid path' }), { status: 400, headers });
+
+                // 1. Delete Metadata
+                const file = await fetchGitHubFile(FILE_PATH);
+                if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
+
+                const updatedData = file.content.filter(item => String(item.id) !== String(id));
+                if (updatedData.length === file.content.length) {
+                    return new Response(JSON.stringify({ error: 'Item not found in metadata' }), { status: 404, headers });
+                }
+
+                await saveGitHubFile(FILE_PATH, updatedData, `Delete content: ${id}`, file.sha);
+
+                // 2. Delete Content (News/Recaps)
+                if (CONTENT_FILES.length > 0) {
+                    for (const cp of CONTENT_FILES) {
+                        const cf = await fetchGitHubFile(cp);
+                        if (cf) {
+                            const newCfContent = cf.content.filter(item => String(item.id) !== String(id));
+                            if (newCfContent.length !== cf.content.length) {
+                                await saveGitHubFile(cp, newCfContent, `Delete content body: ${id}`, cf.sha);
+                            }
+                        }
+                    }
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- API: SUBSCRIBERS --- (GET)
+        if (path === '/api/subscribers' && request.method === 'GET') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+
+            try {
+                const file = await fetchGitHubFile(PATH);
+                if (!file) {
+                    // Empty file or error -> Return empty list to prevent frontend crash
+                    return new Response(JSON.stringify([]), { status: 200, headers });
+                }
+
+                return new Response(JSON.stringify(file.content), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- STATIC ASSETS & FALLBACK ---
+
+        // --- API: GET NEWS CONTENT ---
+        if (path === '/api/news/content' && request.method === 'GET') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const id = parseInt(url.searchParams.get('id') || '0');
+            if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+            for (const filePath of NEWS_CONTENT_FILES) {
+                const cFile = await fetchGitHubFile(filePath);
+                if (cFile && Array.isArray(cFile.content)) {
+                    const item = cFile.content.find(i => i.id === id);
+                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
+                }
+            }
+            return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
+        }
+
+        // --- API: GET RECAPS CONTENT ---
+        if (path === '/api/recaps/content' && request.method === 'GET') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const id = parseInt(url.searchParams.get('id') || '0');
+            if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+            for (const filePath of RECAPS_CONTENT_FILES) {
+                const cFile = await fetchGitHubFile(filePath);
+                if (cFile && Array.isArray(cFile.content)) {
+                    const item = cFile.content.find(i => i.id === id);
+                    if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
+                }
+            }
+            return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
+        }
+
+
 
         if (path.startsWith('/api/')) {
             return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers });
