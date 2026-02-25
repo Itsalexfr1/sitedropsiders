@@ -36,6 +36,74 @@ export function AdminDashboard() {
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const navigate = useNavigate();
 
+    // Selection Interviews pour l'accueil
+    const [allInterviews, setAllInterviews] = useState<any[]>([]);
+    const [selectedInterviews, setSelectedInterviews] = useState<string[]>([]);
+    const [isSavingInterviews, setIsSavingInterviews] = useState(false);
+    const [interviewSearch, setInterviewSearch] = useState('');
+
+    const fetchInterviewsForSelection = async () => {
+        try {
+            const [newsResp, layoutResp] = await Promise.all([
+                fetch('/api/news'),
+                fetch('/api/home-layout')
+            ]);
+            if (newsResp.ok && layoutResp.ok) {
+                const allNews = await newsResp.json();
+                const layout = await layoutResp.json();
+                const interviewList = allNews.filter((n: any) =>
+                    (n.category === 'Interview' || n.category === 'Interviews' || n.category === 'Interview Video')
+                );
+                // Sort by date desc
+                interviewList.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                setAllInterviews(interviewList);
+
+                const interviewSection = layout.find((s: any) => s.id === 'interviews');
+                if (interviewSection && interviewSection.featuredInterviews) {
+                    setSelectedInterviews(interviewSection.featuredInterviews);
+                } else {
+                    setSelectedInterviews([]);
+                }
+            }
+        } catch (e) {
+            console.error("Error fetching interviews for selection:", e);
+        }
+    };
+
+    useEffect(() => {
+        if (isInterviewModalOpen) {
+            fetchInterviewsForSelection();
+        }
+    }, [isInterviewModalOpen]);
+
+    const saveInterviewSelection = async () => {
+        setIsSavingInterviews(true);
+        try {
+            const layoutResp = await fetch('/api/home-layout');
+            if (layoutResp.ok) {
+                const layout = await layoutResp.json();
+                const newLayout = layout.map((section: any) => {
+                    if (section.id === 'interviews') {
+                        return { ...section, featuredInterviews: selectedInterviews };
+                    }
+                    return section;
+                });
+
+                await fetch('/api/home-layout/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ layout: newLayout })
+                });
+
+                setIsInterviewModalOpen(false);
+            }
+        } catch (e) {
+            console.error("Error saving interview selection:", e);
+        } finally {
+            setIsSavingInterviews(false);
+        }
+    };
+
     // --- DEPLOY STATE ---
     const [deployStatus, setDeployStatus] = useState<'idle' | 'loading' | 'queued' | 'in_progress' | 'success' | 'failure'>('idle');
     const [deployRunUrl, setDeployRunUrl] = useState<string | null>(null);
@@ -330,8 +398,8 @@ export function AdminDashboard() {
     const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
-        // Permission Maître (Alex uniquement pour superadmin)
-        if (p === 'superadmin') return isAlex;
+        // Permission Maître (Alex ou Administrateur "all" pour superadmin)
+        if (p === 'superadmin') return isAlex || storedPermissions.includes('all');
 
         if (storedPermissions.includes('all')) return true;
 
@@ -1093,7 +1161,7 @@ export function AdminDashboard() {
 
                             <Link
                                 to="/admin/manage?tab=Interviews"
-                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
+                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group mb-8"
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
@@ -1106,6 +1174,83 @@ export function AdminDashboard() {
                                 </div>
                                 <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                             </Link>
+
+                            {/* Section Sélection Home */}
+                            <div className="pt-8 border-t border-white/5">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div>
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">À la une sur l'accueil</h3>
+                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews à afficher</p>
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedInterviews.length === 4 ? 'bg-neon-green/10 text-neon-green border border-neon-green/20' : 'bg-neon-purple/10 text-neon-purple border border-neon-purple/20'}`}>
+                                        {selectedInterviews.length} / 4
+                                    </div>
+                                </div>
+
+                                <div className="relative mb-4">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="Filtrer mes interviews..."
+                                        value={interviewSearch}
+                                        onChange={(e) => setInterviewSearch(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-neon-purple transition-colors"
+                                    />
+                                </div>
+
+                                <div className="max-h-[300px] overflow-y-auto pr-2 space-y-2 mb-8 custom-scrollbar">
+                                    {allInterviews
+                                        .filter(int => !interviewSearch || int.title.toLowerCase().includes(interviewSearch.toLowerCase()))
+                                        .map((int) => {
+                                            const isSelected = selectedInterviews.includes(int.id);
+                                            return (
+                                                <button
+                                                    key={int.id}
+                                                    onClick={() => {
+                                                        if (isSelected) {
+                                                            setSelectedInterviews(prev => prev.filter(id => id !== int.id));
+                                                        } else if (selectedInterviews.length < 4) {
+                                                            setSelectedInterviews(prev => [...prev, int.id]);
+                                                        }
+                                                    }}
+                                                    className={`w-full p-3 rounded-2xl border transition-all flex items-center gap-4 text-left group ${isSelected ? 'bg-neon-purple/10 border-neon-purple/40 shadow-lg shadow-neon-purple/5' : 'bg-black/20 border-white/5 hover:border-white/20'}`}
+                                                >
+                                                    <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                                        <img src={int.image} alt="" className="w-full h-full object-cover" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className={`font-bold text-sm truncate uppercase italic tracking-tight ${isSelected ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}`}>
+                                                            {int.title}
+                                                        </h4>
+                                                        <p className="text-[9px] text-gray-600 uppercase font-black tracking-widest mt-1">
+                                                            {new Date(int.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                                        </p>
+                                                    </div>
+                                                    <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all ${isSelected ? 'bg-neon-purple border-neon-purple' : 'border-white/10'}`}>
+                                                        {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })}
+                                </div>
+
+                                <div className="flex gap-4">
+                                    <button
+                                        onClick={() => setIsInterviewModalOpen(false)}
+                                        className="flex-1 py-4 bg-white/5 hover:bg-white/10 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all border border-white/10"
+                                    >
+                                        Fermer
+                                    </button>
+                                    <button
+                                        onClick={saveInterviewSelection}
+                                        disabled={isSavingInterviews}
+                                        className="flex-1 py-4 bg-neon-purple shadow-[0_0_20px_rgba(189,0,255,0.3)] hover:shadow-[0_0_30px_rgba(189,0,255,0.5)] text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        {isSavingInterviews ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                        Enregistrer Home
+                                    </button>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 )}

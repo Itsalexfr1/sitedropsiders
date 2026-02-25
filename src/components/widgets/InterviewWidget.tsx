@@ -5,13 +5,27 @@ import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 
-export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
+import { useMemo } from 'react';
+
+export function InterviewWidget({ accentColor = 'purple', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
 
-    const latestInterviews = (newsData as any[])
-        .filter((item: any) => item.category === 'Interview' || item.category === 'Interviews')
-        .slice(0, 4);
+    const displayInterviews = useMemo(() => {
+        const all = newsData as any[];
+        if (featuredInterviews && featuredInterviews.length > 0) {
+            return featuredInterviews
+                .map(id => all.find(item => String(item.id) === String(id)))
+                .filter(Boolean);
+        }
+        return all
+            .filter((item: any) =>
+                item.category === 'Interview' ||
+                item.category === 'Interviews' ||
+                item.category === 'Interview Video'
+            )
+            .slice(0, 4);
+    }, [featuredInterviews]);
 
     const playHoverSound = useHoverSound();
 
@@ -39,13 +53,13 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor }: { acc
                 </Link>
             </div>
 
-            {latestInterviews.length === 0 ? (
+            {displayInterviews.length === 0 ? (
                 <div className="flex-1 flex items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md min-h-[400px]">
                     <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('home.no_interview')}</p>
                 </div>
             ) : (
                 <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-4">
-                    {latestInterviews.map((item: any, index: number) => (
+                    {displayInterviews.map((item: any, index: number) => (
                         <Link to={`/interviews/${item.id}`} key={item.id} className="block group relative">
                             {/* Lueur externe derrière la carte */}
                             <div

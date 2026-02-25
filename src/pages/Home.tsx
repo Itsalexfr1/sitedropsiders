@@ -74,7 +74,7 @@ export function Home() {
             case 'interviews':
                 return (
                     <section key="interviews" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-8">
-                        <InterviewWidget accentColor={accentColor} resolvedColor={color} />
+                        <InterviewWidget accentColor={accentColor} resolvedColor={color} featuredInterviews={item.featuredInterviews} />
                     </section>
                 );
             case 'social_grid':
