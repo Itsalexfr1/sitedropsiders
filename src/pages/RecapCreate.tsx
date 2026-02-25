@@ -47,25 +47,44 @@ const EDITOR_COLORS = [
     '#FF1241', // neon-red
     '#00FFFF', // neon-cyan
     '#BF00FF', // neon-purple
-    '#FFF01F', // neon-yellow
     '#39FF14', // neon-green
+    '#FFF01F', // neon-yellow
+    '#FF5E00', // neon-orange
     '#00BFFF', // neon-blue
     '#FF0099', // neon-pink
-    '#FF5E00', // neon-orange
+    '#00FF88', // neon-mint
+    '#7B61FF', // neon-indigo
 ];
 
 const getEditorColor = (username: string) => {
     const normalized = username.toLowerCase();
-    // Manual overrides for core team to ensure unique colors
-    if (normalized === 'alex') return '#FF1241';   // neon-red
-    if (normalized === 'tanguy') return '#00FFFF'; // neon-cyan
-    if (normalized === 'julien') return '#BF00FF'; // neon-purple
+    // Manual overrides for core team to provide unique colors
+    if (normalized === 'alex') return '#FF1241';
+    if (normalized === 'tanguy') return '#00FFFF';
+    if (normalized === 'julien') return '#BF00FF';
+    if (normalized === 'tiffany') return '#39FF14';
+    if (normalized === 'kevin') return '#FFF01F';
+    if (normalized === 'guiyoome') return '#FF5E00';
 
     let hash = 0;
     for (let i = 0; i < normalized.length; i++) {
         hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
     }
     return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
+
+// Special style for Alex (Gradient)
+const getAuthorTextStyle = (username: string) => {
+    const color = getEditorColor(username);
+    if (username.toLowerCase() === 'alex') {
+        return {
+            background: 'linear-gradient(to right, #FF1241, #FF0099, #BF00FF)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            display: 'inline-block'
+        };
+    }
+    return { color };
 };
 
 // Helper component to fix caret jumping in contentEditable
@@ -914,7 +933,7 @@ export function RecapCreate() {
                                 <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
                                     <User className="w-3 h-3 text-gray-500" />
                                     <span className="text-[9px] font-black text-white uppercase tracking-widest">
-                                        Éditeur : <span style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span>
+                                        Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
                                     </span>
                                     {isAuthorConfirmed ? (
                                         <Check className="w-3 h-3 text-neon-green" />
@@ -1201,7 +1220,7 @@ export function RecapCreate() {
                                             </div>
                                             <span
                                                 className="text-[10px] font-black uppercase tracking-widest transition-colors"
-                                                style={{ color: isSelected ? editorColor : '#666' }}
+                                                style={getAuthorTextStyle(editor.username)}
                                             >
                                                 {editor.name}
                                             </span>
@@ -1236,7 +1255,7 @@ export function RecapCreate() {
                                         Confirmer l'Éditeur
                                     </span>
                                     <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="font-black" style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span> est bien l'auteur de ce récap
+                                        Je certifie que <span className="font-black" style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span> est bien l'auteur de ce récap
                                     </span>
                                 </div>
                             </div>

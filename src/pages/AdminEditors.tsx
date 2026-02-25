@@ -79,25 +79,44 @@ const EDITOR_COLORS = [
     '#FF1241', // neon-red
     '#00FFFF', // neon-cyan
     '#BF00FF', // neon-purple
-    '#FFF01F', // neon-yellow
     '#39FF14', // neon-green
+    '#FFF01F', // neon-yellow
+    '#FF5E00', // neon-orange
     '#00BFFF', // neon-blue
     '#FF0099', // neon-pink
-    '#FF5E00', // neon-orange
+    '#00FF88', // neon-mint
+    '#7B61FF', // neon-indigo
 ];
 
 const getEditorColor = (username: string) => {
     const normalized = username.toLowerCase();
-    // Manual overrides for core team to ensure unique colors
-    if (normalized === 'alex') return '#FF1241';   // neon-red
-    if (normalized === 'tanguy') return '#00FFFF'; // neon-cyan
-    if (normalized === 'julien') return '#BF00FF'; // neon-purple
+    // Manual overrides for core team to provide unique colors
+    if (normalized === 'alex') return '#FF1241';
+    if (normalized === 'tanguy') return '#00FFFF';
+    if (normalized === 'julien') return '#BF00FF';
+    if (normalized === 'tiffany') return '#39FF14';
+    if (normalized === 'kevin') return '#FFF01F';
+    if (normalized === 'guiyoome') return '#FF5E00';
 
     let hash = 0;
     for (let i = 0; i < normalized.length; i++) {
         hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
     }
     return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
+
+// Special style for Alex (Gradient)
+const getAuthorTextStyle = (username: string) => {
+    const color = getEditorColor(username);
+    if (username.toLowerCase() === 'alex') {
+        return {
+            background: 'linear-gradient(to right, #FF1241, #FF0099, #BF00FF)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            fontWeight: '950'
+        };
+    }
+    return { color };
 };
 
 export function AdminEditors() {
@@ -302,7 +321,7 @@ export function AdminEditors() {
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-3">
-                                                    <h3 className="text-lg font-bold text-white uppercase italic">
+                                                    <h3 className="text-lg font-bold uppercase italic" style={getAuthorTextStyle(editor.username)}>
                                                         {editor.name || editor.username}
                                                     </h3>
                                                     {editor.permissions?.includes('all') && (
