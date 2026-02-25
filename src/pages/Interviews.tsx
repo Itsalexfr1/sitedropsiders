@@ -12,10 +12,15 @@ import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { standardizeContent } from '../utils/standardizer';
 
-type TabKey = 'all' | 'video' | 'text';
+type TabKey = 'all' | 'written' | 'video' | 'fast-quizz' | 'playlist' | 'drop-talk';
 
 const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
     { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
+    { key: 'written', label: 'Écrites', activeClass: 'bg-neon-purple text-white shadow-[0_0_20px_rgba(189,0,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-purple/40 hover:text-neon-purple' },
+    { key: 'video', label: 'Vidéos', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-red-500' },
+    { key: 'fast-quizz', label: 'Fast Quizz', activeClass: 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-cyan/40 hover:text-neon-cyan' },
+    { key: 'playlist', label: 'La Playlist', activeClass: 'bg-neon-pink text-white shadow-[0_0_20px_rgba(255,0,153,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-pink/40 hover:text-neon-pink' },
+    { key: 'drop-talk', label: 'Drop & Talk', activeClass: 'bg-neon-yellow text-black shadow-[0_0_20px_rgba(255,204,0,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-yellow/40 hover:text-neon-yellow' },
 ];
 
 export function Interviews() {
@@ -24,6 +29,7 @@ export function Interviews() {
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [activeTab, setActiveTab] = useState<TabKey>('all');
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -51,13 +57,34 @@ export function Interviews() {
     const articlesPerPage = 8;
 
     const allInterviews = useMemo(() => {
-        return (newsData as any[])
+        const base = (newsData as any[])
             .filter((item: any) => {
                 const cat = (item.category || '').toLowerCase();
                 return cat.includes('interview');
-            })
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, []);
+            });
+
+        if (activeTab === 'all') return base.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        return base.filter((item: any) => {
+            const cat = (item.category || '').toLowerCase();
+            const title = (item.title || '').toLowerCase();
+
+            switch (activeTab) {
+                case 'written':
+                    return cat === 'interview' || cat === 'interviews';
+                case 'video':
+                    return cat.includes('interview video');
+                case 'fast-quizz':
+                    return cat.includes('fast quizz') || title.includes('fast quizz');
+                case 'playlist':
+                    return cat.includes('la playlist') || cat.includes('playlist') || title.includes('la playlist');
+                case 'drop-talk':
+                    return cat.includes('drop & talk') || title.includes('drop & talk');
+                default:
+                    return true;
+            }
+        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [activeTab]);
 
     const totalPages = Math.ceil(allInterviews.length / articlesPerPage);
 
@@ -108,6 +135,12 @@ export function Interviews() {
     const paginate = (pageNumber: number) => {
         setDirection(pageNumber > currentPage ? 1 : -1);
         setCurrentPage(pageNumber);
+    };
+
+    const handleTabChange = (key: TabKey) => {
+        setDirection(0);
+        setActiveTab(key);
+        setCurrentPage(1);
     };
 
     const variants = {
@@ -162,13 +195,17 @@ export function Interviews() {
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
                     </div>
                     {TABS.map((tab) => {
+                        const isActive = activeTab === tab.key;
                         return (
                             <motion.button
                                 key={tab.key}
-                                onClick={() => { }}
+                                onClick={() => handleTabChange(tab.key)}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
-                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]`}
+                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border ${isActive
+                                    ? `${tab.activeClass} border-transparent`
+                                    : `bg-white/5 ${tab.inactiveClass}`
+                                    }`}
                             >
                                 {tab.label}
                             </motion.button>
@@ -197,7 +234,7 @@ export function Interviews() {
                 <div className="min-h-[600px] w-full overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
-                            key={currentPage}
+                            key={`${activeTab}-${currentPage}`}
                             custom={direction}
                             variants={variants}
                             initial="enter"
