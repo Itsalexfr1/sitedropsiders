@@ -564,10 +564,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         </div>
 
                         {/* Title */}
-                        <h1
-                            className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-2xl premium-h1"
-                            dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
-                        />
+                        {!isInterview && (
+                            <h1
+                                className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-2xl premium-h1"
+                                dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
+                            />
+                        )}
                     </div>
                 </div>
             </div>
