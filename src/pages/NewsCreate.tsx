@@ -50,12 +50,20 @@ const EDITOR_COLORS = [
     '#FFF01F', // neon-yellow
     '#39FF14', // neon-green
     '#00BFFF', // neon-blue
+    '#FF0099', // neon-pink
+    '#FF5E00', // neon-orange
 ];
 
 const getEditorColor = (username: string) => {
+    const normalized = username.toLowerCase();
+    // Manual overrides for core team to ensure unique colors
+    if (normalized === 'alex') return '#FF1241';   // neon-red
+    if (normalized === 'tanguy') return '#00FFFF'; // neon-cyan
+    if (normalized === 'julien') return '#BF00FF'; // neon-purple
+
     let hash = 0;
-    for (let i = 0; i < username.length; i++) {
-        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    for (let i = 0; i < normalized.length; i++) {
+        hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
     }
     return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
 };
