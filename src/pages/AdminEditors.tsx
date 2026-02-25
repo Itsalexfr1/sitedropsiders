@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { StarField } from '../components/ui/StarField';
 
 interface Editor {
     username: string;
@@ -115,7 +116,7 @@ export function AdminEditors() {
 
     const fetchEditors = async () => {
         try {
-            const response = await fetch('/api/editors', {
+            const response = await apiFetch('/api/editors', {
                 headers: getAuthHeaders(null)
             });
             if (response.ok) {
@@ -136,7 +137,7 @@ export function AdminEditors() {
 
         try {
             const endpoint = isEditing ? '/api/editors/update' : '/api/editors/create';
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(newEditor)
@@ -161,7 +162,7 @@ export function AdminEditors() {
     const handleDeleteEditor = async (targetUsername: string) => {
 
         try {
-            const response = await fetch('/api/editors/delete', {
+            const response = await apiFetch('/api/editors/delete', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ username: targetUsername })
@@ -181,7 +182,7 @@ export function AdminEditors() {
     const handleRevokeEditorSession = async (targetUsername: string) => {
         if (!confirm(`Voulez-vous vraiment révoquer toutes les sessions actives de @${targetUsername} ? L'utilisateur devra se reconnecter.`)) return;
         try {
-            const res = await fetch('/api/auth/revoke-all', {
+            const res = await apiFetch('/api/auth/revoke-all', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ targetUsername })
@@ -215,8 +216,9 @@ export function AdminEditors() {
     };
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32">
-            <div className="max-w-full mx-auto px-4 md:px-12">
+        <div className="min-h-screen bg-dark-bg py-32 relative overflow-hidden">
+            <StarField />
+            <div className="max-w-full mx-auto px-4 md:px-12 relative z-10">
                 <Link to="/admin" className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-8 transition-colors group">
                     <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                     Retour au tableau de bord

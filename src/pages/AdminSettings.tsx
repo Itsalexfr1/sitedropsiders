@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { StarField } from '../components/ui/StarField';
 
 export function AdminSettings() {
     const navigate = useNavigate();
@@ -40,16 +41,14 @@ export function AdminSettings() {
 
         const fetchData = async () => {
             try {
-                const resSets = await fetch('/api/settings');
+                const resSets = await apiFetch('/api/settings');
                 if (resSets.ok) {
                     const data = await resSets.json();
-
                     if (data.shop_password) setShopPassword(data.shop_password);
                     if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
-
                 }
 
-                const resAuth = await fetch('/api/editors');
+                const resAuth = await apiFetch('/api/editors');
                 if (resAuth.ok) {
                     const eds = await resAuth.json();
                     const me = eds.find((e: any) => e.username === currentUser);
@@ -65,7 +64,7 @@ export function AdminSettings() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const res = await fetch('/api/settings');
+            const res = await apiFetch('/api/settings');
             const data = res.ok ? await res.json() : {};
 
             const newSettings = {
@@ -74,18 +73,18 @@ export function AdminSettings() {
                 kit_media_password: kitMediaPassword,
             };
 
-            const saveRes = await fetch('/api/settings/update', {
+            const saveRes = await apiFetch('/api/settings/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(newSettings)
             });
 
-            const resAuth = await fetch('/api/editors');
+            const resAuth = await apiFetch('/api/editors');
             if (resAuth.ok) {
                 const eds = await resAuth.json();
                 const me = eds.find((e: any) => e.username === currentUser);
                 if (me && me.password !== adminPassword) {
-                    await fetch('/api/editors/update', {
+                    await apiFetch('/api/editors/update', {
                         method: 'POST',
                         headers: getAuthHeaders(),
                         body: JSON.stringify({
@@ -116,7 +115,7 @@ export function AdminSettings() {
 
         setIsRevoking(true);
         try {
-            const res = await fetch('/api/auth/revoke-all', {
+            const res = await apiFetch('/api/auth/revoke-all', {
                 method: 'POST',
                 headers: getAuthHeaders()
             });
@@ -140,8 +139,9 @@ export function AdminSettings() {
     if (!isAdmin) return null;
 
     return (
-        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
-            <div className="max-w-full mx-auto px-4 md:px-12">
+        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8 relative overflow-hidden">
+            <StarField />
+            <div className="max-w-full mx-auto px-4 md:px-12 relative z-10">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 md:mb-12">
                     <div className="flex items-center gap-4 md:gap-6">
                         <button
@@ -268,8 +268,6 @@ export function AdminSettings() {
                                     Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
                                 </p>
                             </div>
-
-
                         </div>
                     </motion.div>
 
@@ -314,20 +312,20 @@ export function AdminSettings() {
                             className="fixed bottom-12 left-1/2 z-[200]"
                         >
                             <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success'
-                                ? 'bg-green-500/10 border-green-500/20 text-green-400'
-                                : 'bg-red-500/10 border-red-500/20 text-red-500'
+                                    ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                                    : 'bg-red-500/10 border-red-500/20 text-red-500'
                                 }`}>
                                 <div className={`p-2 rounded-full ${toast.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
                                     {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                 </div>
-                                <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap">
+                                <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap text-white">
                                     {toast.message}
                                 </span>
                                 <button
                                     onClick={() => setToast(prev => ({ ...prev, show: false }))}
                                     className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
                                 >
-                                    <X className="w-4 h-4 opacity-50 hover:opacity-100" />
+                                    <X className="w-4 h-4 opacity-50 hover:opacity-100 text-white" />
                                 </button>
                             </div>
                         </motion.div>
@@ -347,7 +345,7 @@ export function AdminSettings() {
                     </div>
                 </div>
             </div>
-        </div >
+        </div>
     );
 }
 

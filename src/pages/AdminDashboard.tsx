@@ -9,7 +9,8 @@ import {
     Youtube, Rocket, CheckCircle2, AlertCircle, Loader2, ExternalLink, LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { StarField } from '../components/ui/StarField';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -45,8 +46,8 @@ export function AdminDashboard() {
     const fetchInterviewsForSelection = async () => {
         try {
             const [newsResp, layoutResp] = await Promise.all([
-                fetch('/api/news'),
-                fetch('/api/home-layout')
+                apiFetch('/api/news'),
+                apiFetch('/api/home-layout')
             ]);
             if (newsResp.ok && layoutResp.ok) {
                 const allNews = await newsResp.json();
@@ -560,8 +561,9 @@ export function AdminDashboard() {
     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32">
-            <div className="max-w-full mx-auto px-4 md:px-12">
+        <div className="min-h-screen bg-dark-bg py-32 relative overflow-hidden">
+            <StarField />
+            <div className="max-w-full mx-auto px-4 md:px-12 relative z-10">
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}

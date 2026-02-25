@@ -26,3 +26,30 @@ export const getAuthHeaders = (contentType: string | null = 'application/json') 
 
     return headers;
 };
+
+/**
+ * Custom fetch wrapper that handles 401 Unauthorized globally
+ * to force logout on all tabs when session is revoked.
+ */
+export const apiFetch = async (url: string, options: RequestInit = {}) => {
+    const response = await fetch(url, options);
+
+    if (response.status === 401) {
+        // Clear local storage and force reload/redirect
+        localStorage.removeItem('admin_auth');
+        localStorage.removeItem('admin_password');
+        localStorage.removeItem('admin_user');
+        localStorage.removeItem('admin_permissions');
+        localStorage.removeItem('admin_session_id');
+
+        // Use a custom event to notify components or just reload
+        window.dispatchEvent(new Event('admin-logout'));
+
+        // If we are in the admin section, force a redirect
+        if (window.location.pathname.startsWith('/admin')) {
+            window.location.href = '/admin';
+        }
+    }
+
+    return response;
+};
