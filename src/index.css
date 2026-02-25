@@ -345,11 +345,11 @@
   /* Interview Q&A Layout */
   .interview-q {
     @apply block font-display font-black text-2xl uppercase mt-8 mb-2 text-center tracking-tighter italic;
-    color: var(--color-neon-red);
+    color: #ff0033 !important;
+    /* Force red by default */
   }
 
-  /* Force inheritance for colored items */
-  .interview-q[style*="color"],
+  /* Force inheritance ONLY for descendants of colored items */
   [style*="color"] .interview-q,
   [style*="color"] .premium-text-bold,
   [style*="color"] .premium-link,
