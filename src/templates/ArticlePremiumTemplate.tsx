@@ -298,7 +298,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     const processContent = (html: string) => {
         if (!html) return { cleanHtml: '', socials: [], artistLabel: "L'ARTISTE", festivalSocials: [], festivalLabel: "LE FESTIVAL" };
-        const doc = new DOMParser().parseFromString(html, 'text/html');
+
+        // Pre-clean: fix malformed HTML from older publications (spaces in tags/attributes)
+        let fixedHtml = html
+            .replace(/< (\w)/g, '<$1')           // "< div" -> "<div", "< a" -> "<a"
+            .replace(/<\/(\w+) >/g, '</$1>')      // "</div >" -> "</div>", "</a >" -> "</a>"
+            .replace(/data - platform=/g, 'data-platform=')  // "data - platform" -> "data-platform"
+            .replace(/ href\s*=\s*"/g, ' href="')  // 'href = "' -> 'href="'
+            .replace(/ target\s*=\s*"/g, ' target="')
+            .replace(/ style\s*=\s*"/g, ' style="')
+            .replace(/ class\s*=\s*"/g, ' class="');
+
+        const doc = new DOMParser().parseFromString(fixedHtml, 'text/html');
 
         const socialsContainer = doc.querySelector('.artist-socials-premium');
         let socials: { platform: string, url: string }[] = [];

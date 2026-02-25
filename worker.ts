@@ -171,7 +171,13 @@ export default {
         const generateSummary = (content, existingSummary) => {
             if (existingSummary && existingSummary.trim() !== '') return existingSummary;
             if (!content) return '';
-            const text = content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            // Remove social links blocks before extracting text for summary
+            let cleanContent = content
+                .replace(/<div[^>]*class="[^"]*artist-socials-premium[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>/gi, '')
+                .replace(/<div[^>]*class="[^"]*festival-socials-premium[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gi, '')
+                .replace(/SUIVEZ\s+[A-Z][^<]*/gi, '');
+            const text = cleanContent.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            if (!text) return '';
             return text.substring(0, 200) + (text.length > 200 ? '...' : '');
         };
 
