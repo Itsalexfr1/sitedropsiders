@@ -29,6 +29,12 @@ const SoundCloudIcon = (props: any) => (
     </svg>
 );
 
+const BeatportIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12.237 0a9.074 9.074 0 0 1 1.708.157c.548.106.945.454.945.832 0 .341-.336.634-.841.733-.284.053-.594.08-.888.08-2.603 0-4.634.426-6.177 1.309-1.31.734-2.123 1.942-2.583 3.864-.173.746-.226 1.385-.226 2.662 0 1.144.053 1.838.2 2.608.28 1.411.85 2.502 1.748 3.328.7.64 1.763 1.09 3.033 1.31 1.542.266 3.033.2 4.5-.18a12.18 12.18 0 0 0 4.095-1.922c1.085-.758 1.594-1.185 1.874-1.571.24-.319.31-.559.31-.958s-.07-.64-.31-.958c-.28-.386-.79-1.011-1.874-1.78a12.18 12.18 0 0 0-4.095-1.922c-1.467-.38-2.958-.452-4.5-.18-1.27.227-2.333.67-3.033 1.31-.898.826-1.468 1.917-1.748 3.328-.147.77-.2 1.464-.2 2.608 0 1.277.053 1.916.226 2.662.46 1.922 1.273 3.13 2.583 3.864 1.543.883 3.574 1.309 6.177 1.309.294 0 .604.027.888.08a.952.952 0 0 1 .841.733c0 .378-.397.726-.945.832a9.073 9.073 0 0 1-1.708.157z" />
+    </svg>
+);
+
 
 interface ArticlePremiumTemplateProps {
     article: any;
@@ -280,16 +286,22 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         x: Twitter,
         twitter: Twitter,
         spotify: SpotifyIcon,
-        soundcloud: SoundCloudIcon
+        soundcloud: SoundCloudIcon,
+        beatport: BeatportIcon
     };
 
     const processContent = (html: string) => {
-        if (!html) return { cleanHtml: '', socials: [], festivalSocials: [] };
+        if (!html) return { cleanHtml: '', socials: [], artistLabel: "L'ARTISTE", festivalSocials: [], festivalLabel: "LE FESTIVAL" };
         const doc = new DOMParser().parseFromString(html, 'text/html');
 
         const socialsContainer = doc.querySelector('.artist-socials-premium');
         let socials: { platform: string, url: string }[] = [];
+        let artistLabel = "L'ARTISTE";
         if (socialsContainer) {
+            const h3 = socialsContainer.querySelector('h3');
+            if (h3) {
+                artistLabel = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim() || "L'ARTISTE";
+            }
             socials = Array.from(socialsContainer.querySelectorAll('a')).map(a => ({
                 platform: a.getAttribute('data-platform') || '',
                 url: a.getAttribute('href') || ''
@@ -299,7 +311,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
         const festSocialsContainer = doc.querySelector('.festival-socials-premium');
         let festivalSocials: { platform: string, url: string }[] = [];
+        let festivalLabel = "LE FESTIVAL";
         if (festSocialsContainer) {
+            const h3 = festSocialsContainer.querySelector('h3');
+            if (h3) {
+                festivalLabel = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim() || "LE FESTIVAL";
+            }
             festivalSocials = Array.from(festSocialsContainer.querySelectorAll('a')).map(a => ({
                 platform: a.getAttribute('data-platform') || '',
                 url: a.getAttribute('href') || ''
@@ -307,14 +324,16 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             festSocialsContainer.remove();
         }
 
-        return { cleanHtml: doc.body.innerHTML, socials, festivalSocials };
+        return { cleanHtml: doc.body.innerHTML, socials, artistLabel, festivalSocials, festivalLabel };
     };
 
     const rawDisplayContent = language === 'en' && translatedBody ? cleanHTML(translatedBody) : cleanHTML(content);
     const processedContent = processContent(rawDisplayContent);
     let displayContent = processedContent.cleanHtml;
     const artistSocials = processedContent.socials;
+    const artistLabel = processedContent.artistLabel;
     const festivalSocials = processedContent.festivalSocials;
+    const festivalLabel = processedContent.festivalLabel;
     const isMusic = article.category === 'Musique' || article.category === 'Music';
 
     // Support Top Lists for Music Category
@@ -568,7 +587,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                 {artistSocials && artistSocials.length > 0 && (
                                     <div className="artist-socials-premium mt-12 pt-8 border-t border-white/10">
-                                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 text-center">SUIVEZ L'ARTISTE</h3>
+                                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 text-center">SUIVEZ {artistLabel}</h3>
                                         <div className="flex flex-wrap justify-center gap-4">
                                             {artistSocials.map((social, idx) => {
                                                 const Icon = platformIcons[social.platform] || Link2;
@@ -593,7 +612,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     <div className="festival-socials-premium mt-12 pt-8 border-t border-white/10">
                                         <div className="flex flex-col items-center mb-6">
                                             <div className="inline-block px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
-                                                <h3 className="text-xs font-black text-neon-cyan uppercase tracking-[0.3em]">SUIVEZ LE FESTIVAL</h3>
+                                                <h3 className="text-xs font-black text-neon-cyan uppercase tracking-[0.3em]">SUIVEZ {festivalLabel}</h3>
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap justify-center gap-4">

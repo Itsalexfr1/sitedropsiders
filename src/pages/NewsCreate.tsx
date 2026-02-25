@@ -33,6 +33,12 @@ const SoundCloudIcon = (props: any) => (
     </svg>
 );
 
+const BeatportIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12.237 0a9.074 9.074 0 0 1 1.708.157c.548.106.945.454.945.832 0 .341-.336.634-.841.733-.284.053-.594.08-.888.08-2.603 0-4.634.426-6.177 1.309-1.31.734-2.123 1.942-2.583 3.864-.173.746-.226 1.385-.226 2.662 0 1.144.053 1.838.2 2.608.28 1.411.85 2.502 1.748 3.328.7.64 1.763 1.09 3.033 1.31 1.542.266 3.033.2 4.5-.18a12.18 12.18 0 0 0 4.095-1.922c1.085-.758 1.594-1.185 1.874-1.571.24-.319.31-.559.31-.958s-.07-.64-.31-.958c-.28-.386-.79-1.011-1.874-1.78a12.18 12.18 0 0 0-4.095-1.922c-1.467-.38-2.958-.452-4.5-.18-1.27.227-2.333.67-3.033 1.31-.898.826-1.468 1.917-1.748 3.328-.147.77-.2 1.464-.2 2.608 0 1.277.053 1.916.226 2.662.46 1.922 1.273 3.13 2.583 3.864 1.543.883 3.574 1.309 6.177 1.309.294 0 .604.027.888.08a.952.952 0 0 1 .841.733c0 .378-.397.726-.945.832a9.073 9.073 0 0 1-1.708.157z" />
+    </svg>
+);
+
 // Helper component to fix caret jumping in contentEditable
 function VisualEditor({ content, onChange, className, widgetId, onFocus }: { content: string, onChange: (html: string) => void, className: string, widgetId: string, onFocus?: (e: any) => void }) {
     const editorRef = useRef<HTMLDivElement>(null);
@@ -127,7 +133,8 @@ export function NewsCreate() {
         facebook: '',
         x: '',
         spotify: '',
-        soundcloud: ''
+        soundcloud: '',
+        beatport: ''
     });
     const [festivalSocials, setFestivalSocials] = useState({
         website: '',
@@ -169,7 +176,7 @@ export function NewsCreate() {
             const artistSocialsContainer = doc.querySelector('.artist-socials-premium');
             if (artistSocialsContainer) {
                 const newSocials = {
-                    website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: ''
+                    website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
                 };
                 artistSocialsContainer.querySelectorAll('a').forEach(a => {
                     const platform = a.getAttribute('data-platform');
@@ -179,6 +186,15 @@ export function NewsCreate() {
                     }
                 });
                 setArtistSocials(newSocials);
+
+                // Extract Artist Name Label
+                const h3 = artistSocialsContainer.querySelector('h3');
+                if (h3) {
+                    const labelText = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim();
+                    if (labelText && labelText !== "L'ARTISTE") {
+                        setArtistNameLabel(labelText);
+                    }
+                }
             }
 
             const festSocialsContainer = doc.querySelector('.festival-socials-premium');
@@ -194,6 +210,15 @@ export function NewsCreate() {
                     }
                 });
                 setFestivalSocials(newSocials);
+
+                // Extract Festival Name Label
+                const h3 = festSocialsContainer.querySelector('h3');
+                if (h3) {
+                    const labelText = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim();
+                    if (labelText && labelText !== "LE FESTIVAL") {
+                        setFestivalNameLabel(labelText);
+                    }
+                }
             }
 
             // Parse Content
@@ -254,7 +279,6 @@ export function NewsCreate() {
 
             if (foundQuestions.length > 0) {
                 setInterviewQuestions(foundQuestions);
-                setWidgets([]); // Ensure widgets are empty for interviews
             }
 
             if (articleData.category === 'Musique') {
@@ -905,6 +929,12 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
+        if (type === 'Interview' && !artistSocials.instagram) {
+            setStatus('error');
+            setMessage("L'Instagram de l'artiste est obligatoire pour une interview.");
+            return;
+        }
+
         if (!isAuthorConfirmed && !isInterviewVideo) {
             setStatus('error');
             setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
@@ -978,7 +1008,7 @@ ${generateFestivalSocialsHtml()}
                 const mainName = firstQA?.artistName || '';
                 const mainColor = firstQA?.artistColor || '#ff1241';
 
-                finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(mainName, mainColor)} ${generateFestivalSocialsHtml()}</div>` : '');
+                finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(artistNameLabel || mainName, mainColor)} ${generateFestivalSocialsHtml()}</div>` : '');
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
                 const musicHtml = musicItems.map((item) => `
@@ -1456,10 +1486,13 @@ ${generateFestivalSocialsHtml()}
                                         { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
                                         { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
                                         { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
-                                        { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' }
+                                        { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
+                                        { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
                                     ].map((social) => (
                                         <div key={social.id}>
-                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                            <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                                {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
+                                            </label>
                                             <div className="relative group">
                                                 <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
                                                     <social.icon className="w-full h-full" />
