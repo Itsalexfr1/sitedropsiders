@@ -789,7 +789,7 @@ export function NewsCreate() {
             } else if (command === 'italic') {
                 formatted = `* ${selectedText}* `;
             } else if (command === 'underline') {
-                formatted = `< u > ${selectedText}</u > `;
+                formatted = `<u>${selectedText}</u>`;
             }
 
             const before = val.substring(0, start);
@@ -866,7 +866,7 @@ export function NewsCreate() {
                 // Matches tracks, albums, playlists
                 embedUrl = url.replace(/(open\.spotify\.com\/)(track|album|playlist|artist)\/([a-zA-Z0-9]+)/, '$1embed/$2/$3');
             }
-            return `< iframe src = "${embedUrl}" width = "100%" height = "152" frameBorder = "0" allowfullscreen = "" allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading = "lazy" ></iframe > `;
+            return `<iframe src="${embedUrl}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
         }
 
         // 2. YouTube
@@ -879,7 +879,7 @@ export function NewsCreate() {
             } else if (url.includes('embed/')) {
                 videoId = url.split('embed/')[1].split('?')[0];
             }
-            return `< div class="aspect-video h-full w-full" > <iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div > `;
+            return `<div class="aspect-video h-full w-full"><iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>`;
         }
 
         // 3. Beatport
@@ -889,11 +889,11 @@ export function NewsCreate() {
             if (match) {
                 const type = match[1];
                 const id = match[2];
-                return `< iframe src = "https://embed.beatport.com/?id=${id}&type=${type}" width = "100%" height = "162" frameBorder = "0" scrolling = "no" style = "background: #111;" ></iframe > `;
+                return `<iframe src="https://embed.beatport.com/?id=${id}&type=${type}" width="100%" height="162" frameBorder="0" scrolling="no" style="background: #111;"></iframe>`;
             }
         }
 
-        return `< a href = "${url}" target = "_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]" > ${url}</a > `;
+        return `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]">${url}</a>`;
     };
 
     const handleMediaConfirm = (index?: number) => {
@@ -901,12 +901,12 @@ export function NewsCreate() {
         let content = '';
 
         if (type === 'image' && url) {
-            const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect - [${aspectRatio}]` : '';
+            const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect-[${aspectRatio}]` : '';
             const imgClass = aspectRatio && aspectRatio !== 'auto' ? 'w-full h-full object-cover' : 'w-full h-auto object-cover';
-            content = `< div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group ${aspectClass}" >
+            content = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group ${aspectClass}">
   <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
   <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
-</div > `;
+</div>`;
         } else if (type === 'video' && url) {
             let id = url;
             if (url.includes('youtube.com/watch?v=')) {
@@ -916,17 +916,17 @@ export function NewsCreate() {
             } else if (url.includes('embed/')) {
                 id = url.split('embed/')[1].split('?')[0];
             }
-            content = `< div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12" >
+            content = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
     <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
-</div > `;
+</div>`;
         } else if (type === 'gallery' && urls) {
             const urlList = urls.split('\n').map(u => u.trim()).filter(u => u);
-            content = `< div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12" >
+            content = `<div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
     ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
     <img src="${u}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
   </div>`).join('\n')
                 }
-</div > `;
+</div>`;
         }
 
         if (content) {
@@ -946,11 +946,11 @@ export function NewsCreate() {
         if (activeSocials.length === 0) return '';
 
         const linksHtml = activeSocials.map(([platform, url]) => {
-            return `< a href = "${url.trim()}" target = "_blank" data - platform="${platform}" class="artist-social-link" style = "color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}" > ${platform}</a > `;
+            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
         }).join('');
 
         const displayName = (customName || artistNameLabel || "L'ARTISTE").toUpperCase();
-        return `\n < div class="artist-socials-premium mt-12 pt-8 border-t border-white/10" >\n < h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style = "color: ${customColor || '#6b7280'}" > SUIVEZ ${displayName}</h3 >\n < div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest" >\n    ${linksHtml} \n  </div >\n</div > `;
+        return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n<h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n<div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n</div>\n</div>`;
     };
 
     const generateFestivalSocialsHtml = () => {
@@ -958,11 +958,11 @@ export function NewsCreate() {
         if (activeSocials.length === 0) return '';
 
         const linksHtml = activeSocials.map(([platform, url]) => {
-            return `< a href = "${url.trim()}" target = "_blank" data - platform="${platform}" class="festival-social-link" > ${platform}</a > `;
+            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
         }).join('');
 
         const displayName = (festivalNameLabel || "LE FESTIVAL").toUpperCase();
-        return `\n < div class="festival-socials-premium mt-12 pt-8 border-t border-white/10" >\n < div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6" >\n < h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]" > SUIVEZ ${displayName}</h3 >\n  </div >\n < div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest" >\n    ${linksHtml} \n  </div >\n</div > `;
+        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n<div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6">\n<h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]">SUIVEZ ${displayName}</h3>\n</div>\n<div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n</div>\n</div>`;
     };
 
     const handleDelete = async () => {

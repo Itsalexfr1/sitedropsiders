@@ -666,7 +666,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.must_watch')}</span>
-                                                    {t('article_detail.video_title')}
+                                                    {isInterview ? "VIDÉO DE L'INTERVIEW" : t('article_detail.video_title')}
                                                 </div>
                                             </h3>
                                             <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
