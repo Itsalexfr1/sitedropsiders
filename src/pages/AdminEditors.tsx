@@ -75,6 +75,23 @@ const PERMISSION_CATEGORIES = [
 // Helper to get flat list for labels
 const ALL_PERMISSIONS_FLAT = PERMISSION_CATEGORIES.flatMap(cat => cat.permissions);
 
+const EDITOR_COLORS = [
+    '#FF1241', // neon-red
+    '#00FFFF', // neon-cyan
+    '#BF00FF', // neon-purple
+    '#FFF01F', // neon-yellow
+    '#39FF14', // neon-green
+    '#00BFFF', // neon-blue
+];
+
+const getEditorColor = (username: string) => {
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
+
 export function AdminEditors() {
     const navigate = useNavigate();
     const [editors, setEditors] = useState<Editor[]>([]);
@@ -253,81 +270,102 @@ export function AdminEditors() {
                 ) : (
                     <div className="grid gap-4">
                         <AnimatePresence mode="popLayout">
-                            {editors.map((editor) => (
-                                <motion.div
-                                    key={editor.username}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center justify-between group hover:bg-white/[0.08] transition-all"
-                                >
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-12 h-12 rounded-full bg-neon-red/10 flex items-center justify-center border border-neon-red/20">
-                                            <User className="w-6 h-6 text-neon-red" />
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-3">
-                                                <h3 className="text-lg font-bold text-white uppercase italic">
-                                                    {editor.name || editor.username}
-                                                </h3>
-                                                {editor.permissions?.includes('all') && (
-                                                    <span className="px-2 py-0.5 bg-neon-red/20 border border-neon-red/40 text-neon-red text-[8px] font-black rounded uppercase tracking-widest animate-pulse">
-                                                        Admin
-                                                    </span>
+                            {editors.map((editor) => {
+                                const editorColor = getEditorColor(editor.username);
+                                return (
+                                    <motion.div
+                                        key={editor.username}
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="bg-white/5 border border-white/10 rounded-2xl p-6 flex items-center justify-between group hover:bg-white/[0.08] transition-all"
+                                        style={{ borderLeft: `4px solid ${editorColor}` }}
+                                    >
+                                        <div className="flex items-center gap-6">
+                                            <div
+                                                className="w-12 h-12 rounded-full flex items-center justify-center border transition-all"
+                                                style={{
+                                                    backgroundColor: `${editorColor}10`,
+                                                    borderColor: `${editorColor}40`,
+                                                    boxShadow: `0 0 15px ${editorColor}20`
+                                                }}
+                                            >
+                                                <User className="w-6 h-6" style={{ color: editorColor }} />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-3">
+                                                    <h3 className="text-lg font-bold text-white uppercase italic">
+                                                        {editor.name || editor.username}
+                                                    </h3>
+                                                    {editor.permissions?.includes('all') && (
+                                                        <span
+                                                            className="px-2 py-0.5 text-[8px] font-black rounded uppercase tracking-widest animate-pulse border"
+                                                            style={{
+                                                                backgroundColor: `${editorColor}20`,
+                                                                borderColor: `${editorColor}40`,
+                                                                color: editorColor
+                                                            }}
+                                                        >
+                                                            Admin
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="flex items-center gap-3 text-sm">
+                                                    <span className="font-mono opacity-80" style={{ color: editorColor }}>@{editor.username}</span>
+                                                    <span className="w-1 h-1 bg-white/20 rounded-full" />
+                                                    <span className="text-gray-500">Ajouté le {new Date(editor.created).toLocaleDateString()}</span>
+                                                </div>
+                                                {editor.permissions && editor.permissions.length > 0 && (
+                                                    <div className="flex flex-wrap gap-2 mt-3">
+                                                        {editor.permissions.map(p => (
+                                                            <span key={p} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                                                                {ALL_PERMISSIONS_FLAT.find(ap => ap.id === p)?.label || p}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {localStorage.getItem('admin_user') === 'alex' && editor.password && (
+                                                    <div className="mt-4 p-3 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between group/pw">
+                                                        <div className="flex items-center gap-3">
+                                                            <Lock className="w-3 h-3 text-gray-500" />
+                                                            <span className="text-xs font-mono text-gray-400">
+                                                                MDP: <span className="text-white bg-white/10 px-2 py-0.5 rounded">{editor.password}</span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 )}
                                             </div>
-                                            <div className="flex items-center gap-3 text-sm">
-                                                <span className="text-neon-red font-mono opacity-70">@{editor.username}</span>
-                                                <span className="w-1 h-1 bg-white/20 rounded-full" />
-                                                <span className="text-gray-500">Ajouté le {new Date(editor.created).toLocaleDateString()}</span>
-                                            </div>
-                                            {editor.permissions && editor.permissions.length > 0 && (
-                                                <div className="flex flex-wrap gap-2 mt-3">
-                                                    {editor.permissions.map(p => (
-                                                        <span key={p} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                                            {ALL_PERMISSIONS_FLAT.find(ap => ap.id === p)?.label || p}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {localStorage.getItem('admin_user') === 'alex' && editor.password && (
-                                                <div className="mt-4 p-3 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between group/pw">
-                                                    <div className="flex items-center gap-3">
-                                                        <Lock className="w-3 h-3 text-gray-500" />
-                                                        <span className="text-xs font-mono text-gray-400">
-                                                            MDP: <span className="text-white bg-white/10 px-2 py-0.5 rounded">{editor.password}</span>
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
-                                    </div>
 
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                        <button
-                                            onClick={() => handleEditClick(editor)}
-                                            className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all"
-                                            title="Modifier"
-                                        >
-                                            <Pencil className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => handleRevokeEditorSession(editor.username)}
-                                            className="p-3 text-gray-500 hover:text-neon-purple hover:bg-neon-purple/10 rounded-xl transition-all"
-                                            title="Révoquer les sessions actives (Déconnexion forcée)"
-                                        >
-                                            <RefreshCw className="w-5 h-5" />
-                                        </button>
-                                        <button
-                                            onClick={() => setDeleteTarget(editor.username)}
-                                            className="p-3 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
-                                            title="Supprimer"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                            <motion.button
+                                                whileHover={{ color: editorColor, backgroundColor: `${editorColor}10` }}
+                                                onClick={() => handleEditClick(editor)}
+                                                className="p-3 text-gray-400 rounded-xl transition-all"
+                                                title="Modifier"
+                                            >
+                                                <Pencil className="w-5 h-5" />
+                                            </motion.button>
+                                            <motion.button
+                                                whileHover={{ color: editorColor, backgroundColor: `${editorColor}10` }}
+                                                onClick={() => handleRevokeEditorSession(editor.username)}
+                                                className="p-3 text-gray-400 rounded-xl transition-all"
+                                                title="Révoquer les sessions actives"
+                                            >
+                                                <RefreshCw className="w-5 h-5" />
+                                            </motion.button>
+                                            <motion.button
+                                                whileHover={{ color: '#ef4444', backgroundColor: '#ef444410' }}
+                                                onClick={() => setDeleteTarget(editor.username)}
+                                                className="p-3 text-gray-400 rounded-xl transition-all"
+                                                title="Supprimer"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </motion.button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
 
                             {editors.length === 0 && (
                                 <div className="text-center py-20 bg-white/5 rounded-3xl border border-dashed border-white/10">
