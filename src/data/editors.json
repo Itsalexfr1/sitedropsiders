@@ -14,7 +14,8 @@
     "name": "Tanguy",
     "permissions": [
       "publications",
-      "messages"
+      "messages",
+      "create"
     ],
     "created": "2026-02-24T03:38:19.957Z"
   },
