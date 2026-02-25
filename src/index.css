@@ -344,7 +344,18 @@
 
   /* Interview Q&A Layout */
   .interview-q {
-    @apply block text-neon-red font-display font-black text-2xl uppercase mt-8 mb-2 text-center tracking-tighter italic;
+    @apply block font-display font-black text-2xl uppercase mt-8 mb-2 text-center tracking-tighter italic;
+    color: var(--color-neon-red);
+  }
+
+  /* Force inheritance for colored items */
+  .interview-q[style*="color"],
+  [style*="color"] .interview-q,
+  [style*="color"] .premium-text-bold,
+  [style*="color"] .premium-link,
+  [style*="color"] h2,
+  [style*="color"] h3 {
+    color: inherit !important;
   }
 
   /* Blockquotes */

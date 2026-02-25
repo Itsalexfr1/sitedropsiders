@@ -1059,8 +1059,8 @@ ${generateFestivalSocialsHtml()}
                 const interviewHtml = interviewQuestions.map(q => {
                     if (q.type === 'qa') {
                         return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${q.artistColor || '#ff1241'}">
-    <p><strong style="color: #ff1241">DROPSIDERS :</strong> ${q.question}</p>
-    <p><strong style="color: ${q.artistColor || '#ff1241'}">${(q.artistName || '').toUpperCase()} :</strong> ${q.answer}</p>
+    <p><strong style="color: #ff1241 !important">DROPSIDERS :</strong> ${q.question}</p>
+    <p><strong style="color: ${q.artistColor || '#ff1241'} !important">${(q.artistName || '').toUpperCase()} :</strong> ${q.answer}</p>
 </div>`;
                     } else if (q.type === 'image') {
                         return `<div class="article-section interview-image-block" data-media-url="${q.mediaUrl}">

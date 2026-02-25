@@ -265,7 +265,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
         // Support Interviews (Bold questions)
         if (isInterview) {
-            finalHtml = finalHtml.replace(/<strong([^>]*)>(.*?)<\/strong>/g, '<span class="interview-q" $1>$2</span>');
+            finalHtml = finalHtml.replace(/<strong([^>]*)>(.*?)<\/strong>/gi, '<span class="interview-q" $1>$2</span>');
         }
 
         return finalHtml;
