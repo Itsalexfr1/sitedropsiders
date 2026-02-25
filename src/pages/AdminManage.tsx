@@ -742,7 +742,7 @@ export function AdminManage() {
                                                     <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    {item.author && (
+                                                    {item.author ? (
                                                         getAuthorInsta(item.author) ? (
                                                             <a
                                                                 href={getAuthorInsta(item.author)!}
@@ -757,6 +757,10 @@ export function AdminManage() {
                                                                 {item.author}
                                                             </span>
                                                         )
+                                                    ) : (
+                                                        <span className="text-[10px] text-gray-600 italic uppercase font-bold tracking-widest opacity-40">
+                                                            Non renseigné
+                                                        </span>
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
