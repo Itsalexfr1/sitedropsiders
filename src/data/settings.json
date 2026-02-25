@@ -13,5 +13,6 @@
     "bgColor": "#610000",
     "size": "medium",
     "link": "/contact"
-  }
+  },
+  "master_session_id": "initial-session-id"
 }

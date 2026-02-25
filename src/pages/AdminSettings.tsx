@@ -16,6 +16,7 @@ export function AdminSettings() {
 
 
     const [isSaving, setIsSaving] = useState(false);
+    const [isRevoking, setIsRevoking] = useState(false);
     const [message, setMessage] = useState('');
 
     const currentUser = localStorage.getItem('admin_user');
@@ -101,6 +102,33 @@ export function AdminSettings() {
             setMessage('Erreur de connexion');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleRevokeSessions = async () => {
+        if (!confirm('Voulez-vous vraiment déconnecter tous les autres appareils ? Vous resterez connecté sur celui-ci.')) return;
+
+        setIsRevoking(true);
+        setMessage('');
+        try {
+            const res = await fetch('/api/auth/revoke-all', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.sessionId) {
+                    localStorage.setItem('admin_session_id', data.sessionId);
+                    setMessage('Toutes les autres sessions ont été révoquées !');
+                    setTimeout(() => setMessage(''), 3000);
+                }
+            } else {
+                setMessage('Erreur lors de la révocation');
+            }
+        } catch (e) {
+            setMessage('Erreur réseau');
+        } finally {
+            setIsRevoking(false);
         }
     };
 
@@ -237,6 +265,37 @@ export function AdminSettings() {
                             </div>
 
 
+                        </div>
+                    </motion.div>
+
+                    {/* Security Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl"
+                    >
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-red-500/10 rounded-2xl">
+                                <Lock className="w-6 h-6 text-red-500" />
+                            </div>
+                            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Sécurité du Compte</h2>
+                        </div>
+
+                        <div className="bg-red-500/5 border border-red-500/20 rounded-[2rem] p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div className="text-center md:text-left">
+                                <h3 className="text-white font-black uppercase text-sm tracking-widest mb-2 italic">Déconnexion Globale</h3>
+                                <p className="text-gray-500 text-[10px] uppercase font-bold tracking-tight max-w-sm leading-relaxed">
+                                    Ceci invalidera immédiatement l'accès pour tous les autres navigateurs et appareils connectés à votre compte ({currentUser}).
+                                    Vous resterez connecté sur cet appareil.
+                                </p>
+                            </div>
+                            <button
+                                onClick={handleRevokeSessions}
+                                disabled={isRevoking}
+                                className="whitespace-nowrap px-8 py-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-red-500/5"
+                            >
+                                {isRevoking ? 'Révocation en cours...' : 'Révoquer toutes les sessions'}
+                            </button>
                         </div>
                     </motion.div>
 

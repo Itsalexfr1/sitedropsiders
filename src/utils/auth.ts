@@ -19,5 +19,10 @@ export const getAuthHeaders = (contentType: string | null = 'application/json') 
         headers['X-Google-Token'] = googleToken;
     }
 
+    const sessionId = localStorage.getItem('admin_session_id');
+    if (sessionId) {
+        headers['X-Session-ID'] = sessionId;
+    }
+
     return headers;
 };

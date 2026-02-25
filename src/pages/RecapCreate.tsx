@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, Twitter, ChevronUp, ChevronDown, Check } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -16,6 +16,30 @@ import '../styles/article-premium.css';
 const TikTokIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
         <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7.82a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.25z" />
+    </svg>
+);
+
+const SpotifyIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.3-.6.4-.9.2-2.8-1.7-6.4-2.1-10.6-1.1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 4.7-1.1 8.7-.6 11.8 1.3.2.2.3.5.1.8zm1.5-3.3c-.3.4-.8.5-1.2.3-3.2-2-8.2-2.6-12-1.4-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 4.4-1.3 9.9-.7 13.6 1.6.3.3.4.8.1 1zM19.2 10.6c-3.9-2.3-10.3-2.5-14.1-1.4-.6.2-1.2-.2-1.4-.8-.2-.6.2-1.2.8-1.4 4.3-1.3 11.4-1.1 16 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4v.1z" />
+    </svg>
+);
+
+const SoundCloudIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M1 14.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5S1 15.33 1 14.5zm3.5.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 0c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 0c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 .5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm11.5-2c-.12 0-.25.01-.37.03-.43-1.74-2-3.03-3.88-3.03-.31 0-.61.04-.9.11-.64-1.63-2.23-2.77-4.1-2.77-.18 0-.36.01-.53.03C12.44 6.13 10.87 5 9 5c-.32 0-.63.04-.92.11C7.43 3.96 6.04 3 4.5 3c-.1 0-.19 0-.29.01C3.79 1.28 2.05 0 0 0v24h24c.55 0 1-.45 1-1s-.45-1-1-1h-6.2c.11-.32.2-.65.2-1 0-1.66-1.34-3-3-3s-3 1.34-3 3c0 .35.09.68.2 1H2z" />
+    </svg>
+);
+
+const BeatportIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12.237 0a9.074 9.074 0 0 1 1.708.157c.548.106.945.454.945.832 0 .341-.336.634-.841.733-.284.053-.594.08-.888.08-2.603 0-4.634.426-6.177 1.309-1.31.734-2.123 1.942-2.583 3.864-.173.746-.226 1.385-.226 2.662 0 1.144.053 1.838.2 2.608.28 1.411.85 2.502 1.748 3.328.7.64 1.763 1.09 3.033 1.31 1.542.266 3.033.2 4.5-.18a12.18 12.18 0 0 0 4.095-1.922c1.085-.758 1.594-1.185 1.874-1.571.24-.319.31-.559.31-.958s-.07-.64-.31-.958c-.28-.386-.79-1.011-1.874-1.78a12.18 12.18 0 0 0-4.095-1.922c-1.467-.38-2.958-.452-4.5-.18-1.27.227-2.333.67-3.033 1.31-.898.826-1.468 1.917-1.748 3.328-.147.77-.2 1.464-.2 2.608 0 1.277.053 1.916.226 2.662.46 1.922 1.273 3.13 2.583 3.864 1.543.883 3.574 1.309 6.177 1.309.294 0 .604.027.888.08a.952.952 0 0 1 .841.733c0 .378-.397.726-.945.832a9.073 9.073 0 0 1-1.708.157z" />
+    </svg>
+);
+
+const XIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
     </svg>
 );
 
@@ -79,6 +103,20 @@ export function RecapCreate() {
         facebook: '',
         x: ''
     });
+    const [festivalNameLabel, setFestivalNameLabel] = useState('');
+
+    const [artistSocials, setArtistSocials] = useState({
+        website: '',
+        instagram: '',
+        tiktok: '',
+        youtube: '',
+        facebook: '',
+        x: '',
+        spotify: '',
+        soundcloud: '',
+        beatport: ''
+    });
+    const [artistNameLabel, setArtistNameLabel] = useState('');
 
 
 
@@ -235,7 +273,7 @@ export function RecapCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, summary, coverImage, widgets, date, festival, locationInput, youtubeId, isFeatured, festivalSocials]);
+    }, [title, summary, coverImage, widgets, date, festival, locationInput, youtubeId, isFeatured, festivalSocials, artistSocials]);
 
 
 
@@ -708,6 +746,18 @@ export function RecapCreate() {
         setMessage('Publication en cours...');
 
         try {
+            const generateSocialsHtml = (customName?: string, customColor?: string) => {
+                const activeSocials = Object.entries(artistSocials).filter(([_, url]) => url && url.trim() !== '');
+                if (activeSocials.length === 0) return '';
+
+                const linksHtml = activeSocials.map(([platform, url]) => {
+                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
+                }).join('');
+
+                const displayName = (customName || artistNameLabel || "L'ARTISTE").toUpperCase();
+                return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+            };
+
             const generateFestivalSocialsHtml = () => {
                 const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
                 if (activeSocials.length === 0) return '';
@@ -716,11 +766,13 @@ export function RecapCreate() {
                     return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
                 }).join('');
 
-                return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">RESEAUX DU FESTIVAL</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+                const displayName = (festivalNameLabel || festival || "LE FESTIVAL").toUpperCase();
+                return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
             };
+
             const finalContent = widgets.map(w =>
                 `<div class="article-section">\n\n${w.content}\n\n</div>`
-            ).join('\n\n') + (generateFestivalSocialsHtml() ? `\n\n<div class="article-section">${generateFestivalSocialsHtml()}</div>` : '');
+            ).join('\n\n') + (Object.values(artistSocials).some(v => v.trim()) ? `\n\n<div class="article-section">${generateSocialsHtml()}</div>` : '') + (Object.values(festivalSocials).some(v => v.trim()) ? `\n\n<div class="article-section">${generateFestivalSocialsHtml()}</div>` : '');
 
             const endpoint = isEditing ? '/api/recaps/update' : '/api/recaps/create';
 
@@ -983,6 +1035,18 @@ export function RecapCreate() {
                             <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
                                 <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux du Festival (Optionnel)
                             </label>
+
+                            <div className="mb-6">
+                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom du Festival (Label de suivi)</label>
+                                <input
+                                    type="text"
+                                    value={festivalNameLabel}
+                                    onChange={(e) => setFestivalNameLabel(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                    placeholder="Ex: Tomorrowland Winter"
+                                />
+                            </div>
+
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[
                                     { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
@@ -990,7 +1054,7 @@ export function RecapCreate() {
                                     { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                     { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                     { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                    { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
+                                    { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' }
                                 ].map((social) => (
                                     <div key={social.id}>
                                         <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
@@ -1004,6 +1068,54 @@ export function RecapCreate() {
                                                 onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
                                                 className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
                                                 placeholder="URL Festival..."
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Artist Socials */}
+                        <div className="pt-8 border-t border-white/10 mt-4">
+                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                <User className="w-4 h-4 text-neon-red" /> Réseaux Sociaux de l'Artiste (Optionnel)
+                            </label>
+
+                            <div className="mb-6">
+                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom de l'Artiste (Label de suivi)</label>
+                                <input
+                                    type="text"
+                                    value={artistNameLabel}
+                                    onChange={(e) => setArtistNameLabel(e.target.value)}
+                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                    placeholder="Ex: Martin Garrix"
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {[
+                                    { id: 'website', name: 'Site Web Artiste', icon: Globe, color: 'text-white' },
+                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                    { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
+                                    { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
+                                    { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
+                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                                ].map((social) => (
+                                    <div key={social.id}>
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                        <div className="relative group">
+                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                <social.icon className="w-full h-full" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={(artistSocials as any)[social.id]}
+                                                onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
+                                                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                                placeholder="URL Artiste..."
                                             />
                                         </div>
                                     </div>

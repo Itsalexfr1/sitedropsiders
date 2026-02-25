@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, Rocket, CheckCircle2, AlertCircle, Loader2, ExternalLink
+    Youtube, Rocket, CheckCircle2, AlertCircle, Loader2, ExternalLink, LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../utils/auth';
@@ -269,6 +269,7 @@ export function AdminDashboard() {
                     localStorage.setItem('admin_password', password);
                     localStorage.setItem('admin_user', data.user || loginUsername);
                     localStorage.setItem('admin_permissions', JSON.stringify(data.permissions || []));
+                    localStorage.setItem('admin_session_id', data.sessionId || '');
                     fetchActions();
                     return;
                 }
@@ -306,6 +307,8 @@ export function AdminDashboard() {
         localStorage.removeItem('admin_password');
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_permissions');
+        localStorage.removeItem('admin_session_id');
+        navigate('/admin'); // Force redirect to dashboard login
     };
 
     if (!isAuthenticated) {
@@ -584,8 +587,9 @@ export function AdminDashboard() {
                             </Link>
                             <button
                                 onClick={handleLogout}
-                                className="text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all"
+                                className="inline-flex items-center gap-2 text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-black transition-all group"
                             >
+                                <LogOut className="w-3.5 h-3.5" />
                                 Déconnexion
                             </button>
                         </div>

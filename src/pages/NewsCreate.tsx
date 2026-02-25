@@ -1,13 +1,11 @@
-
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, Twitter, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, MapPin } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
-import { Wand2, Star } from 'lucide-react';
 import newsData from '../data/news.json';
 import editorsData from '../data/editors.json';
 import '../styles/article-premium.css';
@@ -36,6 +34,12 @@ const SoundCloudIcon = (props: any) => (
 const BeatportIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
         <path d="M12.237 0a9.074 9.074 0 0 1 1.708.157c.548.106.945.454.945.832 0 .341-.336.634-.841.733-.284.053-.594.08-.888.08-2.603 0-4.634.426-6.177 1.309-1.31.734-2.123 1.942-2.583 3.864-.173.746-.226 1.385-.226 2.662 0 1.144.053 1.838.2 2.608.28 1.411.85 2.502 1.748 3.328.7.64 1.763 1.09 3.033 1.31 1.542.266 3.033.2 4.5-.18a12.18 12.18 0 0 0 4.095-1.922c1.085-.758 1.594-1.185 1.874-1.571.24-.319.31-.559.31-.958s-.07-.64-.31-.958c-.28-.386-.79-1.011-1.874-1.78a12.18 12.18 0 0 0-4.095-1.922c-1.467-.38-2.958-.452-4.5-.18-1.27.227-2.333.67-3.033 1.31-.898.826-1.468 1.917-1.748 3.328-.147.77-.2 1.464-.2 2.608 0 1.277.053 1.916.226 2.662.46 1.922 1.273 3.13 2.583 3.864 1.543.883 3.574 1.309 6.177 1.309.294 0 .604.027.888.08a.952.952 0 0 1 .841.733c0 .378-.397.726-.945.832a9.073 9.073 0 0 1-1.708.157z" />
+    </svg>
+);
+
+const XIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
     </svg>
 );
 
@@ -310,7 +314,7 @@ export function NewsCreate() {
             if (articleData.category === 'Musique') {
                 setActiveTab('Musique');
                 const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                const foundMusic = [];
+                let foundMusic = [];
                 let match;
                 while ((match = musicSectionRegex.exec(c)) !== null) {
                     foundMusic.push({
@@ -697,13 +701,7 @@ export function NewsCreate() {
             // If no selection, wrap the WHOLE widget if it's a title or wrap nothing
             setWidgets(widgets.map(w => {
                 if (w.id === widgetId) {
-                    // Similar to toggleWidgetStyle but for style attribute
-                    const styleRegex = /style="color:\s*([^"]*)"/;
-                    if (w.content.includes('style="color:')) {
-                        return { ...w, content: w.content.replace(styleRegex, `style="color: ${color}"`) };
-                    } else {
-                        return { ...w, content: `<div style="color: ${color}">\n${w.content}\n</div>` };
-                    }
+                    return { ...w, content: `<div style="color: ${color}">\n${w.content}\n</div>` };
                 }
                 return w;
             }));
@@ -743,11 +741,11 @@ export function NewsCreate() {
 
             let formatted = selectedText;
             if (command === 'bold') {
-                formatted = `**${selectedText}**`;
+                formatted = `** ${selectedText}** `;
             } else if (command === 'italic') {
-                formatted = `*${selectedText}*`;
+                formatted = `* ${selectedText}* `;
             } else if (command === 'underline') {
-                formatted = `<u>${selectedText}</u>`;
+                formatted = `< u > ${selectedText}</u > `;
             }
 
             const before = val.substring(0, start);
@@ -824,7 +822,7 @@ export function NewsCreate() {
                 // Matches tracks, albums, playlists
                 embedUrl = url.replace(/(open\.spotify\.com\/)(track|album|playlist|artist)\/([a-zA-Z0-9]+)/, '$1embed/$2/$3');
             }
-            return `<iframe src="${embedUrl}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
+            return `< iframe src = "${embedUrl}" width = "100%" height = "152" frameBorder = "0" allowfullscreen = "" allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading = "lazy" ></iframe > `;
         }
 
         // 2. YouTube
@@ -837,7 +835,7 @@ export function NewsCreate() {
             } else if (url.includes('embed/')) {
                 videoId = url.split('embed/')[1].split('?')[0];
             }
-            return `<div class="aspect-video h-full w-full"><iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>`;
+            return `< div class="aspect-video h-full w-full" > <iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div > `;
         }
 
         // 3. Beatport
@@ -847,11 +845,11 @@ export function NewsCreate() {
             if (match) {
                 const type = match[1];
                 const id = match[2];
-                return `<iframe src="https://embed.beatport.com/?id=${id}&type=${type}" width="100%" height="162" frameBorder="0" scrolling="no" style="background: #111;"></iframe>`;
+                return `< iframe src = "https://embed.beatport.com/?id=${id}&type=${type}" width = "100%" height = "162" frameBorder = "0" scrolling = "no" style = "background: #111;" ></iframe > `;
             }
         }
 
-        return `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]">${url}</a>`;
+        return `< a href = "${url}" target = "_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]" > ${url}</a > `;
     };
 
     const handleMediaConfirm = (index?: number) => {
@@ -859,12 +857,12 @@ export function NewsCreate() {
         let content = '';
 
         if (type === 'image' && url) {
-            const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect-[${aspectRatio}]` : '';
+            const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect - [${aspectRatio}]` : '';
             const imgClass = aspectRatio && aspectRatio !== 'auto' ? 'w-full h-full object-cover' : 'w-full h-auto object-cover';
-            content = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group ${aspectClass}">
+            content = `< div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group ${aspectClass}" >
   <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
   <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
-</div>`;
+</div > `;
         } else if (type === 'video' && url) {
             let id = url;
             if (url.includes('youtube.com/watch?v=')) {
@@ -874,16 +872,17 @@ export function NewsCreate() {
             } else if (url.includes('embed/')) {
                 id = url.split('embed/')[1].split('?')[0];
             }
-            content = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
-  <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
-</div>`;
+            content = `< div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12" >
+    <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+</div > `;
         } else if (type === 'gallery' && urls) {
             const urlList = urls.split('\n').map(u => u.trim()).filter(u => u);
-            content = `<div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
-${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
+            content = `< div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12" >
+    ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
     <img src="${u}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-  </div>`).join('\n')}
-</div>`;
+  </div>`).join('\n')
+                }
+</div > `;
         }
 
         if (content) {
@@ -903,11 +902,11 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         if (activeSocials.length === 0) return '';
 
         const linksHtml = activeSocials.map(([platform, url]) => {
-            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
+            return `< a href = "${url.trim()}" target = "_blank" data - platform="${platform}" class="artist-social-link" style = "color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}" > ${platform}</a > `;
         }).join('');
 
         const displayName = (customName || artistNameLabel || "L'ARTISTE").toUpperCase();
-        return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+        return `\n < div class="artist-socials-premium mt-12 pt-8 border-t border-white/10" >\n < h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style = "color: ${customColor || '#6b7280'}" > SUIVEZ ${displayName}</h3 >\n < div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest" >\n    ${linksHtml} \n  </div >\n</div > `;
     };
 
     const generateFestivalSocialsHtml = () => {
@@ -915,11 +914,11 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         if (activeSocials.length === 0) return '';
 
         const linksHtml = activeSocials.map(([platform, url]) => {
-            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
+            return `< a href = "${url.trim()}" target = "_blank" data - platform="${platform}" class="festival-social-link" > ${platform}</a > `;
         }).join('');
 
         const displayName = (festivalNameLabel || "LE FESTIVAL").toUpperCase();
-        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6">\n    <h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]">SUIVEZ ${displayName}</h3>\n  </div>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+        return `\n < div class="festival-socials-premium mt-12 pt-8 border-t border-white/10" >\n < div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6" >\n < h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]" > SUIVEZ ${displayName}</h3 >\n  </div >\n < div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest" >\n    ${linksHtml} \n  </div >\n</div > `;
     };
 
     const handleDelete = async () => {
@@ -1028,7 +1027,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             let finalImageUrl = imageUrl;
 
             if (isInterviewVideo) {
-                finalCategory = interviewTheme === 'Interview' ? 'Interview Video' : `Interview Video - ${interviewTheme}`;
+                finalCategory = interviewTheme === 'Interview' ? 'Interview Video' : `Interview Video - ${interviewTheme} `;
                 if (!finalImageUrl && youtubeId) {
                     finalImageUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
                 }
@@ -1587,7 +1586,7 @@ ${generateFestivalSocialsHtml()}
                                 { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                 { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                 { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' },
+                                { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
                                 { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
                                 { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
                                 { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
@@ -1638,7 +1637,7 @@ ${generateFestivalSocialsHtml()}
                                 { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
                                 { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
                                 { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                { id: 'x', name: 'X / Twitter', icon: Twitter, color: 'text-white' }
+                                { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' }
                             ].map((social) => (
                                 <div key={social.id}>
                                     <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>

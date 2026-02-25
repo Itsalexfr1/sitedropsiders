@@ -56,7 +56,7 @@ export default {
         const headers = {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username, X-Google-Token',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username, X-Google-Token, X-Session-ID',
             'Content-Type': 'application/json'
         };
 
@@ -216,24 +216,35 @@ export default {
             path === '/api/shop/delete' ||
             path === '/api/dashboard-actions/update' ||
             path.startsWith('/api/editors') ||
+            path === '/api/auth/revoke-all' ||
             path.startsWith('/api/contacts')
         );
 
         if (isAuthRoute) {
             let authenticated = false;
             let userPermissions: string[] = [];
+            const requestSessionId = request.headers.get('X-Session-ID');
 
             if (requestPassword === adminPassword && (requestUsername === 'alex' || !requestUsername)) {
-                authenticated = true;
-                userPermissions = ['all'];
+                const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+
+                // On autorise si le sessionId correspond
+                if (requestSessionId === serverSessionId) {
+                    authenticated = true;
+                    userPermissions = ['all'];
+                }
             }
             else if (requestUsername) {
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH);
                 if (editorsFile && editorsFile.content) {
                     const editor = editorsFile.content.find(e => e.username === requestUsername && e.password === requestPassword);
                     if (editor) {
-                        authenticated = true;
-                        userPermissions = editor.permissions || [];
+                        const serverSessionId = editor.session_id || 'editor-initial-id';
+                        if (requestSessionId === serverSessionId) {
+                            authenticated = true;
+                            userPermissions = editor.permissions || [];
+                        }
                     }
                 }
             }
@@ -390,7 +401,9 @@ export default {
             try {
                 const { username, password } = await request.json();
                 if ((username === 'alex' || username === 'contact@dropsiders.fr') && password === adminPassword) {
-                    return new Response(JSON.stringify({ success: true, user: username, permissions: ['all'] }), { status: 200, headers });
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    const sessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+                    return new Response(JSON.stringify({ success: true, user: username, permissions: ['all'], sessionId }), { status: 200, headers });
                 }
 
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH);
@@ -400,13 +413,48 @@ export default {
                         return new Response(JSON.stringify({
                             success: true,
                             user: username,
-                            permissions: editor.permissions || []
+                            permissions: editor.permissions || [],
+                            sessionId: editor.session_id || 'editor-initial-id'
                         }), { status: 200, headers });
                     }
                 }
                 return new Response(JSON.stringify({ error: 'Identifiants incorrects' }), { status: 401, headers });
             } catch (err) {
                 return new Response(JSON.stringify({ error: 'Erreur login' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/auth/revoke-all' && request.method === 'POST') {
+            try {
+                const body = await request.json().catch(() => ({}));
+                const targetUsername = body.targetUsername;
+                const newSessionId = crypto.randomUUID();
+                const userToRevoke = targetUsername || requestUsername;
+
+                // Permission check: only alex can revoke others
+                if (targetUsername && targetUsername !== requestUsername && requestUsername !== 'alex') {
+                    return new Response(JSON.stringify({ error: 'Permission refusée' }), { status: 403, headers });
+                }
+
+                if (userToRevoke === 'alex' || userToRevoke === 'contact@dropsiders.fr') {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    if (settingsFile) {
+                        settingsFile.content.master_session_id = newSessionId;
+                        await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Revoke all sessions (Alex)', settingsFile.sha);
+                    }
+                } else if (userToRevoke) {
+                    const editorsFile = await fetchGitHubFile(EDITORS_PATH);
+                    if (editorsFile && editorsFile.content) {
+                        const index = editorsFile.content.findIndex(e => e.username === userToRevoke);
+                        if (index !== -1) {
+                            editorsFile.content[index].session_id = newSessionId;
+                            await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Revoke all sessions (${userToRevoke})`, editorsFile.sha);
+                        }
+                    }
+                }
+                return new Response(JSON.stringify({ success: true, sessionId: newSessionId }), { status: 200, headers });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: 'Erreur lors de la révocation' }), { status: 500, headers });
             }
         }
 

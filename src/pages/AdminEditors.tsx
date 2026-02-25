@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil } from 'lucide-react';
+import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -162,6 +162,22 @@ export function AdminEditors() {
         }
     };
 
+    const handleRevokeEditorSession = async (targetUsername: string) => {
+        if (!confirm(`Voulez-vous vraiment révoquer toutes les sessions actives de @${targetUsername} ? L'utilisateur devra se reconnecter.`)) return;
+        try {
+            const res = await fetch('/api/auth/revoke-all', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ targetUsername })
+            });
+            if (res.ok) {
+                alert(`Sessions de @${targetUsername} révoquées avec succès !`);
+            }
+        } catch (err) {
+            console.error('Revoke failed', err);
+        }
+    };
+
     const handleEditClick = (editor: Editor) => {
         setIsEditing(true);
         setNewEditor({
@@ -273,6 +289,13 @@ export function AdminEditors() {
                                             title="Modifier"
                                         >
                                             <Pencil className="w-5 h-5" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleRevokeEditorSession(editor.username)}
+                                            className="p-3 text-gray-500 hover:text-neon-purple hover:bg-neon-purple/10 rounded-xl transition-all"
+                                            title="Révoquer les sessions actives (Déconnexion forcée)"
+                                        >
+                                            <RefreshCw className="w-5 h-5" />
                                         </button>
                                         <button
                                             onClick={() => setDeleteTarget(editor.username)}

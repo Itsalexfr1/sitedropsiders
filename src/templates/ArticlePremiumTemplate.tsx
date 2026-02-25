@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2, Instagram, Facebook, Twitter, Globe, Youtube, Link2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
@@ -32,6 +32,12 @@ const SoundCloudIcon = (props: any) => (
 const BeatportIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
         <path d="M12.237 0a9.074 9.074 0 0 1 1.708.157c.548.106.945.454.945.832 0 .341-.336.634-.841.733-.284.053-.594.08-.888.08-2.603 0-4.634.426-6.177 1.309-1.31.734-2.123 1.942-2.583 3.864-.173.746-.226 1.385-.226 2.662 0 1.144.053 1.838.2 2.608.28 1.411.85 2.502 1.748 3.328.7.64 1.763 1.09 3.033 1.31 1.542.266 3.033.2 4.5-.18a12.18 12.18 0 0 0 4.095-1.922c1.085-.758 1.594-1.185 1.874-1.571.24-.319.31-.559.31-.958s-.07-.64-.31-.958c-.28-.386-.79-1.011-1.874-1.78a12.18 12.18 0 0 0-4.095-1.922c-1.467-.38-2.958-.452-4.5-.18-1.27.227-2.333.67-3.033 1.31-.898.826-1.468 1.917-1.748 3.328-.147.77-.2 1.464-.2 2.608 0 1.277.053 1.916.226 2.662.46 1.922 1.273 3.13 2.583 3.864 1.543.883 3.574 1.309 6.177 1.309.294 0 .604.027.888.08a.952.952 0 0 1 .841.733c0 .378-.397.726-.945.832a9.073 9.073 0 0 1-1.708.157z" />
+    </svg>
+);
+
+const XIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
     </svg>
 );
 
@@ -283,8 +289,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         tiktok: TikTokIcon,
         youtube: Youtube,
         facebook: Facebook,
-        x: Twitter,
-        twitter: Twitter,
+        x: XIcon,
+        twitter: XIcon,
         spotify: SpotifyIcon,
         soundcloud: SoundCloudIcon,
         beatport: BeatportIcon
