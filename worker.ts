@@ -428,33 +428,59 @@ export default {
             try {
                 const body = await request.json().catch(() => ({}));
                 const targetUsername = body.targetUsername;
-                const newSessionId = crypto.randomUUID();
+
+                // Robust ID generation
+                let newSessionId;
+                try {
+                    newSessionId = crypto.randomUUID();
+                } catch (e) {
+                    newSessionId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+                }
+
                 const userToRevoke = targetUsername || requestUsername;
+
+                if (!userToRevoke) {
+                    return new Response(JSON.stringify({ error: 'Utilisateur non identifié' }), { status: 400, headers });
+                }
 
                 // Permission check: only alex can revoke others
                 if (targetUsername && targetUsername !== requestUsername && requestUsername !== 'alex') {
                     return new Response(JSON.stringify({ error: 'Permission refusée' }), { status: 403, headers });
                 }
 
+                let saved = { ok: true };
+
                 if (userToRevoke === 'alex' || userToRevoke === 'contact@dropsiders.fr') {
                     const settingsFile = await fetchGitHubFile('src/data/settings.json');
                     if (settingsFile) {
                         settingsFile.content.master_session_id = newSessionId;
-                        await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Revoke all sessions (Alex)', settingsFile.sha);
+                        saved = await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Revoke all sessions (Alex)', settingsFile.sha);
+                    } else {
+                        return new Response(JSON.stringify({ error: 'Fichier settings introuvable' }), { status: 404, headers });
                     }
-                } else if (userToRevoke) {
+                } else {
                     const editorsFile = await fetchGitHubFile(EDITORS_PATH);
                     if (editorsFile && editorsFile.content) {
                         const index = editorsFile.content.findIndex(e => e.username === userToRevoke);
                         if (index !== -1) {
                             editorsFile.content[index].session_id = newSessionId;
-                            await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Revoke all sessions (${userToRevoke})`, editorsFile.sha);
+                            saved = await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Revoke all sessions (${userToRevoke})`, editorsFile.sha);
+                        } else {
+                            return new Response(JSON.stringify({ error: 'Éditeur introuvable' }), { status: 404, headers });
                         }
+                    } else {
+                        return new Response(JSON.stringify({ error: 'Fichier éditeurs introuvable' }), { status: 404, headers });
                     }
                 }
+
+                if (!saved.ok) {
+                    return new Response(JSON.stringify({ error: 'Erreur lors de la sauvegarde GitHub' }), { status: 500, headers });
+                }
+
                 return new Response(JSON.stringify({ success: true, sessionId: newSessionId }), { status: 200, headers });
             } catch (err) {
-                return new Response(JSON.stringify({ error: 'Erreur lors de la révocation' }), { status: 500, headers });
+                console.error('Revoke Error:', err);
+                return new Response(JSON.stringify({ error: 'Erreur interne lors de la révocation' }), { status: 500, headers });
             }
         }
 

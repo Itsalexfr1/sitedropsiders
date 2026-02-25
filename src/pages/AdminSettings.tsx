@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../utils/auth';
 
 export function AdminSettings() {
@@ -13,11 +13,20 @@ export function AdminSettings() {
     const [showShopPassword, setShowShopPassword] = useState(false);
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
 
-
-
     const [isSaving, setIsSaving] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
-    const [message, setMessage] = useState('');
+
+    // Toast State
+    const [toast, setToast] = useState<{
+        show: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({ show: false, message: '', type: 'success' });
+
+    const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
+    };
 
     const currentUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
@@ -55,14 +64,12 @@ export function AdminSettings() {
 
     const handleSave = async () => {
         setIsSaving(true);
-        setMessage('');
         try {
             const res = await fetch('/api/settings');
             const data = res.ok ? await res.json() : {};
 
             const newSettings = {
                 ...data,
-
                 shop_password: shopPassword,
                 kit_media_password: kitMediaPassword,
             };
@@ -93,13 +100,12 @@ export function AdminSettings() {
             }
 
             if (saveRes.ok) {
-                setMessage('Mots de passe enregistrés !');
-                setTimeout(() => setMessage(''), 3000);
+                showNotification('Mots de passe enregistrés !', 'success');
             } else {
-                setMessage('Erreur lors de l\'enregistrement');
+                showNotification('Erreur lors de l\'enregistrement', 'error');
             }
         } catch (e) {
-            setMessage('Erreur de connexion');
+            showNotification('Erreur de connexion', 'error');
         } finally {
             setIsSaving(false);
         }
@@ -109,7 +115,6 @@ export function AdminSettings() {
         if (!confirm('Voulez-vous vraiment déconnecter tous les autres appareils ? Vous resterez connecté sur celui-ci.')) return;
 
         setIsRevoking(true);
-        setMessage('');
         try {
             const res = await fetch('/api/auth/revoke-all', {
                 method: 'POST',
@@ -119,14 +124,14 @@ export function AdminSettings() {
                 const data = await res.json();
                 if (data.sessionId) {
                     localStorage.setItem('admin_session_id', data.sessionId);
-                    setMessage('Toutes les autres sessions ont été révoquées !');
-                    setTimeout(() => setMessage(''), 3000);
+                    showNotification('Toutes les autres sessions ont été révoquées !', 'success');
                 }
             } else {
-                setMessage('Erreur lors de la révocation');
+                const errorData = await res.json().catch(() => ({}));
+                showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
             }
         } catch (e) {
-            setMessage('Erreur réseau');
+            showNotification('Erreur réseau', 'error');
         } finally {
             setIsRevoking(false);
         }
@@ -298,17 +303,36 @@ export function AdminSettings() {
                             </button>
                         </div>
                     </motion.div>
+                </div>
 
-                    {message && (
+                <AnimatePresence mode="wait">
+                    {toast.show && (
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className={`p-4 rounded-xl text-center font-bold uppercase tracking-widest text-xs ${message.includes('succès') ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-neon-red/10 text-neon-red border border-neon-red/20'}`}
+                            initial={{ opacity: 0, y: 50, scale: 0.9, x: '-50%' }}
+                            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+                            exit={{ opacity: 0, y: 20, scale: 0.9, x: '-50%' }}
+                            className="fixed bottom-12 left-1/2 z-[200]"
                         >
-                            {message}
+                            <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success'
+                                ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                                : 'bg-red-500/10 border-red-500/20 text-red-500'
+                                }`}>
+                                <div className={`p-2 rounded-full ${toast.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                                    {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                                </div>
+                                <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap">
+                                    {toast.message}
+                                </span>
+                                <button
+                                    onClick={() => setToast(prev => ({ ...prev, show: false }))}
+                                    className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                                >
+                                    <X className="w-4 h-4 opacity-50 hover:opacity-100" />
+                                </button>
+                            </div>
                         </motion.div>
                     )}
-                </div>
+                </AnimatePresence>
 
                 <div className="mt-12 p-8 border border-white/5 rounded-3xl bg-white/[0.02]">
                     <div className="flex gap-4 items-start">
@@ -323,7 +347,7 @@ export function AdminSettings() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw } from 'lucide-react';
+import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Link, useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -92,6 +92,18 @@ export function AdminEditors() {
     });
     const [isEditing, setIsEditing] = useState(false);
 
+    // Notification State
+    const [toast, setToast] = useState<{
+        show: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({ show: false, message: '', type: 'success' });
+
+    const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
+    };
+
     useEffect(() => {
         const user = localStorage.getItem('admin_user');
         if (user !== 'alex') {
@@ -134,12 +146,13 @@ export function AdminEditors() {
                 await fetchEditors();
                 setShowAddModal(false);
                 setNewEditor({ username: '', password: '', name: '', permissions: [] });
+                showNotification(isEditing ? 'Compte mis à jour !' : 'Compte créé avec succès !', 'success');
             } else {
                 const data = await response.json();
-                setError(data.error || 'Erreur lors de la création');
+                showNotification(data.error || 'Erreur lors de la création', 'error');
             }
         } catch (err) {
-            setError('Erreur réseau');
+            showNotification('Erreur réseau', 'error');
         } finally {
             setIsSaving(false);
         }
@@ -156,9 +169,12 @@ export function AdminEditors() {
 
             if (response.ok) {
                 setEditors(editors.filter(e => e.username !== targetUsername));
+                showNotification('Éditeur supprimé avec succès', 'success');
+            } else {
+                showNotification('Erreur lors de la suppression', 'error');
             }
         } catch (err) {
-            console.error('Delete failed', err);
+            showNotification('Erreur réseau', 'error');
         }
     };
 
@@ -171,10 +187,13 @@ export function AdminEditors() {
                 body: JSON.stringify({ targetUsername })
             });
             if (res.ok) {
-                alert(`Sessions de @${targetUsername} révoquées avec succès !`);
+                showNotification(`Sessions de @${targetUsername} révoquées avec succès !`, 'success');
+            } else {
+                const errorData = await res.json().catch(() => ({}));
+                showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
             }
         } catch (err) {
-            console.error('Revoke failed', err);
+            showNotification('Erreur réseau lors de la révocation', 'error');
         }
     };
 
@@ -492,6 +511,35 @@ export function AdminEditors() {
                 onCancel={() => setDeleteTarget(null)}
                 accentColor="neon-red"
             />
+
+            <AnimatePresence mode="wait">
+                {toast.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9, x: '-50%' }}
+                        className="fixed bottom-12 left-1/2 z-[200]"
+                    >
+                        <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success'
+                            ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                            : 'bg-red-500/10 border-red-500/20 text-red-500'
+                            }`}>
+                            <div className={`p-2 rounded-full ${toast.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
+                                {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                            </div>
+                            <span className="text-xs font-black uppercase tracking-widest whitespace-nowrap text-white">
+                                {toast.message}
+                            </span>
+                            <button
+                                onClick={() => setToast(prev => ({ ...prev, show: false }))}
+                                className="ml-2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                            >
+                                <X className="w-4 h-4 opacity-50 hover:opacity-100 text-white" />
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
