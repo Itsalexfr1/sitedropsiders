@@ -109,7 +109,7 @@ export function NewsCreate() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
-    const [showVideo, setShowVideo] = useState(true);
+    const [showVideo, setShowVideo] = useState(type !== 'Interview');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [artistSocials, setArtistSocials] = useState({
         website: '',
@@ -152,7 +152,7 @@ export function NewsCreate() {
                             setDate(data.article.date);
                             setCategory(data.article.category);
                             setYoutubeId(data.article.youtubeId || '');
-                            setShowVideo(data.article.showVideo !== false);
+                            setShowVideo(data.article.showVideo !== undefined ? data.article.showVideo : (data.article.category !== 'Interview' && data.article.category !== 'Interviews' && data.article.category !== 'Interview Video'));
                             setIsFeatured(data.article.isFeatured || false);
 
                             // Parse Content
@@ -249,6 +249,7 @@ export function NewsCreate() {
                                 if (localItem.category === 'Interview Video') {
                                     setInterviewSubtype('video');
                                 }
+                                setShowVideo(localItem.showVideo !== undefined ? localItem.showVideo : (localItem.category !== 'Interview' && localItem.category !== 'Interviews' && localItem.category !== 'Interview Video'));
 
                                 if (localItem.category === 'Musique') {
                                     setActiveTab('Musique');
@@ -1039,10 +1040,12 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 if (!finalImageUrl && youtubeId) {
                     finalImageUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
                 }
-                finalContent = `<div class="article-section">
-<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+                const videoHtml = showVideo ? `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
   <iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
-</div>
+</div>` : '';
+
+                finalContent = `<div class="article-section">
+${videoHtml}
 ${generateSocialsHtml()}
 ${generateFestivalSocialsHtml()}
 </div>`;

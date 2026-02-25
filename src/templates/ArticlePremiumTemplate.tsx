@@ -265,7 +265,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
         // Support Interviews (Bold questions)
         if (isInterview) {
-            finalHtml = finalHtml.replace(/<strong>(.*?)<\/strong>/g, '<span class="interview-q">$1</span>');
+            finalHtml = finalHtml.replace(/<strong([^>]*)>(.*?)<\/strong>/g, '<span class="interview-q" $1>$2</span>');
         }
 
         return finalHtml;
@@ -610,27 +610,29 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
 
                                 {/* Video Section - High Priority for Recap/Interview */}
-                                {article.youtubeId && article.showVideo !== false && (
-                                    <div className="mt-16 mb-16">
-                                        <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
-                                            <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all">
-                                                <Play className="w-6 h-6 text-neon-red fill-neon-red animate-pulse" />
+                                {article.youtubeId &&
+                                    (article.category === 'Interview' || article.category === 'Interviews' ? article.showVideo === true : article.showVideo !== false) &&
+                                    article.category !== 'Interview Video' && (
+                                        <div className="mt-16 mb-16">
+                                            <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
+                                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all">
+                                                    <Play className="w-6 h-6 text-neon-red fill-neon-red animate-pulse" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.must_watch')}</span>
+                                                    {t('article_detail.video_title')}
+                                                </div>
+                                            </h3>
+                                            <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
+                                                <iframe
+                                                    src={`https://www.youtube.com/embed/${article.youtubeId}`}
+                                                    className="absolute top-0 left-0 w-full h-full"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-neon-red text-[10px] tracking-[0.4em] font-black mb-1">{t('article_detail.must_watch')}</span>
-                                                {t('article_detail.video_title')}
-                                            </div>
-                                        </h3>
-                                        <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
-                                            <iframe
-                                                src={`https://www.youtube.com/embed/${article.youtubeId}`}
-                                                className="absolute top-0 left-0 w-full h-full"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowFullScreen
-                                            />
                                         </div>
-                                    </div>
-                                )}
+                                    )}
 
                                 {/* Gallery - Show for all except specifically requested exclusions */}
                                 {(article.images && article.images.length > 1 && type === 'recap') && (

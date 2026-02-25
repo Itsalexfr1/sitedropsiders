@@ -233,9 +233,9 @@
     color: var(--color-neon-red);
   }
 
-  /* Support for manual colors in the editor */
   [style*="color"] .premium-text-bold,
   [style*="color"] .premium-link,
+  [style*="color"] .interview-q,
   [style*="color"] h2,
   [style*="color"] h3 {
     color: inherit !important;
