@@ -174,7 +174,6 @@ export function NewsCreate() {
                                         const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
 
                                         // Simple regex to extract Q&A from legacy or new HTML
-                                        const qMatch = html.match(/DROPSIDERS\s*:\s*(?:<\/strong>)?\s*(.*?)(?:<br|<\/p)/i);
                                         const aMatch = html.match(/(?:<strong>)?\s*([^:]+)\s*:\s*(?:<\/strong>)?\s*(.*)/i); // Fallback for answer
 
                                         // More specific regex for answer to skip the first DROPSIDERS match
