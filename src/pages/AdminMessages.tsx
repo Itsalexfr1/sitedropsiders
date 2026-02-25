@@ -243,7 +243,7 @@ export function AdminMessages() {
                                 <ArrowLeft className="w-4 h-4" /> Retour à la liste
                             </button>
                             {/* Message Header */}
-                            <div className="flex items-start justify-between mb-8 gap-4">
+                            <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-8 gap-6">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getSubjectColor(selected.subject)}`}>
@@ -251,7 +251,7 @@ export function AdminMessages() {
                                         </span>
                                     </div>
                                     <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{selected.name}</h2>
-                                    <div className="flex items-center gap-3 text-sm text-gray-400">
+                                    <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
                                         <div className="flex items-center gap-1.5">
                                             <User className="w-3.5 h-3.5" />
                                             <span className="font-bold text-white">{selected.name}</span>
@@ -268,7 +268,7 @@ export function AdminMessages() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto">
                                     <button
                                         onClick={() => {
                                             const sig = `\n\n\n`;
