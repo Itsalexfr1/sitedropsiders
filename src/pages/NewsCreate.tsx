@@ -83,6 +83,8 @@ export function NewsCreate() {
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
     const [interviewSubtype, setInterviewSubtype] = useState<'written' | 'video'>((searchParams.get('subtype') as 'written' | 'video') || 'written');
+    const [interviewTheme, setInterviewTheme] = useState('');
+    const interviewThemes = ["Interview", "Fast Quizz", "La Playlist", "Drop & Talk"];
     const [author, setAuthor] = useState(() => {
         const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
         const found = (editorsData as any[]).find(e =>
@@ -307,9 +309,17 @@ export function NewsCreate() {
                     });
                 }
                 if (foundMusic.length > 0) setMusicItems(foundMusic);
-            } else if (articleData.category === 'Interview Video' || articleData.category === 'Interview') {
-                if (articleData.category === 'Interview Video') setInterviewSubtype('video');
-                else setInterviewSubtype('written');
+            } else if (articleData.category === 'Interview Video' || articleData.category === 'Interview' || articleData.category.includes('Interview Video -')) {
+                if (articleData.category.includes('Interview Video')) {
+                    setInterviewSubtype('video');
+                    if (articleData.category.includes(' - ')) {
+                        setInterviewTheme(articleData.category.split(' - ')[1]);
+                    } else if (articleData.category === 'Interview Video') {
+                        setInterviewTheme('Interview');
+                    }
+                } else {
+                    setInterviewSubtype('written');
+                }
             } else if (articleData.isFocus) {
                 setActiveTab('Focus');
             }
@@ -965,6 +975,12 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
+        if (isInterviewVideo && !interviewTheme) {
+            setStatus('error');
+            setMessage('Veuillez sélectionner un thème pour votre interview vidéo.');
+            return;
+        }
+
         // New validation: check all interview video blocks for empty mediaUrl
         if (type === 'Interview') {
             const hasEmptyVideoBlock = interviewQuestions.some(q => q.type === 'video' && !q.mediaUrl);
@@ -985,7 +1001,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             let finalImageUrl = imageUrl;
 
             if (isInterviewVideo) {
-                finalCategory = 'Interview Video';
+                finalCategory = interviewTheme === 'Interview' ? 'Interview Video' : `Interview Video - ${interviewTheme}`;
                 if (!finalImageUrl && youtubeId) {
                     finalImageUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
                 }
@@ -1254,6 +1270,29 @@ ${generateFestivalSocialsHtml()}
                             >
                                 <Youtube className="w-3.5 h-3.5" /> Interview Vidéo
                             </button>
+                        </div>
+                    )}
+
+                    {type === 'Interview' && interviewSubtype === 'video' && (
+                        <div className="flex flex-col gap-4 mb-8">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-center">
+                                Thème de l'Interview Vidéo <span className="text-neon-red">*</span>
+                            </label>
+                            <div className="flex flex-wrap justify-center gap-2">
+                                {interviewThemes.map(theme => (
+                                    <button
+                                        key={theme}
+                                        type="button"
+                                        onClick={() => setInterviewTheme(theme)}
+                                        className={`px-4 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all border ${interviewTheme === theme
+                                            ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_15px_rgba(0,255,243,0.3)]'
+                                            : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20 hover:text-white'
+                                            }`}
+                                    >
+                                        {theme}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     )}
 
