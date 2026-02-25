@@ -19,7 +19,7 @@
   },
   {
     "id": "interviews",
-    "enabled": true,
+    "enabled": false,
     "accentColor": "purple"
   },
   {
