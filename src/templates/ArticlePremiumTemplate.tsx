@@ -582,7 +582,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                 {festivalSocials && festivalSocials.length > 0 && (
                                     <div className="festival-socials-premium mt-12 pt-8 border-t border-white/10">
-                                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 text-center">LE FESTIVAL</h3>
+                                        <div className="flex flex-col items-center mb-6">
+                                            <div className="inline-block px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
+                                                <h3 className="text-xs font-black text-neon-cyan uppercase tracking-[0.3em]">SUIVEZ LE FESTIVAL</h3>
+                                            </div>
+                                        </div>
                                         <div className="flex flex-wrap justify-center gap-4">
                                             {festivalSocials.map((social, idx) => {
                                                 const Icon = platformIcons[social.platform] || Link2;
@@ -606,7 +610,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
 
                                 {/* Video Section - High Priority for Recap/Interview */}
-                                {article.youtubeId && (
+                                {article.youtubeId && article.showVideo !== false && (
                                     <div className="mt-16 mb-16">
                                         <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
                                             <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 group-hover:bg-neon-red/20 transition-all">

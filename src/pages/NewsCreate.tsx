@@ -109,6 +109,8 @@ export function NewsCreate() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
+    const [showVideo, setShowVideo] = useState(true);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [artistSocials, setArtistSocials] = useState({
         website: '',
         instagram: '',
@@ -150,27 +152,72 @@ export function NewsCreate() {
                             setDate(data.article.date);
                             setCategory(data.article.category);
                             setYoutubeId(data.article.youtubeId || '');
+                            setShowVideo(data.article.showVideo !== false);
                             setIsFeatured(data.article.isFeatured || false);
 
                             // Parse Content
                             let c = data.content || data.article.content || '';
-                            const foundWidgets = [];
-                            const articleSectionPattern = '<div class="article-section';
-                            if (c.includes(articleSectionPattern)) {
-                                const parts = c.split(articleSectionPattern);
-                                for (let i = 1; i < parts.length; i++) {
-                                    const part = parts[i];
-                                    const openTagEnd = part.indexOf('>');
-                                    if (openTagEnd !== -1) {
-                                        let content = part.substring(openTagEnd + 1);
-                                        const lastCloseIdx = content.lastIndexOf('</div>');
-                                        if (lastCloseIdx !== -1) content = content.substring(0, lastCloseIdx);
-                                        foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: content.trim() });
+                            const foundWidgets: { id: string, content: string }[] = [];
+                            const foundQuestions: any[] = [];
+
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(c, 'text/html');
+                            const sections = doc.querySelectorAll('.article-section');
+
+                            if (sections.length > 0) {
+                                sections.forEach(section => {
+                                    const html = section.innerHTML.trim();
+
+                                    // Identify Interview Blocks
+                                    if (section.classList.contains('interview-qa-block') || (data.article.category === 'Interview' && html.includes('DROPSIDERS :'))) {
+                                        const artistName = section.getAttribute('data-artist-name') || '';
+                                        const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
+
+                                        // Simple regex to extract Q&A from legacy or new HTML
+                                        const qMatch = html.match(/DROPSIDERS\s*:\s*(?:<\/strong>)?\s*(.*?)(?:<br|<\/p)/i);
+                                        const aMatch = html.match(/(?:<strong>)?\s*([^:]+)\s*:\s*(?:<\/strong>)?\s*(.*)/i); // Fallback for answer
+
+                                        // More specific regex for answer to skip the first DROPSIDERS match
+                                        const matches = Array.from(html.matchAll(/:\s*(?:<\/strong>)?\s*(.*?)(?:<\/p|$)/gi));
+                                        const question = matches[0] ? matches[0][1].trim() : '';
+                                        const answer = matches[1] ? matches[1][1].trim() : '';
+                                        const detectedArtist = aMatch && aMatch[1].trim() !== 'DROPSIDERS' ? aMatch[1].trim() : artistName;
+
+                                        foundQuestions.push({
+                                            id: Math.random().toString(36).substr(2, 9),
+                                            type: 'qa',
+                                            artistName: detectedArtist,
+                                            artistColor: artistColor,
+                                            question,
+                                            answer
+                                        });
+                                    } else if (section.classList.contains('interview-image-block') || (data.article.category === 'Interview' && section.querySelector('.image-premium-wrapper'))) {
+                                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('img')?.src || '';
+                                        foundQuestions.push({
+                                            id: Math.random().toString(36).substr(2, 9),
+                                            type: 'image',
+                                            mediaUrl
+                                        });
+                                    } else if (section.classList.contains('interview-video-block') || (data.article.category === 'Interview' && section.querySelector('.youtube-player-widget'))) {
+                                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1] || '';
+                                        foundQuestions.push({
+                                            id: Math.random().toString(36).substr(2, 9),
+                                            type: 'video',
+                                            mediaUrl
+                                        });
+                                    } else if (html.includes('artist-socials-premium') || html.includes('festival-socials-premium')) {
+                                        // Skip socials block from widgets as they are auto-generated
+                                    } else {
+                                        // Regular Widget
+                                        foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: html });
                                     }
-                                }
+                                });
                             }
+
                             if (foundWidgets.length > 0) setWidgets(foundWidgets);
-                            else setWidgets([{ id: 'legacy-1', content: c }]);
+                            else if (!c.includes('article-section')) setWidgets([{ id: 'legacy-1', content: c }]);
+
+                            if (foundQuestions.length > 0) setInterviewQuestions(foundQuestions);
 
                             if (data.article.category === 'Musique') {
                                 setActiveTab('Musique');
@@ -325,6 +372,7 @@ export function NewsCreate() {
             setDate(editingItem.date);
             setCategory(editingItem.category);
             setYoutubeId(editingItem.youtubeId || '');
+            setShowVideo(editingItem.showVideo !== false);
             setIsFeatured(editingItem.isFeatured || false);
             setAuthor(editingItem.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
             if (editingItem.category === 'Interview') {
@@ -908,6 +956,61 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined });
     };
 
+    const generateSocialsHtml = (customName?: string, customColor?: string) => {
+        const activeSocials = Object.entries(artistSocials).filter(([_, url]) => url && url.trim() !== '');
+        if (activeSocials.length === 0) return '';
+
+        const linksHtml = activeSocials.map(([platform, url]) => {
+            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
+        }).join('');
+
+        const displayName = customName ? customName.toUpperCase() : "L'ARTISTE";
+        return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+    };
+
+    const generateFestivalSocialsHtml = () => {
+        const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
+        if (activeSocials.length === 0) return '';
+
+        const linksHtml = activeSocials.map(([platform, url]) => {
+            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
+        }).join('');
+
+        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6">\n    <h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]">SUIVEZ LE FESTIVAL</h3>\n  </div>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+    };
+
+    const handleDelete = async () => {
+        if (!id) return;
+        setStatus('loading');
+        try {
+            const response = await fetch('/api/news/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            });
+
+            if (response.ok) {
+                setStatus('success');
+                setMessage('Article supprimé avec succès !');
+                setTimeout(() => navigate('/admin/manage'), 2000);
+            } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { error: 'Erreur lors de la suppression' };
+                }
+                setStatus('error');
+                setMessage(errorData.error || 'Erreur lors de la suppression');
+            }
+        } catch (e) {
+            setStatus('error');
+            setMessage('Erreur de connexion');
+        } finally {
+            setShowDeleteConfirm(false);
+        }
+    };
+
     const handleSubmit = async () => {
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
@@ -932,28 +1035,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             let isFocus = activeTab === 'Focus';
             let finalImageUrl = imageUrl;
 
-            const generateSocialsHtml = () => {
-                const activeSocials = Object.entries(artistSocials).filter(([_, url]) => url && url.trim() !== '');
-                if (activeSocials.length === 0) return '';
-
-                const linksHtml = activeSocials.map(([platform, url]) => {
-                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link">${platform}</a>`;
-                }).join('');
-
-                return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">SUIVEZ L'ARTISTE</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
-            };
-
-            const generateFestivalSocialsHtml = () => {
-                const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
-                if (activeSocials.length === 0) return '';
-
-                const linksHtml = activeSocials.map(([platform, url]) => {
-                    return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
-                }).join('');
-
-                return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6">RESEAUX DU FESTIVAL</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
-            };
-
             if (isInterviewVideo) {
                 finalCategory = 'Interview Video';
                 if (!finalImageUrl && youtubeId) {
@@ -968,20 +1049,25 @@ ${generateFestivalSocialsHtml()}
 </div>`;
             } else if (type === 'Interview' && interviewSubtype === 'written') {
                 finalCategory = 'Interview';
+
+                const widgetsHtml = widgets.map(w =>
+                    `<div class="article-section text-widget-block">\n\n${w.content}\n\n</div>`
+                ).join('\n\n');
+
                 const interviewHtml = interviewQuestions.map(q => {
                     if (q.type === 'qa') {
-                        return `<div class="article-section">
+                        return `<div class="article-section interview-qa-block" data-artist-name="${q.artistName || ''}" data-artist-color="${q.artistColor || '#ff1241'}">
     <p><strong style="color: #ff1241">DROPSIDERS :</strong> ${q.question}</p>
-    <p><strong style="color: #ff1241">${(q.artistName || '').toUpperCase()} :</strong> ${q.answer}</p>
+    <p><strong style="color: ${q.artistColor || '#ff1241'}">${(q.artistName || '').toUpperCase()} :</strong> ${q.answer}</p>
 </div>`;
                     } else if (q.type === 'image') {
-                        return `<div class="article-section">
+                        return `<div class="article-section interview-image-block" data-media-url="${q.mediaUrl}">
 <div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
   <img src="${q.mediaUrl}" alt="Interview Image" class="w-full h-auto object-cover" />
 </div>
 </div>`;
                     } else if (q.type === 'video') {
-                        return `<div class="article-section">
+                        return `<div class="article-section interview-video-block" data-media-url="${q.mediaUrl}">
 <div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
   <iframe src="https://www.youtube.com/embed/${q.mediaUrl}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
 </div>
@@ -989,7 +1075,12 @@ ${generateFestivalSocialsHtml()}
                     }
                     return '';
                 }).join('\n');
-                finalContent = interviewHtml + (interviewHtml ? `\n<div class="article-section">${generateSocialsHtml()} ${generateFestivalSocialsHtml()}</div>` : '');
+
+                const firstQA = interviewQuestions.find(q => q.type === 'qa');
+                const mainName = firstQA?.artistName || '';
+                const mainColor = firstQA?.artistColor || '#ff1241';
+
+                finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(mainName, mainColor)} ${generateFestivalSocialsHtml()}</div>` : '');
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
                 const musicHtml = musicItems.map((item) => `
@@ -1023,6 +1114,7 @@ ${generateFestivalSocialsHtml()}
                 category: finalCategory,
                 content: fixEncoding(finalContent),
                 youtubeId,
+                showVideo,
                 isFocus,
                 isFeatured,
                 author
@@ -1320,19 +1412,48 @@ ${generateFestivalSocialsHtml()}
                                         >
                                             Upload
                                         </button>
+                                        {imageUrl && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setImageUrl('')}
+                                                className="p-3 bg-red-600/10 border border-red-600/20 text-red-600 rounded-xl hover:bg-red-600/20 transition-all flex items-center justify-center h-full"
+                                                title="Supprimer l'image"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        )}
 
                                     </div>
                                 </div>
                             )}
                             <div className={type === 'Interview' && interviewSubtype === 'video' ? 'md:col-span-2' : ''}>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center justify-between gap-2">
-                                    <span className="flex items-center gap-2">
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                         <Youtube className="w-4 h-4" /> {type === 'Interview' && interviewSubtype === 'video' ? 'Lien Vidéo (ID ou URL)' : 'Vidéo de l\'article'}
-                                    </span>
-                                    <span className="text-[9px] text-neon-cyan/80 normal-case font-bold">
-                                        {type === 'Interview' && interviewSubtype === 'video' ? '(Obligatoire)' : '(S\'affichera en bas de l\'article)'}
-                                    </span>
-                                </label>
+                                    </label>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Activer :</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowVideo(!showVideo)}
+                                                className={`w-10 h-5 rounded-full relative transition-colors ${showVideo ? 'bg-neon-red' : 'bg-gray-800'}`}
+                                            >
+                                                <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${showVideo ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+                                        {youtubeId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setYoutubeId('')}
+                                                className="p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                                title="Supprimer la vidéo"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                                 <input
                                     type="text"
                                     value={youtubeId}
@@ -1350,6 +1471,9 @@ ${generateFestivalSocialsHtml()}
                                     className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
                                     placeholder="ID ou URL YouTube"
                                 />
+                                {!(type === 'Interview' && interviewSubtype === 'video') && (
+                                    <p className="mt-2 text-[10px] text-gray-500 italic">S'affichera tout en bas de l'article si activé</p>
+                                )}
                             </div>
                         </div>
 
@@ -2232,7 +2356,7 @@ ${generateFestivalSocialsHtml()}
                                                 {q.type === 'qa' ? (
                                                     <div className="space-y-4">
                                                         <p className="article-body-premium mb-4"><strong style={{ color: '#ff1241' }}>DROPSIDERS :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.question || '') }} /></p>
-                                                        <p className="article-body-premium"><strong style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
+                                                        <p className="article-body-premium" style={{ color: q.artistColor || '#ff1241' }}><strong style={{ color: q.artistColor || '#ff1241' }}>{(q.artistName || 'ARTISTE').toUpperCase()} :</strong> <span dangerouslySetInnerHTML={{ __html: standardizeContent(q.answer || '') }} /></p>
                                                     </div>
                                                 ) : q.type === 'image' ? (
                                                     <div className="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
@@ -2246,7 +2370,7 @@ ${generateFestivalSocialsHtml()}
                                             </div>
                                         ))}
 
-                                        {youtubeId && (
+                                        {youtubeId && showVideo && (
                                             <div className="mt-16 mb-16">
                                                 <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
                                                     <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
@@ -2274,6 +2398,23 @@ ${generateFestivalSocialsHtml()}
                                                 </div>
                                             </div>
                                         )}
+
+                                        {/* Socials Preview */}
+                                        {(Object.values(artistSocials).some(v => v) || Object.values(festivalSocials).some(v => v)) && (
+                                            <div className="article-section pt-12 border-t border-white/5 mt-12">
+                                                {Object.values(artistSocials).some(v => v) && (
+                                                    <div dangerouslySetInnerHTML={{
+                                                        __html: generateSocialsHtml(
+                                                            (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistName : undefined),
+                                                            (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
+                                                        )
+                                                    }} />
+                                                )}
+                                                {Object.values(festivalSocials).some(v => v) && (
+                                                    <div dangerouslySetInnerHTML={{ __html: generateFestivalSocialsHtml() }} />
+                                                )}
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </div>
@@ -2290,6 +2431,16 @@ ${generateFestivalSocialsHtml()}
                             >
                                 {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : 'Publier l\'article')}
                             </button>
+
+                            {isEditing && (
+                                <button
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    type="button"
+                                    className="w-full mt-4 py-4 rounded-xl font-bold uppercase tracking-widest transition-all bg-red-600/10 border border-red-600/20 text-red-600 hover:bg-red-600/20 flex items-center justify-center gap-2"
+                                >
+                                    <Trash2 className="w-5 h-5" /> Supprimer cet article
+                                </button>
+                            )}
 
                             {status && status !== 'loading' && message && (
                                 <motion.div
@@ -2675,6 +2826,17 @@ ${generateFestivalSocialsHtml()}
                         </div>
                     )}
                 </AnimatePresence>
+
+                <ConfirmationModal
+                    isOpen={showDeleteConfirm}
+                    onCancel={() => setShowDeleteConfirm(false)}
+                    onConfirm={handleDelete}
+                    title="Supprimer l'article ?"
+                    message="Cette action est irréversible. Voulez-vous vraiment supprimer cet article ?"
+                    confirmLabel="Oui, supprimer"
+                    cancelLabel="Annuler"
+                    accentColor="neon-red"
+                />
 
                 <AnimatePresence>
                     {videoGroupModal.show && (
