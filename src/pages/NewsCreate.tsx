@@ -86,6 +86,8 @@ export function NewsCreate() {
         return found ? found.name : 'Alex';
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
+    const [artistNameLabel, setArtistNameLabel] = useState('');
+    const [festivalNameLabel, setFestivalNameLabel] = useState('');
 
 
 
@@ -846,7 +848,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="artist-social-link" style="color: ${customColor || '#ff1241'}; border-color: ${customColor || '#ff1241'}">${platform}</a>`;
         }).join('');
 
-        const displayName = customName ? customName.toUpperCase() : "L'ARTISTE";
+        const displayName = (customName || artistNameLabel || "L'ARTISTE").toUpperCase();
         return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n  <h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
     };
 
@@ -858,7 +860,8 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
         }).join('');
 
-        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6">\n    <h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]">SUIVEZ LE FESTIVAL</h3>\n  </div>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
+        const displayName = (festivalNameLabel || "LE FESTIVAL").toUpperCase();
+        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n  <div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6">\n    <h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]">SUIVEZ ${displayName}</h3>\n  </div>\n  <div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n  </div>\n</div>`;
     };
 
     const handleDelete = async () => {
@@ -902,7 +905,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
-        if (!isAuthorConfirmed) {
+        if (!isAuthorConfirmed && !isInterviewVideo) {
             setStatus('error');
             setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
             // Scroll to the editor section
@@ -1249,68 +1252,70 @@ ${generateFestivalSocialsHtml()}
                         </div>
 
                         {/* Author Selector */}
-                        <div data-section="editor-selection" className="space-y-6">
-                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
-                            </label>
+                        {!(type === 'Interview' && interviewSubtype === 'video') && (
+                            <div data-section="editor-selection" className="space-y-6">
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                    <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
+                                </label>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {(editorsData as any[]).map((editor: any) => (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                    {(editorsData as any[]).map((editor: any) => (
+                                        <button
+                                            key={editor.username}
+                                            type="button"
+                                            onClick={() => {
+                                                setAuthor(editor.name);
+                                                setIsAuthorConfirmed(false);
+                                            }}
+                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
+                                                ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
+                                                : 'bg-black/40 border-white/10 hover:border-white/20'
+                                                }`}
+                                        >
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
+                                                }`}>
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
+                                                }`}>
+                                                {editor.name}
+                                            </span>
+                                            {author === editor.name && (
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div
+                                    className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
+                                        ? 'bg-neon-cyan/5 border-neon-cyan/30'
+                                        : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
+                                        }`}
+                                    onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
+                                >
                                     <button
-                                        key={editor.username}
                                         type="button"
-                                        onClick={() => {
-                                            setAuthor(editor.name);
-                                            setIsAuthorConfirmed(false);
-                                        }}
-                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
-                                            ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
-                                            : 'bg-black/40 border-white/10 hover:border-white/20'
+                                        className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
+                                            ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                                            : 'bg-black/40 border-white/20'
                                             }`}
                                     >
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
-                                            }`}>
-                                            <User className="w-5 h-5" />
-                                        </div>
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
-                                            }`}>
-                                            {editor.name}
-                                        </span>
-                                        {author === editor.name && (
-                                            <div className="absolute top-2 right-2">
-                                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
-                                            </div>
-                                        )}
+                                        {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
                                     </button>
-                                ))}
-                            </div>
-
-                            <div
-                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
-                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
-                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
-                                    }`}
-                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
-                            >
-                                <button
-                                    type="button"
-                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
-                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
-                                        : 'bg-black/40 border-white/20'
-                                        }`}
-                                >
-                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
-                                </button>
-                                <div className="flex flex-col">
-                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
-                                        Confirmer l'Éditeur
-                                    </span>
-                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce contenu
-                                    </span>
+                                    <div className="flex flex-col">
+                                        <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
+                                            Confirmer l'Éditeur
+                                        </span>
+                                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                            Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce contenu
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         {(activeTab !== 'Musique' && !(type === 'Interview' && interviewSubtype === 'video')) && (
                             <div>
@@ -1427,9 +1432,21 @@ ${generateFestivalSocialsHtml()}
                         {/* ARTIST SOCIALS (Only for Interviews) */}
                         {type === 'Interview' && (
                             <div className="pt-8 border-t border-white/10 mt-4">
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
-                                </label>
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                        <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
+                                    </label>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[9px] font-black text-gray-500 uppercase">Suivre :</span>
+                                        <input
+                                            type="text"
+                                            value={artistNameLabel}
+                                            onChange={(e) => setArtistNameLabel(e.target.value)}
+                                            className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest"
+                                            placeholder="NOM DE L'ARTISTE"
+                                        />
+                                    </div>
+                                </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                     {[
                                         { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
@@ -1464,9 +1481,21 @@ ${generateFestivalSocialsHtml()}
 
                         {/* FESTIVAL SOCIALS (For all News/Interviews) */}
                         <div className="pt-8 border-t border-white/10 mt-4">
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
-                            </label>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Suivre :</span>
+                                    <input
+                                        type="text"
+                                        value={festivalNameLabel}
+                                        onChange={(e) => setFestivalNameLabel(e.target.value)}
+                                        className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-red w-48 font-bold uppercase tracking-widest"
+                                        placeholder="NOM DU FESTIVAL / EVENT"
+                                    />
+                                </div>
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {[
                                     { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
@@ -2352,7 +2381,7 @@ ${generateFestivalSocialsHtml()}
                                                 {Object.values(artistSocials).some(v => v) && (
                                                     <div dangerouslySetInnerHTML={{
                                                         __html: generateSocialsHtml(
-                                                            (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistName : undefined),
+                                                            (type === 'Interview' ? (interviewQuestions.find(q => q.type === 'qa')?.artistName || artistNameLabel) : artistNameLabel),
                                                             (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
                                                         )
                                                     }} />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, Twitter, ChevronUp, ChevronDown } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, Twitter, ChevronUp, ChevronDown, Check } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -62,7 +62,15 @@ export function RecapCreate() {
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
-    const [author, setAuthor] = useState(localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
+    const [author, setAuthor] = useState(() => {
+        const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
+        const found = (editorsData as any[]).find(e =>
+            e.name.toLowerCase() === stored.toLowerCase() ||
+            e.username.toLowerCase() === stored.toLowerCase()
+        );
+        return found ? found.name : 'Alex';
+    });
+    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [festivalSocials, setFestivalSocials] = useState({
         website: '',
         instagram: '',
@@ -176,6 +184,7 @@ export function RecapCreate() {
                     console.log('[RecapCreate] Fetch complete');
                     setIsLoading(false);
                     initialDataLoaded.current = true;
+                    setIsAuthorConfirmed(true); // Auto-confirm on edit
                 }
             };
             fetchFullItem();
@@ -678,6 +687,17 @@ export function RecapCreate() {
 
     const handleSubmit = async (e: React.FormEvent | MouseEvent) => {
         e.preventDefault();
+        if (!isAuthorConfirmed) {
+            setStatus('error');
+            setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
+            // Scroll to the editor section
+            const editorLabel = document.querySelector('[data-section="editor-selection"]');
+            if (editorLabel) {
+                editorLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
+        }
+
         setStatus('loading');
         setMessage('Publication en cours...');
 
@@ -976,27 +996,66 @@ export function RecapCreate() {
                             </div>
                         </div>
 
-                        {/* Author Select */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                                <User className="w-4 h-4" /> Auteur <span className="text-neon-red">*</span>
+                        {/* Author Selector */}
+                        <div data-section="editor-selection" className="space-y-6 pt-8 border-t border-white/10 mt-4">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
                             </label>
-                            <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors pointer-events-none" />
-                                <select
-                                    value={author}
-                                    onChange={(e) => setAuthor(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-10 text-white focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all appearance-none cursor-pointer"
-                                    required
-                                >
-                                    {(editorsData as any[]).map((editor: any) => (
-                                        <option key={editor.username} value={editor.name} className="bg-dark-bg text-white">
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                {(editorsData as any[]).map((editor: any) => (
+                                    <button
+                                        key={editor.username}
+                                        type="button"
+                                        onClick={() => {
+                                            setAuthor(editor.name);
+                                            setIsAuthorConfirmed(false);
+                                        }}
+                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
+                                            ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
+                                            : 'bg-black/40 border-white/10 hover:border-white/20'
+                                            }`}
+                                    >
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
+                                            }`}>
+                                            <User className="w-5 h-5" />
+                                        </div>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
+                                            }`}>
                                             {editor.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                    <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                        </span>
+                                        {author === editor.name && (
+                                            <div className="absolute top-2 right-2">
+                                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                                            </div>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div
+                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
+                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
+                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
+                                    }`}
+                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
+                            >
+                                <button
+                                    type="button"
+                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
+                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                                        : 'bg-black/40 border-white/20'
+                                        }`}
+                                >
+                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
+                                </button>
+                                <div className="flex flex-col">
+                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
+                                        Confirmer l'Éditeur
+                                    </span>
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce récap
+                                    </span>
                                 </div>
                             </div>
                         </div>
