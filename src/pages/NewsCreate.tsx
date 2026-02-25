@@ -103,9 +103,20 @@ export function NewsCreate() {
 
 
     // Widget System State
-    const [widgets, setWidgets] = useState<{ id: string, content: string }[]>([
-        { id: 'initial-1', content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
-    ]);
+    const [widgets, setWidgets] = useState<{ id: string, content: string }[]>(() => {
+        const isInterviewVideo = type === 'Interview' && (searchParams.get('subtype') === 'video');
+        if (isInterviewVideo) return [];
+        return [
+            { id: 'initial-1', content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
+        ];
+    });
+
+    useEffect(() => {
+        const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
+        if (isInterviewVideo) {
+            setWidgets(prev => prev.filter(w => !w.content.includes('premium-section-title')));
+        }
+    }, [type, interviewSubtype]);
 
     const [interviewQuestions, setInterviewQuestions] = useState<{
         id: string,
@@ -981,6 +992,22 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
+        // Check if artist socials are filled but artistNameLabel is empty
+        const hasArtistSocials = Object.values(artistSocials).some(v => !!v.trim());
+        if (hasArtistSocials && !artistNameLabel.trim()) {
+            setStatus('error');
+            setMessage("Veuillez indiquer le nom de l'artiste pour les réseaux sociaux (Champ 'Suivre :').");
+            return;
+        }
+
+        // Check if festival socials are filled but festivalNameLabel is empty
+        const hasFestivalSocials = Object.values(festivalSocials).some(v => !!v.trim());
+        if (hasFestivalSocials && !festivalNameLabel.trim()) {
+            setStatus('error');
+            setMessage("Veuillez indiquer le nom du festival pour les réseaux sociaux (Champ 'Suivre :').");
+            return;
+        }
+
         // New validation: check all interview video blocks for empty mediaUrl
         if (type === 'Interview') {
             const hasEmptyVideoBlock = interviewQuestions.some(q => q.type === 'video' && !q.mediaUrl);
@@ -1105,10 +1132,12 @@ ${generateFestivalSocialsHtml()}
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (!isEditing) {
-                    // Reset to TRUE initial state (with title placeholder widget)
+                    // Reset to TRUE initial state
                     setTitle('');
                     setSummary('');
-                    setWidgets([{ id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }]);
+                    setWidgets(isInterviewVideo ? [] : [
+                        { id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
+                    ]);
                     setImageUrl('');
                     setYoutubeId('');
                     setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
@@ -1541,12 +1570,12 @@ ${generateFestivalSocialsHtml()}
                                 <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
                             </label>
                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black text-gray-500 uppercase">Suivre :</span>
+                                <span className="text-[9px] font-black text-gray-500 uppercase">Suivre : {Object.values(artistSocials).some(v => v.trim()) && <span className="text-neon-red">*</span>}</span>
                                 <input
                                     type="text"
                                     value={artistNameLabel}
                                     onChange={(e) => setArtistNameLabel(e.target.value)}
-                                    className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest"
+                                    className={`bg-black/40 border ${Object.values(artistSocials).some(v => v.trim()) && !artistNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest transition-all`}
                                     placeholder="NOM DE L'ARTISTE"
                                 />
                             </div>
@@ -1592,12 +1621,12 @@ ${generateFestivalSocialsHtml()}
                                 <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
                             </label>
                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Suivre :</span>
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Suivre : {Object.values(festivalSocials).some(v => v.trim()) && <span className="text-neon-red">*</span>}</span>
                                 <input
                                     type="text"
                                     value={festivalNameLabel}
                                     onChange={(e) => setFestivalNameLabel(e.target.value)}
-                                    className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-red w-48 font-bold uppercase tracking-widest"
+                                    className={`bg-black/40 border ${Object.values(festivalSocials).some(v => v.trim()) && !festivalNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-red w-48 font-bold uppercase tracking-widest transition-all`}
                                     placeholder="NOM DU FESTIVAL / EVENT"
                                 />
                             </div>
@@ -2138,6 +2167,10 @@ ${generateFestivalSocialsHtml()}
                                                                         onChange={(e) => {
                                                                             const newName = e.target.value;
                                                                             setInterviewQuestions(interviewQuestions.map(item => item.type === 'qa' ? { ...item, artistName: newName } : item));
+                                                                            // Auto-sync label if it's empty or matches old value
+                                                                            if (!artistNameLabel.trim() || artistNameLabel.toUpperCase() === (q.artistName || '').toUpperCase()) {
+                                                                                setArtistNameLabel(newName);
+                                                                            }
                                                                         }}
                                                                         className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm focus:border-neon-purple outline-none uppercase font-bold"
                                                                         placeholder="Ex: ANYMA"
@@ -2489,7 +2522,7 @@ ${generateFestivalSocialsHtml()}
                                             {Object.values(artistSocials).some(v => v) && (
                                                 <div dangerouslySetInnerHTML={{
                                                     __html: generateSocialsHtml(
-                                                        (type === 'Interview' ? (interviewQuestions.find(q => q.type === 'qa')?.artistName || artistNameLabel) : artistNameLabel),
+                                                        (type === 'Interview' ? (artistNameLabel || interviewQuestions.find(q => q.type === 'qa')?.artistName) : artistNameLabel),
                                                         (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
                                                     )
                                                 }} />

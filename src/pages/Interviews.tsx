@@ -160,6 +160,25 @@ export function Interviews() {
         })
     };
 
+    const getThemeDetails = (item: any) => {
+        const cat = (item.category || '').toLowerCase();
+        const title = (item.title || '').toLowerCase();
+
+        if (cat.includes('fast quizz') || title.includes('fast quizz')) {
+            return { label: 'Fast Quizz', color: 'text-neon-cyan border-neon-cyan/30' };
+        }
+        if (cat.includes('la playlist') || cat.includes('playlist') || title.includes('la playlist')) {
+            return { label: 'La Playlist', color: 'text-neon-pink border-neon-pink/30' };
+        }
+        if (cat.includes('drop & talk') || title.includes('drop & talk')) {
+            return { label: 'Drop & Talk', color: 'text-neon-yellow border-neon-yellow/30' };
+        }
+        if (cat.includes('interview video')) {
+            return { label: 'Vidéo', color: 'text-neon-red border-neon-red/30' };
+        }
+        return { label: 'Écrite', color: 'text-neon-purple border-neon-purple/30' };
+    };
+
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
             {/* Header Section */}
@@ -282,8 +301,8 @@ export function Interviews() {
 
                                             <div className="p-6 flex flex-col flex-1">
                                                 <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">
-                                                        {t('home.interview_badge')}
+                                                    <span className={`text-[10px] font-black tracking-widest border px-3 py-1 rounded-full uppercase ${getThemeDetails(item).color}`}>
+                                                        {getThemeDetails(item).label}
                                                     </span>
                                                     <div className="flex flex-col items-end">
                                                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.date}</span>
