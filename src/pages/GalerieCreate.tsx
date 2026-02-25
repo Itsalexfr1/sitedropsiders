@@ -6,6 +6,23 @@ import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-rou
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
+const EDITOR_COLORS = [
+    '#FF1241', // neon-red
+    '#00FFFF', // neon-cyan
+    '#BF00FF', // neon-purple
+    '#FFF01F', // neon-yellow
+    '#39FF14', // neon-green
+    '#00BFFF', // neon-blue
+];
+
+const getEditorColor = (username: string) => {
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
+
 export function GalerieCreate() {
     const navigate = useNavigate();
     const location = useLocation() as any;
@@ -231,10 +248,25 @@ export function GalerieCreate() {
                             <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </button>
                         <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'}`}>
+                                    {isEditing ? 'Mode Édition' : 'Nouveau Album'}
+                                </span>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                    <User className="w-3 h-3 text-gray-500" />
+                                    <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                        Éditeur : <span style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span>
+                                    </span>
+                                    {isAuthorConfirmed ? (
+                                        <Check className="w-3 h-3 text-neon-green" />
+                                    ) : (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                    )}
+                                </div>
+                            </div>
                             <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
                                 Studio <span className="text-neon-pink">Gallery</span>
                             </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">{isEditing ? 'Modifier l\'Album' : 'Créer un Album'}</p>
                         </div>
                     </div>
 
@@ -265,34 +297,49 @@ export function GalerieCreate() {
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {(editorsData as any[]).map((editor: any) => (
-                                    <button
-                                        key={editor.username}
-                                        type="button"
-                                        onClick={() => {
-                                            setAuthor(editor.name);
-                                            setIsAuthorConfirmed(false);
-                                        }}
-                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
-                                            ? 'bg-neon-pink/10 border-neon-pink shadow-[0_0_15px_rgba(255,18,65,0.2)]'
-                                            : 'bg-black/40 border-white/10 hover:border-white/20'
-                                            }`}
-                                    >
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-pink text-black' : 'bg-white/5 text-gray-400'
-                                            }`}>
-                                            <User className="w-5 h-5" />
-                                        </div>
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-pink' : 'text-gray-500'
-                                            }`}>
-                                            {editor.name}
-                                        </span>
-                                        {author === editor.name && (
-                                            <div className="absolute top-2 right-2">
-                                                <div className="w-2 h-2 rounded-full bg-neon-pink animate-pulse" />
+                                {(editorsData as any[]).map((editor: any) => {
+                                    const editorColor = getEditorColor(editor.username.toLowerCase());
+                                    const isSelected = author === editor.name;
+                                    return (
+                                        <button
+                                            key={editor.username}
+                                            type="button"
+                                            onClick={() => {
+                                                setAuthor(editor.name);
+                                                setIsAuthorConfirmed(false);
+                                            }}
+                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${isSelected
+                                                ? 'bg-white/10'
+                                                : 'bg-black/40 border-white/10 hover:border-white/20'
+                                                }`}
+                                            style={{
+                                                borderColor: isSelected ? editorColor : 'rgba(255,255,255,0.1)',
+                                                boxShadow: isSelected ? `0 0 20px ${editorColor}20` : 'none'
+                                            }}
+                                        >
+                                            <div
+                                                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                                                style={{
+                                                    backgroundColor: isSelected ? editorColor : 'rgba(255,255,255,0.05)',
+                                                    color: isSelected ? '#000' : '#666'
+                                                }}
+                                            >
+                                                <User className="w-5 h-5" />
                                             </div>
-                                        )}
-                                    </button>
-                                ))}
+                                            <span
+                                                className="text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                style={{ color: isSelected ? editorColor : '#666' }}
+                                            >
+                                                {editor.name}
+                                            </span>
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: editorColor }} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <div
@@ -316,7 +363,7 @@ export function GalerieCreate() {
                                         Confirmer l'Éditeur
                                     </span>
                                     <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="text-neon-pink font-black">{author}</span> est bien l'auteur de cet album
+                                        Je certifie que <span className="font-black" style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span> est bien l'auteur de cet album
                                     </span>
                                 </div>
                             </div>

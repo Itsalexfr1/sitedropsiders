@@ -27,13 +27,13 @@ const SpotifyIcon = (props: any) => (
 
 const SoundCloudIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M1 14.5c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5-.67 1.5-1.5 1.5S1 15.33 1 14.5zm3.5.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 0c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 0c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm2 .5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5-.5.22-.5.5.22.5.5.5zm11.5-2c-.12 0-.25.01-.37.03-.43-1.74-2-3.03-3.88-3.03-.31 0-.61.04-.9.11-.64-1.63-2.23-2.77-4.1-2.77-.18 0-.36.01-.53.03C12.44 6.13 10.87 5 9 5c-.32 0-.63.04-.92.11C7.43 3.96 6.04 3 4.5 3c-.1 0-.19 0-.29.01C3.79 1.28 2.05 0 0 0v24h24c.55 0 1-.45 1-1s-.45-1-1-1h-6.2c.11-.32.2-.65.2-1 0-1.66-1.34-3-3-3s-3 1.34-3 3c0 .35.09.68.2 1H2z" />
+        <path d="M1.321 14.896c-.015.051-.023.104-.023.158 0 .324.263.587.587.587h.053c.105 0 .204-.028.29-.077.086-.05.157-.12.203-.207.03-.058.05-.121.057-.188l.003-.023v-.25l-.015-.053c-.015-.05-.023-.103-.023-.156 0-.324.263-.588.587-.588h.053c.105 0 .204.028.29.077.086.05.158.12.203.207.03.058.05.122.057.189l.003.023v1.17l-.015-.053c-.015-.05-.023-.103-.023-.156 0-.324.263-.588.587-.588h.053c.105 0 .204.028.29.077.086.05.158.12.203.207.03.058.05.122.057.189l.003.023v1.442l-.015-.052c-.015-.05-.023-.104-.023-.157 0-.324.263-.587.587-.587h.053c.105 0 .204.028.29.077.086.05.158.12.203.207.03.058.05.122.057.189l.003.023v1.652l-.015-.052c-.015-.05-.023-.103-.023-.156 0-.324.263-.587.587-.587h.053c.105 0 .204.028.29.077.086.05.158.12.203.207.03.058.05.122.057.189l.003.023v3.744h11.23c2.44 0 4.417-1.977 4.417-4.417 0-2.128-1.503-3.896-3.515-4.292-.125-3.32-2.883-5.968-6.248-5.968-.975 0-1.896.223-2.715.618-.475-.802-1.344-1.343-2.339-1.343-1.07 0-2.003.626-2.455 1.517-.372-.257-.822-.408-1.306-.408-1.24 0-2.247 1.006-2.247 2.247 0 .152.016.301.045.445C2.656 12.002 2 13.064 2 14.249c0 .248.029.489.083.722l-.003.012z" />
     </svg>
 );
 
 const BeatportIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M12.237 0a9.074 9.074 0 0 1 1.708.157c.548.106.945.454.945.832 0 .341-.336.634-.841.733-.284.053-.594.08-.888.08-2.603 0-4.634.426-6.177 1.309-1.31.734-2.123 1.942-2.583 3.864-.173.746-.226 1.385-.226 2.662 0 1.144.053 1.838.2 2.608.28 1.411.85 2.502 1.748 3.328.7.64 1.763 1.09 3.033 1.31 1.542.266 3.033.2 4.5-.18a12.18 12.18 0 0 0 4.095-1.922c1.085-.758 1.594-1.185 1.874-1.571.24-.319.31-.559.31-.958s-.07-.64-.31-.958c-.28-.386-.79-1.011-1.874-1.78a12.18 12.18 0 0 0-4.095-1.922c-1.467-.38-2.958-.452-4.5-.18-1.27.227-2.333.67-3.033 1.31-.898.826-1.468 1.917-1.748 3.328-.147.77-.2 1.464-.2 2.608 0 1.277.053 1.916.226 2.662.46 1.922 1.273 3.13 2.583 3.864 1.543.883 3.574 1.309 6.177 1.309.294 0 .604.027.888.08a.952.952 0 0 1 .841.733c0 .378-.397.726-.945.832a9.073 9.073 0 0 1-1.708.157z" />
+        <path d="m13.064 12.008 3.738-2.204a.276.276 0 0 0 0-.476l-.603-.355a.27.27 0 0 0-.274 0l-3.238 1.907-.024-.014V1.854a.27.27 0 0 0-.273-.27h-.78a.27.27 0 0 0-.272.27v11.758a.271.271 0 0 0 .137.235l3.233 1.9a.274.274 0 0 0 .33-.031l.493-.49a.272.272 0 0 0 0-.386l-2.77-2.744zM24 12c0 6.627-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0s12 5.373 12 12zm-11.998-7.586c4.19 0 7.586 3.396 7.586 7.586s-3.396 7.586-7.586 7.586S4.416 16.213 4.416 12.027s3.396-7.613 7.586-7.613z" />
     </svg>
 );
 
@@ -42,6 +42,23 @@ const XIcon = (props: any) => (
         <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
     </svg>
 );
+
+const EDITOR_COLORS = [
+    '#FF1241', // neon-red
+    '#00FFFF', // neon-cyan
+    '#BF00FF', // neon-purple
+    '#FFF01F', // neon-yellow
+    '#39FF14', // neon-green
+    '#00BFFF', // neon-blue
+];
+
+const getEditorColor = (username: string) => {
+    let hash = 0;
+    for (let i = 0; i < username.length; i++) {
+        hash = username.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
 
 // Helper component to fix caret jumping in contentEditable
 function VisualEditor({ content, onChange, className, widgetId, onFocus }: { content: string, onChange: (html: string) => void, className: string, widgetId: string, onFocus?: (e: any) => void }) {
@@ -882,10 +899,25 @@ export function RecapCreate() {
                             <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 group-hover:-translate-x-1 transition-transform" />
                         </button>
                         <div>
+                            <div className="flex items-center gap-3 mb-2">
+                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'}`}>
+                                    {isEditing ? 'Mode Édition' : 'Nouveau Récap'}
+                                </span>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                    <User className="w-3 h-3 text-gray-500" />
+                                    <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                        Éditeur : <span style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span>
+                                    </span>
+                                    {isAuthorConfirmed ? (
+                                        <Check className="w-3 h-3 text-neon-green" />
+                                    ) : (
+                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                    )}
+                                </div>
+                            </div>
                             <h1 className="text-3xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
                                 Studio <span className="text-neon-red">Editor</span>
                             </h1>
-                            <p className="text-gray-400 mt-2 text-sm md:text-base">{isEditing ? 'Modifier le Récap' : 'Nouveau Récap'}</p>
                         </div>
                     </div>
 
@@ -1130,34 +1162,49 @@ export function RecapCreate() {
                             </label>
 
                             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {(editorsData as any[]).map((editor: any) => (
-                                    <button
-                                        key={editor.username}
-                                        type="button"
-                                        onClick={() => {
-                                            setAuthor(editor.name);
-                                            setIsAuthorConfirmed(false);
-                                        }}
-                                        className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${author === editor.name
-                                            ? 'bg-neon-cyan/10 border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.2)]'
-                                            : 'bg-black/40 border-white/10 hover:border-white/20'
-                                            }`}
-                                    >
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${author === editor.name ? 'bg-neon-cyan text-black' : 'bg-white/5 text-gray-400'
-                                            }`}>
-                                            <User className="w-5 h-5" />
-                                        </div>
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${author === editor.name ? 'text-neon-cyan' : 'text-gray-500'
-                                            }`}>
-                                            {editor.name}
-                                        </span>
-                                        {author === editor.name && (
-                                            <div className="absolute top-2 right-2">
-                                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse" />
+                                {(editorsData as any[]).map((editor: any) => {
+                                    const editorColor = getEditorColor(editor.username.toLowerCase());
+                                    const isSelected = author === editor.name;
+                                    return (
+                                        <button
+                                            key={editor.username}
+                                            type="button"
+                                            onClick={() => {
+                                                setAuthor(editor.name);
+                                                setIsAuthorConfirmed(false);
+                                            }}
+                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${isSelected
+                                                ? 'bg-white/10'
+                                                : 'bg-black/40 border-white/10 hover:border-white/20'
+                                                }`}
+                                            style={{
+                                                borderColor: isSelected ? editorColor : 'rgba(255,255,255,0.1)',
+                                                boxShadow: isSelected ? `0 0 20px ${editorColor}20` : 'none'
+                                            }}
+                                        >
+                                            <div
+                                                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                                                style={{
+                                                    backgroundColor: isSelected ? editorColor : 'rgba(255,255,255,0.05)',
+                                                    color: isSelected ? '#000' : '#666'
+                                                }}
+                                            >
+                                                <User className="w-5 h-5" />
                                             </div>
-                                        )}
-                                    </button>
-                                ))}
+                                            <span
+                                                className="text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                style={{ color: isSelected ? editorColor : '#666' }}
+                                            >
+                                                {editor.name}
+                                            </span>
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: editorColor }} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             <div
@@ -1181,7 +1228,7 @@ export function RecapCreate() {
                                         Confirmer l'Éditeur
                                     </span>
                                     <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="text-neon-cyan font-black">{author}</span> est bien l'auteur de ce récap
+                                        Je certifie que <span className="font-black" style={{ color: getEditorColor(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase()) }}>{author}</span> est bien l'auteur de ce récap
                                     </span>
                                 </div>
                             </div>
