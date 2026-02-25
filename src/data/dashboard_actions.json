@@ -5,7 +5,7 @@
     "icon": "LayoutDashboard",
     "link": "/admin/home",
     "baseColor": "#ff0000",
-    "permission": "publications",
+    "permission": "superadmin",
     "columns": 1
   },
   {

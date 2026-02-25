@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical } from 'lucide-react';
-import { Link, useBlocker } from 'react-router-dom';
+import { Link, useBlocker, Navigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 
@@ -156,6 +156,14 @@ function ReorderableItem({ item, updateItem, getColorValue }: { item: LayoutItem
 }
 
 export function AdminHome() {
+    const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
+    const hasAccess = isAlex || storedPermissions.includes('all');
+
+    if (!hasAccess) {
+        return <Navigate to="/admin" replace />;
+    }
+
     const [layout, setLayout] = useState<LayoutItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);

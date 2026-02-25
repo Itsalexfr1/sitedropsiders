@@ -13,18 +13,32 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor, feature
 
     const displayInterviews = useMemo(() => {
         const all = newsData as any[];
+        const baseInterviews = all.filter((item: any) =>
+            item.category === 'Interview' ||
+            item.category === 'Interviews' ||
+            item.category === 'Interview Video'
+        ).sort((a, b) => {
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateB !== dateA) return dateB - dateA;
+            return b.id - a.id;
+        });
+
         if (featuredInterviews && featuredInterviews.length > 0) {
-            return featuredInterviews
-                .map(id => all.find(item => String(item.id) === String(id)))
+            const selected = featuredInterviews
+                .map(id => baseInterviews.find(item => String(item.id) === String(id)))
                 .filter(Boolean);
+
+            if (selected.length < 4) {
+                const remaining = baseInterviews
+                    .filter(item => !featuredInterviews.includes(String(item.id)))
+                    .slice(0, 4 - selected.length);
+                return [...selected, ...remaining];
+            }
+            return selected.slice(0, 4);
         }
-        return all
-            .filter((item: any) =>
-                item.category === 'Interview' ||
-                item.category === 'Interviews' ||
-                item.category === 'Interview Video'
-            )
-            .slice(0, 4);
+
+        return baseInterviews.slice(0, 4);
     }, [featuredInterviews]);
 
     const playHoverSound = useHoverSound();

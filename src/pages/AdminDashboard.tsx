@@ -1180,10 +1180,26 @@ export function AdminDashboard() {
                                 <div className="flex items-center justify-between mb-6">
                                     <div>
                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">À la une sur l'accueil</h3>
-                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews à afficher</p>
+                                        <div className="flex items-center gap-4 mt-1">
+                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews à afficher</p>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setSelectedInterviews([])}
+                                                    className="text-[9px] font-black text-neon-purple hover:text-white transition-colors uppercase tracking-widest bg-neon-purple/5 px-2 py-0.5 rounded border border-neon-purple/20"
+                                                >
+                                                    Mode Auto
+                                                </button>
+                                                <button
+                                                    onClick={() => setSelectedInterviews(allInterviews.slice(0, 4).map(i => i.id))}
+                                                    className="text-[9px] font-black text-gray-400 hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/10"
+                                                >
+                                                    4 Dernières
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedInterviews.length === 4 ? 'bg-neon-green/10 text-neon-green border border-neon-green/20' : 'bg-neon-purple/10 text-neon-purple border border-neon-purple/20'}`}>
-                                        {selectedInterviews.length} / 4
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${selectedInterviews.length === 0 ? 'bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20' : selectedInterviews.length === 4 ? 'bg-neon-green/10 text-neon-green border border-neon-green/20' : 'bg-neon-purple/10 text-neon-purple border border-neon-purple/20'}`}>
+                                        {selectedInterviews.length === 0 ? 'AUTO' : `${selectedInterviews.length} / 4`}
                                     </div>
                                 </div>
 
