@@ -123,7 +123,7 @@ export function NewsCreate() {
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
-    const [showVideo, setShowVideo] = useState(type !== 'Interview');
+    const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [artistSocials, setArtistSocials] = useState({
         website: '',
@@ -162,7 +162,20 @@ export function NewsCreate() {
             setDate(articleData.date || new Date().toISOString().split('T')[0]);
             setCategory(articleData.category || 'News');
             setYoutubeId(articleData.youtubeId || '');
-            setShowVideo(articleData.showVideo !== undefined ? articleData.showVideo : (articleData.category !== 'Interview' && articleData.category !== 'Interviews' && articleData.category !== 'Interview Video'));
+
+            // For Interview Video, showVideo should be true by default
+            if (articleData.showVideo !== undefined) {
+                setShowVideo(articleData.showVideo);
+            } else {
+                if (articleData.category === 'Interview Video' || (articleData.category === 'Interview' && articleData.youtubeId)) {
+                    setShowVideo(true);
+                } else if (articleData.category === 'Interview' || articleData.category === 'Interviews') {
+                    setShowVideo(false);
+                } else {
+                    setShowVideo(true);
+                }
+            }
+
             setIsFeatured(articleData.isFeatured || false);
             setAuthor(articleData.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
             setIsAuthorConfirmed(true);
@@ -952,6 +965,16 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
+        // New validation: check all interview video blocks for empty mediaUrl
+        if (type === 'Interview') {
+            const hasEmptyVideoBlock = interviewQuestions.some(q => q.type === 'video' && !q.mediaUrl);
+            if (hasEmptyVideoBlock) {
+                setStatus('error');
+                setMessage('Veuillez remplir le lien YouTube pour tous vos blocs vidéo.');
+                return;
+            }
+        }
+
         setStatus('loading');
         setMessage('Publication en cours...');
 
@@ -966,9 +989,10 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 if (!finalImageUrl && youtubeId) {
                     finalImageUrl = `https://img.youtube.com/vi/${youtubeId}/maxresdefault.jpg`;
                 }
-                const videoHtml = showVideo ? `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
+                // For Interview Video, we ALWAYS show the video regardless of the toggle
+                const videoHtml = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
   <iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
-</div>` : '';
+</div>`;
 
                 finalContent = `<div class="article-section">
 ${videoHtml}
@@ -1424,6 +1448,7 @@ ${generateFestivalSocialsHtml()}
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                                         <Youtube className="w-4 h-4" /> {type === 'Interview' && interviewSubtype === 'video' ? 'Lien Vidéo (ID ou URL)' : 'Vidéo de l\'article'}
+                                        {type === 'Interview' && interviewSubtype === 'video' && <span className="text-neon-red">*</span>}
                                     </label>
                                     <div className="flex items-center gap-3">
                                         <div className="flex items-center gap-2">
