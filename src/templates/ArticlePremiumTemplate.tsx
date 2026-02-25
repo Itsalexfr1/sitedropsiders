@@ -589,7 +589,14 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                 {artistSocials && artistSocials.length > 0 && (
                                     <div className="artist-socials-premium mt-12 pt-8 border-t border-white/10">
-                                        <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 text-center">SUIVEZ {artistLabel}</h3>
+                                        <div className="flex flex-col items-center mb-8">
+                                            <div className="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg group/label relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/label:translate-x-full transition-transform duration-1000" />
+                                                <h3 className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] relative z-10">
+                                                    SUIVEZ {artistLabel}
+                                                </h3>
+                                            </div>
+                                        </div>
                                         <div className="flex flex-wrap justify-center gap-4">
                                             {artistSocials.map((social, idx) => {
                                                 const Icon = platformIcons[social.platform] || Link2;
@@ -612,9 +619,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                                 {festivalSocials && festivalSocials.length > 0 && (
                                     <div className="festival-socials-premium mt-12 pt-8 border-t border-white/10">
-                                        <div className="flex flex-col items-center mb-6">
-                                            <div className="inline-block px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg">
-                                                <h3 className="text-xs font-black text-neon-cyan uppercase tracking-[0.3em]">SUIVEZ {festivalLabel}</h3>
+                                        <div className="flex flex-col items-center mb-8">
+                                            <div className="inline-block px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg group/label relative overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/label:translate-x-full transition-transform duration-1000" />
+                                                <h3 className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.3em] relative z-10">
+                                                    SUIVEZ {festivalLabel}
+                                                </h3>
                                             </div>
                                         </div>
                                         <div className="flex flex-wrap justify-center gap-4">
