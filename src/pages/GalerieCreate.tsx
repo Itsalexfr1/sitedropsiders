@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAuthHeaders } from '../utils/auth';
 import editorsData from '../data/editors.json';
-import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus, Youtube, Link2, Ghost, PartyPopper } from 'lucide-react';
+import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
