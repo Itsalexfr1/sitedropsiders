@@ -345,11 +345,23 @@
   /* Interview Q&A Layout */
   .interview-q {
     @apply block font-display font-black text-2xl uppercase mt-8 mb-2 text-center tracking-tighter italic;
-    color: #ff0033 !important;
-    /* Force red by default */
+    color: #ff0033;
+    /* Default red, allows inline styles to win */
   }
 
-  /* Force inheritance ONLY for descendants of colored items */
+  /* Force responses to stay white in interviews, even with keywords */
+  .article-type-interview .article-body-premium p {
+    color: #ffffff !important;
+    font-weight: 300;
+  }
+
+  .article-type-interview .article-body-premium p .premium-text-bold:not(.interview-q) {
+    color: inherit !important;
+    text-transform: none !important;
+    font-weight: inherit !important;
+  }
+
+  /* Support for manual colors in the editor */
   [style*="color"] .interview-q,
   [style*="color"] .premium-text-bold,
   [style*="color"] .premium-link,
