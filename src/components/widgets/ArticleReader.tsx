@@ -120,40 +120,52 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
     if (!isSupported) return null;
 
     return (
-        <button
-            onClick={speak}
-            className={`flex items-center gap-3 px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all duration-500 shadow-lg active:scale-95 group ${isPlaying
-                ? 'bg-neon-red text-white shadow-neon-red/30 border border-neon-red ring-2 ring-neon-red/20'
-                : 'bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white/70 hover:text-white hover:border-white/20'
-                }`}
-            title={isPlaying ? t('article_reader.stop') : t('article_reader.play')}
-        >
-            {isPlaying ? (
-                <>
-                    <div className="relative flex items-center justify-center">
-                        <Square className="w-3.5 h-3.5 fill-current animate-pulse" />
-                        <span className="absolute inset-0 animate-ping bg-white rounded-full opacity-30"></span>
-                    </div>
-                    <span className="font-black">{t('article_reader.playing')}</span>
-                    <div className="flex gap-[2px] items-end h-3 ml-1">
-                        <span className="w-[2px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.1s] h-1.5"></span>
-                        <span className="w-[2px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.3s] h-3"></span>
-                        <span className="w-[2px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.2s] h-2"></span>
-                    </div>
-                </>
-            ) : (
-                <>
-                    <Volume2 className="w-3.5 h-3.5 text-neon-red group-hover:scale-110 transition-transform" />
-                    <span>{t('article_reader.play')}</span>
-                </>
-            )}
+        <div className="my-6">
+            <button
+                onClick={speak}
+                className={`group relative flex items-center gap-4 px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all duration-500 shadow-2xl active:scale-95 overflow-hidden ${isPlaying
+                        ? 'bg-gradient-to-r from-neon-red to-red-600 text-white shadow-neon-red/40 border border-white/20'
+                        : 'bg-white/5 hover:bg-white/10 backdrop-blur-xl border border-white/10 text-white/90 hover:text-white hover:border-neon-red/50 hover:shadow-neon-red/10'
+                    }`}
+            >
+                {/* Background Animation Glow */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-neon-red/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 ${isPlaying ? 'opacity-100 animate-pulse' : ''}`} />
 
-            <style>{`
-                @keyframes audio-bar {
-                    0%, 100% { height: 4px; }
-                    50% { height: 12px; }
-                }
-            `}</style>
-        </button>
+                {isPlaying ? (
+                    <>
+                        <div className="relative z-10 flex items-center justify-center bg-white/20 p-2 rounded-xl">
+                            <Square className="w-4 h-4 fill-white" />
+                        </div>
+                        <div className="relative z-10 flex flex-col items-start">
+                            <span className="text-white/70 text-[8px] font-black tracking-widest mb-0.5">{t('article_reader.playing')}</span>
+                            <span className="text-white">{t('article_reader.stop')}</span>
+                        </div>
+                        <div className="relative z-10 flex gap-[3px] items-end h-4 ml-4">
+                            <span className="w-[3px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.1s] h-2"></span>
+                            <span className="w-[3px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.3s] h-4"></span>
+                            <span className="w-[3px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.2s] h-3"></span>
+                            <span className="w-[3px] bg-white rounded-full animate-[audio-bar_0.6s_infinite_0.4s] h-2.5"></span>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div className="relative z-10 flex items-center justify-center bg-neon-red/10 p-2 rounded-xl group-hover:bg-neon-red group-hover:text-white transition-all duration-300">
+                            <Volume2 className="w-4 h-4 text-neon-red group-hover:text-white group-hover:scale-110 transition-all" />
+                        </div>
+                        <div className="relative z-10 flex flex-col items-start text-left">
+                            <span className="text-neon-red text-[8px] font-black tracking-[0.3em] mb-0.5 animate-pulse">AUDIO</span>
+                            <span className="group-hover:translate-x-1 transition-transform">{t('article_reader.play')}</span>
+                        </div>
+                    </>
+                )}
+
+                <style>{`
+                    @keyframes audio-bar {
+                        0%, 100% { height: 6px; }
+                        50% { height: 16px; }
+                    }
+                `}</style>
+            </button>
+        </div>
     );
 };
