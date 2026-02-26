@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -450,8 +450,13 @@ export function RecapCreate() {
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
 
         if (isVisualEditor) {
+            const selection = window.getSelection();
+            const savedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+
             const url = prompt('ENTREZ L\'URL DU LIEN :');
-            if (url) {
+            if (url && savedRange) {
+                selection?.removeAllRanges();
+                selection?.addRange(savedRange);
                 document.execCommand('createLink', false, url);
                 const event = new Event('input', { bubbles: true });
                 activeEl.dispatchEvent(event);
@@ -555,7 +560,7 @@ export function RecapCreate() {
         return { urls, count: urls.length };
     };
 
-    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-2xl' | 'text-5xl') => {
+    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-xl' | 'text-2xl' | 'text-3xl' | 'text-4xl' | 'text-5xl' | 'text-left' | 'text-center' | 'text-right') => {
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
         const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
@@ -624,13 +629,21 @@ export function RecapCreate() {
                 innerContent = match[2];
             }
 
-            const sizeClasses = ['text-sm', 'text-2xl', 'text-5xl'];
+            const sizeClasses = ['text-sm', 'text-xl', 'text-2xl', 'text-3xl', 'text-4xl', 'text-5xl'];
+            const alignClasses = ['text-left', 'text-center', 'text-right'];
 
             if (sizeClasses.includes(style)) {
                 if (classes.includes(style)) {
                     classes = classes.filter(c => !sizeClasses.includes(c));
                 } else {
                     classes = classes.filter(c => !sizeClasses.includes(c));
+                    classes.push(style);
+                }
+            } else if (alignClasses.includes(style)) {
+                if (classes.includes(style)) {
+                    classes = classes.filter(c => !alignClasses.includes(c));
+                } else {
+                    classes = classes.filter(c => !alignClasses.includes(c));
                     classes.push(style);
                 }
             } else {
@@ -1483,6 +1496,7 @@ export function RecapCreate() {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         type="button"
+                                                        onMouseDown={e => e.preventDefault()}
                                                         onClick={() => insertLinkToActiveWidget(widget.id)}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
                                                         title="Ajouter un lien"
@@ -1493,19 +1507,51 @@ export function RecapCreate() {
                                                         <>
                                                             <button
                                                                 type="button"
-                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'font-display')}
-                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('font-display') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
-                                                                title="Changer Police (Display)"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-left')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center justify-center ${widget.content.includes('text-left') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Aligner à gauche"
                                                             >
-                                                                <Type className="w-4 h-4" /> Police
+                                                                <AlignLeft className="w-4 h-4" />
                                                             </button>
                                                             <button
                                                                 type="button"
-                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'uppercase')}
-                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('uppercase') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
-                                                                title="Tout en Majuscules"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-center')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center justify-center ${widget.content.includes('text-center') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Centrer"
                                                             >
-                                                                <CaseUpper className="w-4 h-4" /> MAJ
+                                                                <AlignCenter className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-right')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center justify-center ${widget.content.includes('text-right') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Aligner à droite"
+                                                            >
+                                                                <AlignRight className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-xl')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold uppercase ${widget.content.includes('text-xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Texte XL"
+                                                            >
+                                                                <CaseUpper className="w-3.5 h-3.5 translate-y-[1px]" /> XL
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-2xl')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold uppercase ${widget.content.includes('text-2xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Texte 2XL"
+                                                            >
+                                                                <CaseUpper className="w-4 h-4" /> 2XL
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-4xl')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold uppercase ${widget.content.includes('text-4xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Texte 4XL"
+                                                            >
+                                                                <CaseUpper className="w-5 h-5" /> 4XL
                                                             </button>
                                                             <div className="flex bg-black/40 rounded-lg border border-white/5 p-0.5">
                                                                 <button

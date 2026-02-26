@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -871,8 +871,13 @@ export function NewsCreate() {
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
 
         if (isVisualEditor) {
+            const selection = window.getSelection();
+            const savedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
+
             const url = prompt('ENTREZ L\'URL DU LIEN :');
-            if (url) {
+            if (url && savedRange) {
+                selection?.removeAllRanges();
+                selection?.addRange(savedRange);
                 document.execCommand('createLink', false, url);
                 const event = new Event('input', { bubbles: true });
                 activeEl.dispatchEvent(event);
@@ -966,7 +971,7 @@ export function NewsCreate() {
         setInterviewQuestions(newQuestions);
     };
 
-    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-2xl' | 'text-5xl') => {
+    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-xl' | 'text-2xl' | 'text-3xl' | 'text-4xl' | 'text-5xl' | 'text-center' | 'text-right' | 'text-left') => {
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
         const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
@@ -1034,13 +1039,21 @@ export function NewsCreate() {
                 innerContent = match[2];
             }
 
-            const sizeClasses = ['text-sm', 'text-2xl', 'text-5xl'];
+            const sizeClasses = ['text-sm', 'text-xl', 'text-2xl', 'text-3xl', 'text-4xl', 'text-5xl'];
+            const alignClasses = ['text-left', 'text-center', 'text-right'];
 
             if (sizeClasses.includes(style)) {
                 if (classes.includes(style)) {
                     classes = classes.filter(c => !sizeClasses.includes(c));
                 } else {
                     classes = classes.filter(c => !sizeClasses.includes(c));
+                    classes.push(style);
+                }
+            } else if (alignClasses.includes(style)) {
+                if (classes.includes(style)) {
+                    classes = classes.filter(c => !alignClasses.includes(c));
+                } else {
+                    classes = classes.filter(c => !alignClasses.includes(c));
                     classes.push(style);
                 }
             } else {
@@ -2192,6 +2205,7 @@ ${generateFestivalSocialsHtml()}
                                                 <div className="flex flex-wrap items-center gap-2">
                                                     <button
                                                         type="button"
+                                                        onMouseDown={e => e.preventDefault()}
                                                         onClick={() => insertLinkToActiveWidget(widget.id)}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
                                                         title="Ajouter un lien"
@@ -2202,11 +2216,51 @@ ${generateFestivalSocialsHtml()}
                                                         <>
                                                             <button
                                                                 type="button"
-                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'font-display')}
-                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('font-display') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
-                                                                title="Changer Police (Display)"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-xl')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold uppercase ${widget.content.includes('text-xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Texte XL"
                                                             >
-                                                                <Type className="w-4 h-4" /> Police
+                                                                <CaseUpper className="w-3.5 h-3.5 translate-y-[1px]" /> XL
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-left')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center justify-center ${widget.content.includes('text-left') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Aligner à gauche"
+                                                            >
+                                                                <AlignLeft className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-center')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center justify-center ${widget.content.includes('text-center') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Centrer"
+                                                            >
+                                                                <AlignCenter className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-right')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center justify-center ${widget.content.includes('text-right') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Aligner à droite"
+                                                            >
+                                                                <AlignRight className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-2xl')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold uppercase ${widget.content.includes('text-2xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Texte 2XL"
+                                                            >
+                                                                <CaseUpper className="w-4 h-4" /> 2XL
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'text-4xl')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-1 text-[10px] font-bold uppercase ${widget.content.includes('text-4xl') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Texte 4XL"
+                                                            >
+                                                                <CaseUpper className="w-5 h-5" /> 4XL
                                                             </button>
                                                             <button
                                                                 type="button"
