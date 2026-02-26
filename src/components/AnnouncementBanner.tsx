@@ -40,7 +40,7 @@ export function AnnouncementBanner() {
         return () => window.removeEventListener('focus', fetchSettings);
     }, []);
 
-    const bannerText = language === 'en' && settings.text_en ? settings.text_en : settings.text;
+    const bannerText = settings ? (language === 'en' && settings.text_en ? settings.text_en : settings.text) : '';
 
     if (!settings?.enabled || !bannerText) return null;
 
