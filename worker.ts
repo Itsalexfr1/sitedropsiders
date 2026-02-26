@@ -1489,9 +1489,8 @@ export default {
 
                 const senderEmail = (from && from.trim() !== '') ? from : 'contact@dropsiders.fr';
 
-                // Mail envoyé au mail indiqué + contact@dropsiders.fr
-                const recipients = [{ email: to, name: name || to }];
-                if (to !== 'contact@dropsiders.fr') {
+                const recipients = to.split(',').map((email: string) => ({ email: email.trim(), name: name || email.trim() })).filter((r: any) => r.email);
+                if (!recipients.find((r: any) => r.email === 'contact@dropsiders.fr')) {
                     recipients.push({ email: 'contact@dropsiders.fr', name: 'Dropsiders Admin' });
                 }
 

@@ -43,7 +43,7 @@ export function AdminMessages() {
     const [isInterviewMode, setIsInterviewMode] = useState(false);
     const [djName, setDjName] = useState('');
     const [interviewType, setInterviewType] = useState<'Vidéo' | 'Écrite'>('Vidéo');
-    const [selectedEditorUsername, setSelectedEditorUsername] = useState<string | null>(null);
+    const [selectedEditorUsernames, setSelectedEditorUsernames] = useState<string[]>([]);
 
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
@@ -257,7 +257,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
     useEffect(() => {
         if (!isNewMail) return;
 
-        const currentName = editors.find(e => e.username === selectedEditorUsername)?.name || '';
+        const currentName = selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ');
 
         if (isAccreditationMode) {
             setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName));
@@ -281,7 +281,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             setReplyBody(getPressReleaseTemplate(currentName));
             setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
         }
-    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, selectedEditorUsername, isNewMail, editors]);
+    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, selectedEditorUsernames, isNewMail, editors]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -321,7 +321,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 setIsNewMail(true);
                                 setDestinationEmail('');
                                 setSenderEmail('');
-                                setSelectedEditorUsername(null);
+                                setSelectedEditorUsernames([]);
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
                                 setIsInterviewMode(false);
@@ -543,23 +543,28 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <div className="flex items-center gap-3">
                                                 <span className="text-[10px] font-black uppercase text-gray-500 w-24">Destinataire :</span>
                                                 <input
-                                                    type="email"
+                                                    type="text"
                                                     value={destinationEmail}
                                                     onChange={(e) => setDestinationEmail(e.target.value)}
-                                                    placeholder="email@partenaire.com"
+                                                    placeholder="email1@partenaire.com, email2@test.com"
                                                     className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1"
                                                 />
                                             </div>
                                         )}
                                         <div className="flex items-center gap-3">
                                             <span className="text-[10px] font-black uppercase text-gray-500 w-24">Expéditeur :</span>
-                                            <input
-                                                type="email"
+                                            <select
                                                 value={senderEmail}
                                                 onChange={(e) => setSenderEmail(e.target.value)}
-                                                placeholder="contact@dropsiders.fr (par défaut)"
                                                 className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-red focus:outline-none focus:border-neon-red/50 flex-1"
-                                            />
+                                            >
+                                                <option value="contact@dropsiders.fr">contact@dropsiders.fr</option>
+                                                <option value="partenariat@dropsiders.fr">partenariat@dropsiders.fr</option>
+                                                <option value="presse@dropsiders.fr">presse@dropsiders.fr</option>
+                                                <option value="alex@dropsiders.fr">alex@dropsiders.fr</option>
+                                                <option value="hugo@dropsiders.fr">hugo@dropsiders.fr</option>
+                                                <option value="samy@dropsiders.fr">samy@dropsiders.fr</option>
+                                            </select>
                                         </div>
                                         {isNewMail && (
                                             <div className="flex items-center gap-3">
@@ -579,8 +584,14 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 {editors.map(editor => (
                                                     <button
                                                         key={editor.username}
-                                                        onClick={() => setSelectedEditorUsername(editor.username)}
-                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${selectedEditorUsername === editor.username ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                        onClick={() => {
+                                                            setSelectedEditorUsernames(prev =>
+                                                                prev.includes(editor.username)
+                                                                    ? prev.filter(u => u !== editor.username)
+                                                                    : [...prev, editor.username]
+                                                            )
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${selectedEditorUsernames.includes(editor.username) ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                     >
                                                         {editor.name}
                                                     </button>
@@ -602,7 +613,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
-                                                    setReplyBody(getPressReleaseTemplate(editors.find(e => e.username === selectedEditorUsername)?.name || ''));
+                                                    setReplyBody(getPressReleaseTemplate(selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ')));
                                                     setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
@@ -771,9 +782,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 <div className="p-6 text-center">
                                                     <div className="text-white text-sm font-black italic uppercase mb-2">
                                                         Cordialement, <br />
-                                                        {selectedEditorUsername && (
+                                                        {selectedEditorUsernames.length > 0 && (
                                                             <span className="text-gray-400 block mb-1 text-[11px] normal-case">
-                                                                {editors.find(e => e.username === selectedEditorUsername)?.name}
+                                                                {selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ')}
                                                             </span>
                                                         )}
                                                         L'équipe <span className="text-neon-red">Dropsiders</span>
@@ -810,7 +821,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 </button>
                                 <button
                                     onClick={handleReply}
-                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && !selectedEditorUsername)}
+                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && selectedEditorUsernames.length === 0)}
                                     className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Send className="w-4 h-4" />
