@@ -1,6 +1,37 @@
 {
   "products": [
     {
+      "name": "Mug Dropsiders White x Couleurs",
+      "price": "13.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126215/dropsiders/lehdotiwamhhdvj8vlaf.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white-x-couleurs",
+      "colors": [
+        "#000000",
+        "#0042FF",
+        "#22c55e",
+        "#F62B32",
+        "#fb923c",
+        "#38bdf8",
+        "#facc15"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126226/dropsiders/pievswgbczlcgygbkagd.avif",
+        "#0042FF": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126250/dropsiders/g1kkchr8kg0azfcxoc0u.avif",
+        "#16a34a": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126259/dropsiders/mlts1ryiewc4zifya1jq.avif",
+        "#22c55e": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126280/dropsiders/mli897h4xthpodzorhmr.avif",
+        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126295/dropsiders/p8gdwavd41ebzix7xfll.avif",
+        "#fb923c": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126305/dropsiders/hpzrkios5dgachopsfuh.avif",
+        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126315/dropsiders/myfzvjghnxmmpbvwdwdl.avif",
+        "#facc15": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126326/dropsiders/t0tqe50iyvgp48ub08yn.avif"
+      },
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "",
+      "id": 24,
+      "createdAt": "2026-02-26T17:18:51.457Z"
+    },
+    {
       "name": "Gourde Dropsiders Black",
       "price": "20.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126028/dropsiders/d4r31tkpg6nkrsob4gkv.avif",
