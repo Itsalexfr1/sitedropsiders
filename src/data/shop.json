@@ -1,6 +1,28 @@
 {
   "products": [
     {
+      "name": "Bonnet Dropsiders (Logo Black)",
+      "price": "15.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123899/dropsiders/hpjiwj4hde4yn6170c2k.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/bonnet-dropsiders-logo-black",
+      "colors": [
+        "#f5f5dc",
+        "#6b7280",
+        "#000000"
+      ],
+      "colorImages": {
+        "#f5f5dc": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123931/dropsiders/sdmojichefed59rgi712.avif",
+        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123949/dropsiders/o80hr8nkxdpxi0kzrnsx.avif",
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123958/dropsiders/mfn0eyxxde2l1bxmfshs.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123907/dropsiders/gcjh8a8przaqk4bc7g3k.avif",
+      "id": 9,
+      "createdAt": "2026-02-26T16:39:25.368Z"
+    },
+    {
       "name": "Bonnet Dropsiders (Logo White)",
       "price": "16.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123701/dropsiders/cglpuqq7a2ltnfxphxcr.avif",
