@@ -38,6 +38,11 @@ export function AdminMessages() {
     const [festivalDates, setFestivalDates] = useState('');
     const [accreditationLang, setAccreditationLang] = useState<'FR' | 'EN'>('FR');
 
+    // Interview Request States
+    const [isInterviewMode, setIsInterviewMode] = useState(false);
+    const [djName, setDjName] = useState('');
+    const [interviewType, setInterviewType] = useState<'Vidéo' | 'Écrite'>('Vidéo');
+
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
         setTimeout(() => setNotification(null), 4000);
@@ -157,6 +162,9 @@ Dropsiders propose une couverture premium unique :
 - Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
 - Audience engagée et passionnée.
 
+Découvrez nos derniers reportages : https://dropsiders.fr/recaps
+Consultez notre agenda : https://dropsiders.fr/agenda
+
 Nous serions ravis de couvrir votre événement et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils technologiques.
 
 Dans l'attente de votre retour,
@@ -176,6 +184,9 @@ Dropsiders offers a unique premium coverage:
 - Social media promotion (Instagram, TikTok, etc.).
 - Engaged and passionate audience.
 
+Discover our latest recaps: https://dropsiders.fr/recaps
+Check our agenda: https://dropsiders.fr/agenda
+
 We would be delighted to cover your event and highlight it to our community using our innovative technological tools.
 
 Looking forward to hearing from you,
@@ -183,7 +194,51 @@ The Dropsiders Team.`;
         }
     };
 
-    // Effect to auto-update email body in accreditation mode
+    const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string) => {
+        if (lang === 'FR') {
+            return `Bonjour,
+
+Dropsiders est un média immersif dédié à la culture électronique et à l'univers des festivals. Dans le cadre de notre couverture éditoriale, nous souhaiterions vous proposer une interview pour mettre en avant l'artiste suivant :
+
+ARTISTE : ${dj || "[NOM DE L'ARTISTE]"}
+FORMAT : Interview ${type}
+
+Dropsiders propose une vitrine premium :
+- Articles avec lecteur audio IA haute fidélité.
+- Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
+- Mise en avant dans notre Agenda Interactif & Boutique.
+- Audience engagée et passionnée.
+
+Vous pouvez consulter nos dernières interviews ici : https://dropsiders.fr/news (Filtre Interviews)
+
+Nous serions ravis de collaborer avec vous pour réaliser ce projet.
+
+Dans l'attente de votre retour,
+L'équipe Dropsiders.`;
+        } else {
+            return `Hello,
+
+Dropsiders is an immersive media dedicated to electronic culture and festivals. As part of our editorial coverage, we would like to propose an interview to highlight the following artist:
+
+ARTISTE: ${dj || '[ARTIST NAME]'}
+FORMAT: ${type} Interview
+
+Dropsiders offers a unique premium showcase:
+- Articles with high-fidelity AI audio player.
+- Social media promotion (Instagram, TikTok, etc.).
+- Featured in our Interactive Agenda & Shop.
+- Engaged and passionate audience.
+
+You can check our latest interviews here: https://dropsiders.fr/news
+
+We would be delighted to work with you on this project.
+
+Looking forward to hearing from you,
+The Dropsiders Team.`;
+        }
+    };
+
+    // Effect to auto-update email body based on mode
     useEffect(() => {
         if (isAccreditationMode) {
             setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates));
@@ -193,8 +248,17 @@ The Dropsiders Team.`;
             } else {
                 setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
+        } else if (isInterviewMode) {
+            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType));
+            const djPart = djName ? ` - ${djName.toUpperCase()}` : '';
+            if (accreditationLang === 'FR') {
+                setMailSubject(`DEMANDE INTERVIEW ${interviewType.toUpperCase()}${djPart} - DROPSIDERS`);
+            } else {
+                const typeEN = interviewType === 'Vidéo' ? 'VIDEO' : 'WRITTEN';
+                setMailSubject(`${typeEN} INTERVIEW REQUEST${djPart} - DROPSIDERS`);
+            }
         }
-    }, [isAccreditationMode, festivalName, festivalDates, accreditationLang]);
+    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -236,8 +300,10 @@ The Dropsiders Team.`;
                                 setSenderEmail('');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
+                                setIsInterviewMode(false);
                                 setFestivalName('');
                                 setFestivalDates('');
+                                setDjName('');
                                 setReplyBody(PRESS_RELEASE_TEMPLATE);
                                 setReplyModal(true);
                             }}
@@ -504,59 +570,103 @@ The Dropsiders Team.`;
                                                 Communiqué Standard
                                             </button>
                                             <button
-                                                onClick={() => setIsAccreditationMode(true)}
+                                                onClick={() => {
+                                                    setIsAccreditationMode(true);
+                                                    setIsInterviewMode(false);
+                                                }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isAccreditationMode ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Demande Accréditation
                                             </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsInterviewMode(true);
+                                                    setIsAccreditationMode(false);
+                                                }}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isInterviewMode ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                Demande Interview
+                                            </button>
                                         </div>
                                     )}
 
-                                    {isNewMail && isAccreditationMode && (
+                                    {isNewMail && (isAccreditationMode || isInterviewMode) && (
                                         <motion.div
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
-                                            className="mt-4 p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl space-y-4"
+                                            className={`mt-4 p-4 border rounded-2xl space-y-4 ${isAccreditationMode ? 'bg-neon-purple/5 border-neon-purple/20' : 'bg-neon-red/5 border-neon-red/20'}`}
                                         >
                                             <div className="flex items-center justify-between mb-2">
-                                                <span className="text-[10px] font-black uppercase text-neon-purple tracking-widest">Options Accréditation</span>
+                                                <span className={`text-[10px] font-black uppercase tracking-widest ${isAccreditationMode ? 'text-neon-purple' : 'text-neon-red'}`}>
+                                                    Options {isAccreditationMode ? 'Accréditation' : 'Interview'}
+                                                </span>
                                                 <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
                                                     <button
                                                         onClick={() => setAccreditationLang('FR')}
-                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}
+                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? (isAccreditationMode ? 'bg-neon-purple' : 'bg-neon-red') + ' text-white' : 'text-gray-500 hover:text-white'}`}
                                                     >
                                                         FR
                                                     </button>
                                                     <button
                                                         onClick={() => setAccreditationLang('EN')}
-                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}
+                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? (isAccreditationMode ? 'bg-neon-purple' : 'bg-neon-red') + ' text-white' : 'text-gray-500 hover:text-white'}`}
                                                     >
                                                         EN
                                                     </button>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div className="space-y-1">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom du Festival</label>
-                                                    <input
-                                                        type="text"
-                                                        value={festivalName}
-                                                        onChange={(e) => setFestivalName(e.target.value)}
-                                                        placeholder="Ex: Tomorrowland"
-                                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
-                                                    />
+
+                                            {isAccreditationMode ? (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom du Festival</label>
+                                                        <input
+                                                            type="text"
+                                                            value={festivalName}
+                                                            onChange={(e) => setFestivalName(e.target.value)}
+                                                            placeholder="Ex: Tomorrowland"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Dates</label>
+                                                        <input
+                                                            type="text"
+                                                            value={festivalDates}
+                                                            onChange={(e) => setFestivalDates(e.target.value)}
+                                                            placeholder="Ex: 21-23 Juillet 2026"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-1">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Dates</label>
-                                                    <input
-                                                        type="text"
-                                                        value={festivalDates}
-                                                        onChange={(e) => setFestivalDates(e.target.value)}
-                                                        placeholder="Ex: 21-23 Juillet 2026"
-                                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
-                                                    />
+                                            ) : (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom de l'Artiste / DJ</label>
+                                                        <input
+                                                            type="text"
+                                                            value={djName}
+                                                            onChange={(e) => setDjName(e.target.value)}
+                                                            placeholder="Ex: Carl Cox"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-red"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Type d'Interview</label>
+                                                        <div className="flex bg-black/40 rounded-xl p-1 border border-white/5">
+                                                            {['Vidéo', 'Écrite'].map((t) => (
+                                                                <button
+                                                                    key={t}
+                                                                    onClick={() => setInterviewType(t as any)}
+                                                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${interviewType === t ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                                                >
+                                                                    {t}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </motion.div>
                                     )}
                                 </div>
