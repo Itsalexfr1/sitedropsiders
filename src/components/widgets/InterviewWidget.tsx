@@ -15,7 +15,7 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor, feature
         const today = new Date().toISOString().split('T')[0];
         const all = newsData as any[];
         const baseInterviews = all.filter((item: any) => {
-            if (item.date > today) return false;
+            if ((item.date || '').substring(0, 10) > today) return false;
             return item.category === 'Interview' ||
                 item.category === 'Interviews' ||
                 item.category === 'Interview Video';

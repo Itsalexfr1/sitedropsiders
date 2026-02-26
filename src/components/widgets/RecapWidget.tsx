@@ -23,7 +23,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
     const latestRecaps = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
         return (recapsData as any[])
-            .filter(item => item.date <= today)
+            .filter(item => (item.date || '').substring(0, 10) <= today)
             .slice(0, isMobile ? 4 : 8);
     }, [isMobile]);
 

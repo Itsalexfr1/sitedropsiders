@@ -14,7 +14,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
 
     const recentNews = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
-        const all = [...(newsData as any[])].filter(item => item.date <= today);
+        const all = [...(newsData as any[])].filter(item => (item.date || '').substring(0, 10) <= today);
         const featured = all.find(item => item.isFeatured);
 
         // Logical fallback to identify which one is in the Hero slot

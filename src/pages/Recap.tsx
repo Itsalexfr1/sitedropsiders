@@ -55,7 +55,7 @@ export function Recap() {
     const recaps = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
         const base = (recapsData as any[])
-            .filter(item => item.date <= today)
+            .filter(item => (item.date || '').substring(0, 10) <= today)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         if (activeTab === 'all') return base;

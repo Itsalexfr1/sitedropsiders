@@ -65,7 +65,7 @@ export function News() {
         const today = new Date().toISOString().split('T')[0];
         return (newsData as any[])
             .filter((item: any) => {
-                if (item.date > today) return false;
+                if ((item.date || '').substring(0, 10) > today) return false;
                 const cat = (item.category || '').toLowerCase();
                 return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
             })

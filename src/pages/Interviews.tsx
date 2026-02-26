@@ -60,7 +60,7 @@ export function Interviews() {
         const today = new Date().toISOString().split('T')[0];
         const base = (newsData as any[])
             .filter((item: any) => {
-                if (item.date > today) return false;
+                if ((item.date || '').substring(0, 10) > today) return false;
                 const cat = (item.category || '').toLowerCase();
                 return cat.includes('interview');
             });
