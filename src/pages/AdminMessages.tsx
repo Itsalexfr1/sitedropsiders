@@ -120,10 +120,11 @@ Dropsiders V2 est enfin là ! 🎙️
 Nous avons le plaisir de vous annoncer le lancement de notre nouvelle plateforme média dédiée aux festivals, artistes et organisateurs d'événements.
 
 Nouveautés majeures :
+- Agenda Interactif : Retrouvez tous les prochains festivals en un coup d'œil.
 - Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
 - Template Premium "Cyber-Néon" ultra-immersif.
 - Accessibilité multilingue instantanée (Français / Anglais).
-- Sections d'engagement réseaux sociaux optimisées.
+- Engagement Boosté : Sections réseaux sociaux optimisées pour vos événements.
 
 Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains événements avec ces nouveaux outils technologiques innovants.
 
