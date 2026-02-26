@@ -1,4 +1,12 @@
 export const AVAILABLE_COLORS = [
+    { name: 'FW Black', hex: '#161712' },
+    { name: 'FW Off-White', hex: '#FDFCFB' },
+    { name: 'FW Blue', hex: '#0042FF' },
+    { name: 'FW Red', hex: '#F62B32' },
+    { name: 'FW Purple', hex: '#592B8C' },
+    { name: 'FW Navy', hex: '#2C2F3D' },
+    { name: 'FW Pink', hex: '#FF4D8D' },
+    { name: 'FW Cherry', hex: '#63051F' },
     { name: 'White', hex: '#ffffff' },
     { name: 'Black', hex: '#000000' },
     { name: 'Grey', hex: '#6b7280' },
@@ -33,3 +41,4 @@ export const AVAILABLE_COLORS = [
     { name: 'Sky Blue', hex: '#38bdf8' },
     { name: 'Cyan', hex: '#00fff3' }
 ];
+

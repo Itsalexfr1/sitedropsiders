@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useBlocker } from 'react-router-dom';
+import { AVAILABLE_COLORS } from '../data/colors';
 import { getAuthHeaders } from '../utils/auth';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Copy, Eye, Type, Image as ImageIcon, Users, ArrowLeft, Music, Youtube, X, Bold, Italic, Plus } from 'lucide-react';
@@ -304,11 +305,11 @@ export function NewsletterComposer() {
 
     // SECTION 5 : HANDLERS (Actions utilisateur)
     // -----------------------------------------------------------
-    const applyStyle = (target: 'main' | 'news1' | 'news2', style: 'b' | 'i' | 'color') => {
+    const applyStyle = (target: 'main' | 'news1' | 'news2', style: 'b' | 'i' | 'color', colorHex?: string) => {
         let tag = '';
         if (style === 'b') tag = 'b';
         else if (style === 'i') tag = 'i';
-        else if (style === 'color') tag = 'span style="color: #ff0033"';
+        else if (style === 'color') tag = `span style="color: ${colorHex || '#ff0033'}"`;
 
         const setter = target === 'main' ? setMainArticle : (target === 'news1' ? setNews1 : setNews2);
         const current = target === 'main' ? mainArticle : (target === 'news1' ? news1 : news2);
@@ -538,10 +539,23 @@ export function NewsletterComposer() {
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
                                         <label className="label-field mb-0">Contenu</label>
-                                        <div className="flex gap-1">
-                                            <button onClick={() => applyStyle('main', 'b')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Gras"><Bold size={12} /></button>
-                                            <button onClick={() => applyStyle('main', 'i')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Italique"><Italic size={12} /></button>
-                                            <button onClick={() => applyStyle('main', 'color')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Couleur Rouge"><Type size={12} /></button>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex gap-1 h-fit">
+                                                <button onClick={() => applyStyle('main', 'b')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Gras"><Bold size={12} /></button>
+                                                <button onClick={() => applyStyle('main', 'i')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors" title="Italique"><Italic size={12} /></button>
+                                                <button onClick={() => applyStyle('main', 'color')} className="p-1.5 bg-white/5 rounded hover:bg-white/10 text-neon-red hover:bg-neon-red/10 transition-colors" title="Couleur Rouge Neon"><Type size={12} /></button>
+                                            </div>
+                                            <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5">
+                                                {AVAILABLE_COLORS.slice(0, 8).map(c => (
+                                                    <button
+                                                        key={c.hex}
+                                                        onClick={() => applyStyle('main', 'color', c.hex)}
+                                                        className="w-3 h-3 rounded-full hover:scale-125 transition-transform border border-white/10"
+                                                        style={{ backgroundColor: c.hex }}
+                                                        title={c.name}
+                                                    />
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                     <textarea
@@ -587,10 +601,21 @@ export function NewsletterComposer() {
                                         <div>
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-[10px] font-black text-gray-500 uppercase">Description</span>
-                                                <div className="flex gap-1">
+                                                <div className="flex gap-1 h-fit">
                                                     <button onClick={() => applyStyle('news1', 'b')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Bold size={10} /></button>
                                                     <button onClick={() => applyStyle('news1', 'i')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Italic size={10} /></button>
-                                                    <button onClick={() => applyStyle('news1', 'color')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Type size={10} /></button>
+                                                    <button onClick={() => applyStyle('news1', 'color')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-neon-red hover:bg-neon-red/10 transition-colors"><Type size={10} /></button>
+                                                </div>
+                                                <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5 h-fit">
+                                                    {AVAILABLE_COLORS.slice(0, 8).map(c => (
+                                                        <button
+                                                            key={c.hex}
+                                                            onClick={() => applyStyle('news1', 'color', c.hex)}
+                                                            className="w-2.5 h-2.5 rounded-full hover:scale-125 transition-transform border border-white/10"
+                                                            style={{ backgroundColor: c.hex }}
+                                                            title={c.name}
+                                                        />
+                                                    ))}
                                                 </div>
                                             </div>
                                             <textarea id="content-news1" placeholder="Description courte..." value={news1.content} onChange={e => setNews1({ ...news1, content: e.target.value })} className="input-field min-h-[60px]" />
@@ -613,10 +638,21 @@ export function NewsletterComposer() {
                                         <div>
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-[10px] font-black text-gray-500 uppercase">Description</span>
-                                                <div className="flex gap-1">
+                                                <div className="flex gap-1 h-fit">
                                                     <button onClick={() => applyStyle('news2', 'b')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Bold size={10} /></button>
                                                     <button onClick={() => applyStyle('news2', 'i')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Italic size={10} /></button>
-                                                    <button onClick={() => applyStyle('news2', 'color')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-gray-400 hover:text-white transition-colors"><Type size={10} /></button>
+                                                    <button onClick={() => applyStyle('news2', 'color')} className="p-1 bg-white/5 rounded hover:bg-white/10 text-neon-red hover:bg-neon-red/10 transition-colors"><Type size={10} /></button>
+                                                </div>
+                                                <div className="flex items-center gap-1 bg-black/40 p-1 rounded-lg border border-white/5 h-fit">
+                                                    {AVAILABLE_COLORS.slice(0, 8).map(c => (
+                                                        <button
+                                                            key={c.hex}
+                                                            onClick={() => applyStyle('news2', 'color', c.hex)}
+                                                            className="w-2.5 h-2.5 rounded-full hover:scale-125 transition-transform border border-white/10"
+                                                            style={{ backgroundColor: c.hex }}
+                                                            title={c.name}
+                                                        />
+                                                    ))}
                                                 </div>
                                             </div>
                                             <textarea id="content-news2" placeholder="Description courte..." value={news2.content} onChange={e => setNews2({ ...news2, content: e.target.value })} className="input-field min-h-[60px]" />

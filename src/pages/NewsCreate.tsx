@@ -8,6 +8,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import newsData from '../data/news.json';
 import editorsData from '../data/editors.json';
+import { AVAILABLE_COLORS } from '../data/colors';
 import '../styles/article-premium.css';
 
 
@@ -1929,13 +1930,7 @@ ${generateFestivalSocialsHtml()}
                                                             </div>
 
                                                             <div className="flex flex-wrap bg-black/40 rounded-lg border border-white/5 p-1 gap-1 max-w-[160px]">
-                                                                {[
-                                                                    '#ffffff', '#000000', '#6b7280', '#f5f5dc', '#ff1241', '#dc2626', '#991b1b',
-                                                                    '#7f1d1d', '#7c3aed', '#bd00ff', '#ff00ff', '#f472b6', '#c084fc', '#fbcfe8',
-                                                                    '#db2777', '#fb7185', '#fca5a5', '#fdba74', '#fb923c', '#fde047', '#facc15',
-                                                                    '#bef264', '#86efac', '#22c55e', '#f87171', '#16a34a', '#10b981', '#84cc16',
-                                                                    '#2dd4bf', '#99f6e4', '#2b65ec', '#38bdf8', '#00fff3'
-                                                                ].map(color => (
+                                                                {EDITOR_COLORS.map(color => (
                                                                     <button
                                                                         key={color}
                                                                         type="button"
@@ -2268,10 +2263,8 @@ ${generateFestivalSocialsHtml()}
                                                                     <label className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">
                                                                         COULEUR ARTISTE
                                                                     </label>
-                                                                    <div className="flex flex-wrap bg-black/40 rounded-xl border border-white/5 p-2 gap-1.5">
-                                                                        {[
-                                                                            '#ffffff', '#ff1241', '#7c3aed', '#00fff3', '#bef264', '#facc15', '#fb923c', '#ff00ff'
-                                                                        ].map(color => (
+                                                                    <div className="flex flex-wrap bg-black/40 rounded-xl border border-white/5 p-2 gap-1.5 font-mono">
+                                                                        {EDITOR_COLORS.map(color => (
                                                                             <button
                                                                                 key={color}
                                                                                 type="button"
