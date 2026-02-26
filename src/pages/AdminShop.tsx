@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Plus, X, Trash2, Image as ImageIcon, Check, Edit2, GripVertical, ExternalLink } from 'lucide-react';
-import { motion, AnimatePresence, Reorder } from 'framer-motion';
+import { ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Plus, X, Trash2, Image as ImageIcon, Check, Edit2, ChevronUp, ChevronDown, ExternalLink } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -264,6 +264,17 @@ export function AdminShop() {
         } catch (error) {
             console.error('Error reordering products:', error);
         }
+    };
+
+    const moveProduct = (index: number, direction: 'up' | 'down') => {
+        const targetIndex = direction === 'up' ? index - 1 : index + 1;
+        if (targetIndex < 0 || targetIndex >= filteredProducts.length) return;
+
+        const newFiltered = [...filteredProducts];
+        const [movedItem] = newFiltered.splice(index, 1);
+        newFiltered.splice(targetIndex, 0, movedItem);
+
+        handleReorder(newFiltered);
     };
 
     const filteredProducts = products.filter(product => {
@@ -702,15 +713,34 @@ export function AdminShop() {
                                 </div>
                             </div>
 
-                            <Reorder.Group axis="y" values={filteredProducts} onReorder={handleReorder} className="space-y-4">
-                                {filteredProducts.map((product) => (
-                                    <Reorder.Item
+                            <div className="space-y-4">
+                                {filteredProducts.map((product, index) => (
+                                    <motion.div
                                         key={product.id}
-                                        value={product}
-                                        className="flex flex-col md:flex-row items-center gap-6 p-6 bg-black/40 border border-white/5 rounded-2xl hover:border-white/20 transition-all group cursor-grab active:cursor-grabbing"
+                                        layout
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="flex flex-col md:flex-row items-center gap-6 p-6 bg-black/40 border border-white/5 rounded-2xl hover:border-white/20 transition-all group"
                                     >
                                         <div className="flex items-center gap-4">
-                                            <GripVertical className="w-5 h-5 text-gray-600 group-hover:text-neon-red transition-colors" />
+                                            <div className="flex flex-col gap-1">
+                                                <button
+                                                    onClick={() => moveProduct(index, 'up')}
+                                                    disabled={index === 0}
+                                                    className="p-1.5 bg-white/5 border border-white/10 rounded-lg text-gray-500 hover:text-neon-red hover:bg-white/10 transition-all disabled:opacity-0 disabled:pointer-events-none"
+                                                    title="Monter"
+                                                >
+                                                    <ChevronUp className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => moveProduct(index, 'down')}
+                                                    disabled={index === filteredProducts.length - 1}
+                                                    className="p-1.5 bg-white/5 border border-white/10 rounded-lg text-gray-500 hover:text-neon-red hover:bg-white/10 transition-all disabled:opacity-0 disabled:pointer-events-none"
+                                                    title="Descendre"
+                                                >
+                                                    <ChevronDown className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                             <div className="w-16 h-16 rounded-xl overflow-hidden bg-white/5 flex-shrink-0">
                                                 <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
                                             </div>
@@ -757,9 +787,9 @@ export function AdminShop() {
                                                 </button>
                                             )}
                                         </div>
-                                    </Reorder.Item>
+                                    </motion.div>
                                 ))}
-                            </Reorder.Group>
+                            </div>
                         </div>
                     </div>
                 </div>
