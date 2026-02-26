@@ -663,24 +663,6 @@
     "author": "Alex"
   },
   {
-    "id": 174,
-    "title": "Retour sur le set de Mosimann à l'Amnesia, Cap d'Agde (2025)",
-    "date": "2026-02-26T18:58",
-    "summary": "Mosimann a livré un set d'exception lors de sa performance à l'Amnesia de Cap d'Agde en juillet 2025. Entre house mélodique, bass electro et drops ravageurs, le DJ/producteur il s'impose comme une figure incontournable de la scène électronique. Revivez l'intégralité de ce Dropsiders.",
-    "content": "",
-    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772077435/dropsiders/mexbmn14zfdjjh3lyxxd.jpg",
-    "images": [
-      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772128721/dropsiders/p028whfuqtpwdxwuti8v.jpg",
-      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772128730/dropsiders/scghfdwew76kv3a3ngny.jpg"
-    ],
-    "youtubeId": "EEosqs6_Pkc",
-    "link": "https://dropsiders.fr/news/174_retour-sur-le-set-de-mosimann-a-l-amnesia",
-    "category": "News",
-    "isFeatured": false,
-    "author": "Alex",
-    "isFocus": false
-  },
-  {
     "id": 2,
     "title": "EDC Las Vegas 2026 : Insomniac frappe fort avec un Line-up historique pour les 30 ans du festival !",
     "date": "2026-02-12",
@@ -702,6 +684,24 @@
     "category": "News",
     "isFeatured": false,
     "author": "Alex"
+  },
+  {
+    "id": 174,
+    "title": "Retour sur le set de Mosimann à l'Amnesia, Cap d'Agde (2025)",
+    "date": "2026-02-26T18:58",
+    "summary": "Mosimann a livré un set d'exception lors de sa performance à l'Amnesia de Cap d'Agde en juillet 2025. Entre house mélodique, bass electro et drops ravageurs, le DJ/producteur il s'impose comme une figure incontournable de la scène électronique. Revivez l'intégralité de ce Dropsiders.",
+    "content": "",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772077435/dropsiders/mexbmn14zfdjjh3lyxxd.jpg",
+    "images": [
+      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772128721/dropsiders/p028whfuqtpwdxwuti8v.jpg",
+      "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772128730/dropsiders/scghfdwew76kv3a3ngny.jpg"
+    ],
+    "youtubeId": "EEosqs6_Pkc",
+    "link": "https://dropsiders.fr/news/174_retour-sur-le-set-de-mosimann-a-l-amnesia",
+    "category": "News",
+    "isFeatured": false,
+    "author": "Alex",
+    "isFocus": false
   },
   {
     "id": 1,
