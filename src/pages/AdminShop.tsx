@@ -18,7 +18,7 @@ export function AdminShop() {
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [shopUploadTarget, setShopUploadTarget] = useState<{ type: 'image' | 'imageBack' | 'color' | 'password_image', colorHex?: string }>({ type: 'image' });
+    const [shopUploadTarget, setShopUploadTarget] = useState<{ type: 'image' | 'imageBack' | 'color' | 'password_image', colorHex?: string, initialImage?: string }>({ type: 'image' });
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [dateSort, setDateSort] = useState<'desc' | 'asc'>('desc');
@@ -383,7 +383,7 @@ export function AdminShop() {
                                                     )}
                                                     <button
                                                         onClick={() => {
-                                                            setShopUploadTarget({ type: 'password_image' });
+                                                            setShopUploadTarget({ type: 'password_image', initialImage: shopPasswordImage });
                                                             setShowUploadModal(true);
                                                         }}
                                                         className="absolute inset-0 bg-black/60 opacity-0 group-hover/img:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2 cursor-pointer"
@@ -521,7 +521,7 @@ export function AdminShop() {
                                                                             <button
                                                                                 type="button"
                                                                                 onClick={() => {
-                                                                                    setShopUploadTarget({ type: 'color', colorHex: hex });
+                                                                                    setShopUploadTarget({ type: 'color', colorHex: hex, initialImage: colorImg });
                                                                                     setShowUploadModal(true);
                                                                                 }}
                                                                                 className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-neon-red/10 transition-colors group/upload"
@@ -553,7 +553,7 @@ export function AdminShop() {
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                setShopUploadTarget({ type: 'image' });
+                                                                setShopUploadTarget({ type: 'image', initialImage: newProduct.image });
                                                                 setShowUploadModal(true);
                                                             }}
                                                             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-neon-red/10 rounded-lg cursor-pointer transition-colors group/upload"
@@ -575,7 +575,7 @@ export function AdminShop() {
                                                         <button
                                                             type="button"
                                                             onClick={() => {
-                                                                setShopUploadTarget({ type: 'imageBack' });
+                                                                setShopUploadTarget({ type: 'imageBack', initialImage: newProduct.imageBack });
                                                                 setShowUploadModal(true);
                                                             }}
                                                             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-neon-red/10 rounded-lg cursor-pointer transition-colors group/upload"
@@ -768,6 +768,7 @@ export function AdminShop() {
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 accentColor="neon-red"
+                initialImage={shopUploadTarget.initialImage}
                 onUploadSuccess={(url) => {
                     const { type, colorHex } = shopUploadTarget;
                     if (type === 'color' && colorHex) {

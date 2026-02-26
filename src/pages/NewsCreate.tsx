@@ -186,7 +186,7 @@ export function NewsCreate() {
     const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string, aspectRatio?: string, widgetId?: string }>({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto' });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string }>({ type: 'main' });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -1594,7 +1594,7 @@ ${generateFestivalSocialsHtml()}
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setUploadTarget({ type: 'main' });
+                                            setUploadTarget({ type: 'main', initialImage: imageUrl });
                                             setShowUploadModal(true);
                                         }}
                                         className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
@@ -1800,7 +1800,10 @@ ${generateFestivalSocialsHtml()}
                                     <button
                                         type="button"
                                         onClick={() => {
-                                            setUploadTarget({ type: 'widget' });
+                                            setUploadTarget({
+                                                type: 'widget',
+                                                initialImage: ''
+                                            });
                                             setShowUploadModal(true);
                                         }}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-full hover:bg-neon-cyan/30 transition-all font-bold uppercase tracking-widest text-[9px]"
@@ -2133,7 +2136,7 @@ ${generateFestivalSocialsHtml()}
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        setUploadTarget({ type: 'widget', index });
+                                                        setUploadTarget({ type: 'widget', index, initialImage: '' });
                                                         setShowUploadModal(true);
                                                     }}
                                                     className="w-8 h-8 rounded-full bg-neon-red/10 border border-neon-red/30 text-neon-red flex items-center justify-center hover:bg-neon-red/20 transition-all"
@@ -2332,8 +2335,13 @@ ${generateFestivalSocialsHtml()}
                                                                     placeholder="https://..."
                                                                 />
                                                                 <button
+                                                                    type="button"
                                                                     onClick={() => {
-                                                                        setUploadTarget({ type: 'interview-media', interviewBlockId: q.id });
+                                                                        setUploadTarget({
+                                                                            type: 'interview-media',
+                                                                            interviewBlockId: q.id,
+                                                                            initialImage: q.mediaUrl
+                                                                        });
                                                                         setShowUploadModal(true);
                                                                     }}
                                                                     className="px-4 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl font-bold text-[10px] uppercase hover:bg-neon-cyan/30 transition-all"
@@ -2805,7 +2813,14 @@ ${generateFestivalSocialsHtml()}
 
                                 <div className="flex gap-4">
                                     <button
-                                        onClick={() => window.open('https://www.image2url.com/bulk-image-upload', 'ImageUpload', 'width=800,height=600')}
+                                        onClick={() => {
+                                            setUploadTarget({
+                                                type: mediaModal.widgetId ? 'widget-edit' : 'widget',
+                                                widgetId: mediaModal.widgetId,
+                                                initialImage: mediaModal.url
+                                            });
+                                            setShowUploadModal(true);
+                                        }}
                                         className="flex-1 flex flex-col items-center gap-2 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
                                     >
                                         <Upload className="w-5 h-5 text-neon-red group-hover:scale-110 transition-transform" />
@@ -2898,7 +2913,8 @@ ${generateFestivalSocialsHtml()}
             <ImageUploadModal
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
-                onUploadSuccess={(url) => {
+                initialImage={uploadTarget.initialImage}
+                onUploadSuccess={(url: string) => {
                     const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
                     const mediaTag = isVideo
                         ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
@@ -2915,6 +2931,7 @@ ${generateFestivalSocialsHtml()}
                     } else if (uploadTarget.type === 'widget-edit' as any) {
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
                         updateWidget(uploadTarget.widgetId!, imgWidget);
+                        setMediaModal(prev => ({ ...prev, show: false }));
                     } else {
                         // Create a new image widget
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>\n  ${mediaTag}\n</div>`;
@@ -2957,7 +2974,7 @@ ${generateFestivalSocialsHtml()}
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setUploadTarget({ type: 'duo1' as any });
+                                                setUploadTarget({ type: 'duo1' as any, initialImage: duoModal.url1 });
                                                 setShowUploadModal(true);
                                             }}
                                             className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
@@ -2979,7 +2996,7 @@ ${generateFestivalSocialsHtml()}
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setUploadTarget({ type: 'duo2' as any });
+                                                setUploadTarget({ type: 'duo2' as any, initialImage: duoModal.url2 });
                                                 setShowUploadModal(true);
                                             }}
                                             className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"

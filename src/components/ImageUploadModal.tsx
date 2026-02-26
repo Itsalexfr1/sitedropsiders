@@ -1,6 +1,7 @@
-import { useState } from 'react';
+// Image Upload Modal component with Cloudinary integration
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, ExternalLink, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 
 interface ImageUploadModalProps {
@@ -9,9 +10,10 @@ interface ImageUploadModalProps {
     onUploadSuccess?: (url: string) => void;
     accentColor?: string; // e.g. 'neon-pink', 'neon-red', etc. (Tailwind class part)
     aspect?: number;
+    initialImage?: string;
 }
 
-export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor = 'neon-pink', aspect }: ImageUploadModalProps) {
+export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor = 'neon-pink', aspect, initialImage }: ImageUploadModalProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -28,19 +30,35 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
         textClass = "text-neon-blue";
     }
 
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<string | null>(initialImage || null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [isCropOpen, setIsCropOpen] = useState(false);
     // Step: 'idle' | 'preview' (image selected, awaiting crop/direct choice)
-    const [step, setStep] = useState<'idle' | 'preview'>('idle');
+    const [step, setStep] = useState<'idle' | 'preview'>(initialImage ? 'preview' : 'idle');
+
+    // Effect to handle initial image changes when modal opens/closes
+    useEffect(() => {
+        if (isOpen && initialImage) {
+            setSelectedImage(initialImage);
+            setStep('preview');
+        } else if (!isOpen) {
+            // Reset state when closing
+            setSelectedImage(null);
+            setSelectedFile(null);
+            setStep('idle');
+            setStatus('idle');
+        }
+    }, [isOpen, initialImage]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         if (file.type.startsWith('video/')) {
-            // Bypass cropper for videos, upload directly
-            handleUpload(file);
+            // Show preview for videos instead of immediate upload
+            setSelectedFile(file);
+            setSelectedImage(URL.createObjectURL(file)); // Temp URL for preview
+            setStep('preview');
         } else {
             // Load the image and show the crop/direct choice
             const reader = new FileReader();
@@ -54,14 +72,23 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
     };
 
     const handleUpload = async (base64OrFile: string | File) => {
+        // Skip re-uploading if it's already a Cloudinary URL (and not a newly cropped base64)
+        if (typeof base64OrFile === 'string' && base64OrFile.includes('res.cloudinary.com')) {
+            if (onUploadSuccess) onUploadSuccess(base64OrFile);
+            onClose();
+            return;
+        }
+
         setIsUploading(true);
         setStatus('idle');
-        setStep('idle');
+        // Keep step preview so user can see it's uploading
         try {
             // Direct Cloudinary Upload (Unsigned)
             const CLOUD_NAME = 'djnvjsmvr';
             const UPLOAD_PRESET = 'dropsiders_unsigned';
-            const apiUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+            const apiUrl = (base64OrFile instanceof File && base64OrFile.type.startsWith('video/'))
+                ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`
+                : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
 
             const formData = new FormData();
             formData.append('file', base64OrFile);
@@ -78,6 +105,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                 setTimeout(() => {
                     onClose();
                     setStatus('idle');
+                    setStep('idle');
                     setSelectedImage(null);
                     setSelectedFile(null);
                 }, 1500);
@@ -98,7 +126,10 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
         setStep('idle');
         setSelectedImage(null);
         setSelectedFile(null);
+        setStatus('idle');
     };
+
+    const isVideo = selectedFile?.type.startsWith('video/') || (typeof selectedImage === 'string' && selectedImage.includes('/video/upload/'));
 
     return (
         <AnimatePresence>
@@ -139,7 +170,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                     <p className="text-xs text-gray-500">L'image a été ajoutée à votre contenu.</p>
                                 </div>
                             ) : step === 'preview' && selectedImage ? (
-                                /* ── Image selected: choose crop or direct upload ── */
+                                /* ── Image/Video selected: choose crop or direct upload ── */
                                 <motion.div
                                     key="preview"
                                     initial={{ opacity: 0, y: 10 }}
@@ -148,26 +179,32 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                 >
                                     {/* Preview */}
                                     <div className="w-full h-48 rounded-2xl overflow-hidden border border-white/10 bg-black/40">
-                                        <img src={selectedImage} alt="preview" className="w-full h-full object-cover" />
+                                        {isVideo ? (
+                                            <video src={selectedImage} className="w-full h-full object-cover" muted loop autoPlay playsInline />
+                                        ) : (
+                                            <img src={selectedImage} alt="preview" className="w-full h-full object-cover" />
+                                        )}
                                     </div>
                                     <p className="text-center text-xs text-gray-400 font-bold uppercase tracking-widest">
-                                        Que souhaitez-vous faire avec cette image ?
+                                        {isVideo ? "Prêt pour l'envoi de la vidéo" : "Que souhaitez-vous faire avec cette image ?"}
                                     </p>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        {/* Crop option */}
-                                        <button
-                                            onClick={() => setIsCropOpen(true)}
-                                            className="flex flex-col items-center gap-3 p-6 bg-white/5 border border-neon-red/30 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/60 transition-all group"
-                                        >
-                                            <div className="p-3 bg-neon-red/20 rounded-xl group-hover:scale-110 transition-transform">
-                                                <Crop className="w-6 h-6 text-neon-red" />
-                                            </div>
-                                            <span className="text-xs font-black text-white uppercase tracking-widest">Rogner</span>
-                                            <span className="text-[10px] text-gray-500 text-center">Recadrer avant l'upload</span>
-                                        </button>
+                                    <div className={`grid ${isVideo ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
+                                        {/* Crop option - Hide for videos or external URLs that might have CORS issues */}
+                                        {!isVideo && (
+                                            <button
+                                                onClick={() => setIsCropOpen(true)}
+                                                className="flex flex-col items-center gap-3 p-6 bg-white/5 border border-neon-red/30 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/60 transition-all group"
+                                            >
+                                                <div className="p-3 bg-neon-red/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                    <Crop className="w-6 h-6 text-neon-red" />
+                                                </div>
+                                                <span className="text-xs font-black text-white uppercase tracking-widest">Rogner</span>
+                                                <span className="text-[10px] text-gray-500 text-center">Recadrer avant l'upload</span>
+                                            </button>
+                                        )}
                                         {/* Direct upload option */}
                                         <button
-                                            onClick={() => selectedFile && handleUpload(selectedFile)}
+                                            onClick={() => selectedFile ? handleUpload(selectedFile) : (typeof selectedImage === 'string' && handleUpload(selectedImage))}
                                             disabled={isUploading}
                                             className="flex flex-col items-center gap-3 p-6 bg-white/5 border border-neon-blue/30 rounded-2xl hover:bg-neon-blue/10 hover:border-neon-blue/60 transition-all group disabled:opacity-50"
                                         >
@@ -179,9 +216,9 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                                 )}
                                             </div>
                                             <span className="text-xs font-black text-white uppercase tracking-widest">
-                                                {isUploading ? 'Envoi...' : 'Direct'}
+                                                {isUploading ? 'Envoi...' : (isVideo ? "Confirmer l'envoi" : 'Direct')}
                                             </span>
-                                            <span className="text-[10px] text-gray-500 text-center">Uploader sans recadrer</span>
+                                            <span className="text-[10px] text-gray-500 text-center">{isVideo ? "Uploader sur Cloudinary" : "Uploader sans recadrer"}</span>
                                         </button>
                                     </div>
                                     {/* Cancel preview */}
@@ -189,7 +226,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                         onClick={handleCancel}
                                         className="w-full py-3 text-xs text-gray-500 hover:text-white font-bold uppercase tracking-widest transition-colors"
                                     >
-                                        ← Changer d'image
+                                        ← {initialImage ? "Quitter sans modifier" : "Changer de média"}
                                     </button>
 
                                     {status === 'error' && (
@@ -226,18 +263,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                         </div>
                                     )}
 
-                                    <div className="flex flex-col gap-4">
-                                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] text-center">OU UTILISER LE SITE EXTERNE</p>
-                                        <button
-                                            onClick={() => {
-                                                window.open('https://www.image2url.com/bulk-image-upload', '_blank');
-                                            }}
-                                            className={`w-full py-4 bg-white/5 border border-white/10 text-gray-400 rounded-2xl font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 hover:text-white transition-all text-xs group`}
-                                        >
-                                            <span>Image2URL</span>
-                                            <ExternalLink className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                        </button>
-                                    </div>
+
                                 </>
                             )}
                         </div>

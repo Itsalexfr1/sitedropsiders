@@ -7,7 +7,7 @@ const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'djnvjsmvr';
 const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || 'dropsiders_unsigned';
 
 const DATA_DIR = path.join(__dirname, '../src/data');
-const FILES_TO_SCAN = ['news.json', 'recaps.json', 'agenda.json', 'galerie.json'];
+const FILES_TO_SCAN = ['news.json', 'recaps.json', 'agenda.json', 'galerie.json', 'shop.json'];
 
 // Domains we want to "secure" by moving to Cloudinary
 const DOMAINS_TO_MIGRATE = [
@@ -18,7 +18,9 @@ const DOMAINS_TO_MIGRATE = [
     'twitter.com',
     'pbs.twimg.com',
     'googleusercontent.com',
-    'blob.core.windows.net'
+    'blob.core.windows.net',
+    'cdn.jsdelivr.net',
+    'image2url.com'
 ];
 
 async function uploadUrlToCloudinary(imageUrl, fileName) {
