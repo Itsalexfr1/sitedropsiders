@@ -1,36 +1,6 @@
 {
   "products": [
     {
-      "name": "Mug Dropsiders White x Couleurs",
-      "price": "12.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713760922-image_2026-02-21_234218889.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white-x-couleurs",
-      "colors": [
-        "#000000",
-        "#7c3aed",
-        "#16a34a",
-        "#ff1241",
-        "#fb923c",
-        "#2dd4bf",
-        "#fde047"
-      ],
-      "colorImages": {
-        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713648646-image_2026-02-21_234026547.png",
-        "#7c3aed": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713665165-image_2026-02-21_234043122.png",
-        "#16a34a": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713679727-image_2026-02-21_234057694.png",
-        "#ff1241": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713694043-image_2026-02-21_234112005.png",
-        "#fb923c": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713706994-image_2026-02-21_234124964.png",
-        "#2dd4bf": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713725424-image_2026-02-21_234143396.png",
-        "#fde047": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713738802-image_2026-02-21_234156778.png"
-      },
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "",
-      "id": 7,
-      "createdAt": "2026-02-21T22:42:46.305Z"
-    },
-    {
       "name": "Mug Dropsiders Full Black",
       "price": "12.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712282965-image_2026-02-21_231740919.png",
