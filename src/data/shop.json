@@ -186,24 +186,6 @@
       "createdAt": "2026-02-21T23:25:09.634Z"
     },
     {
-      "name": "Gourde Dropsiders White",
-      "price": "21.50",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713964862-image_2026-02-21_234542805.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gourde-dropsiders-white",
-      "colors": [
-        "#ffffff"
-      ],
-      "colorImages": {
-        "#ffffff": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713954955-image_2026-02-21_234532856.png"
-      },
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "",
-      "id": 9,
-      "createdAt": "2026-02-21T22:46:08.085Z"
-    },
-    {
       "name": "Gourde Dropsiders Black",
       "price": "21.50",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713886807-image_2026-02-21_234424754.png",
