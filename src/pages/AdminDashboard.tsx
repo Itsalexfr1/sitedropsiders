@@ -24,6 +24,9 @@ export function AdminDashboard() {
     const [openMenu, setOpenMenu] = useState<string | null>(null);
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
     const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
+    const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+    const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
+    const [isGalerieModalOpen, setIsGalerieModalOpen] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
         text: '',
@@ -754,6 +757,15 @@ export function AdminDashboard() {
                                         } else if (action.title === 'Interviews') {
                                             e.preventDefault();
                                             setIsInterviewModalOpen(true);
+                                        } else if (action.title === 'News') {
+                                            e.preventDefault();
+                                            setIsNewsModalOpen(true);
+                                        } else if (action.title === 'Agenda') {
+                                            e.preventDefault();
+                                            setIsAgendaModalOpen(true);
+                                        } else if (action.title === 'Galeries') {
+                                            e.preventDefault();
+                                            setIsGalerieModalOpen(true);
                                         }
                                     }}
                                     className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -1181,6 +1193,208 @@ export function AdminDashboard() {
                                         Enregistrer Home
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal News */}
+            <AnimatePresence>
+                {isNewsModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-neon-cyan to-neon-blue" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-blue">News</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsNewsModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                <Link
+                                    to="/news/create"
+                                    onClick={() => setIsNewsModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-blue/30 group-hover:scale-110 transition-transform">
+                                        <FileText className="w-6 h-6 text-neon-blue" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Actualité</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article news</p>
+                                </Link>
+
+                                <Link
+                                    to="/news/create?type=Musique"
+                                    onClick={() => setIsNewsModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                        <Music className="w-6 h-6 text-neon-cyan" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Musique</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article musique</p>
+                                </Link>
+                            </div>
+
+                            <Link
+                                to="/admin/manage?tab=News"
+                                onClick={() => setIsNewsModalOpen(false)}
+                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
+                                        <Settings2 className="w-5 h-5 text-gray-400" />
+                                    </div>
+                                    <div className="text-left">
+                                        <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes articles</h3>
+                                        <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
+                                    </div>
+                                </div>
+                                <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                            </Link>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Agenda */}
+            <AnimatePresence>
+                {isAgendaModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-yellow via-neon-orange to-neon-yellow" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-yellow">Agenda</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsAgendaModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/agenda/create"
+                                    onClick={() => setIsAgendaModalOpen(false)}
+                                    className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-yellow/10 hover:border-neon-yellow/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-yellow/20 rounded-2xl flex items-center justify-center border border-neon-yellow/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Plus className="w-6 h-6 text-neon-yellow" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel événement</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Ajouter une date</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/manage?tab=Agenda"
+                                    onClick={() => setIsAgendaModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
+                                            <Settings2 className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer l'agenda</h3>
+                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Galeries */}
+            <AnimatePresence>
+                {isGalerieModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-neon-purple to-neon-pink" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-pink">Galeries</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsGalerieModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/galerie/create"
+                                    onClick={() => setIsGalerieModalOpen(false)}
+                                    className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Plus className="w-6 h-6 text-neon-pink" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel album</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une galerie photo</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/manage?tab=Galeries"
+                                    onClick={() => setIsGalerieModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
+                                            <Settings2 className="w-5 h-5 text-gray-400" />
+                                        </div>
+                                        <div className="text-left">
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer les galeries</h3>
+                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
+                                        </div>
+                                    </div>
+                                    <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                                </Link>
                             </div>
                         </motion.div>
                     </div>
