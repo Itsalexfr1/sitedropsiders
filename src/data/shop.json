@@ -1,6 +1,20 @@
 {
   "products": [
     {
+      "name": "Gobelet Dropsiders Red",
+      "price": "12.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124800/dropsiders/ouzzmelzfzaxwmv6emsq.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-red",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124806/dropsiders/yqp7uwux6fsjyfwilvhi.avif",
+      "id": 19,
+      "createdAt": "2026-02-26T16:53:31.366Z"
+    },
+    {
       "name": "Gobelet Dropsiders Blue",
       "price": "12.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124705/dropsiders/shhqmz364fuvcqtuyuau.avif",
