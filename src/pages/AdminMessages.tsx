@@ -32,6 +32,12 @@ export function AdminMessages() {
     const [senderEmail, setSenderEmail] = useState('');
     const [mailSubject, setMailSubject] = useState('');
 
+    // Accreditation Request States
+    const [isAccreditationMode, setIsAccreditationMode] = useState(false);
+    const [festivalName, setFestivalName] = useState('');
+    const [festivalDates, setFestivalDates] = useState('');
+    const [accreditationLang, setAccreditationLang] = useState<'FR' | 'EN'>('FR');
+
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
         setTimeout(() => setNotification(null), 4000);
@@ -134,6 +140,59 @@ Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains é
 
 L'équipe Dropsiders.`;
 
+    const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string) => {
+        if (lang === 'FR') {
+            return `Bonjour,
+
+Dans le cadre du lancement de Dropsiders V2, notre nouvelle plateforme média immersive dédiée à la scène électronique et aux festivals, nous souhaiterions solliciter une accréditation média pour l'événement suivant :
+
+ÉVÉNEMENT : ${festival || '[NOM DU FESTIVAL]'}
+DATES : ${dates || '[DATES]'}
+
+Dropsiders propose une couverture premium unique :
+- Articles avec lecteur audio IA haute fidélité.
+- Mise en avant dans notre nouvel Agenda Interactif.
+- Reportages photos et récaps immersifs (Style Cyber-Néon).
+- Audience engagée et passionnée.
+
+Nous serions ravis de couvrir votre événement et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils technologiques.
+
+Dans l'attente de votre retour,
+L'équipe Dropsiders.`;
+        } else {
+            return `Hello,
+
+Following the launch of Dropsiders V2, our new immersive media platform dedicated to the electronic scene and festivals, we would like to request media accreditation for the following event:
+
+EVENT: ${festival || '[FESTIVAL NAME]'}
+DATES: ${dates || '[DATES]'}
+
+Dropsiders offers a unique premium coverage:
+- Articles with high-fidelity AI audio player.
+- Featured in our new Interactive Agenda.
+- Immersive photo reports and recaps (Cyber-Neon style).
+- Engaged and passionate audience.
+
+We would be delighted to cover your event and highlight it to our community using our innovative technological tools.
+
+Looking forward to hearing from you,
+The Dropsiders Team.`;
+        }
+    };
+
+    // Effect to auto-update email body in accreditation mode
+    useEffect(() => {
+        if (isAccreditationMode) {
+            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates));
+            const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
+            if (accreditationLang === 'FR') {
+                setMailSubject(`DEMANDE ACCRÉDITATION MÉDIA${festivalPart} - DROPSIDERS`);
+            } else {
+                setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
+            }
+        }
+    }, [isAccreditationMode, festivalName, festivalDates, accreditationLang]);
+
     const unreadCount = messages.filter(m => !m.read).length;
 
     const getSubjectColor = (subject: string) => {
@@ -172,8 +231,11 @@ L'équipe Dropsiders.`;
                                 setIsNewMail(true);
                                 setDestinationEmail('');
                                 setSenderEmail('');
-                                setMailSubject('');
-                                setReplyBody('\n\n\n'); // Start with some space for signature
+                                setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
+                                setIsAccreditationMode(false);
+                                setFestivalName('');
+                                setFestivalDates('');
+                                setReplyBody(PRESS_RELEASE_TEMPLATE);
                                 setReplyModal(true);
                             }}
                             className="px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red text-white transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
@@ -425,6 +487,75 @@ L'équipe Dropsiders.`;
                                             </div>
                                         )}
                                     </div>
+
+                                    {isNewMail && (
+                                        <div className="mt-6 flex flex-wrap gap-2">
+                                            <button
+                                                onClick={() => {
+                                                    setIsAccreditationMode(false);
+                                                    setReplyBody(PRESS_RELEASE_TEMPLATE);
+                                                    setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
+                                                }}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${!isAccreditationMode ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                Communiqué Standard
+                                            </button>
+                                            <button
+                                                onClick={() => setIsAccreditationMode(true)}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isAccreditationMode ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                Demande Accréditation
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {isNewMail && isAccreditationMode && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            className="mt-4 p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl space-y-4"
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <span className="text-[10px] font-black uppercase text-neon-purple tracking-widest">Options Accréditation</span>
+                                                <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
+                                                    <button
+                                                        onClick={() => setAccreditationLang('FR')}
+                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}
+                                                    >
+                                                        FR
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setAccreditationLang('EN')}
+                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}
+                                                    >
+                                                        EN
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom du Festival</label>
+                                                    <input
+                                                        type="text"
+                                                        value={festivalName}
+                                                        onChange={(e) => setFestivalName(e.target.value)}
+                                                        placeholder="Ex: Tomorrowland"
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Dates</label>
+                                                    <input
+                                                        type="text"
+                                                        value={festivalDates}
+                                                        onChange={(e) => setFestivalDates(e.target.value)}
+                                                        placeholder="Ex: 21-23 Juillet 2026"
+                                                        className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
                                 </div>
                                 <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors self-start">
                                     <X className="w-5 h-5" />
