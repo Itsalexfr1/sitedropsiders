@@ -1,3 +1,32 @@
 {
-  "products": []
+  "products": [
+    {
+      "name": "Hoodie Dropsiders Logo White",
+      "price": "30",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121469/dropsiders/gvqps1r0ardd3udhiqbi.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/hoodie-dropsiders-logo-white",
+      "colors": [
+        "#000000",
+        "#63051F",
+        "#592B8C",
+        "#6b7280",
+        "#FF4D8D",
+        "#fb923c"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121459/dropsiders/wx8qlvfxfaud2ihpbk1z.avif",
+        "#63051F": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121497/dropsiders/xudeba1gcrkvz7du4au4.avif",
+        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121561/dropsiders/hrnpb2m5fscncpybnqkc.avif",
+        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121574/dropsiders/balbpyqypvxkq2mzx9yd.avif",
+        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121589/dropsiders/i5zchslqvtnw0knqazyb.avif",
+        "#fb923c": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121631/dropsiders/yvrib9j48icw08s2num5.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "",
+      "id": 1,
+      "createdAt": "2026-02-26T16:00:39.802Z"
+    }
+  ]
 }
