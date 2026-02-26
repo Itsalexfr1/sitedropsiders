@@ -2,6 +2,38 @@
   "products": [
     {
       "name": "Tee Shirt Logo White ",
+      "price": "17.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122621/dropsiders/ogj8g1hzbfknycbascvn.avif",
+      "description": "The 2010 - 2015 Soundtrack ",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-the-2010-2015-soundtrack",
+      "colors": [
+        "#000000",
+        "#592B8C",
+        "#6b7280",
+        "#F62B32",
+        "#38bdf8",
+        "#00fff3",
+        "#FF4D8D",
+        "#fca5a5"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122631/dropsiders/szrhu10q2weooun1wb7w.avif",
+        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122642/dropsiders/de09tmza65whplfgrd7q.avif",
+        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122655/dropsiders/paelc2pc9kfskogexxvo.avif",
+        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122669/dropsiders/jm1wbahrciumf8jufhzf.avif",
+        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122684/dropsiders/heygskjpipngmwdv6dod.avif",
+        "#00fff3": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122699/dropsiders/p3canmovzli2eequo9b1.avif",
+        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122711/dropsiders/zqssgs8f9jtxj5uvhvf9.avif",
+        "#fca5a5": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122747/dropsiders/dxx70lfkgvu9pkfal0dp.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "",
+      "id": 4,
+      "createdAt": "2026-02-26T16:19:20.925Z"
+    },
+    {
+      "name": "Tee Shirt Logo White ",
       "price": "13.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122285/dropsiders/mduv8vqolts2wsuvbfck.avif",
       "description": "I'm Here Only For The Techno",
