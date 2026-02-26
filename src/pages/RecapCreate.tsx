@@ -797,8 +797,20 @@ export function RecapCreate() {
         setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined });
     };
 
-    const handleSubmit = async (e: React.FormEvent | MouseEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any, publishNow = false) => {
+        if (e && (e as any).preventDefault) (e as any).preventDefault();
+
+        let finalDate = date;
+        if (publishNow) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            finalDate = now.toISOString().slice(0, 16);
+            setDate(finalDate);
+        } else if (finalDate <= new Date().toISOString().slice(0, 16)) {
+            setStatus('error');
+            setMessage('Veuillez choisir une date future pour programmer.');
+            return;
+        }
         if (!isAuthorConfirmed) {
             setStatus('error');
             setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
@@ -859,7 +871,7 @@ export function RecapCreate() {
                     summary: fixEncoding(summary),
                     content: fixEncoding(finalContent),
                     image: coverImage,
-                    date,
+                    date: finalDate,
                     festival,
                     location: locationInput,
                     youtubeId,
@@ -882,7 +894,7 @@ export function RecapCreate() {
             await response.json();
             setStatus('success');
             setIsDirty(false);
-            setMessage(isEditing ? 'Récap mis à jour avec succès !' : (date > new Date().toISOString().split('T')[0] ? 'Récap programmé avec succès !' : 'Récap publié avec succès !'));
+            setMessage(isEditing ? 'Récap mis à jour avec succès !' : (finalDate > new Date().toISOString().split('T')[0] ? 'Récap programmé avec succès !' : 'Récap publié avec succès !'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (!isEditing) {
@@ -1010,35 +1022,32 @@ export function RecapCreate() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        {isEditing && (
-                            <button
-                                type="button"
-                                onClick={handleSubmit as any}
-                                disabled={status === 'loading'}
-                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-neon-red hover:scale-105 active:scale-95 text-white shadow-[0_0_20px_rgba(255,18,65,0.4)]'
-                                    }`}
-                            >
-                                <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'METTRE À JOUR')}</span>
-                            </button>
-                        )}
-                        {!isEditing && (
-                            <button
-                                type="button"
-                                onClick={handleSubmit as any}
-                                disabled={status === 'loading'}
-                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-neon-cyan hover:scale-105 active:scale-95 text-black shadow-[0_0_20px_rgba(0,255,243,0.4)]'
-                                    }`}
-                            >
-                                <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'PUBLIER')}</span>
-                            </button>
-                        )}
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button
+                            type="button"
+                            onClick={(e) => handleSubmit(e, true)}
+                            disabled={status === 'loading'}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-neon-red hover:scale-105 active:scale-95 text-white shadow-[0_0_20px_rgba(255,18,65,0.4)]'
+                                }`}
+                        >
+                            <Send className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={(e) => handleSubmit(e, false)}
+                            disabled={status === 'loading'}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-105 active:scale-95'
+                                }`}
+                        >
+                            <Calendar className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : 'PROGRAMMER'}</span>
+                        </button>
                         {isEditing && (
                             <button
                                 type="button"
@@ -1908,37 +1917,45 @@ export function RecapCreate() {
                         </div>
 
                         {/* Submit Button */}
-                        <div className="pt-6">
-                            <button
-                                type="submit"
-                                disabled={status === 'loading'}
-                                className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed'
-                                    : 'bg-neon-cyan hover:bg-neon-cyan/80 text-black'
-                                    }`}
-                            >
-                                {status === 'loading' ? (
-                                    'Publication en cours...'
-                                ) : (
-                                    <>
-                                        <Send className="w-5 h-5" />
-                                        {isEditing ? 'Mettre à jour le Récap' : (date > new Date().toISOString().slice(0, 16) ? 'Programmer le Récap' : 'Publier le Récap')}
-                                    </>
-                                )}
-                            </button>
+                        <div className="pt-6 flex flex-col gap-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button
+                                    type="button"
+                                    onClick={(e) => handleSubmit(e, true)}
+                                    disabled={status === 'loading'}
+                                    className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
+                                        ? 'bg-gray-600 cursor-not-allowed'
+                                        : 'bg-neon-red hover:shadow-[0_0_20px_rgba(255,18,65,0.4)] hover:scale-[1.02]'
+                                        } text-white flex items-center justify-center gap-2`}
+                                >
+                                    <Send className="w-5 h-5" />
+                                    {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour le Récap' : 'Publier le Récap')}
+                                </button>
 
-                            {
-                                status && status !== 'loading' && message && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className={`mt-4 p-4 rounded-xl text-center font-bold uppercase tracking-widest text-[10px] border ${status === 'success' ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-red-500/10 border-red-500/50 text-red-500'
-                                            }`}
-                                    >
-                                        {message}
-                                    </motion.div>
-                                )
-                            }
+                                <button
+                                    type="button"
+                                    onClick={(e) => handleSubmit(e, false)}
+                                    disabled={status === 'loading'}
+                                    className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
+                                        ? 'bg-gray-600 cursor-not-allowed'
+                                        : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-[1.02]'
+                                        } text-white flex items-center justify-center gap-2`}
+                                >
+                                    <Calendar className="w-5 h-5" />
+                                    {status === 'loading' ? 'Programmation...' : 'Programmer à la date choisie'}
+                                </button>
+                            </div>
+
+                            {status && status !== 'loading' && message && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className={`p-4 rounded-xl text-center font-bold uppercase tracking-widest text-[10px] border ${status === 'success' ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-red-500/10 border-red-500/50 text-red-500'
+                                        }`}
+                                >
+                                    {message}
+                                </motion.div>
+                            )}
                         </div>
                     </form>
                 </div >

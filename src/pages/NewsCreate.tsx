@@ -1013,7 +1013,19 @@ export function NewsCreate() {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (publishNow = false) => {
+        let finalDate = date;
+        if (publishNow) {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            finalDate = now.toISOString().slice(0, 16);
+            setDate(finalDate);
+        } else if (finalDate <= new Date().toISOString().slice(0, 16)) {
+            setStatus('error');
+            setMessage('Veuillez choisir une date future pour programmer.');
+            return;
+        }
+
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
         if (!title || !imageUrl) {
@@ -1164,7 +1176,7 @@ ${generateFestivalSocialsHtml()}
                 id: isEditing ? id : undefined,
                 title: fixEncoding(title),
                 summary: fixEncoding(summary),
-                date,
+                date: finalDate,
                 image: finalImageUrl,
                 category: finalCategory,
                 content: fixEncoding(finalContent),
@@ -1187,7 +1199,7 @@ ${generateFestivalSocialsHtml()}
                 await response.json();
                 setStatus('success');
                 setIsDirty(false);
-                setMessage(isEditing ? 'Article mis à jour avec succès !' : (date > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
+                setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (!isEditing) {
@@ -1284,35 +1296,32 @@ ${generateFestivalSocialsHtml()}
                             </h1>
                         </div>
                     </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        {isEditing && (
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={status === 'loading'}
-                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
-                                    }`}
-                            >
-                                <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'METTRE À JOUR')}</span>
-                            </button>
-                        )}
-                        {!isEditing && (
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={status === 'loading'}
-                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
-                                    }`}
-                            >
-                                <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'PUBLIER')}</span>
-                            </button>
-                        )}
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button
+                            type="button"
+                            onClick={() => handleSubmit(true)}
+                            disabled={status === 'loading'}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
+                                }`}
+                        >
+                            <Send className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => handleSubmit(false)}
+                            disabled={status === 'loading'}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-105 active:scale-95'
+                                }`}
+                        >
+                            <Calendar className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : 'PROGRAMMER'}</span>
+                        </button>
                         {isEditing && (
                             <button
                                 type="button"
@@ -2660,23 +2669,38 @@ ${generateFestivalSocialsHtml()}
                         </div>
                     </div>
 
-                    <div className="pt-6">
-                        <button
-                            onClick={handleSubmit}
-                            disabled={status === 'loading'}
-                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
-                                ? 'bg-gray-600 cursor-not-allowed'
-                                : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)]'
-                                } text-white`}
-                        >
-                            {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : (date > new Date().toISOString().slice(0, 16) ? 'Programmer l\'article' : 'Publier l\'article'))}
-                        </button>
+                    <div className="pt-6 flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button
+                                onClick={() => handleSubmit(true)}
+                                disabled={status === 'loading'}
+                                className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)] hover:scale-[1.02]'
+                                    } text-white flex items-center justify-center gap-2`}
+                            >
+                                <Send className="w-5 h-5" />
+                                {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : 'Publier l\'article')}
+                            </button>
+
+                            <button
+                                onClick={() => handleSubmit(false)}
+                                disabled={status === 'loading'}
+                                className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-[1.02]'
+                                    } text-white flex items-center justify-center gap-2`}
+                            >
+                                <Calendar className="w-5 h-5" />
+                                {status === 'loading' ? 'Programmation...' : 'Programmer à la date choisie'}
+                            </button>
+                        </div>
 
                         {isEditing && (
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
                                 type="button"
-                                className="w-full mt-4 py-4 rounded-xl font-bold uppercase tracking-widest transition-all bg-red-600/10 border border-red-600/20 text-red-600 hover:bg-red-600/20 flex items-center justify-center gap-2"
+                                className="w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all bg-red-600/10 border border-red-600/20 text-red-600 hover:bg-red-600/20 flex items-center justify-center gap-2"
                             >
                                 <Trash2 className="w-5 h-5" /> Supprimer cet article
                             </button>
@@ -2686,7 +2710,7 @@ ${generateFestivalSocialsHtml()}
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className={`mt-4 p-4 rounded-xl text-center font-bold uppercase tracking-widest text-[10px] border ${status === 'success' ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-red-500/10 border-red-500/50 text-red-500'
+                                className={`p-4 rounded-xl text-center font-bold uppercase tracking-widest text-[10px] border ${status === 'success' ? 'bg-green-500/10 border-green-500/50 text-green-500' : 'bg-red-500/10 border-red-500/50 text-red-500'
                                     }`}
                             >
                                 {message}

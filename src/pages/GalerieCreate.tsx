@@ -176,8 +176,8 @@ export function GalerieCreate() {
     // Upload functions removed in favor of external link
 
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any) => {
+        if (e && (e as any).preventDefault) (e as any).preventDefault();
 
         if (!isAuthorConfirmed) {
             setStatus('error');
@@ -297,22 +297,20 @@ export function GalerieCreate() {
                         </div>
                     </div>
 
-                    {isEditing && (
-                        <div className="w-full md:w-auto">
-                            <button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={status === 'loading'}
-                                className={`w-full md:w-auto px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-2 ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-neon-pink hover:scale-105 active:scale-95 text-black shadow-lg shadow-neon-pink/20'
-                                    }`}
-                            >
-                                <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}</span>
-                            </button>
-                        </div>
-                    )}
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                        <button
+                            type="button"
+                            onClick={(e) => handleSubmit(e)}
+                            disabled={status === 'loading'}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-neon-pink hover:scale-105 active:scale-95 text-black shadow-[0_0_20px_rgba(255,0,149,0.4)]'
+                                }`}
+                        >
+                            <Send className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8">
