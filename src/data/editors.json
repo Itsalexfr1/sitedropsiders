@@ -46,7 +46,8 @@
     "name": "Guiyoome",
     "permissions": [
       "publications",
-      "messages"
+      "messages",
+      "send_messages"
     ],
     "created": "2026-02-24T19:52:44.407Z"
   },
