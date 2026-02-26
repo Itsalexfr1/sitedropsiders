@@ -1,22 +1,6 @@
 {
   "products": [
     {
-      "name": "Gobelet Dropsiders Yellow",
-      "price": "12.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720900532-image_2026-02-22_014118451.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-yellow",
-      "colors": [
-        "#fde047"
-      ],
-      "colorImages": {},
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720928846-image_2026-02-22_014146804.png",
-      "id": 15,
-      "createdAt": "2026-02-22T00:43:37.721Z"
-    },
-    {
       "name": "Gobelet Dropsiders Blue",
       "price": "12.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720678745-image_2026-02-22_013736668.png",
