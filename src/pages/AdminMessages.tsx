@@ -133,7 +133,7 @@ Nouveautés majeures :
 - Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
 - Interface Premium ultra-immersive.
 - Accessibilité multilingue instantanée (Français / Anglais).
-- Engagement Boosté : Sections réseaux sociaux optimisées pour vos événements.
+- Engagement Boosté : Sections réseaux sociaux optimisées & Posts dédiés.
 
 Nous avons également mis en place un tout nouvel agenda dynamique pour centraliser toute l'actualité événementielle.
 
@@ -154,6 +154,7 @@ Dropsiders propose une couverture premium unique :
 - Articles avec lecteur audio IA haute fidélité.
 - Mise en avant dans notre nouvel Agenda Interactif & Boutique.
 - Reportages photos et récaps immersifs.
+- Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
 - Audience engagée et passionnée.
 
 Nous serions ravis de couvrir votre événement et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils technologiques.
@@ -172,6 +173,7 @@ Dropsiders offers a unique premium coverage:
 - Articles with high-fidelity AI audio player.
 - Featured in our new Interactive Agenda & Shop.
 - Immersive photo reports and recaps.
+- Social media promotion (Instagram, TikTok, etc.).
 - Engaged and passionate audience.
 
 We would be delighted to cover your event and highlight it to our community using our innovative technological tools.
