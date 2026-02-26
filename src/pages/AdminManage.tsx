@@ -739,7 +739,29 @@ export function AdminManage() {
                                                             <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
                                                         </Link>
                                                     </div>
-                                                    <div className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50) + '...'}</div>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {activeTab === 'Interviews' && (() => {
+                                                            const cat = (item.category || '').toLowerCase();
+                                                            const title = (item.title || '').toLowerCase();
+                                                            let label = 'Écrite';
+                                                            let color = 'text-neon-purple border-neon-purple/40 bg-neon-purple/10';
+                                                            if (cat.includes('fast quizz') || title.includes('fast quizz')) {
+                                                                label = 'Fast Quizz'; color = 'text-neon-cyan border-neon-cyan/40 bg-neon-cyan/10';
+                                                            } else if (cat.includes('la playlist') || cat.includes('playlist') || title.includes('la playlist')) {
+                                                                label = 'La Playlist'; color = 'text-neon-pink border-neon-pink/40 bg-neon-pink/10';
+                                                            } else if (cat.includes('drop & talk') || title.includes('drop & talk')) {
+                                                                label = 'Drop & Talk'; color = 'text-neon-yellow border-neon-yellow/40 bg-neon-yellow/10';
+                                                            } else if (cat.includes('interview video')) {
+                                                                label = 'Vidéo'; color = 'text-neon-red border-neon-red/40 bg-neon-red/10';
+                                                            }
+                                                            return (
+                                                                <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${color}`}>
+                                                                    {label}
+                                                                </span>
+                                                            );
+                                                        })()}
+                                                        <span className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50)}</span>
+                                                    </div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     {item.author ? (
