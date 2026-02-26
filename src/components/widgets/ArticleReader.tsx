@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Volume2, Square, User, UserCheck } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -18,6 +18,12 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         return (localStorage.getItem('reader_gender') as 'male' | 'female') || 'male';
     });
 
+    // Use a ref for gender to ensure the speak function always has the latest value
+    const genderRef = useRef(voiceGender);
+    useEffect(() => {
+        genderRef.current = voiceGender;
+    }, [voiceGender]);
+
     useEffect(() => {
         if (!window.speechSynthesis) {
             setIsSupported(false);
@@ -25,7 +31,8 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         }
 
         const handleVoicesChanged = () => {
-            setVoices(window.speechSynthesis.getVoices());
+            const availableVoices = window.speechSynthesis.getVoices();
+            setVoices(availableVoices);
         };
 
         handleVoicesChanged();
@@ -48,18 +55,28 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         if (isPlaying) {
             window.speechSynthesis.cancel();
             setIsPlaying(false);
-            setTimeout(() => speak(), 100);
+            // Restart with the NEW gender
+            setTimeout(() => {
+                // We use the newGender directly here as state might not have updated yet
+                speak(newGender);
+            }, 150);
         }
     };
 
-    const speak = () => {
+    const speak = (forcedGender?: 'male' | 'female') => {
         if (!isSupported) return;
 
-        if (isPlaying) {
+        // If it's already playing and we're NOT forcing a gender change, just stop
+        if (isPlaying && !forcedGender) {
             window.speechSynthesis.cancel();
             setIsPlaying(false);
             return;
         }
+
+        // Just in case, cancel any existing speech
+        window.speechSynthesis.cancel();
+
+        const currentGender = forcedGender || genderRef.current;
 
         // 1. Natural Text Processing
         const doc = new DOMParser().parseFromString(content, 'text/html');
@@ -84,39 +101,56 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         utterance.pitch = 1.0;
         utterance.volume = 1.0;
 
-        const allVoices = voices.length > 0 ? voices : window.speechSynthesis.getVoices();
+        const allVoices = window.speechSynthesis.getVoices();
 
         if (allVoices.length > 0) {
             const langCode = language === 'fr' ? 'fr' : 'en';
 
-            // Priority for Neural/Natural voices
-            const maleHighPrio = ['Microsoft Henri Online', 'Microsoft Alain Online', 'Microsoft Thomas Online', 'Microsoft Guy Online', 'Google français', 'Henri', 'Gilles', 'Male'];
-            const femaleHighPrio = ['Microsoft Denise Online', 'Microsoft Aria Online', 'Microsoft Julie Online', 'Denise', 'Celine', 'Hortense', 'Female'];
+            // Gender-specific lists
+            const maleNames = ['Microsoft Henri Online', 'Microsoft Alain Online', 'Microsoft Thomas Online', 'Microsoft Guy Online', 'Google français', 'Henri', 'Gilles', 'Liam', 'Paul', 'Claude', 'Thomas', 'Male', 'Guy'];
+            const femaleNames = ['Microsoft Denise Online', 'Microsoft Aria Online', 'Microsoft Julie Online', 'Denise', 'Aria', 'Julie', 'Celine', 'Céline', 'Hortense', 'Libby', 'Female'];
 
-            const genderNames = voiceGender === 'male' ? maleHighPrio : femaleHighPrio;
+            const targetNames = currentGender === 'male' ? maleNames : femaleNames;
+            const bannedNames = currentGender === 'male' ? femaleNames : maleNames;
+
+            // 1. Filter by language
             const langVoices = allVoices.filter(v =>
                 v.lang.toLowerCase().startsWith(langCode) ||
                 v.lang.toLowerCase().replace('_', '-').startsWith(langCode)
             );
 
+            // 2. Filter by gender strictly
+            let candidateVoices = langVoices.filter(v =>
+                targetNames.some(name => v.name.includes(name)) &&
+                !bannedNames.some(name => v.name.includes(name))
+            );
+
+            // If no perfect gender match found, just use lang voices but try to avoid the WRONG gender
+            if (candidateVoices.length === 0) {
+                candidateVoices = langVoices.filter(v => !bannedNames.some(name => v.name.includes(name)));
+            }
+
+            // If still empty, use any lang voice
+            if (candidateVoices.length === 0) {
+                candidateVoices = langVoices;
+            }
+
             let bestVoice = null;
 
-            // Try specific high-quality matches first
-            for (const namePattern of genderNames) {
-                bestVoice = langVoices.find(v => v.name.includes(namePattern));
-                if (bestVoice) break;
-            }
+            // 3. Prefer "Online" or "Natural" or "Neural" high-quality voices
+            bestVoice = candidateVoices.find(v => v.name.includes('Online') || v.name.includes('Natural') || v.name.includes('Neural'));
 
-            // Search for general "Online" (Neural) if no name matched
             if (!bestVoice) {
-                bestVoice = langVoices.find(v => v.name.includes('Online') || v.name.includes('Natural'));
+                bestVoice = candidateVoices.find(v => v.name.includes('Google'));
             }
 
-            if (!bestVoice) bestVoice = langVoices[0];
+            if (!bestVoice) {
+                bestVoice = candidateVoices[0];
+            }
 
             if (bestVoice) {
                 utterance.voice = bestVoice;
-                // Neural voices can handle slightly faster rate
+                // High quality voices can be a bit faster
                 if (bestVoice.name.includes('Online')) utterance.rate = 1.0;
             }
         }
@@ -133,7 +167,7 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
     return (
         <div className="flex items-center gap-2">
             <button
-                onClick={speak}
+                onClick={() => speak()}
                 className={`group relative flex items-center gap-2.5 px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg active:scale-95 ${isPlaying
                         ? 'bg-neon-red text-white shadow-neon-red/30 border border-neon-red'
                         : 'bg-neon-red/10 hover:bg-neon-red hover:text-white backdrop-blur-md border border-neon-red/30 hover:border-transparent text-neon-red'
@@ -161,7 +195,7 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
                 )}
             </button>
 
-            {/* Gender Toggle - Discret but effective */}
+            {/* Gender Toggle */}
             <button
                 onClick={toggleGender}
                 className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 border shadow-md active:scale-90 ${voiceGender === 'male'
