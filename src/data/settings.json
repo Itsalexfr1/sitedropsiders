@@ -1,5 +1,5 @@
 {
   "shop_enabled": false,
-  "shop_password_protected": false,
-  "shop_password_image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771803595292-cropped_image.jpg"
+  "shop_password_protected": true,
+  "shop_password_image": ""
 }
