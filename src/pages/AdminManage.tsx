@@ -177,7 +177,7 @@ export function AdminManage() {
                 data = activeTab === 'News'
                     ? allNews.filter((item: any) => item.category === 'News')
                     : activeTab === 'Interviews'
-                        ? allNews.filter((item: any) => item.category === 'Interview' || item.category === 'Interview Video')
+                        ? allNews.filter((item: any) => item.category?.startsWith('Interview'))
                         : allNews.filter((item: any) => item.category === 'Musique');
             } else if (activeTab === 'Recaps') {
                 data = await fetchJson('recaps.json');
