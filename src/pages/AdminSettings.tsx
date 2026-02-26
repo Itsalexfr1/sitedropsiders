@@ -41,14 +41,14 @@ export function AdminSettings() {
 
         const fetchData = async () => {
             try {
-                const resSets = await apiFetch('/api/settings');
+                const resSets = await apiFetch('/api/settings', { headers: getAuthHeaders() });
                 if (resSets.ok) {
                     const data = await resSets.json();
                     if (data.shop_password) setShopPassword(data.shop_password);
                     if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
                 }
 
-                const resAuth = await apiFetch('/api/editors');
+                const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
                 if (resAuth.ok) {
                     const eds = await resAuth.json();
                     const me = eds.find((e: any) => e.username === currentUser);
@@ -64,7 +64,7 @@ export function AdminSettings() {
     const handleSave = async () => {
         setIsSaving(true);
         try {
-            const res = await apiFetch('/api/settings');
+            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
             const data = res.ok ? await res.json() : {};
 
             const newSettings = {
@@ -79,7 +79,7 @@ export function AdminSettings() {
                 body: JSON.stringify(newSettings)
             });
 
-            const resAuth = await apiFetch('/api/editors');
+            const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
             if (resAuth.ok) {
                 const eds = await resAuth.json();
                 const me = eds.find((e: any) => e.username === currentUser);

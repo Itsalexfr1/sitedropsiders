@@ -45,8 +45,8 @@ export function AdminDashboard() {
     const fetchInterviewsForSelection = async () => {
         try {
             const [newsResp, layoutResp] = await Promise.all([
-                apiFetch('/api/news'),
-                apiFetch('/api/home-layout')
+                apiFetch('/api/news', { headers: getAuthHeaders() }),
+                apiFetch('/api/home-layout', { headers: getAuthHeaders() })
             ]);
             if (newsResp.ok && layoutResp.ok) {
                 const allNews = await newsResp.json();
@@ -143,7 +143,7 @@ export function AdminDashboard() {
 
     const fetchSettings = async () => {
         try {
-            const res = await fetch('/api/settings');
+            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 // setBannerEnabled not needed as bannerState has it
@@ -163,7 +163,7 @@ export function AdminDashboard() {
     const saveBannerSettings = async () => {
         setIsUpdatingBanner(true);
         try {
-            const res = await fetch('/api/settings');
+            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
             const data = res.ok ? await res.json() : {};
 
             const newSettings = {
@@ -173,7 +173,7 @@ export function AdminDashboard() {
                 }
             };
 
-            const saveRes = await fetch('/api/settings/update', {
+            const saveRes = await apiFetch('/api/settings/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify(newSettings)
@@ -192,7 +192,7 @@ export function AdminDashboard() {
 
     const fetchActions = async () => {
         try {
-            const resp = await fetch('/api/dashboard-actions');
+            const resp = await apiFetch('/api/dashboard-actions', { headers: getAuthHeaders() });
             if (resp.ok) {
                 const data = await resp.json();
                 if (data && data.length > 0) {
@@ -485,7 +485,7 @@ export function AdminDashboard() {
         setIsSaving(true);
         try {
             // 1. Save to internal API
-            await fetch('/api/dashboard-actions/update', {
+            await apiFetch('/api/dashboard-actions/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ actions })
