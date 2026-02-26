@@ -180,12 +180,29 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         }
     };
 
-    const handleInstagramShare = () => {
-        // Preference for Story/Publication: try native share first
-        if (typeof navigator.share === 'function') {
-            handleShare();
-        } else {
-            // Fallback to profile or copy link
+    const handleInstagramShare = async () => {
+        // Preference for Story/Publication: try native share first (best for mobile)
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: translatedTitle || article.title,
+                    text: shareText,
+                    url: shareUrl
+                });
+                return;
+            } catch (err) {
+                console.error('Share failed', err);
+            }
+        }
+
+        // Fallback for desktop or failed share: Copy link and Notify
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 3000);
+            // On pourrait aussi ouvrir Instagram, mais copier le lien est plus utile pour les Stories
+            window.open(`https://www.instagram.com/`, '_blank');
+        } catch (err) {
             window.open(shareLinks.instagram, '_blank');
         }
     };
@@ -522,7 +539,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 <button
                                     onClick={handleInstagramShare}
                                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
-                                    title="Partager sur Instagram"
+                                    title="Partager en Story ou Publication Instagram"
                                 >
                                     <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                                 </button>
