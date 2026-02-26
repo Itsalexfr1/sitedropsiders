@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -487,7 +487,6 @@ export function NewsCreate() {
         category: string,
         articleId: string
     } | null>(null);
-    const [lastCreatedId, setLastCreatedId] = useState<string | null>(id);
 
 
 
@@ -1014,7 +1013,7 @@ export function NewsCreate() {
         setInterviewQuestions(newQuestions);
     };
 
-    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-xl' | 'text-2xl' | 'text-3xl' | 'text-4xl' | 'text-5xl' | 'text-center' | 'text-right' | 'text-left') => {
+    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-xl' | 'text-2xl' | 'text-3xl' | 'text-4xl' | 'text-5xl' | 'text-center' | 'text-right' | 'text-left' | 'bg-white') => {
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
         const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
@@ -1581,7 +1580,6 @@ ${generateFestivalSocialsHtml()}
                 const data = await response.json();
                 setStatus('success');
                 setIsDirty(false);
-                setLastCreatedId(isEditing ? id : data.id || null);
 
                 // Store data for Social Suite BEFORE resetting form
                 setSocialSuiteData({
