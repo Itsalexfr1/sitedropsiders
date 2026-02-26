@@ -1,23 +1,6 @@
 {
   "products": [
     {
-      "name": "Casquette Dropsiders (White)",
-      "price": "12.95",
-      "image": "https://imgproxy.fourthwall.com/EpTYdnxw-KNciozPkH7S1nxMaCTN8XzKtacooz3IVQ8/w:1920/sm:1/enc/wPbR3wBeAxJQyZVP/6DAa4Br21Pa37ZJi/OA0NUZPmRVohlGgy/O7M9NQYgOQmR-VGW/gYe1Yv4NIUEfWuC0/tGBrHD7Pz7ZV1Vy7/cogA1zHnplmcvZe1/wo2PeT57zUPDTeBU/NXdWZN1uVyY0tPuR/NQ9xEdW_XufgWytS/NdvzIjfwa9ElXrx9/ufDJh8LC_EDkrNrh/6k5I010OUh1uyQJQ/PWaOwPzRgsZ9eaWx/MSqrEeoyZHE",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/casquette-dropsiders-white",
-      "colors": [
-        "#ffffff"
-      ],
-      "colorImages": {},
-      "images": [],
-      "category": "Vetements",
-      "imageBack": "https://imgproxy.fourthwall.com/c5U0Z-I4SlTQS_UEIoWChCzl4YTvRYMihTLaBVWvguU/w:1920/sm:1/enc/hY4y6jn3ZovIgwYf/YIy2Fta6teAH-Cqb/ggYMpH5bCizOzTY_/SK5ewpSBKf1MjW63/5fIIW4rlXU2LPDGh/WmJFJtW_SLX22HdV/5DnWI8fG-l-bE9WW/KM_A36W6zg0dSGI7/-6RMRHMxAUFPENLr/NeIHyBHLYrLhrKfa/3RdHP6DVwFjjuq9P/oWvCuogoA960He2k/z-NGVKhgW7R5MiRz/CDkrlsrtt3-jsdkl/Dno9XRlz1Vk",
-      "id": 2,
-      "createdAt": "2026-02-21T21:45:24.464Z",
-      "updatedAt": "2026-02-21T22:25:42.528Z"
-    },
-    {
       "name": "Casquette Dropsiders (Black)",
       "price": "12.95",
       "image": "https://imgproxy.fourthwall.com/YQStVTnJwa2r--q_gyShr1HC1FjbAqI2vqjPTREawGo/w:1920/sm:1/enc/Urdv5YiyQOIU9P5P/LMPbKV1EKvn5upbS/378mtd8AyGu_x-2m/zNMzW-bkLsGB-pGs/OfzQCpQFM4vHmBc2/PoJvKm25Es0XRjs9/XL1qWdpafp-L-WOx/evGEWBOqbtZsGcwI/QRAlVZgOUNBJST_5/ZmvOlUFVWSfyW9Fd/pF1FFCqouYL3XoCT/gwizLgT4YgBVADdL/Suj-8nATq0P4kAVm/wB0clB5WrzF9aYZT/cfmmWw-dL7o",
