@@ -1,6 +1,34 @@
 {
   "products": [
     {
+      "name": "Tee Shirt Logo Black Simple",
+      "price": "13.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123454/dropsiders/jc4816eij0ubybbnrfry.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-black-simple",
+      "colors": [
+        "#ffffff",
+        "#38bdf8",
+        "#16a34a",
+        "#2dd4bf",
+        "#f87171",
+        "#facc15"
+      ],
+      "colorImages": {
+        "#ffffff": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123482/dropsiders/sldovlzmfjfptrlasxlp.avif",
+        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123491/dropsiders/yivgrrqshmbb1hvotopa.avif",
+        "#16a34a": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123502/dropsiders/im89jvgf9ytz7mf764ct.avif",
+        "#2dd4bf": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123525/dropsiders/envpecz0vxej9vaf6mgc.avif",
+        "#f87171": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123533/dropsiders/vim0ub5fxbykeo99o9o9.avif",
+        "#facc15": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123544/dropsiders/fmu6dvf3pi24mostyr2m.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123465/dropsiders/tihdeqohvft0lfjhiudt.avif",
+      "id": 7,
+      "createdAt": "2026-02-26T16:32:30.129Z"
+    },
+    {
       "name": "Polo Dropsiders Logo White",
       "price": "19.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123189/dropsiders/mvuesulylauh5udwqaqq.avif",
