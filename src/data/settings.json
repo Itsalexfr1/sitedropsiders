@@ -3,5 +3,14 @@
   "shop_password_protected": true,
   "shop_password_image": "",
   "shop_password": "2026",
-  "kit_media_password": ""
+  "kit_media_password": "",
+  "announcement_banner": {
+    "enabled": true,
+    "text": "BIENVENUE SUR LE NOUVEAU SITE DROPSIDERS - RECRUTEMENT OUVERT !",
+    "text_en": "",
+    "color": "#ffffff",
+    "bgColor": "#ff0033",
+    "size": "medium",
+    "link": "/contact"
+  }
 }
