@@ -1,20 +1,6 @@
 {
   "products": [
     {
-      "name": "Protection Airpods",
-      "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124941/dropsiders/et8pobbabog1lizmhxfe.avif",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/protection-airpods",
-      "colors": [],
-      "colorImages": {},
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124948/dropsiders/bfks0gxgsyxoejbbijsp.avif",
-      "id": 21,
-      "createdAt": "2026-02-26T16:55:53.520Z"
-    },
-    {
       "name": "Gobelet Dropsiders White",
       "price": "12.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124860/dropsiders/ly8b9corktfw3eflzn8f.avif",
@@ -27,6 +13,20 @@
       "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124868/dropsiders/g2hw8d6ud8jmhbskw8ae.avif",
       "id": 20,
       "createdAt": "2026-02-26T16:54:35.105Z"
+    },
+    {
+      "name": "Protection Airpods",
+      "price": "12.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124941/dropsiders/et8pobbabog1lizmhxfe.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/protection-airpods",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124948/dropsiders/bfks0gxgsyxoejbbijsp.avif",
+      "id": 21,
+      "createdAt": "2026-02-26T16:55:53.520Z"
     },
     {
       "name": "Gobelet Dropsiders Red",
