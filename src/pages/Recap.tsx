@@ -25,6 +25,7 @@ export function Recap() {
     const navigate = useNavigate();
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
+    const [activeTab, setActiveTab] = useState<TabKey>('all');
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
@@ -53,8 +54,13 @@ export function Recap() {
 
     const recaps = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
-        return (recapsData as any[]).filter(item => item.date <= today);
-    }, []);
+        const base = (recapsData as any[])
+            .filter(item => item.date <= today)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        if (activeTab === 'all') return base;
+        return base.filter(item => item.type === activeTab);
+    }, [activeTab]);
     const totalPages = Math.ceil(recaps.length / articlesPerPage);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
@@ -99,6 +105,12 @@ export function Recap() {
     const handlePageChange = (newPage: number) => {
         setDirection(newPage > currentPage ? 1 : -1);
         setCurrentPage(newPage);
+    };
+
+    const handleTabChange = (key: TabKey) => {
+        setDirection(0);
+        setActiveTab(key);
+        setCurrentPage(1);
     };
 
     const variants = {
@@ -154,13 +166,18 @@ export function Recap() {
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
                     </div>
                     {TABS.map((tab) => {
+                        const isActive = activeTab === tab.key;
                         return (
                             <motion.button
                                 key={tab.key}
-                                onClick={() => { }}
+                                onClick={() => handleTabChange(tab.key)}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
-                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]`}
+                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border
+                                    ${isActive
+                                        ? `bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)] border-transparent`
+                                        : `bg-white/5 text-white/40 border-white/10 hover:border-white/30 hover:text-white`
+                                    }`}
                             >
                                 {tab.label}
                             </motion.button>

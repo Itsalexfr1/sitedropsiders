@@ -125,11 +125,16 @@ export function RecapCreate() {
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
     const [coverImage, setCoverImage] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(() => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    });
     const [festival, setFestival] = useState('');
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [author, setAuthor] = useState(() => {
         const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
         const found = (editorsData as any[]).find(e =>
@@ -201,7 +206,20 @@ export function RecapCreate() {
                             setTitle(data.recap.title || '');
                             setSummary(data.recap.summary || '');
                             setCoverImage(data.recap.image || '');
-                            setDate(data.recap.date || new Date().toISOString().split('T')[0]);
+                            const dateValue = data.recap.date || new Date().toISOString();
+                            let finalDate = dateValue;
+                            if (dateValue.includes('T')) {
+                                try {
+                                    const parsedDate = new Date(dateValue);
+                                    parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
+                                    finalDate = parsedDate.toISOString().slice(0, 16);
+                                } catch (e) {
+                                    finalDate = dateValue.slice(0, 16);
+                                }
+                            } else {
+                                finalDate = dateValue + "T12:00";
+                            }
+                            setDate(finalDate);
                             setFestival(data.recap.festival || '');
                             setLocationInput(data.recap.location || '');
                             setYoutubeId(data.recap.youtubeId || '');
@@ -231,7 +249,20 @@ export function RecapCreate() {
                                 setTitle(localItem.title);
                                 setSummary(localItem.summary);
                                 setCoverImage(localItem.image);
-                                setDate(localItem.date);
+                                const localDateValue = localItem.date || new Date().toISOString();
+                                let localFinalDate = localDateValue;
+                                if (localDateValue.includes('T')) {
+                                    try {
+                                        const parsedDate = new Date(localDateValue);
+                                        parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
+                                        localFinalDate = parsedDate.toISOString().slice(0, 16);
+                                    } catch (e) {
+                                        localFinalDate = localDateValue.slice(0, 16);
+                                    }
+                                } else {
+                                    localFinalDate = localDateValue + "T12:00";
+                                }
+                                setDate(localFinalDate);
                                 setFestival(localItem.festival || '');
                                 setLocationInput(localItem.location || '');
                                 setYoutubeId(localItem.youtubeId || '');
@@ -889,6 +920,38 @@ export function RecapCreate() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!id) return;
+        setStatus('loading');
+        try {
+            const response = await fetch('/api/recaps/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            });
+
+            if (response.ok) {
+                setStatus('success');
+                setMessage('Récap supprimé avec succès !');
+                setTimeout(() => navigate('/admin/manage'), 2000);
+            } else {
+                let errorData;
+                try {
+                    errorData = await response.json();
+                } catch (e) {
+                    errorData = { error: 'Erreur lors de la suppression' };
+                }
+                setStatus('error');
+                setMessage(errorData.error || 'Erreur lors de la suppression');
+            }
+        } catch (e) {
+            setStatus('error');
+            setMessage('Erreur de connexion');
+        } finally {
+            setShowDeleteConfirm(false);
+        }
+    };
+
     if (isLoading || loadError) {
         return (
             <div className="min-h-screen bg-dark-bg flex items-center justify-center">
@@ -952,15 +1015,39 @@ export function RecapCreate() {
                         {isEditing && (
                             <button
                                 type="button"
-                                onClick={handleSubmit}
+                                onClick={handleSubmit as any}
                                 disabled={status === 'loading'}
                                 className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
                                     ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-neon-red hover:scale-105 active:scale-95 text-white shadow-neon-red/20'
+                                    : 'bg-neon-red hover:scale-105 active:scale-95 text-white shadow-[0_0_20px_rgba(255,18,65,0.4)]'
                                     }`}
                             >
                                 <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}</span>
+                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'METTRE À JOUR')}</span>
+                            </button>
+                        )}
+                        {!isEditing && (
+                            <button
+                                type="button"
+                                onClick={handleSubmit as any}
+                                disabled={status === 'loading'}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                    : 'bg-neon-cyan hover:scale-105 active:scale-95 text-black shadow-[0_0_20px_rgba(0,255,243,0.4)]'
+                                    }`}
+                            >
+                                <Send className="w-4 h-4" />
+                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'PUBLIER')}</span>
+                            </button>
+                        )}
+                        {isEditing && (
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500`}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="hidden md:inline">SUPPRIMER</span>
                             </button>
                         )}
                         <button
@@ -1022,16 +1109,16 @@ export function RecapCreate() {
                                 <div className="relative group">
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         value={date}
                                         onChange={(e) => setDate(e.target.value)}
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                         required
                                     />
                                 </div>
-                                {date > new Date().toISOString().split('T')[0] && (
+                                {date > new Date().toISOString().slice(0, 16) && (
                                     <p className="mt-2 text-[10px] text-neon-orange font-bold uppercase tracking-widest italic">
-                                        Le récap est programmé. Il apparaîtra automatiquement à cette date.
+                                        Le récap est programmé à cette heure et apparaîtra automatiquement.
                                     </p>
                                 )}
                             </div>
@@ -1836,7 +1923,7 @@ export function RecapCreate() {
                                 ) : (
                                     <>
                                         <Send className="w-5 h-5" />
-                                        {isEditing ? 'Mettre à jour le Récap' : (date > new Date().toISOString().split('T')[0] ? 'Programmer le Récap' : 'Publier le Récap')}
+                                        {isEditing ? 'Mettre à jour le Récap' : (date > new Date().toISOString().slice(0, 16) ? 'Programmer le Récap' : 'Publier le Récap')}
                                     </>
                                 )}
                             </button>
@@ -2338,7 +2425,14 @@ export function RecapCreate() {
                 message="Vous avez des modifications non enregistrées. Voulez-vous vraiment quitter la page ?"
                 onConfirm={() => blocker.proceed?.()}
                 onCancel={() => blocker.reset?.()}
-                accentColor="neon-red"
+            />
+
+            <ConfirmationModal
+                isOpen={showDeleteConfirm}
+                title="Supprimer ce récap"
+                message="Êtes-vous sûr de vouloir supprimer définitivement ce récapitulatif ? Cette action est irréversible."
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
             />
         </div >
     );

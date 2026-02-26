@@ -1018,7 +1018,7 @@ export default {
                     title: cleanStr(title) || existing.title,
                     summary: cleanStr(generateSummary(content, summary)) || existing.summary,
                     content: '', // Empty
-                    image: image || existing.image,
+                    image: image || (extractedImages.length > 0 ? extractedImages[0] : existing.image),
                     date: date || existing.date,
                     festival: festival !== undefined ? festival : existing.festival,
                     location: location !== undefined ? location : existing.location,
@@ -1298,6 +1298,7 @@ export default {
                         subject,
                         date: new Date().toISOString(),
                         recipientsCount: recipients.length,
+                        htmlContent: htmlContent, // Added to keep a record of content
                         fromAccount: "contact@dropsiders.fr"
                     };
                     const updated = [...(Array.isArray(file.content) ? file.content : []), newLog];
@@ -1720,7 +1721,9 @@ export default {
                 try {
                     const dataFile = await fetchGitHubFile(dataSource);
                     if (dataFile && dataFile.content) {
-                        foundItem = dataFile.content.find((i: any) => String(i.id) === String(id));
+                        const itemIdStr = String(id);
+                        const actualId = itemIdStr.match(/^(\d+)/) ? itemIdStr.match(/^(\d+)/)[1] : itemIdStr;
+                        foundItem = dataFile.content.find((i: any) => String(i.id) === actualId || i.slug === id);
                     }
                 } catch (e) {
                     console.error(`Metadata fetch error for ${id} in ${dataSource}:`, e);
@@ -1747,10 +1750,13 @@ export default {
             return new HTMLRewriter()
                 .on('title', { element(e) { e.setInnerContent(title); } })
                 .on('meta[name="description"]', { element(e) { e.setAttribute("content", description); } })
+                .on('meta[name="author"]', { element(e) { e.setAttribute("content", foundItem.author || "Dropsiders"); } })
                 .on('meta[property="og:title"]', { element(e) { e.setAttribute("content", title); } })
                 .on('meta[property="og:description"]', { element(e) { e.setAttribute("content", description); } })
                 .on('meta[property="og:image"]', { element(e) { e.setAttribute("content", image); } })
                 .on('meta[property="og:url"]', { element(e) { e.setAttribute("content", `${origin}${path}`); } })
+                .on('meta[property="og:site_name"]', { element(e) { e.setAttribute("content", "Dropsiders"); } })
+                .on('meta[name="twitter:card"]', { element(e) { e.setAttribute("content", "summary_large_image"); } })
                 .on('meta[name="twitter:title"]', { element(e) { e.setAttribute("content", title); } })
                 .on('meta[name="twitter:description"]', { element(e) { e.setAttribute("content", description); } })
                 .on('meta[name="twitter:image"]', { element(e) { e.setAttribute("content", image); } })

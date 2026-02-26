@@ -126,7 +126,11 @@ export function NewsCreate() {
     const [title, setTitle] = useState('');
     const [summary, setSummary] = useState('');
     const [imageUrl, setImageUrl] = useState('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState(() => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
+    });
     console.log('[NewsCreate] Initialization. isEditing:', isEditing, 'id:', id);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
@@ -220,7 +224,20 @@ export function NewsCreate() {
             setTitle(articleData.title || '');
             setSummary(articleData.summary || '');
             setImageUrl(articleData.image || '');
-            setDate(articleData.date || new Date().toISOString().split('T')[0]);
+            const dateValue = articleData.date || new Date().toISOString();
+            let finalDate = dateValue;
+            if (dateValue.includes('T')) {
+                try {
+                    const parsedDate = new Date(dateValue);
+                    parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
+                    finalDate = parsedDate.toISOString().slice(0, 16);
+                } catch (e) {
+                    finalDate = dateValue.slice(0, 16);
+                }
+            } else {
+                finalDate = dateValue + "T12:00";
+            }
+            setDate(finalDate);
             setCategory(articleData.category || 'News');
             setYoutubeId(articleData.youtubeId || '');
 
@@ -1171,7 +1188,7 @@ ${generateFestivalSocialsHtml()}
                 await response.json();
                 setStatus('success');
                 setIsDirty(false);
-                setMessage(isEditing ? 'Article mis à jour avec succès !' : (date > new Date().toISOString().split('T')[0] ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
+                setMessage(isEditing ? 'Article mis à jour avec succès !' : (date > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (!isEditing) {
@@ -1280,7 +1297,31 @@ ${generateFestivalSocialsHtml()}
                                     }`}
                             >
                                 <Send className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : 'METTRE À JOUR'}</span>
+                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'METTRE À JOUR')}</span>
+                            </button>
+                        )}
+                        {!isEditing && (
+                            <button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={status === 'loading'}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
+                                    }`}
+                            >
+                                <Send className="w-4 h-4" />
+                                <span>{status === 'loading' ? 'EN COURS...' : (date > new Date().toISOString().slice(0, 16) ? 'PROGRAMMER' : 'PUBLIER')}</span>
+                            </button>
+                        )}
+                        {isEditing && (
+                            <button
+                                type="button"
+                                onClick={() => setShowDeleteConfirm(true)}
+                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500`}
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                <span className="hidden md:inline">SUPPRIMER</span>
                             </button>
                         )}
                         <button
@@ -1421,15 +1462,15 @@ ${generateFestivalSocialsHtml()}
                                 <div className="relative group">
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
-                                        type="date"
+                                        type="datetime-local"
                                         value={date}
                                         onChange={(e) => setDate(e.target.value)}
                                         className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none transition-all"
                                     />
                                 </div>
-                                {date > new Date().toISOString().split('T')[0] && (
+                                {date > new Date().toISOString().slice(0, 16) && (
                                     <p className="mt-2 text-[10px] text-neon-orange font-bold uppercase tracking-widest italic">
-                                        L'article est programmé. Il apparaîtra automatiquement à cette date.
+                                        L'article est programmé à cette heure et apparaîtra automatiquement.
                                     </p>
                                 )}
                             </div>
@@ -2609,7 +2650,7 @@ ${generateFestivalSocialsHtml()}
                                 : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)]'
                                 } text-white`}
                         >
-                            {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : (date > new Date().toISOString().split('T')[0] ? 'Programmer l\'article' : 'Publier l\'article'))}
+                            {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : (date > new Date().toISOString().slice(0, 16) ? 'Programmer l\'article' : 'Publier l\'article'))}
                         </button>
 
                         {isEditing && (

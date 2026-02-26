@@ -63,11 +63,13 @@ export function News() {
     // All news/musique/focus articles (base pool)
     const baseNews = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
-        return (newsData as any[]).filter((item: any) => {
-            if (item.date > today) return false;
-            const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
-        });
+        return (newsData as any[])
+            .filter((item: any) => {
+                if (item.date > today) return false;
+                const cat = (item.category || '').toLowerCase();
+                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
+            })
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, []);
 
     // Filter based on current tab

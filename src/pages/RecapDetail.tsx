@@ -44,11 +44,12 @@ export function RecapDetail() {
         .filter((item: any) => item.id !== recap.id)
         .slice(0, 3);
 
-    // Navigation
-    const allRecaps = recapsData as any[];
+    // Navigation - Sort by date desc to match list page
+    const allRecaps = (recapsData as any[])
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     const currentIndex = allRecaps.findIndex((item: any) => item.id === recap.id);
-    const previousRecap = currentIndex > 0 ? allRecaps[currentIndex - 1] : null;
-    const nextRecap = currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null;
+    const previousRecap = currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null; // Older
+    const nextRecap = currentIndex > 0 ? allRecaps[currentIndex - 1] : null; // Newer
 
     // Get Content
     const fullContent = getRecapContent(recap.id);
