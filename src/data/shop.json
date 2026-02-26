@@ -1,24 +1,6 @@
 {
   "products": [
     {
-      "name": "Gourde Dropsiders Black",
-      "price": "21.50",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713886807-image_2026-02-21_234424754.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gourde-dropsiders-black",
-      "colors": [
-        "#000000"
-      ],
-      "colorImages": {
-        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713877213-image_2026-02-21_234415089.png"
-      },
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "",
-      "id": 8,
-      "createdAt": "2026-02-21T22:44:52.346Z"
-    },
-    {
       "name": "Mug Dropsiders White x Couleurs",
       "price": "12.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713760922-image_2026-02-21_234218889.png",
