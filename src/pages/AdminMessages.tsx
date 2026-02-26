@@ -17,6 +17,7 @@ interface ContactMessage {
 
 export function AdminMessages() {
     const [messages, setMessages] = useState<ContactMessage[]>([]);
+    const [editors, setEditors] = useState<any[]>([]);
     const [selected, setSelected] = useState<ContactMessage | null>(null);
     const [loading, setLoading] = useState(true);
     const [replyModal, setReplyModal] = useState(false);
@@ -30,7 +31,6 @@ export function AdminMessages() {
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmail, setDestinationEmail] = useState('');
     const [senderEmail, setSenderEmail] = useState('');
-    const [senderName, setSenderName] = useState('');
     const [mailSubject, setMailSubject] = useState('');
 
     // Accreditation Request States
@@ -43,6 +43,7 @@ export function AdminMessages() {
     const [isInterviewMode, setIsInterviewMode] = useState(false);
     const [djName, setDjName] = useState('');
     const [interviewType, setInterviewType] = useState<'Vidéo' | 'Écrite'>('Vidéo');
+    const [selectedEditorUsername, setSelectedEditorUsername] = useState<string | null>(null);
 
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
@@ -64,7 +65,22 @@ export function AdminMessages() {
         }
     };
 
-    useEffect(() => { fetchMessages(); }, []);
+    const fetchEditors = async () => {
+        try {
+            const res = await fetch('/api/editors', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setEditors(data || []);
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    useEffect(() => {
+        fetchMessages();
+        fetchEditors();
+    }, []);
 
     const openMessage = async (msg: ContactMessage) => {
         setSelected(msg);
@@ -243,8 +259,10 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
     useEffect(() => {
         if (!isNewMail) return;
 
+        const currentName = editors.find(e => e.username === selectedEditorUsername)?.name || '';
+
         if (isAccreditationMode) {
-            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, senderName));
+            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
                 setMailSubject(`DEMANDE ACCRÉDITATION MÉDIA${festivalPart} - DROPSIDERS`);
@@ -252,7 +270,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
         } else if (isInterviewMode) {
-            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, senderName));
+            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, currentName));
             const djPart = djName ? ` - ${djName.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
                 setMailSubject(`DEMANDE INTERVIEW ${interviewType.toUpperCase()}${djPart} - DROPSIDERS`);
@@ -262,10 +280,10 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             }
         } else {
             // Standard press release
-            setReplyBody(getPressReleaseTemplate(senderName));
+            setReplyBody(getPressReleaseTemplate(currentName));
             setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
         }
-    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, senderName, isNewMail]);
+    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, selectedEditorUsername, isNewMail, editors]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -305,7 +323,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 setIsNewMail(true);
                                 setDestinationEmail('');
                                 setSenderEmail('');
-                                setSenderName('');
+                                setSelectedEditorUsername(null);
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
                                 setIsInterviewMode(false);
@@ -557,15 +575,20 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 />
                                             </div>
                                         )}
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24">Signé par (Nom) :</span>
-                                            <input
-                                                type="text"
-                                                value={senderName}
-                                                onChange={(e) => setSenderName(e.target.value)}
-                                                placeholder="Ex: Alex"
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1"
-                                            />
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            <span className="text-[10px] font-black uppercase text-gray-500">SIGNÉ PAR (OBLIGATOIRE) :</span>
+                                            <div className="flex flex-wrap gap-2">
+                                                {editors.map(editor => (
+                                                    <button
+                                                        key={editor.username}
+                                                        onClick={() => setSelectedEditorUsername(editor.username)}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${selectedEditorUsername === editor.username ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                    >
+                                                        {editor.name}
+                                                    </button>
+                                                ))}
+                                                {editors.length === 0 && <span className="text-[10px] text-gray-600 italic">Chargement des éditeurs...</span>}
+                                            </div>
                                         </div>
                                         {!isNewMail && (
                                             <div className="flex items-center gap-3">
@@ -581,7 +604,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
-                                                    setReplyBody(getPressReleaseTemplate(senderName));
+                                                    setReplyBody(getPressReleaseTemplate(editors.find(e => e.username === selectedEditorUsername)?.name || ''));
                                                     setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
@@ -750,6 +773,11 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 <div className="p-6 text-center">
                                                     <div className="text-white text-sm font-black italic uppercase mb-2">
                                                         Cordialement, <br />
+                                                        {selectedEditorUsername && (
+                                                            <span className="text-gray-400 block mb-1 text-[11px] normal-case">
+                                                                {editors.find(e => e.username === selectedEditorUsername)?.name}
+                                                            </span>
+                                                        )}
                                                         L'équipe <span className="text-neon-red">Dropsiders</span>
                                                     </div>
 
@@ -784,7 +812,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 </button>
                                 <button
                                     onClick={handleReply}
-                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim()}
+                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && !selectedEditorUsername)}
                                     className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Send className="w-4 h-4" />
