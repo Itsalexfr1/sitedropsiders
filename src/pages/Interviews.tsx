@@ -314,9 +314,16 @@ export function Interviews() {
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                 />
 
-                                                <p className="text-gray-400 text-sm line-clamp-3"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                />
+                                                {(() => {
+                                                    const rawSummary = translatedSummaries[item.id] || item.summary || '';
+                                                    const cleanSummary = rawSummary.replace(/SUIVEZ\s+[^.]*?(website|instagram|tiktok|youtube|facebook|spotify|soundcloud|beatport|x\b)[^.]*/gi, '').trim();
+                                                    const displaySummary = cleanSummary && !cleanSummary.startsWith("TITRE DE L'ARTICLE") ? cleanSummary : '';
+                                                    return displaySummary ? (
+                                                        <p className="text-gray-400 text-sm line-clamp-3"
+                                                            dangerouslySetInnerHTML={{ __html: standardizeContent(displaySummary) }}
+                                                        />
+                                                    ) : null;
+                                                })()}
                                             </div>
                                         </Link>
                                     </motion.article>
