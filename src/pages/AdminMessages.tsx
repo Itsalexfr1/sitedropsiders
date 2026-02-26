@@ -587,6 +587,17 @@ The Dropsiders Team.`;
                                             >
                                                 Demande Interview
                                             </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsAccreditationMode(false);
+                                                    setIsInterviewMode(false);
+                                                    setReplyBody('');
+                                                }}
+                                                className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 flex items-center gap-2 ml-auto"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                                Vider
+                                            </button>
                                         </div>
                                     )}
 
