@@ -264,7 +264,7 @@
     },
     {
       "name": "Tee Shirt Logo White Simple",
-      "price": "13.00",
+      "price": "15.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123107/dropsiders/wni6xjsp2aj4gnjzhu08.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-simple",
@@ -290,7 +290,8 @@
       "category": "Vetements",
       "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122971/dropsiders/jtw1gtuyzgiumjdi6ijn.avif",
       "id": 5,
-      "createdAt": "2026-02-26T16:25:11.194Z"
+      "createdAt": "2026-02-26T16:25:11.194Z",
+      "updatedAt": "2026-02-26T17:02:20.178Z"
     },
     {
       "name": "Tee Shirt Logo White ",
