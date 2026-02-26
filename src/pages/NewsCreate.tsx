@@ -124,7 +124,6 @@ function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
     onClose: () => void,
     articleId: string
 }) {
-    const [generating, setGenerating] = useState(false);
     const [copied, setCopied] = useState(false);
     const storyCanvasRef = useRef<HTMLCanvasElement>(null);
     const postCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -134,7 +133,7 @@ function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
 
     const generateImages = async () => {
         if (!imageUrl) return;
-        setGenerating(true);
+
 
         try {
             const img = new Image();
@@ -247,7 +246,7 @@ function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
         } catch (e) {
             console.error("Error generating social assets:", e);
         } finally {
-            setGenerating(false);
+
         }
     };
 
