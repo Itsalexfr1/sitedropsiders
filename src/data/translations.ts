@@ -22,7 +22,8 @@ export type TranslationKey =
     | 'contact.title' | 'contact.title_span' | 'contact.subtitle' | 'contact.name' | 'contact.email' | 'contact.subject' | 'contact.subject_placeholder' | 'contact.message' | 'contact.message_placeholder' | 'contact.send' | 'contact.sending' | 'contact.success' | 'contact.error_fields' | 'contact.error_send' | 'contact.subject_question' | 'contact.subject_suggestion' | 'contact.subject_partnership' | 'contact.subject_recruitment'
     | 'contact.name_placeholder' | 'contact.email_placeholder'
     | 'interviews.title_prefix' | 'recaps.title_prefix' | 'galerie.title_prefix' | 'news.title_prefix'
-    | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage';
+    | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage'
+    | 'article_reader.play' | 'article_reader.stop' | 'article_reader.playing';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copié !', en: 'Link copied!' },
@@ -269,5 +270,8 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     },
     'cookies.accept': { fr: 'Tout ACcepter', en: 'Accept All' },
     'cookies.refuse': { fr: 'Refuser', en: 'Refuse' },
-    'cookies.manage': { fr: 'Gérer', en: 'Manage' }
+    'cookies.manage': { fr: 'Gérer', en: 'Manage' },
+    'article_reader.play': { fr: "ÉCOUTER L'ARTICLE", en: 'LISTEN TO ARTICLE' },
+    'article_reader.stop': { fr: 'ARRÊTER LA LECTURE', en: 'STOP READING' },
+    'article_reader.playing': { fr: 'LECTURE EN COURS...', en: 'READING...' }
 };

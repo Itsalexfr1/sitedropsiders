@@ -8,6 +8,7 @@ import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
+import { ArticleReader } from '../components/widgets/ArticleReader';
 import '../styles/article-premium.css';
 
 // Custom Icons for Official Brands
@@ -547,6 +548,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 <Clock className="w-3.5 h-3.5 text-neon-red" />
                                 {readingTime} {t('common.min_read')}
                             </span>
+
+                            {/* Audio Reader */}
+                            <ArticleReader
+                                content={displayContent}
+                                title={displayTitle}
+                                author={article.author}
+                            />
                             <span className="px-5 py-2 bg-white/5 backdrop-blur-sm border border-white/10 rounded-full text-white/70 font-bold text-[10px] flex items-center gap-2 uppercase tracking-widest">
                                 {new Date(article.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                     year: 'numeric',
