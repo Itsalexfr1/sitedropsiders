@@ -17,7 +17,7 @@ type TabKey = 'all' | 'written' | 'video' | 'fast-quizz' | 'playlist' | 'drop-ta
 const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
     { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
     { key: 'written', label: 'Écrites', activeClass: 'bg-neon-purple text-white shadow-[0_0_20px_rgba(189,0,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-purple/40 hover:text-neon-purple' },
-    { key: 'video', label: 'Vidéos', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-red-500' },
+    { key: 'video', label: 'Interviews', activeClass: 'bg-neon-blue text-white shadow-[0_0_20px_rgba(0,100,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-blue/40 hover:text-neon-blue' },
     { key: 'fast-quizz', label: 'Fast Quizz', activeClass: 'bg-neon-cyan text-black shadow-[0_0_20px_rgba(0,240,255,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-cyan/40 hover:text-neon-cyan' },
     { key: 'playlist', label: 'La Playlist', activeClass: 'bg-neon-pink text-white shadow-[0_0_20px_rgba(255,0,153,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-pink/40 hover:text-neon-pink' },
     { key: 'drop-talk', label: 'Drop & Talk', activeClass: 'bg-neon-yellow text-black shadow-[0_0_20px_rgba(255,204,0,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-yellow/40 hover:text-neon-yellow' },
