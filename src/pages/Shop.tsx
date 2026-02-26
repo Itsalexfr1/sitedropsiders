@@ -35,8 +35,15 @@ export function Shop() {
                 }
 
                 if (productsRes.ok) {
-                    const data = await productsRes.json();
-                    setProducts(data);
+                    const data: any[] = await productsRes.json();
+                    const sortedProducts = [...data].sort((a, b) => {
+                        const catA = a.category || '';
+                        const catB = b.category || '';
+                        if (catA === 'Vetements' && catB !== 'Vetements') return -1;
+                        if (catA !== 'Vetements' && catB === 'Vetements') return 1;
+                        return 0;
+                    });
+                    setProducts(sortedProducts);
                 }
             } catch (error) {
                 console.error('Error fetching shop data:', error);

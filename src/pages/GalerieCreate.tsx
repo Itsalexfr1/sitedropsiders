@@ -700,6 +700,11 @@ export function GalerieCreate() {
             <ImageUploadModal
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
+                initialImage={
+                    uploadTarget === 'cover' ? coverUrl :
+                        uploadTarget === 'hover' ? hoverMediaUrl :
+                            (uploadTarget === 'gallery' && replaceIndex !== null) ? imageUrls.split('\n')[replaceIndex] : undefined
+                }
                 onUploadSuccess={(url) => {
                     if (uploadTarget === 'cover') {
                         setCoverUrl(url);
@@ -715,6 +720,19 @@ export function GalerieCreate() {
                             setImageUrls(prev => prev ? prev + '\n' + url : url);
                         }
                     }
+                }}
+                onClear={() => {
+                    if (uploadTarget === 'cover') {
+                        setCoverUrl('');
+                    } else if (uploadTarget === 'hover') {
+                        setHoverMediaUrl('');
+                    } else if (uploadTarget === 'gallery' && replaceIndex !== null) {
+                        const lines = imageUrls.split('\n');
+                        lines.splice(replaceIndex, 1);
+                        setImageUrls(lines.join('\n'));
+                        setReplaceIndex(null);
+                    }
+                    setShowUploadModal(false);
                 }}
                 accentColor="neon-pink"
             />

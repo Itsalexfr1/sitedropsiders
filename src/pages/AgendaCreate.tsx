@@ -467,7 +467,12 @@ export function AgendaCreate() {
             <ImageUploadModal
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
+                initialImage={imageUrl}
                 onUploadSuccess={(url) => setImageUrl(url)}
+                onClear={() => {
+                    setImageUrl('');
+                    setShowUploadModal(false);
+                }}
                 accentColor="neon-yellow"
             />
 

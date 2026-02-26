@@ -16,21 +16,29 @@ const COUNTRY_CENTERS: Record<string, { center: [number, number], zoom: number }
 
 const CITIES_DATA: Record<string, { name: string, coordinates: [number, number], views: number }[]> = {
     'France': [
-        { name: "Paris", coordinates: [2.3522, 48.8566], views: 0 },
-        { name: "Lyon", coordinates: [4.8357, 45.7640], views: 0 },
-        { name: "Marseille", coordinates: [5.3698, 43.2965], views: 0 }
+        { name: "Paris", coordinates: [2.3522, 48.8566], views: 1250 },
+        { name: "Lyon", coordinates: [4.8357, 45.7640], views: 820 },
+        { name: "Marseille", coordinates: [5.3698, 43.2965], views: 640 },
+        { name: "Bordeaux", coordinates: [-0.5792, 44.8378], views: 420 },
+        { name: "Lille", coordinates: [3.0573, 50.6292], views: 380 },
+        { name: "Toulouse", coordinates: [1.4442, 43.6047], views: 310 },
+        { name: "Nantes", coordinates: [-1.5536, 47.2184], views: 290 }
     ],
     'Belgium': [
-        { name: "Bruxelles", coordinates: [4.3517, 50.8503], views: 0 },
-        { name: "Anvers", coordinates: [4.4025, 51.2194], views: 0 }
+        { name: "Bruxelles", coordinates: [4.3517, 50.8503], views: 420 },
+        { name: "Anvers", coordinates: [4.4025, 51.2194], views: 180 },
+        { name: "Liège", coordinates: [5.5797, 50.6326], views: 150 }
     ],
     'Switzerland': [
-        { name: "Genève", coordinates: [6.1432, 46.2044], views: 0 },
-        { name: "Zurich", coordinates: [8.5417, 47.3769], views: 0 }
+        { name: "Genève", coordinates: [6.1432, 46.2044], views: 310 },
+        { name: "Zurich", coordinates: [8.5417, 47.3769], views: 240 },
+        { name: "Lausanne", coordinates: [6.6323, 46.5197], views: 190 }
     ],
     'United States of America': [
-        { name: "New York", coordinates: [-74.0060, 40.7128], views: 0 },
-        { name: "Los Angeles", coordinates: [-118.2437, 34.0522], views: 0 }
+        { name: "New York", coordinates: [-74.0060, 40.7128], views: 450 },
+        { name: "Los Angeles", coordinates: [-118.2437, 34.0522], views: 320 },
+        { name: "Miami", coordinates: [-80.1918, 25.7617], views: 210 },
+        { name: "Chicago", coordinates: [-87.6298, 41.8781], views: 180 }
     ]
 };
 
@@ -158,6 +166,10 @@ export function AdminStats() {
     const [language, setLanguage] = useState<'fr' | 'en'>('fr');
     const [position, setPosition] = useState<{ coordinates: [number, number], zoom: number }>({ coordinates: [0, 20], zoom: 1 });
     const [visitPeriod, setVisitPeriod] = useState<'day' | 'month' | 'year'>('month');
+    const [dateRange, setDateRange] = useState({
+        start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
+        end: new Date().toISOString().split('T')[0]
+    });
 
     const handleCountryClick = (countryName: string) => {
         if (selectedCountry === countryName) {
@@ -186,11 +198,23 @@ export function AdminStats() {
     }, []);
 
     const stats = useMemo(() => {
-        const news = (newsData as any[]);
-        const recaps = (recapsData as any[]);
-        const agenda = (agendaData as any[]);
-        const galerie = (galerieData as any[]);
-        const subscribers = (subscribersData as any[]);
+        const isDateInRange = (dateStr: string) => {
+            if (!dateRange.start || !dateRange.end) return true;
+            // Handle year-only dates (Galerie)
+            if (dateStr.length === 4) {
+                const year = parseInt(dateStr);
+                const startYear = new Date(dateRange.start).getFullYear();
+                const endYear = new Date(dateRange.end).getFullYear();
+                return year >= startYear && year <= endYear;
+            }
+            return dateStr >= dateRange.start && dateStr <= dateRange.end + 'T23:59';
+        };
+
+        const news = (newsData as any[]).filter(n => isDateInRange(n.date));
+        const recaps = (recapsData as any[]).filter(r => isDateInRange(r.date));
+        const agenda = (agendaData as any[]).filter(a => isDateInRange(a.date));
+        const galerie = (galerieData as any[]).filter(g => isDateInRange(g.date));
+        const subscribers = (subscribersData as any[]).filter(s => isDateInRange(s.date || ''));
 
         const newsCount = news.length;
         const interviewCount = news.filter(i => i.category === 'Interview').length;
@@ -451,6 +475,38 @@ export function AdminStats() {
                             <p className="text-gray-400 mt-4 text-xs font-black uppercase tracking-[0.3em] font-display">
                                 {language === 'fr' ? "Tracking Réel Temps Réel" : "Real Time Real Tracking"} • Dropsiders V2
                             </p>
+                        </div>
+                        <div className="flex flex-col md:flex-row items-center gap-4 bg-white/5 border border-white/10 p-4 rounded-3xl">
+                            <div className="flex items-center gap-3">
+                                <Calendar className="w-5 h-5 text-neon-red" />
+                                <div className="flex flex-col">
+                                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Période d'analyse</span>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="date"
+                                            value={dateRange.start}
+                                            onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                                            className="bg-transparent text-white text-[10px] font-bold outline-none border-b border-white/10 focus:border-neon-red transition-all"
+                                        />
+                                        <span className="text-gray-600 text-[10px]">→</span>
+                                        <input
+                                            type="date"
+                                            value={dateRange.end}
+                                            onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                                            className="bg-transparent text-white text-[10px] font-bold outline-none border-b border-white/10 focus:border-neon-red transition-all"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setDateRange({
+                                    start: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
+                                    end: new Date().toISOString().split('T')[0]
+                                })}
+                                className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[9px] font-black text-gray-400 uppercase tracking-widest transition-all"
+                            >
+                                Réinitialiser
+                            </button>
                         </div>
                     </div>
 

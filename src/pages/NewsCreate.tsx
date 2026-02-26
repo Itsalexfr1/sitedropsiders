@@ -185,7 +185,22 @@ export function NewsCreate() {
 
     const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(type === 'Musique' ? 'Musique' : 'News');
     const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
-    const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string, aspectRatio?: string, widgetId?: string }>({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto' });
+    const [mediaModal, setMediaModal] = useState<{
+        show: boolean,
+        type: 'image' | 'gallery' | 'video',
+        url: string,
+        urls: string,
+        aspectRatio?: string,
+        widgetId?: string,
+        cols?: number
+    }>({
+        show: false,
+        type: 'image',
+        url: '',
+        urls: '',
+        aspectRatio: 'auto',
+        cols: 4
+    });
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
@@ -939,9 +954,11 @@ export function NewsCreate() {
 </div>`;
         } else if (type === 'gallery' && urls) {
             const urlList = urls.split('\n').map(u => u.trim()).filter(u => u);
-            content = `<div class="gallery-premium-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 my-12">
-    ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
-    <img src="${u}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            const cols = mediaModal.cols || 4;
+            const colClass = cols === 2 ? 'grid-cols-2' : cols === 3 ? 'grid-cols-3' : 'grid-cols-2 lg:grid-cols-4';
+            content = `<div class="gallery-premium-grid grid grid-cols-1 ${colClass} gap-6 my-12" data-cols="${cols}">
+${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded-2xl border border-white/10 group shadow-2xl">
+<img src="${u}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
   </div>`).join('\n')
                 }
 </div>`;
@@ -956,7 +973,7 @@ export function NewsCreate() {
                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content }]);
             }
         }
-        setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined });
+        setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined, cols: 4 });
     };
 
     const generateSocialsHtml = (customName?: string, customColor?: string) => {
@@ -2777,6 +2794,21 @@ ${generateFestivalSocialsHtml()}
                                             placeholder="https://image1.jpg&#10;https://image2.jpg"
                                             autoFocus
                                         />
+                                        <div className="mt-4">
+                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3 text-center">Colonnes par ligne</label>
+                                            <div className="flex justify-center gap-3">
+                                                {[2, 3, 4].map(c => (
+                                                    <button
+                                                        key={c}
+                                                        type="button"
+                                                        onClick={() => setMediaModal({ ...mediaModal, cols: c })}
+                                                        className={`flex-1 max-w-[80px] py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all border ${mediaModal.cols === c ? 'bg-neon-red border-neon-red text-white shadow-lg shadow-neon-red/20' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20 hover:text-white'}`}
+                                                    >
+                                                        {c} Photos
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div>
@@ -2948,6 +2980,21 @@ ${generateFestivalSocialsHtml()}
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
                         addWidget(uploadTarget.index, imgWidget);
                     }
+                }}
+                onClear={() => {
+                    if (uploadTarget.type === 'main') {
+                        setImageUrl('');
+                    } else if (uploadTarget.type === 'duo1' as any) {
+                        setDuoModal(prev => ({ ...prev, url1: '' }));
+                    } else if (uploadTarget.type === 'duo2' as any) {
+                        setDuoModal(prev => ({ ...prev, url2: '' }));
+                    } else if (uploadTarget.type === 'interview-media') {
+                        setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: '' } : q));
+                    } else if (uploadTarget.type === 'widget-edit' as any) {
+                        updateWidget(uploadTarget.widgetId!, '');
+                        setMediaModal(prev => ({ ...prev, show: false }));
+                    }
+                    setShowUploadModal(false);
                 }}
                 accentColor={type === 'Interview' ? 'neon-purple' : 'neon-red'}
             />

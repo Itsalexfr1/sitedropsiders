@@ -2192,6 +2192,19 @@ export function RecapCreate() {
                         addWidget(uploadTarget.index, imgWidget);
                     }
                 }}
+                onClear={() => {
+                    if (uploadTarget.type === 'main') {
+                        setCoverImage('');
+                    } else if (uploadTarget.type === 'duo1' as any) {
+                        setDuoModal(prev => ({ ...prev, url1: '' }));
+                    } else if (uploadTarget.type === 'duo2' as any) {
+                        setDuoModal(prev => ({ ...prev, url2: '' }));
+                    } else if (uploadTarget.type === 'widget-edit') {
+                        updateWidget(uploadTarget.widgetId!, '');
+                        setMediaModal(prev => ({ ...prev, show: false }));
+                    }
+                    setShowUploadModal(false);
+                }}
                 accentColor="neon-red"
             />
 

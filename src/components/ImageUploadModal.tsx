@@ -8,12 +8,13 @@ interface ImageUploadModalProps {
     isOpen: boolean;
     onClose: () => void;
     onUploadSuccess?: (url: string) => void;
+    onClear?: () => void;
     accentColor?: string; // e.g. 'neon-pink', 'neon-red', etc. (Tailwind class part)
     aspect?: number;
     initialImage?: string;
 }
 
-export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor = 'neon-pink', aspect, initialImage }: ImageUploadModalProps) {
+export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, accentColor = 'neon-pink', aspect, initialImage }: ImageUploadModalProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -132,8 +133,12 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
     const isVideo = selectedFile?.type.startsWith('video/') || (typeof selectedImage === 'string' && selectedImage.includes('/video/upload/'));
 
     const handleClear = () => {
-        if (onUploadSuccess) onUploadSuccess('');
-        onClose();
+        if (onClear) {
+            onClear();
+        } else if (onUploadSuccess) {
+            onUploadSuccess('');
+            onClose();
+        }
     };
 
     return (
@@ -226,13 +231,25 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                             <span className="text-[10px] text-gray-500 text-center">{isVideo ? "Uploader sur Cloudinary" : "Uploader sans recadrer"}</span>
                                         </button>
                                     </div>
-                                    {/* Cancel preview */}
-                                    <button
-                                        onClick={handleCancel}
-                                        className="w-full py-3 text-xs text-gray-500 hover:text-white font-bold uppercase tracking-widest transition-colors"
-                                    >
-                                        ← {initialImage ? "Quitter sans modifier" : "Changer de média"}
-                                    </button>
+                                    {/* Action buttons */}
+                                    <div className="flex flex-col gap-3">
+                                        <button
+                                            onClick={handleCancel}
+                                            className="w-full py-3 text-xs text-gray-500 hover:text-white font-bold uppercase tracking-widest transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            ← {initialImage ? "Quitter sans modifier" : "Changer de média"}
+                                        </button>
+
+                                        {initialImage && (
+                                            <button
+                                                onClick={handleClear}
+                                                className="w-full flex items-center justify-center gap-2 py-3 bg-red-500/5 border border-red-500/20 rounded-xl text-red-500 hover:bg-red-500/10 transition-all text-[10px] font-black uppercase tracking-widest"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                                Vider (Supprimer)
+                                            </button>
+                                        )}
+                                    </div>
 
                                     {status === 'error' && (
                                         <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold text-center">
