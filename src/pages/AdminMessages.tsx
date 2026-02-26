@@ -143,7 +143,9 @@ export function AdminMessages() {
         }
     };
 
-    const getPressReleaseTemplate = (name: string) => `Bonjour,
+    const getPressReleaseTemplate = (lang: 'FR' | 'EN', name: string) => {
+        if (lang === 'FR') {
+            return `Bonjour,
 
 Dropsiders V2 est enfin là ! 🎙️ 
 
@@ -162,6 +164,28 @@ Nous avons également mis en place un tout nouvel agenda dynamique pour centrali
 Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains événements avec ces nouveaux outils technologiques innovants.
 
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
+        } else {
+            return `Hello,
+
+Dropsiders V2 is finally here! 🎙️ 
+
+We are pleased to announce the launch of our new media platform dedicated to festivals, artists, and event organizers.
+
+Key features:
+- Complete Interactive Agenda: Find all upcoming festivals at a glance and plan your trips.
+- Online Shop: Discover our exclusive selection of items.
+- Smart Audio Player (High-fidelity AI) for all articles.
+- Ultra-immersive Premium Interface.
+- Instant multilingual accessibility (French / English).
+- Boosted Engagement: Optimized social media sections & dedicated posts.
+
+We have also implemented a brand new dynamic agenda to centralize all event news.
+
+We would be delighted to collaborate with you to highlight your upcoming events using these innovative technological tools.
+
+${name ? name + '\n' : ''}The Dropsiders Team.`;
+        }
+    };
 
     const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, name: string) => {
         if (lang === 'FR') {
@@ -278,8 +302,12 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             }
         } else {
             // Standard press release
-            setReplyBody(getPressReleaseTemplate(currentName));
-            setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
+            setReplyBody(getPressReleaseTemplate(accreditationLang, currentName));
+            if (accreditationLang === 'FR') {
+                setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
+            } else {
+                setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
+            }
         }
     }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, selectedEditorUsernames, isNewMail, editors]);
 
@@ -328,7 +356,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 setFestivalName('');
                                 setFestivalDates('');
                                 setDjName('');
-                                setReplyBody(getPressReleaseTemplate(''));
+                                setReplyBody(getPressReleaseTemplate('FR', ''));
                                 setReplyModal(true);
                             }}
                             className="px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red text-white transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
@@ -639,8 +667,12 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
-                                                    setReplyBody(getPressReleaseTemplate(selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ')));
-                                                    setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
+                                                    setReplyBody(getPressReleaseTemplate(accreditationLang, selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ')));
+                                                    if (accreditationLang === 'FR') {
+                                                        setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
+                                                    } else {
+                                                        setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
+                                                    }
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
@@ -678,6 +710,28 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                         </div>
                                     )}
 
+                                    {isNewMail && (
+                                        <div className="mt-4 flex items-center justify-between">
+                                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
+                                                Langue du message :
+                                            </span>
+                                            <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
+                                                <button
+                                                    onClick={() => setAccreditationLang('FR')}
+                                                    className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    FRANÇAIS
+                                                </button>
+                                                <button
+                                                    onClick={() => setAccreditationLang('EN')}
+                                                    className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    ENGLISH
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {isNewMail && (isAccreditationMode || isInterviewMode) && (
                                         <motion.div
                                             initial={{ opacity: 0, height: 0 }}
@@ -688,20 +742,6 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 <span className={`text-[10px] font-black uppercase tracking-widest ${isAccreditationMode ? 'text-neon-purple' : 'text-neon-red'}`}>
                                                     Options {isAccreditationMode ? 'Accréditation' : 'Interview'}
                                                 </span>
-                                                <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
-                                                    <button
-                                                        onClick={() => setAccreditationLang('FR')}
-                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? (isAccreditationMode ? 'bg-neon-purple' : 'bg-neon-red') + ' text-white' : 'text-gray-500 hover:text-white'}`}
-                                                    >
-                                                        FR
-                                                    </button>
-                                                    <button
-                                                        onClick={() => setAccreditationLang('EN')}
-                                                        className={`px-2 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? (isAccreditationMode ? 'bg-neon-purple' : 'bg-neon-red') + ' text-white' : 'text-gray-500 hover:text-white'}`}
-                                                    >
-                                                        EN
-                                                    </button>
-                                                </div>
                                             </div>
 
                                             {isAccreditationMode ? (
