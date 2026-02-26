@@ -345,10 +345,12 @@ export function AdminManage() {
             let updatedList = [...fullList];
 
             if (resource === 'news') {
-                const category = activeTab === 'News' ? 'News' : activeTab === 'Interviews' ? 'Interview' : 'Musique';
                 let localIdx = 0;
                 updatedList = fullList.map(item => {
-                    if (item.category === category) {
+                    const matchesTab = activeTab === 'News' ? item.category === 'News'
+                        : activeTab === 'Interviews' ? item.category?.startsWith('Interview')
+                            : item.category === 'Musique';
+                    if (matchesTab) {
                         return items[localIdx++] || item;
                     }
                     return item;
