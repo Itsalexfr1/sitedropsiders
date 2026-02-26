@@ -147,12 +147,25 @@
     clear: both !important;
 }
 
+.article-body-premium ul,
+.article-body-premium ol {
+    padding-left: 0;
+    list-style: none;
+    margin-bottom: 30px;
+}
+
 .article-body-premium li {
     text-align: center !important;
-    list-style-position: inside;
-    list-style-type: disc;
+    list-style: none;
     margin-bottom: 12px;
     color: #d1d5db;
+}
+
+.article-body-premium li::before {
+    content: '•';
+    color: var(--color-neon-red, #ff0033);
+    margin-right: 12px;
+    display: inline-block;
 }
 
 /* Allow centering for specific blocks (like Infos Pratiques) */
