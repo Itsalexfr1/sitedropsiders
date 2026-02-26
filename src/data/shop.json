@@ -1,37 +1,6 @@
 {
   "products": [
     {
-      "name": "Tee Shirt Logo White Simple",
-      "price": "12.50",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711236632-image_2026-02-21_230014602.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-simple",
-      "colors": [
-        "#000000",
-        "#7c3aed",
-        "#c084fc",
-        "#6b7280",
-        "#ff1241",
-        "#db2777",
-        "#22c55e"
-      ],
-      "colorImages": {
-        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711719638-image_2026-02-21_230817532.png",
-        "#7c3aed": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711685363-image_2026-02-21_230743231.png",
-        "#c084fc": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711793522-image_2026-02-21_230931410.png",
-        "#6b7280": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711839993-image_2026-02-21_231017873.png",
-        "#ff1241": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711909298-image_2026-02-21_231127183.png",
-        "#db2777": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711926815-image_2026-02-21_231144755.png",
-        "#22c55e": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711946888-image_2026-02-21_231204855.png"
-      },
-      "images": [],
-      "category": "Vetements",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771711252212-image_2026-02-21_230030175.png",
-      "id": 4,
-      "createdAt": "2026-02-21T22:00:54.017Z",
-      "updatedAt": "2026-02-21T22:25:28.457Z"
-    },
-    {
       "name": "Tee Shirt Logo Black Simple",
       "price": "12.50",
       "image": "https://imgproxy.fourthwall.com/5iipO9qGbSnlVHmroZgCjA5Y82rAx28MZCQMVSDOBqI/w:1920/sm:1/enc/5VFeIYYkTx_WhvUS/YGYb0AS42ToocsGa/e1bef5_2UArmxW9G/FyvujxNxEj7vYlpX/53ecsmj15ozvxR69/4SmmyUCWHvNbDdNT/ckLmYJcjHbrqiaqF/Prx_sEwmueT5OOzS/De_3MQEap5ZRlk1a/G7zg9vkvbMUfDaUi/Vrwojg0abGouQyw4/p1oxM-hdrq2_e-_Y/MLR_r5EyyNqYZ3rZ/rLYXWqUgFZ8o9NKt/4lpqNuyiJAo",
