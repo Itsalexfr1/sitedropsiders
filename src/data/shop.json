@@ -1,6 +1,20 @@
 {
   "products": [
     {
+      "name": "Gobelet Dropsiders White",
+      "price": "12.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124860/dropsiders/ly8b9corktfw3eflzn8f.avif",
+      "description": "",
+      "url": "",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Accessoires",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124868/dropsiders/g2hw8d6ud8jmhbskw8ae.avif",
+      "id": 20,
+      "createdAt": "2026-02-26T16:54:35.105Z"
+    },
+    {
       "name": "Gobelet Dropsiders Red",
       "price": "12.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124800/dropsiders/ouzzmelzfzaxwmv6emsq.avif",
