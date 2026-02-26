@@ -478,6 +478,7 @@ export function NewsCreate() {
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [artistNameLabel, setArtistNameLabel] = useState('');
+    const [festivalNameLabel, setFestivalNameLabel] = useState('');
     const [showSocialSuite, setShowSocialSuite] = useState(false);
     const [socialSuiteData, setSocialSuiteData] = useState<{
         title: string,

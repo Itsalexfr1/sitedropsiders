@@ -109,7 +109,7 @@ export function AdminSettings() {
             }
 
             if (saveRes.ok) {
-                showNotification('Mots de passe enregistrés !', 'success');
+                showNotification('Paramètres enregistrés avec succès !', 'success');
             } else {
                 showNotification('Erreur lors de l\'enregistrement', 'error');
             }

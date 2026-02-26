@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
     Lock, Instagram, ArrowRight, Users, Globe, ExternalLink,
@@ -30,6 +30,22 @@ const KitMedia = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('kit_media_auth') === 'true');
     const [socials, setSocials] = useState<any>((settings as any).socials || {});
     const [error, setError] = useState('');
+
+    // Fetch latest settings on mount
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.socials) setSocials(data.socials);
+                }
+            } catch (e) {
+                console.error("Failed to fetch settings in KitMedia", e);
+            }
+        };
+        fetchSettings();
+    }, []);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
