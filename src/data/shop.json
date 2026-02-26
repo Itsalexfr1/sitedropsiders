@@ -52,10 +52,11 @@
       "colors": [],
       "colorImages": {},
       "images": [],
-      "category": "Vetements",
+      "category": "Accessoires",
       "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124471/dropsiders/kmpyq2lejbtbeeuq1j0m.avif",
       "id": 15,
-      "createdAt": "2026-02-26T16:47:57.538Z"
+      "createdAt": "2026-02-26T16:47:57.538Z",
+      "updatedAt": "2026-02-26T16:52:16.997Z"
     },
     {
       "name": "COQUE IPHone Red",
