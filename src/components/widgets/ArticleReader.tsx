@@ -13,7 +13,6 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
     const { t, language } = useLanguage();
     const [isPlaying, setIsPlaying] = useState(false);
     const [isSupported, setIsSupported] = useState(true);
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
     const [voiceGender, setVoiceGender] = useState<'male' | 'female'>(() => {
         return (localStorage.getItem('reader_gender') as 'male' | 'female') || 'male';
     });
@@ -30,18 +29,9 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
             return;
         }
 
-        const handleVoicesChanged = () => {
-            const availableVoices = window.speechSynthesis.getVoices();
-            setVoices(availableVoices);
-        };
-
-        handleVoicesChanged();
-        window.speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
-
         return () => {
             if (window.speechSynthesis) {
                 window.speechSynthesis.cancel();
-                window.speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
             }
         };
     }, []);
@@ -169,8 +159,8 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
             <button
                 onClick={() => speak()}
                 className={`group relative flex items-center gap-2.5 px-5 py-2.5 rounded-full font-black text-[10px] uppercase tracking-widest transition-all duration-300 shadow-lg active:scale-95 ${isPlaying
-                        ? 'bg-neon-red text-white shadow-neon-red/30 border border-neon-red'
-                        : 'bg-neon-red/10 hover:bg-neon-red hover:text-white backdrop-blur-md border border-neon-red/30 hover:border-transparent text-neon-red'
+                    ? 'bg-neon-red text-white shadow-neon-red/30 border border-neon-red'
+                    : 'bg-neon-red/10 hover:bg-neon-red hover:text-white backdrop-blur-md border border-neon-red/30 hover:border-transparent text-neon-red'
                     }`}
                 title={isPlaying ? t('article_reader.stop') : t('article_reader.play')}
             >
@@ -199,8 +189,8 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
             <button
                 onClick={toggleGender}
                 className={`w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 border shadow-md active:scale-90 ${voiceGender === 'male'
-                        ? 'bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500 hover:text-white'
-                        : 'bg-pink-500/10 border-pink-500/30 text-pink-500 hover:bg-pink-500 hover:text-white'
+                    ? 'bg-blue-500/10 border-blue-500/30 text-blue-500 hover:bg-blue-500 hover:text-white'
+                    : 'bg-pink-500/10 border-pink-500/30 text-pink-500 hover:bg-pink-500 hover:text-white'
                     }`}
                 title={voiceGender === 'male' ? "Changer pour une voix féminine" : "Changer pour une voix masculine"}
             >
