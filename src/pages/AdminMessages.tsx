@@ -145,7 +145,7 @@ L'équipe Dropsiders.`;
         if (lang === 'FR') {
             return `Bonjour,
 
-Dans le cadre du lancement de Dropsiders V2, notre nouvelle plateforme média immersive dédiée à la scène électronique et aux festivals, nous souhaiterions solliciter une accréditation média pour l'événement suivant :
+Dropsiders est un média immersif dédié à la culture électronique et à l'univers des festivals. Dans le cadre de notre couverture éditoriale, nous souhaiterions solliciter une accréditation média pour l'événement suivant :
 
 ÉVÉNEMENT : ${festival || '[NOM DU FESTIVAL]'}
 DATES : ${dates || '[DATES]'}
@@ -163,7 +163,7 @@ L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
-Following the launch of Dropsiders V2, our new immersive media platform dedicated to the electronic scene and festivals, we would like to request media accreditation for the following event:
+Dropsiders is an immersive media dedicated to electronic culture and festivals. As part of our editorial coverage, we would like to request media accreditation for the following event:
 
 EVENT: ${festival || '[FESTIVAL NAME]'}
 DATES: ${dates || '[DATES]'}
