@@ -1,7 +1,7 @@
 // Image Upload Modal component with Cloudinary integration
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2 } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 
 interface ImageUploadModalProps {
@@ -130,6 +130,11 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
     };
 
     const isVideo = selectedFile?.type.startsWith('video/') || (typeof selectedImage === 'string' && selectedImage.includes('/video/upload/'));
+
+    const handleClear = () => {
+        if (onUploadSuccess) onUploadSuccess('');
+        onClose();
+    };
 
     return (
         <AnimatePresence>
@@ -263,7 +268,16 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, accentColor
                                         </div>
                                     )}
 
-
+                                    {/* Empty / Clear Option */}
+                                    <div className="pt-4 border-t border-white/5">
+                                        <button
+                                            onClick={handleClear}
+                                            className="w-full flex items-center justify-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all group"
+                                        >
+                                            <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            <span className="text-xs font-black uppercase tracking-widest">Vider (Supprimer)</span>
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>
