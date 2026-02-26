@@ -977,7 +977,7 @@ export default {
                     for (const filePath of NEWS_CONTENT_FILES) {
                         const cFile = await fetchGitHubFile(filePath);
                         if (cFile) {
-                            const cIndex = cFile.content.findIndex(item => item.id === id);
+                            const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
                             if (cIndex !== -1) {
                                 cFile.content[cIndex].content = content;
                                 await saveGitHubFile(filePath, cFile.content, `Update news content: ${id}`, cFile.sha);
@@ -1047,7 +1047,7 @@ export default {
                     for (const filePath of RECAPS_CONTENT_FILES) {
                         const cFile = await fetchGitHubFile(filePath);
                         if (cFile) {
-                            const cIndex = cFile.content.findIndex(item => item.id === id);
+                            const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
                             if (cIndex !== -1) {
                                 cFile.content[cIndex].content = content;
                                 await saveGitHubFile(filePath, cFile.content, `Update recap content: ${id}`, cFile.sha);
