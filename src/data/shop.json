@@ -1,21 +1,6 @@
 {
   "products": [
     {
-      "name": "Mug Dropsiders Full Black",
-      "price": "12.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712282965-image_2026-02-21_231740919.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders",
-      "colors": [],
-      "colorImages": {},
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712299138-image_2026-02-21_231757066.png",
-      "id": 6,
-      "createdAt": "2026-02-21T22:18:40.136Z",
-      "updatedAt": "2026-02-21T22:25:07.737Z"
-    },
-    {
       "name": "Mug Dropsiders Full White ",
       "price": "9.50",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771712367270-image_2026-02-21_231905178.png",
