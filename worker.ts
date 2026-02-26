@@ -284,6 +284,18 @@ export default {
                 return new Response(JSON.stringify({ error: 'Permission refusée : spotify' }), { status: 403, headers });
             }
 
+            // Messages & Contacts
+            if (path.startsWith('/api/contacts')) {
+                // Accessing the messages list
+                if (!hasAll && !userPermissions.includes('messages')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : messagerie' }), { status: 403, headers });
+                }
+                // Replying/Sending emails
+                if (path === '/api/contacts/reply' && !hasAll && !userPermissions.includes('send_messages')) {
+                    return new Response(JSON.stringify({ error: 'Permission refusée : envoi de messages' }), { status: 403, headers });
+                }
+            }
+
             // Dashboard Actions
             if (path === '/api/dashboard-actions/update' && !hasAll) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : administrateur requis' }), { status: 403, headers });

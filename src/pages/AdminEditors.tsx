@@ -47,7 +47,8 @@ const PERMISSION_CATEGORIES = [
         id: 'communication',
         label: 'Communication',
         permissions: [
-            { id: 'messages', label: 'Messagerie & Contact', description: 'Lire et répondre aux messages du site.' },
+            { id: 'messages', label: 'Messagerie & Contact', description: 'Accéder à la messagerie du site.' },
+            { id: 'send_messages', label: 'Envoi de messages', description: 'Autoriser la réponse et l\'envoi de nouveaux emails.' },
             { id: 'newsletter', label: 'Newsletters', description: 'Créer et envoyer des campagnes mail.' }
         ]
     },
