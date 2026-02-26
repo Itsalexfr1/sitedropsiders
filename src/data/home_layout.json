@@ -21,10 +21,7 @@
     "id": "interviews",
     "enabled": true,
     "accentColor": "purple",
-    "featuredInterviews": [
-      214,
-      213
-    ]
+    "featuredInterviews": []
   },
   {
     "id": "social_grid",
