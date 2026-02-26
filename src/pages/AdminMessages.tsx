@@ -17,7 +17,6 @@ interface ContactMessage {
 
 export function AdminMessages() {
     const [messages, setMessages] = useState<ContactMessage[]>([]);
-    const [editors, setEditors] = useState<any[]>([]);
     const [selected, setSelected] = useState<ContactMessage | null>(null);
     const [loading, setLoading] = useState(true);
     const [replyModal, setReplyModal] = useState(false);
@@ -29,9 +28,10 @@ export function AdminMessages() {
 
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
-    const [destinationEmails, setDestinationEmails] = useState<string[]>(['']);
-    const [senderEmail, setSenderEmail] = useState('');
+    const [destinationEmails, setDestinationEmails] = useState(['']);
+    const [senderEmail, setSenderEmail] = useState('contact@dropsiders.fr');
     const [mailSubject, setMailSubject] = useState('');
+    const [signatureName, setSignatureName] = useState('');
 
     // Accreditation Request States
     const [isAccreditationMode, setIsAccreditationMode] = useState(false);
@@ -43,7 +43,6 @@ export function AdminMessages() {
     const [isInterviewMode, setIsInterviewMode] = useState(false);
     const [djName, setDjName] = useState('');
     const [interviewType, setInterviewType] = useState<'Vidéo' | 'Écrite'>('Vidéo');
-    const [selectedEditorUsernames, setSelectedEditorUsernames] = useState<string[]>([]);
 
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
@@ -65,21 +64,9 @@ export function AdminMessages() {
         }
     };
 
-    const fetchEditors = async () => {
-        try {
-            const res = await fetch('/api/editors', { headers: getAuthHeaders() });
-            if (res.ok) {
-                const data = await res.json();
-                setEditors(data || []);
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
 
     useEffect(() => {
         fetchMessages();
-        fetchEditors();
     }, []);
 
     const openMessage = async (msg: ContactMessage) => {
@@ -277,11 +264,10 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    // Effect to auto-update email body based on mode
     useEffect(() => {
         if (!isNewMail) return;
 
-        const currentName = selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ');
+        const currentName = signatureName;
 
         if (isAccreditationMode) {
             setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, currentName));
@@ -309,7 +295,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
             }
         }
-    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, selectedEditorUsernames, isNewMail, editors]);
+    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, isNewMail, signatureName]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -348,8 +334,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmails(['']);
-                                setSenderEmail('');
-                                setSelectedEditorUsernames([]);
+                                setSenderEmail('contact@dropsiders.fr');
+                                setSignatureName('');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
                                 setIsInterviewMode(false);
@@ -607,18 +593,13 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                         )}
                                         <div className="flex items-center gap-3">
                                             <span className="text-[10px] font-black uppercase text-gray-500 w-24">Expéditeur :</span>
-                                            <select
+                                            <input
+                                                type="text"
                                                 value={senderEmail}
                                                 onChange={(e) => setSenderEmail(e.target.value)}
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-red focus:outline-none focus:border-neon-red/50 flex-1"
-                                            >
-                                                <option value="contact@dropsiders.fr">contact@dropsiders.fr</option>
-                                                <option value="partenariat@dropsiders.fr">partenariat@dropsiders.fr</option>
-                                                <option value="presse@dropsiders.fr">presse@dropsiders.fr</option>
-                                                <option value="alex@dropsiders.fr">alex@dropsiders.fr</option>
-                                                <option value="hugo@dropsiders.fr">hugo@dropsiders.fr</option>
-                                                <option value="samy@dropsiders.fr">samy@dropsiders.fr</option>
-                                            </select>
+                                                placeholder="contact@dropsiders.fr"
+                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-red focus:outline-none focus:border-neon-red/50 flex-1 font-bold"
+                                            />
                                         </div>
                                         {isNewMail && (
                                             <div className="flex items-center gap-3">
@@ -632,26 +613,15 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 />
                                             </div>
                                         )}
-                                        <div className="flex flex-col gap-2 mt-2">
-                                            <span className="text-[10px] font-black uppercase text-gray-500">SIGNÉ PAR (OBLIGATOIRE) :</span>
-                                            <div className="flex flex-wrap gap-2">
-                                                {editors.map(editor => (
-                                                    <button
-                                                        key={editor.username}
-                                                        onClick={() => {
-                                                            setSelectedEditorUsernames(prev =>
-                                                                prev.includes(editor.username)
-                                                                    ? prev.filter(u => u !== editor.username)
-                                                                    : [...prev, editor.username]
-                                                            )
-                                                        }}
-                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${selectedEditorUsernames.includes(editor.username) ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                                    >
-                                                        {editor.name}
-                                                    </button>
-                                                ))}
-                                                {editors.length === 0 && <span className="text-[10px] text-gray-600 italic">Chargement des éditeurs...</span>}
-                                            </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24">Signé par :</span>
+                                            <input
+                                                type="text"
+                                                value={signatureName}
+                                                onChange={(e) => setSignatureName(e.target.value)}
+                                                placeholder="Ex: Alex"
+                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1"
+                                            />
                                         </div>
                                         {!isNewMail && (
                                             <div className="flex items-center gap-3">
@@ -667,7 +637,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
-                                                    setReplyBody(getPressReleaseTemplate(accreditationLang, selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ')));
+                                                    setReplyBody(getPressReleaseTemplate(accreditationLang, signatureName));
                                                     if (accreditationLang === 'FR') {
                                                         setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                                     } else {
@@ -848,9 +818,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 <div className="p-6 text-center">
                                                     <div className="text-white text-sm font-black italic uppercase mb-2">
                                                         Cordialement, <br />
-                                                        {selectedEditorUsernames.length > 0 && (
+                                                        {signatureName && (
                                                             <span className="text-gray-400 block mb-1 text-[11px] normal-case">
-                                                                {selectedEditorUsernames.map(u => editors.find(e => e.username === u)?.name).filter(Boolean).join(' & ')}
+                                                                {signatureName}
                                                             </span>
                                                         )}
                                                         L'équipe <span className="text-neon-red">Dropsiders</span>
@@ -887,7 +857,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 </button>
                                 <button
                                     onClick={handleReply}
-                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && selectedEditorUsernames.length === 0)}
+                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim()}
                                     className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Send className="w-4 h-4" />
@@ -927,6 +897,6 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div>
+        </div >
     );
 }

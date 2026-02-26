@@ -136,8 +136,8 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                             {event.title}
                                         </h4>
                                     </div>
-                                    <div className="text-center bg-white/5 rounded-lg p-1.5 min-w-[2.8rem] border border-white/5 flex flex-col justify-center min-h-[3.2rem]">
-                                        <span className={`block text-[7px] ${styles.text} font-bold uppercase leading-none mb-1 tracking-tighter`}>
+                                    <div className="text-center bg-white/5 rounded-lg p-1.5 min-w-[3.2rem] border border-white/5 flex flex-col justify-center min-h-[3.2rem]">
+                                        <span className={`block text-[6.5px] ${styles.text} font-bold uppercase leading-none mb-1 tracking-tighter`}>
                                             {event.startDate && event.endDate && event.startDate !== event.endDate ? (
                                                 <>
                                                     {new Date(event.startDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}
@@ -148,7 +148,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                                 new Date(event.startDate || event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')
                                             )}
                                         </span>
-                                        <span className="block text-sm font-bold text-white leading-none">
+                                        <span className="block text-xs font-bold text-white leading-none">
                                             {new Date(event.date || event.startDate).getDate()}
                                         </span>
                                     </div>

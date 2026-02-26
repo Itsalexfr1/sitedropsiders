@@ -40,7 +40,7 @@ export function AlbumDetail() {
     const shareLinks = {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
         x: `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
-        whatsapp: `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + " " + shareUrl)}`
+        instagram: `https://www.instagram.com/dropsiders/`
     };
 
     const handleShare = async () => {
@@ -124,17 +124,6 @@ export function AlbumDetail() {
                                 )}
                                 {/* Social Share Group */}
                                 <div className="flex items-center gap-2 bg-black/40 backdrop-blur-xl p-1.5 rounded-2xl border border-white/10">
-                                    {/* X (Twitter) */}
-                                    <a
-                                        href={shareLinks.x}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
-                                        title="Partager sur X"
-                                    >
-                                        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-4 h-4 invert opacity-70 group-hover:opacity-100 transition-opacity" />
-                                    </a>
-
                                     {/* Facebook */}
                                     <a
                                         href={shareLinks.facebook}
@@ -146,15 +135,26 @@ export function AlbumDetail() {
                                         <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
                                     </a>
 
-                                    {/* WhatsApp */}
+                                    {/* Instagram */}
                                     <a
-                                        href={shareLinks.whatsapp}
+                                        href={shareLinks.instagram}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
-                                        title="Partager sur WhatsApp"
+                                        title="Partager sur Instagram"
                                     >
-                                        <img src="https://cdn-icons-png.flaticon.com/512/733/733585.png" alt="WhatsApp" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                        <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                    </a>
+
+                                    {/* X (Twitter) */}
+                                    <a
+                                        href={shareLinks.x}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
+                                        title="Partager sur X"
+                                    >
+                                        <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-4 h-4 invert opacity-70 group-hover:opacity-100 transition-opacity" />
                                     </a>
 
                                     <div className="w-[1px] h-6 bg-white/10 mx-1" />

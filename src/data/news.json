@@ -172,7 +172,7 @@
     "id": 223,
     "title": "FAST QUIZZ : Dannic",
     "date": "2026-02-25",
-    "summary": "TITRE DE L'ARTICLE",
+    "summary": "Fast Quiz avec Dannic à l'Amnesia Cap d'Agde.",
     "content": "",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772063199/dropsiders/lk0rfckxxfifdsl1a22s.jpg",
     "images": [],
@@ -575,7 +575,7 @@
     ],
     "youtubeId": "",
     "category": "News",
-    "isFeatured": false,
+    "isFeatured": true,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/180_world-club-dome-shl-mo-et-carv-cart-s-du-festival-apr-s-des-all-gations-de-violences-",
     "author": "Alex"
