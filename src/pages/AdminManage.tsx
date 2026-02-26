@@ -758,8 +758,8 @@ export function AdminManage() {
                                                             </span>
                                                         )
                                                     ) : (
-                                                        <span className="text-[10px] text-gray-600 italic uppercase font-bold tracking-widest opacity-40">
-                                                            Non renseigné
+                                                        <span className="text-xs font-black uppercase text-neon-cyan tracking-wider">
+                                                            Alex
                                                         </span>
                                                     )}
                                                 </td>

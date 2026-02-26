@@ -310,7 +310,7 @@ export function Interviews() {
                                                     </div>
                                                 </div>
 
-                                                <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
+                                                <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-3"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                 />
 
