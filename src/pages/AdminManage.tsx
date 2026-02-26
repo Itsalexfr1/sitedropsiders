@@ -50,6 +50,7 @@ export function AdminManage() {
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [activePhotoId, setActivePhotoId] = useState<number | string | null>(null);
     const [team, setTeam] = useState<any[]>([]);
+    const [featuredTarget, setFeaturedTarget] = useState<any | null>(null);
 
     useEffect(() => {
         const fetchTeam = async () => {
@@ -811,7 +812,7 @@ export function AdminManage() {
                                                     )}
                                                     {['News', 'Musique', 'Interviews', 'Recaps'].includes(activeTab) && (
                                                         <button
-                                                            onClick={() => handleToggleFeatured(item)}
+                                                            onClick={() => setFeaturedTarget(item)}
                                                             className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 opacity-0 group-hover:opacity-100'}`}
                                                             title={item.isFeatured ? "Retirer de la une" : "Mettre à la une"}
                                                         >
@@ -941,6 +942,23 @@ export function AdminManage() {
                 onUploadSuccess={handleUpdatePhoto}
                 accentColor="neon-pink"
                 aspect={4 / 3}
+            />
+
+            <ConfirmationModal
+                isOpen={featuredTarget !== null}
+                title={featuredTarget?.isFeatured ? "Retirer de la une" : "Mettre à la une"}
+                message={featuredTarget?.isFeatured
+                    ? `Retirer "${featuredTarget?.title}" de la une ?`
+                    : `Mettre "${featuredTarget?.title}" à la une ? L'article actuellement en avant sera remplacé.`
+                }
+                confirmLabel={featuredTarget?.isFeatured ? "Retirer" : "Mettre à la une"}
+                cancelLabel="Annuler"
+                onConfirm={() => {
+                    if (featuredTarget) handleToggleFeatured(featuredTarget);
+                    setFeaturedTarget(null);
+                }}
+                onCancel={() => setFeaturedTarget(null)}
+                accentColor="neon-yellow"
             />
         </div>
     );
