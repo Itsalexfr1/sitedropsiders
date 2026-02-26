@@ -9,7 +9,7 @@ export function AdminSettings() {
     const navigate = useNavigate();
     const [shopPassword, setShopPassword] = useState('');
     const [kitMediaPassword, setKitMediaPassword] = useState('');
-    const [adminPassword, setAdminPassword] = useState('');
+    const [adminPassword, setAdminPassword] = useState(localStorage.getItem('admin_password') || '');
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showShopPassword, setShowShopPassword] = useState(false);
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
@@ -193,6 +193,8 @@ export function AdminSettings() {
                                     </div>
                                     <input
                                         type={showAdminPassword ? "text" : "password"}
+                                        name="password"
+                                        autoComplete="current-password"
                                         value={adminPassword}
                                         onChange={(e) => setAdminPassword(e.target.value)}
                                         className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-cyan transition-all"
@@ -312,8 +314,8 @@ export function AdminSettings() {
                             className="fixed bottom-12 left-1/2 z-[200]"
                         >
                             <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success'
-                                    ? 'bg-green-500/10 border-green-500/20 text-green-400'
-                                    : 'bg-red-500/10 border-red-500/20 text-red-500'
+                                ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                                : 'bg-red-500/10 border-red-500/20 text-red-500'
                                 }`}>
                                 <div className={`p-2 rounded-full ${toast.type === 'success' ? 'bg-green-500/20' : 'bg-red-500/20'}`}>
                                     {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}

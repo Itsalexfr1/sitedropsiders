@@ -337,6 +337,8 @@ export function AdminDashboard() {
                                 </div>
                                 <input
                                     type="text"
+                                    name="username"
+                                    autoComplete="username"
                                     placeholder="Identifiant"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
@@ -349,6 +351,8 @@ export function AdminDashboard() {
                                 </div>
                                 <input
                                     type="password"
+                                    name="password"
+                                    autoComplete="current-password"
                                     placeholder="Mot de passe"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

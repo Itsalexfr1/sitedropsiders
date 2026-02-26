@@ -9,8 +9,8 @@ export function Shop() {
     const [isEnabled, setIsEnabled] = useState(initialSettings.shop_enabled);
     const [isPasswordProtected, setIsPasswordProtected] = useState((initialSettings as any).shop_password_protected || false);
     const [passwordImage, setPasswordImage] = useState((initialSettings as any).shop_password_image || '');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [passwordInput, setPasswordInput] = useState('');
+    const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('shop_auth') === 'true');
+    const [passwordInput, setPasswordInput] = useState(localStorage.getItem('shop_password_saved') || '');
     const [passwordError, setPasswordError] = useState(false);
     const [shopAuthPassword, setShopAuthPassword] = useState((initialSettings as any).shop_password || '2026');
     const [products, setProducts] = useState<any[]>([]);
@@ -52,6 +52,8 @@ export function Shop() {
         if (passwordInput.toUpperCase() === shopAuthPassword.toUpperCase()) {
             setIsAuthenticated(true);
             setPasswordError(false);
+            localStorage.setItem('shop_auth', 'true');
+            localStorage.setItem('shop_password_saved', passwordInput);
         } else {
             setPasswordError(true);
         }

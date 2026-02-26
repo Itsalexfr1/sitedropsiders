@@ -25,8 +25,8 @@ interface ServiceItem {
 
 const KitMedia = () => {
     const { language, setLanguage } = useLanguage();
-    const [password, setPassword] = useState('');
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [password, setPassword] = useState(localStorage.getItem('kit_media_password_saved') || '');
+    const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('kit_media_auth') === 'true');
     const [error, setError] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -39,6 +39,8 @@ const KitMedia = () => {
             if (password.toUpperCase() === correctPass.toUpperCase()) {
                 setIsAuthenticated(true);
                 setError('');
+                localStorage.setItem('kit_media_auth', 'true');
+                localStorage.setItem('kit_media_password_saved', password);
             } else {
                 setError(language === 'fr' ? "Code d'accès incorrect" : "Incorrect access code");
                 shakeForm();
@@ -48,6 +50,8 @@ const KitMedia = () => {
             if (password.toUpperCase() === '2026') {
                 setIsAuthenticated(true);
                 setError('');
+                localStorage.setItem('kit_media_auth', 'true');
+                localStorage.setItem('kit_media_password_saved', password);
             } else {
                 setError(language === 'fr' ? "Code d'accès incorrect" : "Incorrect access code");
                 shakeForm();
