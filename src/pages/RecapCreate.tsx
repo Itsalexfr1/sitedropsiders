@@ -2045,14 +2045,26 @@ export function RecapCreate() {
                                 ) : (
                                     <div>
                                         <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">URL {mediaModal.type === 'video' ? 'YouTube / ID' : 'de l\'image'}</label>
-                                        <input
-                                            type="text"
-                                            value={mediaModal.url}
-                                            onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-red transition-all text-xs"
-                                            placeholder={mediaModal.type === 'video' ? "Ex: https://youtube.com/watch?v=..." : "https://site.com/image.jpg"}
-                                            autoFocus
-                                        />
+                                        <div className="relative group/input">
+                                            <input
+                                                type="text"
+                                                value={mediaModal.url}
+                                                onChange={e => setMediaModal({ ...mediaModal, url: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-red transition-all text-xs"
+                                                placeholder={mediaModal.type === 'video' ? "Ex: https://youtube.com/watch?v=..." : "https://site.com/image.jpg"}
+                                                autoFocus
+                                            />
+                                            {mediaModal.url && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ ...mediaModal, url: '' })}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                                    title="Effacer"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 
@@ -2224,21 +2236,33 @@ export function RecapCreate() {
                                 <div>
                                     <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Gauche (URL)</label>
                                     <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={duoModal.url1}
-                                            onChange={e => setDuoModal({ ...duoModal, url1: e.target.value })}
-                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-purple transition-all"
-                                            placeholder="https://..."
-                                            autoFocus
-                                        />
+                                        <div className="flex-1 relative group/input">
+                                            <input
+                                                type="text"
+                                                value={duoModal.url1}
+                                                onChange={e => setDuoModal({ ...duoModal, url1: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-purple transition-all"
+                                                placeholder="https://..."
+                                                autoFocus
+                                            />
+                                            {duoModal.url1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDuoModal({ ...duoModal, url1: '' })}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                                    title="Effacer"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setUploadTarget({ type: 'duo1' as any, initialImage: duoModal.url1 });
                                                 setShowUploadModal(true);
                                             }}
-                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
+                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all font-black"
                                         >
                                             Upload
                                         </button>
@@ -2247,20 +2271,32 @@ export function RecapCreate() {
                                 <div>
                                     <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Droite (URL)</label>
                                     <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={duoModal.url2}
-                                            onChange={e => setDuoModal({ ...duoModal, url2: e.target.value })}
-                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-purple transition-all"
-                                            placeholder="https://..."
-                                        />
+                                        <div className="flex-1 relative group/input">
+                                            <input
+                                                type="text"
+                                                value={duoModal.url2}
+                                                onChange={e => setDuoModal({ ...duoModal, url2: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-purple transition-all"
+                                                placeholder="https://..."
+                                            />
+                                            {duoModal.url2 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setDuoModal({ ...duoModal, url2: '' })}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                                    title="Effacer"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setUploadTarget({ type: 'duo2' as any, initialImage: duoModal.url2 });
                                                 setShowUploadModal(true);
                                             }}
-                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all"
+                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all font-black"
                                         >
                                             Upload
                                         </button>

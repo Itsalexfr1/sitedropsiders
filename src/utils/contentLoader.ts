@@ -20,12 +20,12 @@ const allRecapsContent = [
     ...recapsContent2
 ];
 
-export const getNewsContent = (id: number): string | undefined => {
-    const item = allNewsContent.find((n: any) => n.id === id);
+export const getNewsContent = (id: number | string): string | undefined => {
+    const item = allNewsContent.find((n: any) => String(n.id) === String(id));
     return item ? item.content : undefined;
 };
 
-export const getRecapContent = (id: number): string | undefined => {
-    const item = allRecapsContent.find((r: any) => r.id === id);
+export const getRecapContent = (id: number | string): string | undefined => {
+    const item = allRecapsContent.find((r: any) => String(r.id) === String(id));
     return item ? item.content : undefined;
 };

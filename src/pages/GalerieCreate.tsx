@@ -466,8 +466,18 @@ export function GalerieCreate() {
                                         value={coverUrl}
                                         onChange={(e) => setCoverUrl(e.target.value)}
                                         placeholder="Laisser vide pour la 1ère image ou uploadez"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-10 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
                                     />
+                                    {coverUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setCoverUrl('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                            title="Effacer"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                                 <button
                                     type="button"
@@ -494,8 +504,18 @@ export function GalerieCreate() {
                                         value={hoverMediaUrl}
                                         onChange={(e) => setHoverMediaUrl(e.target.value)}
                                         placeholder="URL vidéo (.mp4) ou Image pour l'effet de hover"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue transition-all"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-10 text-white placeholder-gray-600 focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue transition-all"
                                     />
+                                    {hoverMediaUrl && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setHoverMediaUrl('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                            title="Effacer"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
                                 <button
                                     type="button"
