@@ -57,8 +57,10 @@ export function Interviews() {
     const articlesPerPage = 8;
 
     const allInterviews = useMemo(() => {
+        const today = new Date().toISOString().split('T')[0];
         const base = (newsData as any[])
             .filter((item: any) => {
+                if (item.date > today) return false;
                 const cat = (item.category || '').toLowerCase();
                 return cat.includes('interview');
             });

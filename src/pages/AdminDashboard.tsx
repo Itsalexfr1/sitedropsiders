@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, Rocket, CheckCircle2, AlertCircle, Loader2, ExternalLink, LogOut
+    Youtube, CheckCircle2, Loader2, LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -105,10 +105,7 @@ export function AdminDashboard() {
         }
     };
 
-    // --- DEPLOY STATE ---
-    const [deployStatus, setDeployStatus] = useState<'idle' | 'loading' | 'queued' | 'in_progress' | 'success' | 'failure'>('idle');
-    const [deployRunUrl, setDeployRunUrl] = useState<string | null>(null);
-    const deployPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
 
     const colors = [
         { name: 'Red', value: 'red' },
@@ -503,60 +500,7 @@ export function AdminDashboard() {
     const isAdminAcc = storedPermissions.includes('all');
     // isAlex already declared above at line 330
 
-    const deployToProduction = async () => {
-        setDeployStatus('loading');
-        setDeployRunUrl(null);
-        if (deployPollRef.current) clearInterval(deployPollRef.current);
 
-        try {
-            const response = await fetch('/api/deploy', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ reason: 'Mise en ligne manuelle depuis le tableau de bord admin' })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok || !data.success) {
-                console.error('Erreur deploy:', data.error);
-                setDeployStatus('failure');
-                setTimeout(() => setDeployStatus('idle'), 6000);
-                return;
-            }
-
-            setDeployStatus(data.status === 'in_progress' ? 'in_progress' : 'queued');
-            if (data.runUrl) setDeployRunUrl(data.runUrl);
-
-            // Poll for status every 5s
-            if (data.runId) {
-                deployPollRef.current = setInterval(async () => {
-                    try {
-                        const statusRes = await fetch(`/api/deploy/status?runId=${data.runId}`);
-                        const statusData = await statusRes.json();
-
-                        if (statusData.status === 'in_progress') {
-                            setDeployStatus('in_progress');
-                        } else if (statusData.status === 'completed') {
-                            clearInterval(deployPollRef.current!);
-                            setDeployStatus(statusData.conclusion === 'success' ? 'success' : 'failure');
-                            setTimeout(() => setDeployStatus('idle'), 10000);
-                        }
-                        if (statusData.runUrl) setDeployRunUrl(statusData.runUrl);
-                    } catch { /* ignore poll errors */ }
-                }, 5000);
-            } else {
-                // No runId: just show queued for a bit
-                setTimeout(() => {
-                    setDeployStatus('success');
-                    setTimeout(() => setDeployStatus('idle'), 8000);
-                }, 4000);
-            }
-        } catch (e) {
-            console.error('Deploy error:', e);
-            setDeployStatus('failure');
-            setTimeout(() => setDeployStatus('idle'), 6000);
-        }
-    };
 
     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
 
@@ -670,43 +614,6 @@ export function AdminDashboard() {
                                     <Megaphone className="w-4 h-4" />
                                     Bandeau
                                 </button>
-                            )}
-                            {/* Bouton Mise en ligne - Alex uniquement */}
-                            {isAlex && (
-                                <motion.button
-                                    whileHover={deployStatus === 'idle' ? { scale: 1.03 } : {}}
-                                    whileTap={deployStatus === 'idle' ? { scale: 0.97 } : {}}
-                                    onClick={() => deployStatus === 'idle' && deployToProduction()}
-                                    disabled={deployStatus !== 'idle'}
-                                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${deployStatus === 'idle'
-                                        ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.4)]'
-                                        : deployStatus === 'loading' || deployStatus === 'queued'
-                                            ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400 cursor-wait'
-                                            : deployStatus === 'in_progress'
-                                                ? 'bg-blue-500/10 border-blue-500/30 text-blue-400 cursor-wait'
-                                                : deployStatus === 'success'
-                                                    ? 'bg-green-500/10 border-green-500/30 text-green-400'
-                                                    : 'bg-red-500/10 border-red-500/30 text-red-400'
-                                        }`}
-                                    title="Déclencher un déploiement en production"
-                                >
-                                    {deployStatus === 'idle' && <><Rocket className="w-4 h-4" /> Mise en ligne</>}
-                                    {(deployStatus === 'loading' || deployStatus === 'queued') && <><Loader2 className="w-4 h-4 animate-spin" /> En attente...</>}
-                                    {deployStatus === 'in_progress' && <><Loader2 className="w-4 h-4 animate-spin" /> Build en cours...</>}
-                                    {deployStatus === 'success' && <><CheckCircle2 className="w-4 h-4" /> En ligne !</>}
-                                    {deployStatus === 'failure' && <><AlertCircle className="w-4 h-4" /> Échec</>}
-                                </motion.button>
-                            )}
-                            {deployRunUrl && (deployStatus === 'in_progress' || deployStatus === 'success' || deployStatus === 'failure') && (
-                                <a
-                                    href={deployRunUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-400 hover:text-white transition-all"
-                                    title="Voir le déploiement sur GitHub Actions"
-                                >
-                                    <ExternalLink className="w-4 h-4" />
-                                </a>
                             )}
                         </div>
                     </div>

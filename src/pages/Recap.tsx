@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Video } from 'lucide-react';
@@ -51,7 +51,10 @@ export function Recap() {
     };
     const articlesPerPage = 8; // 2 rows of 4 items per page
 
-    const recaps = recapsData as any[];
+    const recaps = useMemo(() => {
+        const today = new Date().toISOString().split('T')[0];
+        return (recapsData as any[]).filter(item => item.date <= today);
+    }, []);
     const totalPages = Math.ceil(recaps.length / articlesPerPage);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});

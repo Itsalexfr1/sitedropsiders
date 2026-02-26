@@ -12,12 +12,14 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor, feature
     const { t, language } = useLanguage();
 
     const displayInterviews = useMemo(() => {
+        const today = new Date().toISOString().split('T')[0];
         const all = newsData as any[];
-        const baseInterviews = all.filter((item: any) =>
-            item.category === 'Interview' ||
-            item.category === 'Interviews' ||
-            item.category === 'Interview Video'
-        ).sort((a, b) => {
+        const baseInterviews = all.filter((item: any) => {
+            if (item.date > today) return false;
+            return item.category === 'Interview' ||
+                item.category === 'Interviews' ||
+                item.category === 'Interview Video';
+        }).sort((a, b) => {
             const dateA = new Date(a.date).getTime();
             const dateB = new Date(b.date).getTime();
             if (dateB !== dateA) return dateB - dateA;

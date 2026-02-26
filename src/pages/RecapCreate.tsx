@@ -852,7 +852,7 @@ export function RecapCreate() {
             await response.json();
             setStatus('success');
             setIsDirty(false);
-            setMessage(isEditing ? 'Récap mis à jour avec succès !' : 'Récap publié avec succès !');
+            setMessage(isEditing ? 'Récap mis à jour avec succès !' : (date > new Date().toISOString().split('T')[0] ? 'Récap programmé avec succès !' : 'Récap publié avec succès !'));
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (!isEditing) {
@@ -1029,6 +1029,11 @@ export function RecapCreate() {
                                         required
                                     />
                                 </div>
+                                {date > new Date().toISOString().split('T')[0] && (
+                                    <p className="mt-2 text-[10px] text-neon-orange font-bold uppercase tracking-widest italic">
+                                        Le récap est programmé. Il apparaîtra automatiquement à cette date.
+                                    </p>
+                                )}
                             </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center justify-between">
@@ -1831,7 +1836,7 @@ export function RecapCreate() {
                                 ) : (
                                     <>
                                         <Send className="w-5 h-5" />
-                                        {isEditing ? 'Mettre à jour le Récap' : 'Publier le Récap'}
+                                        {isEditing ? 'Mettre à jour le Récap' : (date > new Date().toISOString().split('T')[0] ? 'Programmer le Récap' : 'Publier le Récap')}
                                     </>
                                 )}
                             </button>

@@ -13,7 +13,8 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     const { t, language } = useLanguage();
 
     const recentNews = useMemo(() => {
-        const all = [...(newsData as any[])];
+        const today = new Date().toISOString().split('T')[0];
+        const all = [...(newsData as any[])].filter(item => item.date <= today);
         const featured = all.find(item => item.isFeatured);
 
         // Logical fallback to identify which one is in the Hero slot

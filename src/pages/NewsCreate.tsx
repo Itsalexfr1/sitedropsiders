@@ -1171,7 +1171,7 @@ ${generateFestivalSocialsHtml()}
                 await response.json();
                 setStatus('success');
                 setIsDirty(false);
-                setMessage(isEditing ? 'Article mis à jour avec succès !' : 'Article publié avec succès !');
+                setMessage(isEditing ? 'Article mis à jour avec succès !' : (date > new Date().toISOString().split('T')[0] ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 if (!isEditing) {
@@ -1427,6 +1427,11 @@ ${generateFestivalSocialsHtml()}
                                         className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none transition-all"
                                     />
                                 </div>
+                                {date > new Date().toISOString().split('T')[0] && (
+                                    <p className="mt-2 text-[10px] text-neon-orange font-bold uppercase tracking-widest italic">
+                                        L'article est programmé. Il apparaîtra automatiquement à cette date.
+                                    </p>
+                                )}
                             </div>
                         </div>
 
@@ -2604,7 +2609,7 @@ ${generateFestivalSocialsHtml()}
                                 : 'bg-gradient-to-r from-neon-orange to-neon-red hover:shadow-[0_0_20px_rgba(255,102,0,0.4)]'
                                 } text-white`}
                         >
-                            {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : 'Publier l\'article')}
+                            {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour l\'article' : (date > new Date().toISOString().split('T')[0] ? 'Programmer l\'article' : 'Publier l\'article'))}
                         </button>
 
                         {isEditing && (
