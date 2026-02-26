@@ -251,10 +251,7 @@ export function AdminDashboard() {
         { title: "Spotify", description: "Playlists accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
         { title: "Shop", description: "Gérer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
-        { title: "Abonnés", description: "Gérer la liste mail", icon: "Users", link: "/newsletter/admin", color: "border-white/10 hover:border-white/40", bg: "bg-white/5", permission: "all", baseColor: "white", columns: 1 },
-        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 2 },
-        { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 3 },
-        { title: "Mots de passe", description: "Accès & Sécurité", icon: "Lock", link: "/admin/settings", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
+        { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "superadmin", baseColor: "blue", columns: 2 },
         { title: "MESSAGERIE & CONTACT", description: "Accès Messagerie & Contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
     ];
 
@@ -1944,8 +1941,36 @@ export function AdminDashboard() {
                                         <Users className="w-6 h-6 text-neon-blue" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer la Team</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir & Modifier l'équipe</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">La Dream Team</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Présentation publique de l'équipe</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/editors"
+                                    onClick={() => setIsTeamModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Lock className="w-6 h-6 text-neon-red" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gestion des Éditeurs</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Comptes & Permissions</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/settings"
+                                    onClick={() => setIsTeamModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Settings2 className="w-6 h-6 text-neon-purple" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Sécurité</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Mots de passe système</p>
                                     </div>
                                 </Link>
                             </div>
