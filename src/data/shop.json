@@ -1,6 +1,26 @@
 {
   "products": [
     {
+      "name": "Polo Dropsiders Logo White",
+      "price": "19.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123189/dropsiders/mvuesulylauh5udwqaqq.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/polo-dropsiders-logo-white",
+      "colors": [
+        "#000000",
+        "#2b65ec"
+      ],
+      "colorImages": {
+        "#2b65ec": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123206/dropsiders/qbytegevukg4mcoexnsh.avif",
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123213/dropsiders/znczrsdelb2eqxriadhh.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123195/dropsiders/o9jwvld3riudv8ahxa0n.avif",
+      "id": 6,
+      "createdAt": "2026-02-26T16:27:02.213Z"
+    },
+    {
       "name": "Tee Shirt Logo White Simple",
       "price": "13.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123107/dropsiders/wni6xjsp2aj4gnjzhu08.avif",
