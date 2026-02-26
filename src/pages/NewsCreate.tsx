@@ -190,6 +190,7 @@ export function NewsCreate() {
     const [isFeatured, setIsFeatured] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [artistSocials, setArtistSocials] = useState({
         website: '',
         instagram: '',
@@ -1013,17 +1014,13 @@ export function NewsCreate() {
         }
     };
 
-    const handleSubmit = async (publishNow = false) => {
-        let finalDate = date;
+    const handleSubmit = async (publishNow = false, scheduleDate?: string) => {
+        let finalDate = scheduleDate || date;
         if (publishNow) {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             finalDate = now.toISOString().slice(0, 16);
             setDate(finalDate);
-        } else if (finalDate <= new Date().toISOString().slice(0, 16)) {
-            setStatus('error');
-            setMessage('Veuillez choisir une date future pour programmer.');
-            return;
         }
 
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
@@ -1312,7 +1309,7 @@ ${generateFestivalSocialsHtml()}
 
                         <button
                             type="button"
-                            onClick={() => handleSubmit(false)}
+                            onClick={() => setShowScheduleModal(true)}
                             disabled={status === 'loading'}
                             className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
                                 ? 'bg-gray-600 cursor-not-allowed opacity-50'
@@ -1455,32 +1452,6 @@ ${generateFestivalSocialsHtml()}
                                         <Wand2 className="w-4 h-4" />
                                     </button>
                                 </div>
-                            </div>
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">Date de Publication <span className="text-neon-red">*</span></label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDate(new Date().toISOString().split('T')[0])}
-                                        className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
-                                    >
-                                        Aujourd'hui
-                                    </button>
-                                </div>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="datetime-local"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none transition-all"
-                                    />
-                                </div>
-                                {date > new Date().toISOString().slice(0, 16) && (
-                                    <p className="mt-2 text-[10px] text-neon-orange font-bold uppercase tracking-widest italic">
-                                        L'article est programmé à cette heure et apparaîtra automatiquement.
-                                    </p>
-                                )}
                             </div>
                         </div>
 
@@ -2684,7 +2655,7 @@ ${generateFestivalSocialsHtml()}
                             </button>
 
                             <button
-                                onClick={() => handleSubmit(false)}
+                                onClick={() => setShowScheduleModal(true)}
                                 disabled={status === 'loading'}
                                 className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
                                     ? 'bg-gray-600 cursor-not-allowed'
@@ -2692,7 +2663,7 @@ ${generateFestivalSocialsHtml()}
                                     } text-white flex items-center justify-center gap-2`}
                             >
                                 <Calendar className="w-5 h-5" />
-                                {status === 'loading' ? 'Programmation...' : 'Programmer à la date choisie'}
+                                {status === 'loading' ? 'Programmation...' : 'Programmer l\'article'}
                             </button>
                         </div>
 
@@ -3245,6 +3216,89 @@ ${generateFestivalSocialsHtml()}
                                     >
                                         Confirmer
                                     </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Schedule Modal */}
+            <AnimatePresence>
+                {showScheduleModal && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowScheduleModal(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                        >
+                            <button
+                                onClick={() => setShowScheduleModal(false)}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="w-12 h-12 bg-neon-orange/10 rounded-2xl flex items-center justify-center border border-neon-orange/30 mb-6">
+                                <Calendar className="w-6 h-6 text-neon-orange" />
+                            </div>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-2">
+                                Programmer l'article
+                            </h3>
+                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-6">
+                                Choisissez la date et l'heure de publication
+                            </p>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Date & Heure</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date();
+                                                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                                                setDate(now.toISOString().slice(0, 16));
+                                            }}
+                                            className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
+                                        >
+                                            Maintenant
+                                        </button>
+                                    </div>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-neon-orange transition-colors" />
+                                        <input
+                                            type="datetime-local"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-orange outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <button
+                                        onClick={() => {
+                                            setShowScheduleModal(false);
+                                            handleSubmit(false);
+                                        }}
+                                        className="w-full py-4 bg-gradient-to-r from-neon-orange to-neon-red text-white rounded-xl font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-neon-red/20"
+                                    >
+                                        Confirmer la programmation
+                                    </button>
+
+                                    <p className="text-[9px] text-gray-500 text-center font-bold uppercase tracking-[0.1em] px-4">
+                                        L'article sera publié {date > new Date().toISOString().slice(0, 16) ? 'automatiquement' : ' Immédiatement'} à la date indiquée.
+                                    </p>
                                 </div>
                             </div>
                         </motion.div>

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { getAuthHeaders } from '../utils/auth';
 import editorsData from '../data/editors.json';
-import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Check, Send, Image as ImageIcon, FileText, Calendar, AlertCircle, Grid, ArrowLeft, Trash2, Edit2, Film, Plus, X } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -79,6 +80,7 @@ export function GalerieCreate() {
         return found ? found.name : 'Alex';
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
 
     // Fetch item if missing from state but ID is present
     useEffect(() => {
@@ -176,8 +178,15 @@ export function GalerieCreate() {
     // Upload functions removed in favor of external link
 
 
-    const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any) => {
+    const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any, publishNow = false, scheduleDate?: string) => {
         if (e && (e as any).preventDefault) (e as any).preventDefault();
+
+        let finalDate = scheduleDate || date;
+        if (publishNow) {
+            // Keep year as is or set to current year
+            finalDate = new Date().getFullYear().toString();
+            setDate(finalDate);
+        }
 
         if (!isAuthorConfirmed) {
             setStatus('error');
@@ -205,7 +214,7 @@ export function GalerieCreate() {
                 body: JSON.stringify({
                     id: isEditing ? id : undefined,
                     title,
-                    date,
+                    date: finalDate,
                     category,
                     cover: finalCover,
                     hoverMedia: hoverMediaUrl,
@@ -300,15 +309,28 @@ export function GalerieCreate() {
                     <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                         <button
                             type="button"
-                            onClick={(e) => handleSubmit(e)}
+                            onClick={() => handleSubmit(null, true)}
+                            disabled={status === 'loading'}
+                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-105 active:scale-95'
+                                }`}
+                        >
+                            <Send className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setShowScheduleModal(true)}
                             disabled={status === 'loading'}
                             className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
                                 ? 'bg-gray-600 cursor-not-allowed opacity-50'
                                 : 'bg-neon-pink hover:scale-105 active:scale-95 text-black shadow-[0_0_20px_rgba(255,0,149,0.4)]'
                                 }`}
                         >
-                            <Send className="w-4 h-4" />
-                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
+                            <Calendar className="w-4 h-4" />
+                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'CHANGER ANNÉE' : 'PROGRAMMER')}</span>
                         </button>
                     </div>
                 </div>
@@ -410,30 +432,6 @@ export function GalerieCreate() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Date (Year) */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année <span className="text-neon-red">*</span></label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDate(new Date().getFullYear().toString())}
-                                        className="text-[9px] font-black text-neon-pink hover:text-white uppercase tracking-widest transition-colors"
-                                    >
-                                        Cette année
-                                    </button>
-                                </div>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-pink transition-colors" />
-                                    <input
-                                        type="number"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        placeholder="2026"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
-                                        required
-                                    />
-                                </div>
-                            </div>
 
                             {/* Category */}
                             <div className="space-y-2">
@@ -655,24 +653,33 @@ export function GalerieCreate() {
                             </div>
                         </div>
 
-                        {/* Submit Button */}
-                        <button
-                            type="submit"
-                            disabled={status === 'loading'}
-                            className={`w-full py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
-                                ? 'bg-gray-600 cursor-not-allowed'
-                                : 'bg-neon-pink hover:bg-neon-pink/80 text-black'
-                                }`}
-                        >
-                            {status === 'loading' ? (
-                                'Publication en cours...'
-                            ) : (
-                                <>
-                                    <Send className="w-5 h-5" />
-                                    {isEditing ? 'Mettre à jour l\'Album' : 'Créer l\'Album'}
-                                </>
-                            )}
-                        </button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <button
+                                type="button"
+                                onClick={() => handleSubmit(null, true)}
+                                disabled={status === 'loading'}
+                                className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-[1.02] text-white'
+                                    }`}
+                            >
+                                <Send className="w-5 h-5" />
+                                {status === 'loading' ? 'Publication...' : (isEditing ? 'Mettre à jour' : 'Publier Maintenant')}
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setShowScheduleModal(true)}
+                                disabled={status === 'loading'}
+                                className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed'
+                                    : 'bg-neon-pink text-black hover:shadow-[0_0_20px_rgba(255,0,149,0.4)] hover:scale-[1.02]'
+                                    }`}
+                            >
+                                <Calendar className="w-5 h-5" />
+                                {status === 'loading' ? 'Programmation...' : (isEditing ? 'Changer l\'Année' : 'Programmer l\'Album')}
+                            </button>
+                        </div>
 
                         {/* Status Message */}
                         {status !== 'idle' && message && (
@@ -711,6 +718,82 @@ export function GalerieCreate() {
                 }}
                 accentColor="neon-pink"
             />
+
+            {/* Schedule Modal (Year Selection) */}
+            <AnimatePresence>
+                {showScheduleModal && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowScheduleModal(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                        >
+                            <button
+                                onClick={() => setShowScheduleModal(false)}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="w-12 h-12 bg-neon-pink/10 rounded-2xl flex items-center justify-center border border-neon-pink/30 mb-6">
+                                <Calendar className="w-6 h-6 text-neon-pink" />
+                            </div>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-2">
+                                Année de l'Album
+                            </h3>
+                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-6">
+                                Choisissez l'année d'affichage de l'album
+                            </p>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Année</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setDate(new Date().getFullYear().toString())}
+                                            className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
+                                        >
+                                            Cette année
+                                        </button>
+                                    </div>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-neon-pink transition-colors" />
+                                        <input
+                                            type="number"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            placeholder="2026"
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-pink outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <button
+                                        onClick={(e) => {
+                                            setShowScheduleModal(false);
+                                            handleSubmit(e, false);
+                                        }}
+                                        className="w-full py-4 bg-neon-pink text-black rounded-xl font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,149,0.3)]"
+                                    >
+                                        Confirmer & Publier
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
 
             <ConfirmationModal
                 isOpen={blocker.state === "blocked"}

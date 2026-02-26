@@ -135,6 +135,7 @@ export function RecapCreate() {
     const [youtubeId, setYoutubeId] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [author, setAuthor] = useState(() => {
         const stored = localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex';
         const found = (editorsData as any[]).find(e =>
@@ -797,19 +798,15 @@ export function RecapCreate() {
         setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined });
     };
 
-    const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any, publishNow = false) => {
+    const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any, publishNow = false, scheduleDate?: string) => {
         if (e && (e as any).preventDefault) (e as any).preventDefault();
 
-        let finalDate = date;
+        let finalDate = scheduleDate || date;
         if (publishNow) {
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             finalDate = now.toISOString().slice(0, 16);
             setDate(finalDate);
-        } else if (finalDate <= new Date().toISOString().slice(0, 16)) {
-            setStatus('error');
-            setMessage('Veuillez choisir une date future pour programmer.');
-            return;
         }
         if (!isAuthorConfirmed) {
             setStatus('error');
@@ -1038,7 +1035,7 @@ export function RecapCreate() {
 
                         <button
                             type="button"
-                            onClick={(e) => handleSubmit(e, false)}
+                            onClick={() => setShowScheduleModal(true)}
                             disabled={status === 'loading'}
                             className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
                                 ? 'bg-gray-600 cursor-not-allowed opacity-50'
@@ -1103,33 +1100,6 @@ export function RecapCreate() {
 
                         {/* Date & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date de Publication <span className="text-neon-red">*</span></label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setDate(new Date().toISOString().split('T')[0])}
-                                        className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
-                                    >
-                                        Aujourd'hui
-                                    </button>
-                                </div>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="datetime-local"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
-                                        required
-                                    />
-                                </div>
-                                {date > new Date().toISOString().slice(0, 16) && (
-                                    <p className="mt-2 text-[10px] text-neon-orange font-bold uppercase tracking-widest italic">
-                                        Le récap est programmé à cette heure et apparaîtra automatiquement.
-                                    </p>
-                                )}
-                            </div>
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center justify-between">
                                     <span>Vidéo de l'article</span>
@@ -1934,7 +1904,7 @@ export function RecapCreate() {
 
                                 <button
                                     type="button"
-                                    onClick={(e) => handleSubmit(e, false)}
+                                    onClick={() => setShowScheduleModal(true)}
                                     disabled={status === 'loading'}
                                     className={`py-4 rounded-xl font-bold uppercase tracking-widest transition-all ${status === 'loading'
                                         ? 'bg-gray-600 cursor-not-allowed'
@@ -1942,7 +1912,7 @@ export function RecapCreate() {
                                         } text-white flex items-center justify-center gap-2`}
                                 >
                                     <Calendar className="w-5 h-5" />
-                                    {status === 'loading' ? 'Programmation...' : 'Programmer à la date choisie'}
+                                    {status === 'loading' ? 'Programmation...' : 'Programmer le Récap'}
                                 </button>
                             </div>
 
@@ -2483,6 +2453,89 @@ export function RecapCreate() {
                 )}
             </AnimatePresence>
 
+            {/* Schedule Modal */}
+            <AnimatePresence>
+                {showScheduleModal && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowScheduleModal(false)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
+                        >
+                            <button
+                                onClick={() => setShowScheduleModal(false)}
+                                className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+
+                            <div className="w-12 h-12 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mb-6">
+                                <Calendar className="w-6 h-6 text-neon-red" />
+                            </div>
+
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-2">
+                                Programmer le Récap
+                            </h3>
+                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mb-6">
+                                Choisissez la date et l'heure de publication
+                            </p>
+
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Date & Heure</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const now = new Date();
+                                                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                                                setDate(now.toISOString().slice(0, 16));
+                                            }}
+                                            className="text-[9px] font-black text-neon-cyan hover:text-white uppercase tracking-widest transition-colors"
+                                        >
+                                            Maintenant
+                                        </button>
+                                    </div>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-neon-red transition-colors" />
+                                        <input
+                                            type="datetime-local"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-red outline-none transition-all"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <button
+                                        onClick={(e) => {
+                                            setShowScheduleModal(false);
+                                            handleSubmit(e, false);
+                                        }}
+                                        className="w-full py-4 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,18,65,0.3)]"
+                                    >
+                                        Confirmer la programmation
+                                    </button>
+
+                                    <p className="text-[9px] text-gray-500 text-center font-bold uppercase tracking-[0.1em] px-4">
+                                        Le récap sera publié {date > new Date().toISOString().slice(0, 16) ? 'automatiquement' : ' Immédiatement'} à la date indiquée.
+                                    </p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
             <ConfirmationModal
                 isOpen={blocker.state === "blocked"}
                 title="Modifications non enregistrées"
@@ -2498,7 +2551,7 @@ export function RecapCreate() {
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
             />
-        </div >
+        </div>
     );
 }
 
