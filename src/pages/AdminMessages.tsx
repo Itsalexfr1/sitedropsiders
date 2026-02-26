@@ -30,6 +30,7 @@ export function AdminMessages() {
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmail, setDestinationEmail] = useState('');
     const [senderEmail, setSenderEmail] = useState('');
+    const [senderName, setSenderName] = useState('');
     const [mailSubject, setMailSubject] = useState('');
 
     // Accreditation Request States
@@ -126,7 +127,7 @@ export function AdminMessages() {
         }
     };
 
-    const PRESS_RELEASE_TEMPLATE = `Bonjour,
+    const getPressReleaseTemplate = (name: string) => `Bonjour,
 
 Dropsiders V2 est enfin là ! 🎙️ 
 
@@ -144,9 +145,9 @@ Nous avons également mis en place un tout nouvel agenda dynamique pour centrali
 
 Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains événements avec ces nouveaux outils technologiques innovants.
 
-L'équipe Dropsiders.`;
+${name ? name + '\n' : ''}L'équipe Dropsiders.`;
 
-    const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string) => {
+    const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, name: string) => {
         if (lang === 'FR') {
             return `Bonjour,
 
@@ -168,7 +169,7 @@ Consultez notre agenda : https://dropsiders.fr/agenda
 Nous serions ravis de couvrir votre événement et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils technologiques.
 
 Dans l'attente de votre retour,
-L'équipe Dropsiders.`;
+${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
@@ -190,11 +191,11 @@ Check our agenda: https://dropsiders.fr/agenda
 We would be delighted to cover your event and highlight it to our community using our innovative technological tools.
 
 Looking forward to hearing from you,
-The Dropsiders Team.`;
+${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string) => {
+    const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, name: string) => {
         if (lang === 'FR') {
             return `Bonjour,
 
@@ -214,7 +215,7 @@ Vous pouvez consulter nos dernières interviews ici : https://dropsiders.fr/news
 Nous serions ravis de collaborer avec vous pour réaliser ce projet.
 
 Dans l'attente de votre retour,
-L'équipe Dropsiders.`;
+${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
@@ -234,14 +235,16 @@ You can check our latest interviews here: https://dropsiders.fr/news
 We would be delighted to work with you on this project.
 
 Looking forward to hearing from you,
-The Dropsiders Team.`;
+${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
     // Effect to auto-update email body based on mode
     useEffect(() => {
+        if (!isNewMail) return;
+
         if (isAccreditationMode) {
-            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates));
+            setReplyBody(getAccreditationTemplate(accreditationLang, festivalName, festivalDates, senderName));
             const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
                 setMailSubject(`DEMANDE ACCRÉDITATION MÉDIA${festivalPart} - DROPSIDERS`);
@@ -249,7 +252,7 @@ The Dropsiders Team.`;
                 setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
         } else if (isInterviewMode) {
-            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType));
+            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, senderName));
             const djPart = djName ? ` - ${djName.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
                 setMailSubject(`DEMANDE INTERVIEW ${interviewType.toUpperCase()}${djPart} - DROPSIDERS`);
@@ -257,8 +260,12 @@ The Dropsiders Team.`;
                 const typeEN = interviewType === 'Vidéo' ? 'VIDEO' : 'WRITTEN';
                 setMailSubject(`${typeEN} INTERVIEW REQUEST${djPart} - DROPSIDERS`);
             }
+        } else {
+            // Standard press release
+            setReplyBody(getPressReleaseTemplate(senderName));
+            setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
         }
-    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang]);
+    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, senderName, isNewMail]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -298,13 +305,14 @@ The Dropsiders Team.`;
                                 setIsNewMail(true);
                                 setDestinationEmail('');
                                 setSenderEmail('');
+                                setSenderName('');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
                                 setIsInterviewMode(false);
                                 setFestivalName('');
                                 setFestivalDates('');
                                 setDjName('');
-                                setReplyBody(PRESS_RELEASE_TEMPLATE);
+                                setReplyBody(getPressReleaseTemplate(''));
                                 setReplyModal(true);
                             }}
                             className="px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red text-white transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
@@ -549,6 +557,16 @@ The Dropsiders Team.`;
                                                 />
                                             </div>
                                         )}
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24">Signé par (Nom) :</span>
+                                            <input
+                                                type="text"
+                                                value={senderName}
+                                                onChange={(e) => setSenderName(e.target.value)}
+                                                placeholder="Ex: Alex"
+                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1"
+                                            />
+                                        </div>
                                         {!isNewMail && (
                                             <div className="flex items-center gap-3">
                                                 <span className="text-[10px] font-black uppercase text-gray-500 w-24">Répondre à :</span>
@@ -563,7 +581,7 @@ The Dropsiders Team.`;
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
                                                     setIsInterviewMode(false);
-                                                    setReplyBody(PRESS_RELEASE_TEMPLATE);
+                                                    setReplyBody(getPressReleaseTemplate(senderName));
                                                     setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
@@ -694,17 +712,6 @@ The Dropsiders Team.`;
                                         <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest italic">
                                             {isNewMail ? 'Corps du message' : `Re: ${selected?.subject}`}
                                         </div>
-                                        {isNewMail && (
-                                            <button
-                                                onClick={() => {
-                                                    setMailSubject('Dropsiders V2 - Nouveau Communiqué de Presse 🎙️');
-                                                    setReplyBody(PRESS_RELEASE_TEMPLATE);
-                                                }}
-                                                className="px-3 py-1 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[10px] font-black text-neon-red uppercase hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/5 flex items-center gap-2"
-                                            >
-                                                Remplir via Communiqué 📄
-                                            </button>
-                                        )}
                                     </div>
                                     <textarea
                                         value={replyBody}
