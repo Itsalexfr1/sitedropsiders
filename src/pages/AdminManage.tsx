@@ -752,7 +752,7 @@ export function AdminManage() {
                                                             } else if (cat.includes('drop & talk') || title.includes('drop & talk')) {
                                                                 label = 'Drop & Talk'; color = 'text-neon-yellow border-neon-yellow/40 bg-neon-yellow/10';
                                                             } else if (cat.includes('interview video')) {
-                                                                label = 'Vidéo'; color = 'text-neon-red border-neon-red/40 bg-neon-red/10';
+                                                                label = 'Interview'; color = 'text-neon-blue border-neon-blue/40 bg-neon-blue/10';
                                                             }
                                                             return (
                                                                 <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ${color}`}>

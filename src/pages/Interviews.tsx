@@ -174,7 +174,7 @@ export function Interviews() {
             return { label: 'Drop & Talk', color: 'text-neon-yellow border-neon-yellow/30' };
         }
         if (cat.includes('interview video')) {
-            return { label: 'Vidéo', color: 'text-neon-red border-neon-red/30' };
+            return { label: 'Interview', color: 'text-neon-blue border-neon-blue/30' };
         }
         return { label: 'Écrite', color: 'text-neon-purple border-neon-purple/30' };
     };
