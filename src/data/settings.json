@@ -1,5 +1,7 @@
 {
   "shop_enabled": false,
   "shop_password_protected": true,
-  "shop_password_image": ""
+  "shop_password_image": "",
+  "shop_password": "2026",
+  "kit_media_password": ""
 }
