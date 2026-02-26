@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
-import { StarField } from '../components/ui/StarField';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -311,7 +310,7 @@ export function AdminDashboard() {
 
     if (!isAuthenticated) {
         return (
-            <div className="min-h-screen bg-dark-bg py-32">
+            <div className="min-h-screen py-32">
                 <div className="max-w-full mx-auto px-4 md:px-12 flex items-center justify-center">
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -505,8 +504,7 @@ export function AdminDashboard() {
     const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 relative overflow-hidden">
-            <StarField />
+        <div className="min-h-screen py-32 relative overflow-hidden">
             <div className="max-w-full mx-auto px-4 md:px-12 relative z-10">
                 {/* Header */}
                 <motion.div
