@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical } from 'lucide-react';
+import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical, Instagram } from 'lucide-react';
 import { Link, useBlocker, Navigate } from 'react-router-dom';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import settingsData from '../data/settings.json';
 
 interface LayoutItem {
     id: string;
@@ -24,7 +25,13 @@ const SECTION_CONFIG: Record<string, { name: string, icon: any, color: string, d
     spotify: { name: "Playlists Spotify", icon: Music, color: "#1db954", description: "Sélection de playlists sur l'accueil" }
 };
 
-function ReorderableItem({ item, updateItem, getColorValue }: { item: LayoutItem, updateItem: (id: string, updates: Partial<LayoutItem>) => void, getColorValue: (color?: string) => string }) {
+function ReorderableItem({ item, updateItem, getColorValue, socials, updateSocials }: {
+    item: LayoutItem,
+    updateItem: (id: string, updates: Partial<LayoutItem>) => void,
+    getColorValue: (color?: string) => string,
+    socials: any,
+    updateSocials: (key: string, value: string) => void
+}) {
     const config = SECTION_CONFIG[item.id] || { name: item.id, icon: Layout, color: "#fff", description: "" };
     const Icon = config.icon;
 
@@ -131,6 +138,46 @@ function ReorderableItem({ item, updateItem, getColorValue }: { item: LayoutItem
                                     <span className="text-[10px] font-black text-neon-cyan">{item.maxAgendaItems || 8}</span>
                                 </div>
                             )}
+
+                            {item.id === 'social_grid' && (
+                                <div className="w-full mt-4 p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                    <h4 className="text-[10px] font-black uppercase text-neon-pink tracking-[0.2em] mb-2 flex items-center gap-2">
+                                        <Share2 className="w-3 h-3" />
+                                        Configuration des réseaux
+                                    </h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-3 py-2">
+                                            <Instagram className="w-4 h-4 text-pink-500" />
+                                            <div className="flex-1">
+                                                <p className="text-[8px] font-black text-gray-500 uppercase">Instagram</p>
+                                                <input
+                                                    type="text"
+                                                    value={socials?.instagram || ''}
+                                                    onChange={(e) => updateSocials('instagram', e.target.value)}
+                                                    className="bg-transparent border-none text-[11px] font-bold text-white outline-none w-full"
+                                                    placeholder="dropsiders.eu"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl px-3 py-2">
+                                            <div className="w-4 h-4 text-white">
+                                                <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" xmlns="http://www.w3.org/2000/svg"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.17-2.89-.6-4.13-1.47V18.77a7.658 7.658 0 0 1-5.69 7.42c-1.39.4-2.87.5-4.28.28-1.4-.21-2.77-.73-3.95-1.54A7.784 7.784 0 0 1 .15 20.32c-.52-1.48-.68-3.08-.47-4.63.19-1.4.74-2.77 1.58-3.95A7.74 7.74 0 0 1 5.46 8.78c1.37-.58 2.87-.78 4.35-.59v4.16c-1.12-.2-2.3.06-3.23.69-.93.63-1.52 1.62-1.63 2.74-.11 1.12.33 2.22 1.05 3.03.72.82 1.76 1.3 2.86 1.35 1.15.05 2.3-.39 3.07-1.23.63-.7.88-1.61.88-2.51V.02z" /></svg>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-[8px] font-black text-gray-500 uppercase">TikTok</p>
+                                                <input
+                                                    type="text"
+                                                    value={socials?.tiktok || ''}
+                                                    onChange={(e) => updateSocials('tiktok', e.target.value)}
+                                                    className="bg-transparent border-none text-[11px] font-bold text-white outline-none w-full"
+                                                    placeholder="@dropsiders.eu"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p className="text-[9px] text-gray-500 italic">Ces identifiants sont utilisés pour les flux sociaux et les liens du site.</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -165,6 +212,7 @@ export function AdminHome() {
     }
 
     const [layout, setLayout] = useState<LayoutItem[]>([]);
+    const [socials, setSocials] = useState(settingsData.socials);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');
@@ -203,8 +251,14 @@ export function AdminHome() {
                 const data = await response.json();
                 setLayout(data);
             }
+
+            const resSets = await apiFetch('/api/settings');
+            if (resSets.ok) {
+                const data = await resSets.json();
+                if (data.socials) setSocials(data.socials);
+            }
         } catch (err) {
-            console.error('Failed to fetch layout', err);
+            console.error('Failed to fetch data', err);
         } finally {
             setIsLoading(false);
         }
@@ -214,24 +268,36 @@ export function AdminHome() {
         setIsSaving(true);
         setMessage('');
         try {
-            const response = await fetch('/api/home-layout/update', {
+            // Save Layout
+            await fetch('/api/home-layout/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ layout })
             });
 
-            if (response.ok) {
-                setMessage('Configuration enregistrée avec succès !');
-                setHasChanges(false);
-                setTimeout(() => setMessage(''), 3000);
-            } else {
-                setMessage('Erreur lors de la sauvegarde');
-            }
+            // Save Socials in Settings
+            const resSets = await apiFetch('/api/settings');
+            const currentSettings = resSets.ok ? await resSets.json() : {};
+
+            await apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ ...currentSettings, socials })
+            });
+
+            setMessage('Configuration enregistrée avec succès !');
+            setHasChanges(false);
+            setTimeout(() => setMessage(''), 3000);
         } catch (err) {
             setMessage('Erreur réseau');
         } finally {
             setIsSaving(false);
         }
+    };
+
+    const updateSocials = (key: string, value: string) => {
+        setSocials(prev => ({ ...prev, [key]: value }));
+        setHasChanges(true);
     };
 
     const updateItem = (id: string, updates: Partial<LayoutItem>) => {
@@ -328,6 +394,8 @@ export function AdminHome() {
                                         item={item}
                                         updateItem={updateItem}
                                         getColorValue={getColorValue}
+                                        socials={socials}
+                                        updateSocials={updateSocials}
                                     />
                                 ))}
                             </AnimatePresence>

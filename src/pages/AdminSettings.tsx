@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -10,6 +10,14 @@ export function AdminSettings() {
     const [shopPassword, setShopPassword] = useState('');
     const [kitMediaPassword, setKitMediaPassword] = useState('');
     const [adminPassword, setAdminPassword] = useState(localStorage.getItem('admin_password') || '');
+    const [socials, setSocials] = useState({
+        instagram: '',
+        tiktok: '',
+        youtube: '',
+        twitter: '',
+        facebook: '',
+        spotify: ''
+    });
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showShopPassword, setShowShopPassword] = useState(false);
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
@@ -46,6 +54,7 @@ export function AdminSettings() {
                     const data = await resSets.json();
                     if (data.shop_password) setShopPassword(data.shop_password);
                     if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
+                    if (data.socials) setSocials(data.socials);
                 }
 
                 const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
@@ -71,6 +80,7 @@ export function AdminSettings() {
                 ...data,
                 shop_password: shopPassword,
                 kit_media_password: kitMediaPassword,
+                socials: socials
             };
 
             const saveRes = await apiFetch('/api/settings/update', {
@@ -270,6 +280,49 @@ export function AdminSettings() {
                                     Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
                                 </p>
                             </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Socials Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl"
+                    >
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-neon-pink/10 rounded-2xl">
+                                <Share2 className="w-6 h-6 text-neon-pink" />
+                            </div>
+                            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Réseaux Sociaux</h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {[
+                                { id: 'instagram', label: 'Instagram', color: 'text-pink-500', icon: Instagram, placeholder: 'dropsiders.eu' },
+                                { id: 'tiktok', label: 'TikTok', color: 'text-white', icon: Share2, placeholder: 'dropsiders.eu' },
+                                { id: 'youtube', label: 'YouTube', color: 'text-red-500', icon: Youtube, placeholder: 'dropsiders' },
+                                { id: 'twitter', label: 'X (Twitter)', color: 'text-blue-400', icon: Globe, placeholder: 'dropsidersfr' },
+                                { id: 'facebook', label: 'Facebook', color: 'text-blue-600', icon: Facebook, placeholder: 'dropsidersfr' },
+                                { id: 'spotify', label: 'Spotify', color: 'text-green-500', icon: Music, placeholder: 'dropsiders' }
+                            ].map((social: any) => (
+                                <div key={social.id}>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                        {social.label}
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <social.icon className={`w-4 h-4 ${social.color} opacity-50`} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={(socials as any)[social.id] || ''}
+                                            onChange={(e) => setSocials(prev => ({ ...prev, [social.id]: e.target.value }))}
+                                            className="w-full bg-black/40 border border-white/5 rounded-xl pl-12 pr-4 py-4 text-white font-bold text-xs focus:outline-none focus:border-neon-pink transition-all"
+                                            placeholder={`Ex: ${social.placeholder}`}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </motion.div>
 

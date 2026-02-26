@@ -12,5 +12,13 @@
     "bgColor": "#ff0033",
     "size": "small",
     "link": "/contact"
+  },
+  "socials": {
+    "instagram": "dropsiders.eu",
+    "tiktok": "dropsiders.eu",
+    "facebook": "dropsidersfr",
+    "youtube": "dropsiders",
+    "twitter": "dropsidersfr",
+    "spotify": "dropsiders"
   }
 }

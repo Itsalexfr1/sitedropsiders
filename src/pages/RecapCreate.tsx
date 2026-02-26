@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Type, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -320,6 +320,7 @@ export function RecapCreate() {
         end: number;
         isTextarea: boolean;
         isVisualEditor: boolean;
+        savedRange: Range | null;
     }>({
         show: false,
         url: '',
@@ -328,7 +329,8 @@ export function RecapCreate() {
         start: 0,
         end: 0,
         isTextarea: false,
-        isVisualEditor: false
+        isVisualEditor: false,
+        savedRange: null
     });
 
     const [isDirty, setIsDirty] = useState(false);
@@ -448,56 +450,63 @@ export function RecapCreate() {
     const insertLinkToActiveWidget = (id: string | null) => {
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
-
-        if (isVisualEditor) {
-            const selection = window.getSelection();
-            const savedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-
-            const url = prompt('ENTREZ L\'URL DU LIEN :');
-            if (url && savedRange) {
-                selection?.removeAllRanges();
-                selection?.addRange(savedRange);
-                document.execCommand('createLink', false, url);
-                const event = new Event('input', { bubbles: true });
-                activeEl.dispatchEvent(event);
-            }
-            return;
-        }
-
-        const isCorrectTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
         const widgetId = id || (activeEl ? activeEl.getAttribute('data-widget-id') : null);
         if (!widgetId) return;
 
-        let selection = '';
+        let selectionText = '';
         let start = 0;
         let end = 0;
+        let savedRange: Range | null = null;
 
-        if (isCorrectTextarea) {
-            const ta = activeEl as HTMLTextAreaElement;
-            selection = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-            start = ta.selectionStart;
-            end = ta.selectionEnd;
+        if (isVisualEditor) {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                savedRange = selection.getRangeAt(0).cloneRange();
+                selectionText = selection.toString();
+            }
+        } else {
+            const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
+            if (isTextarea) {
+                const ta = activeEl as HTMLTextAreaElement;
+                selectionText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
+                start = ta.selectionStart;
+                end = ta.selectionEnd;
+            }
         }
 
         setLinkModal({
             show: true,
             url: '',
-            text: selection || '',
+            text: selectionText || '',
             widgetId,
             start,
             end,
-            isTextarea: isCorrectTextarea,
-            isVisualEditor: isVisualEditor
+            isTextarea: !isVisualEditor,
+            isVisualEditor: isVisualEditor,
+            savedRange
         });
     };
 
     const confirmLinkInsertion = () => {
-        const { url, text, widgetId, start, end, isTextarea, isVisualEditor } = linkModal;
+        const { url, text, widgetId, start, end, isTextarea, isVisualEditor, savedRange } = linkModal;
         if (!url || !widgetId) return;
 
         if (isVisualEditor) {
-            document.execCommand('createLink', false, url);
-            setLinkModal({ ...linkModal, show: false });
+            const editor = document.querySelector(`.visual-editor-content[data-widget-id="${widgetId}"]`) as HTMLElement;
+            if (editor) {
+                editor.focus();
+                if (savedRange) {
+                    const selection = window.getSelection();
+                    selection?.removeAllRanges();
+                    selection?.addRange(savedRange);
+                }
+                document.execCommand('createLink', false, url);
+
+                // Trigger change
+                const event = new Event('input', { bubbles: true });
+                editor.dispatchEvent(event);
+            }
+            setLinkModal({ ...linkModal, show: false, savedRange: null });
             return;
         }
 
@@ -515,7 +524,7 @@ export function RecapCreate() {
             return w;
         }));
 
-        setLinkModal({ ...linkModal, show: false });
+        setLinkModal({ ...linkModal, show: false, savedRange: null });
     };
 
     const updateWidget = (id: string, newContent: string) => {
@@ -560,7 +569,7 @@ export function RecapCreate() {
         return { urls, count: urls.length };
     };
 
-    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-xl' | 'text-2xl' | 'text-3xl' | 'text-4xl' | 'text-5xl' | 'text-left' | 'text-center' | 'text-right') => {
+    const toggleWidgetStyle = (id: string, style: 'uppercase' | 'font-display' | 'text-sm' | 'text-xl' | 'text-2xl' | 'text-3xl' | 'text-4xl' | 'text-5xl' | 'text-left' | 'text-center' | 'text-right' | 'bg-white') => {
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
         const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
@@ -645,6 +654,12 @@ export function RecapCreate() {
                 } else {
                     classes = classes.filter(c => !alignClasses.includes(c));
                     classes.push(style);
+                }
+            } else if (style === 'bg-white') {
+                if (classes.includes('bg-white')) {
+                    classes = classes.filter(c => c !== 'bg-white');
+                } else {
+                    classes.push('bg-white');
                 }
             } else {
                 if (classes.includes(style)) {
@@ -1503,7 +1518,7 @@ export function RecapCreate() {
                                                     >
                                                         <Link2 className="w-4 h-4" /> Lien
                                                     </button>
-                                                    {(!widget.content.startsWith('<h2') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
+                                                    {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
                                                         <>
                                                             <button
                                                                 type="button"
@@ -1552,6 +1567,22 @@ export function RecapCreate() {
                                                                 title="Texte 4XL"
                                                             >
                                                                 <CaseUpper className="w-5 h-5" /> 4XL
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'bg-white')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('bg-white') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Fond Blanc"
+                                                            >
+                                                                <Palette className="w-4 h-4" /> Fond
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'uppercase')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('uppercase') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Tout en Majuscules"
+                                                            >
+                                                                <CaseUpper className="w-4 h-4" /> MAJ
                                                             </button>
                                                             <div className="flex bg-black/40 rounded-lg border border-white/5 p-0.5">
                                                                 <button
@@ -2152,7 +2183,7 @@ export function RecapCreate() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => setLinkModal({ ...linkModal, show: false })}
+                            onClick={() => setLinkModal({ ...linkModal, show: false, savedRange: null })}
                             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                         />
                         <motion.div
@@ -2162,7 +2193,7 @@ export function RecapCreate() {
                             className="relative w-full max-w-sm bg-dark-bg border border-white/10 rounded-3xl p-8 shadow-2xl"
                         >
                             <button
-                                onClick={() => setLinkModal({ ...linkModal, show: false })}
+                                onClick={() => setLinkModal({ ...linkModal, show: false, savedRange: null })}
                                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
                                 <X className="w-5 h-5" />

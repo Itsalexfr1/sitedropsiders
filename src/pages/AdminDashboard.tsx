@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut
+    Youtube, CheckCircle2, Loader2, LogOut, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -25,8 +25,19 @@ export function AdminDashboard() {
     const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
     const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
     const [isNewsModalOpen, setIsNewsModalOpen] = useState(false);
+    const [isMusiqueModalOpen, setIsMusiqueModalOpen] = useState(false);
+    const [isRecapModalOpen, setIsRecapModalOpen] = useState(false);
     const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
     const [isGalerieModalOpen, setIsGalerieModalOpen] = useState(false);
+    const [isShopModalOpen, setIsShopModalOpen] = useState(false);
+    const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
+    const [isAccueilModalOpen, setIsAccueilModalOpen] = useState(false);
+    const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+    const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
+    const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+    const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
+    const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
+    const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
         text: '',
@@ -760,12 +771,45 @@ export function AdminDashboard() {
                                         } else if (action.title === 'News') {
                                             e.preventDefault();
                                             setIsNewsModalOpen(true);
+                                        } else if (action.title === 'Musique') {
+                                            e.preventDefault();
+                                            setIsMusiqueModalOpen(true);
+                                        } else if (action.title === 'Récaps') {
+                                            e.preventDefault();
+                                            setIsRecapModalOpen(true);
                                         } else if (action.title === 'Agenda') {
                                             e.preventDefault();
                                             setIsAgendaModalOpen(true);
                                         } else if (action.title === 'Galeries') {
                                             e.preventDefault();
                                             setIsGalerieModalOpen(true);
+                                        } else if (action.title === 'Shop') {
+                                            e.preventDefault();
+                                            setIsShopModalOpen(true);
+                                        } else if (action.title === 'MESSAGERIE & CONTACT') {
+                                            e.preventDefault();
+                                            setIsMessagesModalOpen(true);
+                                        } else if (action.title === 'Accueil') {
+                                            e.preventDefault();
+                                            setIsAccueilModalOpen(true);
+                                        } else if (action.title === 'Statistiques') {
+                                            e.preventDefault();
+                                            setIsStatsModalOpen(true);
+                                        } else if (action.title === 'Spotify') {
+                                            e.preventDefault();
+                                            setIsSpotifyModalOpen(true);
+                                        } else if (action.title === 'Team') {
+                                            e.preventDefault();
+                                            setIsTeamModalOpen(true);
+                                        } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
+                                            e.preventDefault();
+                                            setIsNewsletterModalOpen(true);
+                                        } else if (action.title === 'Éditeurs') {
+                                            e.preventDefault();
+                                            setIsEditorsModalOpen(true);
+                                        } else if (action.title === 'Mots de passe') {
+                                            e.preventDefault();
+                                            setIsSettingsModalOpen(true);
                                         }
                                     }}
                                     className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -1394,6 +1438,594 @@ export function AdminDashboard() {
                                         </div>
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* Modal Musique */}
+            <AnimatePresence>
+                {isMusiqueModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-cyan">Musique</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsMusiqueModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                <Link
+                                    to="/news/create?type=Musique"
+                                    onClick={() => setIsMusiqueModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                        <Plus className="w-6 h-6 text-neon-cyan" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel Article</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Focus musique</p>
+                                </Link>
+
+                                <Link
+                                    to="/admin/manage?tab=Musique"
+                                    onClick={() => setIsMusiqueModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
+                                        <Settings2 className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les articles</p>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Récaps */}
+            <AnimatePresence>
+                {isRecapModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-red">Récaps</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsRecapModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                <Link
+                                    to="/recaps/create"
+                                    onClick={() => setIsRecapModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                        <Plus className="w-6 h-6 text-neon-red" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau Récap</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Reportage Festival</p>
+                                </Link>
+
+                                <Link
+                                    to="/admin/manage?tab=Recaps"
+                                    onClick={() => setIsRecapModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
+                                        <Settings2 className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les récaps</p>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Messagerie */}
+            <AnimatePresence>
+                {isMessagesModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-white to-neon-orange" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-orange">Messages</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Accès directs</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsMessagesModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/messages"
+                                    onClick={() => setIsMessagesModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-orange/10 hover:border-neon-orange/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-orange/20 rounded-2xl flex items-center justify-center border border-neon-orange/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Mail className="w-6 h-6 text-neon-orange" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Boîte de réception</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les messages</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/messages?tab=contact-settings"
+                                    onClick={() => setIsMessagesModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Settings2 className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Contact</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Shop */}
+            <AnimatePresence>
+                {isShopModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-white to-neon-pink" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-pink">Shop</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Boutique en ligne</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsShopModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/shop"
+                                    onClick={() => setIsShopModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <ShoppingBag className="w-6 h-6 text-neon-pink" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Aller au Shop</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer produits & commandes</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/shop?tab=settings"
+                                    onClick={() => setIsShopModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Settings2 className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Shop</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Maintenance & Accès</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* Modal Accueil */}
+            <AnimatePresence>
+                {isAccueilModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-white to-neon-blue" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-blue">Accueil</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Configuration globale</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsAccueilModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/home"
+                                    onClick={() => setIsAccueilModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <LayoutDashboard className="w-6 h-6 text-neon-blue" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vues Accueil</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les sections & le live</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Statistiques */}
+            <AnimatePresence>
+                {isStatsModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Analyses <span className="text-neon-cyan">& Stats</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Performance du site</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsStatsModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/stats"
+                                    onClick={() => setIsStatsModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <BarChart3 className="w-6 h-6 text-neon-cyan" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vues Internes</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Statistiques par article</p>
+                                    </div>
+                                </Link>
+
+                                <a
+                                    href="https://analytics.google.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Globe className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Google Analytics</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse détaillée</p>
+                                    </div>
+                                </a>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Spotify */}
+            <AnimatePresence>
+                {isSpotifyModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green via-white to-neon-green" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-green">Spotify</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Musique & Playlists</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsSpotifyModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/spotify"
+                                    onClick={() => setIsSpotifyModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Music className="w-6 h-6 text-neon-green" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Playlists Accueil</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer le top 10 hebdo</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Newsletter */}
+            <AnimatePresence>
+                {isNewsletterModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-400 via-white to-green-400" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-green-400">Newsletter</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Campagnes & Abonnés</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsNewsletterModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Link
+                                    to="/newsletter/studio"
+                                    onClick={() => setIsNewsletterModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-green-400/10 hover:border-green-400/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-green-400/20 rounded-2xl flex items-center justify-center mb-6 border border-green-400/30 group-hover:scale-110 transition-transform">
+                                        <Mail className="w-6 h-6 text-green-400" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Studio</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une campagne</p>
+                                </Link>
+
+                                <Link
+                                    to="/newsletter/admin"
+                                    onClick={() => setIsNewsletterModalOpen(false)}
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
+                                        <Users className="w-6 h-6 text-white" />
+                                    </div>
+                                    <h3 className="text-xl font-bold text-white uppercase italic mb-1">Abonnés</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer la liste mail</p>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Team */}
+            <AnimatePresence>
+                {isTeamModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-white to-neon-blue" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-blue">Team</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Membres Dropsiders</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsTeamModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/team"
+                                    onClick={() => setIsTeamModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Users className="w-6 h-6 text-neon-blue" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer la Team</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir & Modifier l'équipe</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Éditeurs */}
+            <AnimatePresence>
+                {isEditorsModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-red">Éditeurs</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Contrôle des accès</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsEditorsModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/editors"
+                                    onClick={() => setIsEditorsModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Lock className="w-6 h-6 text-neon-red" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes Éditeurs</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer & Gérer les permissions</p>
+                                    </div>
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Mots de passe */}
+            <AnimatePresence>
+                {isSettingsModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Sécurité <span className="text-neon-purple">& Accès</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Paramètres système</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsSettingsModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-4">
+                                <Link
+                                    to="/admin/settings"
+                                    onClick={() => setIsSettingsModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Lock className="w-6 h-6 text-neon-purple" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mots de passe</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accès globaux</p>
+                                    </div>
                                 </Link>
                             </div>
                         </motion.div>

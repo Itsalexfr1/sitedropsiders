@@ -9,6 +9,7 @@ import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
 import { ArticleReader } from '../components/widgets/ArticleReader';
+import settings from '../data/settings.json';
 import '../styles/article-premium.css';
 
 // Custom Icons for Official Brands
@@ -60,18 +61,25 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const [copied, setCopied] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
     const [team, setTeam] = useState<any[]>([]);
+    const [siteSocials, setSiteSocials] = useState<any>((settings as any).socials || {});
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
-        const fetchTeam = async () => {
+        const fetchData = async () => {
             try {
-                const res = await fetch('/api/team');
-                if (res.ok) setTeam(await res.json());
+                const teamRes = await fetch('/api/team');
+                if (teamRes.ok) setTeam(await teamRes.json());
+
+                const settingsRes = await fetch('/api/settings');
+                if (settingsRes.ok) {
+                    const data = await settingsRes.json();
+                    if (data.socials) setSiteSocials(data.socials);
+                }
             } catch (e) {
-                console.error("Error fetching team:", e);
+                console.error("Error fetching data:", e);
             }
         };
-        fetchTeam();
+        fetchData();
     }, []);
 
     const getAuthorInsta = (authorName: string) => {
@@ -147,7 +155,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const shareLinks = {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
         x: `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
-        instagram: `https://www.instagram.com/dropsiders/`
+        instagram: `https://www.instagram.com/${(siteSocials.instagram || 'dropsiders.eu').replace('@', '')}/`
     };
 
     const handleShare = async () => {
@@ -165,6 +173,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             }
         } catch (err) {
             console.error('Error sharing:', err);
+            // Fallback for desktop if navigator.share fails or is not present
+            await navigator.clipboard.writeText(shareUrl);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }
+    };
+
+    const handleInstagramShare = () => {
+        // Preference for Story/Publication: try native share first
+        if (typeof navigator.share === 'function') {
+            handleShare();
+        } else {
+            // Fallback to profile or copy link
+            window.open(shareLinks.instagram, '_blank');
         }
     };
 
@@ -497,15 +519,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                 </a>
 
                                 {/* Instagram */}
-                                <a
-                                    href={shareLinks.instagram}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                <button
+                                    onClick={handleInstagramShare}
                                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
                                     title="Partager sur Instagram"
                                 >
                                     <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
-                                </a>
+                                </button>
 
                                 {/* X (Twitter) */}
                                 <a

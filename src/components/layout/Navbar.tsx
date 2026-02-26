@@ -23,6 +23,7 @@ export function Navbar() {
     const { language, setLanguage, t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
+    const [socials, setSocials] = useState((settings as any).socials || {});
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
@@ -42,6 +43,7 @@ export function Navbar() {
                     const data = await response.json();
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
+                    if (data.socials) setSocials(data.socials);
                 }
             } catch (e) {
                 // Keep default
@@ -144,7 +146,7 @@ export function Navbar() {
                         {/* Social Icons - Stacked vertically next to logo */}
                         <div className="hidden lg:flex flex-col items-center gap-1.5 py-1 border-l border-white/10 pl-3">
                             <a
-                                href="https://instagram.com/dropsiders.eu"
+                                href={`https://instagram.com/${(socials.instagram || 'dropsiders.eu').replace('@', '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-white/20 hover:text-white transition-all transform hover:scale-110"
@@ -153,7 +155,7 @@ export function Navbar() {
                                 <Instagram className="w-3.5 h-3.5" />
                             </a>
                             <a
-                                href="https://tiktok.com/@dropsiders.eu"
+                                href={`https://tiktok.com/@${(socials.tiktok || 'dropsiders.eu').replace('@', '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-white/20 hover:text-white transition-all transform hover:scale-110"
@@ -164,7 +166,7 @@ export function Navbar() {
                                 </svg>
                             </a>
                             <a
-                                href="https://www.facebook.com/dropsidersfr"
+                                href={`https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-white/20 hover:text-white transition-all transform hover:scale-110"

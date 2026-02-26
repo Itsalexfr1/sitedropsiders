@@ -493,3 +493,24 @@
         transform: none !important;
     }
 }
+
+/* --- BG WHITE THEME --- */
+.article-body-premium .bg-white {
+    background-color: white !important;
+    color: black !important;
+    padding: 2.5rem !important;
+    border-radius: 2rem !important;
+    margin-bottom: 3rem !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.article-body-premium .bg-white p,
+.article-body-premium .bg-white h2,
+.article-body-premium .bg-white h3,
+.article-body-premium .bg-white li {
+    color: black !important;
+}
+
+.article-body-premium .bg-white a {
+    color: #ff0033 !important;
+}

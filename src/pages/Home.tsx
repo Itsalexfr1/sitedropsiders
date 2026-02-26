@@ -12,6 +12,7 @@ import layoutData from '../data/home_layout.json';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
+    const [socials, setSocials] = useState<any>(null);
 
     useEffect(() => {
         const fetchLayout = async () => {
@@ -25,7 +26,21 @@ export function Home() {
                 console.error('Failed to fetch home layout', err);
             }
         };
+
+        const fetchSettings = async () => {
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.socials) setSocials(data.socials);
+                }
+            } catch (err) {
+                console.error('Failed to fetch settings', err);
+            }
+        };
+
         fetchLayout();
+        fetchSettings();
     }, []);
 
     const resolveColor = (color: string) => {
@@ -87,21 +102,21 @@ export function Home() {
                                 gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1fr 1fr' : columns.replace('_', ' ')) : '1fr'
                             }}
                         >
-                            <InstagramWidget accentColor={accentColor} resolvedColor={color} />
-                            <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} />
+                            <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
+                            <TikTokWidget accentColor={item.accentColor2 || 'cyan'} resolvedColor={resolveColor(item.accentColor2 || 'cyan')} username={socials?.tiktok} />
                         </div>
                     </section>
                 );
             case 'instagram':
                 return (
                     <section key="instagram" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <InstagramWidget accentColor={accentColor} resolvedColor={color} />
+                        <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
                     </section>
                 );
             case 'tiktok':
                 return (
                     <section key="tiktok" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
-                        <TikTokWidget accentColor={accentColor} resolvedColor={color} />
+                        <TikTokWidget accentColor={accentColor} resolvedColor={color} username={socials?.tiktok} />
                     </section>
                 );
             case 'spotify':

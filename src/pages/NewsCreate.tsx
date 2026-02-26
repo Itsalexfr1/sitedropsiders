@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -131,6 +131,33 @@ function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
 
     const shareUrl = `${window.location.origin}/news/${articleId}`;
     const promoText = `🎙️ NOUVEL ARTICLE : ${title.toUpperCase()}\n\nDécouvrez notre dernier reportage sur Dropsiders !\n\nLien en bio 🔗\n#dropsiders #festival #techno #hardstyle #edm`;
+
+    const shareToInstagram = async () => {
+        try {
+            const canvas = postCanvasRef.current;
+            if (!canvas) return;
+
+            // Convert canvas to blob
+            const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+            if (!blob) return;
+
+            const file = new File([blob], `dropsiders-${articleId}.png`, { type: 'image/png' });
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: title,
+                    text: promoText
+                });
+            } else {
+                // Fallback: Open Instagram and hope user has downloaded
+                window.open('https://www.instagram.com/reels/create/', '_blank');
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+            window.open('https://www.instagram.com/', '_blank');
+        }
+    };
 
     const generateImages = async () => {
         if (!imageUrl) return;
@@ -379,20 +406,20 @@ function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
                                 </div>
 
                                 <div className="pt-4 grid grid-cols-2 gap-3 mt-4">
-                                    <a
-                                        href={`https://www.instagram.com/`}
-                                        target="_blank"
+                                    <button
+                                        onClick={shareToInstagram}
                                         className="flex items-center justify-center gap-2 py-4 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
                                     >
                                         <Instagram className="w-5 h-5" />
-                                        Ouvrir Instagram
-                                    </a>
+                                        Partager Insta
+                                    </button>
                                     <button
                                         onClick={() => {
                                             if (navigator.share) {
                                                 navigator.share({
                                                     title: title,
-                                                    url: shareUrl
+                                                    url: shareUrl,
+                                                    text: promoText
                                                 });
                                             }
                                         }}
@@ -451,8 +478,14 @@ export function NewsCreate() {
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [artistNameLabel, setArtistNameLabel] = useState('');
-    const [festivalNameLabel, setFestivalNameLabel] = useState('');
     const [showSocialSuite, setShowSocialSuite] = useState(false);
+    const [socialSuiteData, setSocialSuiteData] = useState<{
+        title: string,
+        imageUrl: string,
+        type: string,
+        category: string,
+        articleId: string
+    } | null>(null);
     const [lastCreatedId, setLastCreatedId] = useState<string | null>(id);
 
 
@@ -766,6 +799,7 @@ export function NewsCreate() {
         end: number;
         isTextarea: boolean;
         isVisualEditor: boolean;
+        savedRange: Range | null;
     }>({
         show: false,
         url: '',
@@ -774,7 +808,8 @@ export function NewsCreate() {
         start: 0,
         end: 0,
         isTextarea: false,
-        isVisualEditor: false
+        isVisualEditor: false,
+        savedRange: null
     });
 
     const [videoGroupModal, setVideoGroupModal] = useState<{
@@ -869,56 +904,63 @@ export function NewsCreate() {
     const insertLinkToActiveWidget = (id: string | null) => {
         const activeEl = document.activeElement;
         const isVisualEditor = !!(activeEl && activeEl.classList.contains('visual-editor-content'));
-
-        if (isVisualEditor) {
-            const selection = window.getSelection();
-            const savedRange = selection && selection.rangeCount > 0 ? selection.getRangeAt(0).cloneRange() : null;
-
-            const url = prompt('ENTREZ L\'URL DU LIEN :');
-            if (url && savedRange) {
-                selection?.removeAllRanges();
-                selection?.addRange(savedRange);
-                document.execCommand('createLink', false, url);
-                const event = new Event('input', { bubbles: true });
-                activeEl.dispatchEvent(event);
-            }
-            return;
-        }
-
-        const isCorrectTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
         const widgetId = id || (activeEl ? activeEl.getAttribute('data-widget-id') : null);
         if (!widgetId) return;
 
-        let selection = '';
+        let selectionText = '';
         let start = 0;
         let end = 0;
+        let savedRange: Range | null = null;
 
-        if (isCorrectTextarea) {
-            const ta = activeEl as HTMLTextAreaElement;
-            selection = ta.value.substring(ta.selectionStart, ta.selectionEnd);
-            start = ta.selectionStart;
-            end = ta.selectionEnd;
+        if (isVisualEditor) {
+            const selection = window.getSelection();
+            if (selection && selection.rangeCount > 0) {
+                savedRange = selection.getRangeAt(0).cloneRange();
+                selectionText = selection.toString();
+            }
+        } else {
+            const isTextarea = !!(activeEl && activeEl.tagName === 'TEXTAREA');
+            if (isTextarea) {
+                const ta = activeEl as HTMLTextAreaElement;
+                selectionText = ta.value.substring(ta.selectionStart, ta.selectionEnd);
+                start = ta.selectionStart;
+                end = ta.selectionEnd;
+            }
         }
 
         setLinkModal({
             show: true,
             url: '',
-            text: selection || '',
+            text: selectionText || '',
             widgetId,
             start,
             end,
-            isTextarea: isCorrectTextarea,
-            isVisualEditor: isVisualEditor
+            isTextarea: !isVisualEditor,
+            isVisualEditor: isVisualEditor,
+            savedRange
         });
     };
 
     const confirmLinkInsertion = () => {
-        const { url, text, widgetId, start, end, isTextarea, isVisualEditor } = linkModal;
+        const { url, text, widgetId, start, end, isTextarea, isVisualEditor, savedRange } = linkModal;
         if (!url || !widgetId) return;
 
         if (isVisualEditor) {
-            document.execCommand('createLink', false, url);
-            setLinkModal({ ...linkModal, show: false });
+            const editor = document.querySelector(`.visual-editor-content[data-widget-id="${widgetId}"]`) as HTMLElement;
+            if (editor) {
+                editor.focus();
+                if (savedRange) {
+                    const selection = window.getSelection();
+                    selection?.removeAllRanges();
+                    selection?.addRange(savedRange);
+                }
+                document.execCommand('createLink', false, url);
+
+                // Trigger change
+                const event = new Event('input', { bubbles: true });
+                editor.dispatchEvent(event);
+            }
+            setLinkModal({ ...linkModal, show: false, savedRange: null });
             return;
         }
 
@@ -936,7 +978,7 @@ export function NewsCreate() {
             return w;
         }));
 
-        setLinkModal({ ...linkModal, show: false });
+        setLinkModal({ ...linkModal, show: false, savedRange: null });
     };
 
     const updateWidget = (id: string, newContent: string) => {
@@ -1055,6 +1097,12 @@ export function NewsCreate() {
                 } else {
                     classes = classes.filter(c => !alignClasses.includes(c));
                     classes.push(style);
+                }
+            } else if (style === 'bg-white') {
+                if (classes.includes('bg-white')) {
+                    classes = classes.filter(c => c !== 'bg-white');
+                } else {
+                    classes.push('bg-white');
                 }
             } else {
                 if (classes.includes(style)) {
@@ -1533,7 +1581,17 @@ ${generateFestivalSocialsHtml()}
                 setStatus('success');
                 setIsDirty(false);
                 setLastCreatedId(isEditing ? id : data.id || null);
+
+                // Store data for Social Suite BEFORE resetting form
+                setSocialSuiteData({
+                    title: fixEncoding(title),
+                    imageUrl: finalImageUrl,
+                    type: type,
+                    category: finalCategory,
+                    articleId: isEditing ? (id || '') : (data.id || '')
+                });
                 setShowSocialSuite(true);
+
                 setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -1777,14 +1835,14 @@ ${generateFestivalSocialsHtml()}
                         )}
 
                         <AnimatePresence>
-                            {showSocialSuite && (
+                            {showSocialSuite && socialSuiteData && (
                                 <SocialSuite
-                                    title={title}
-                                    imageUrl={imageUrl}
-                                    type={type}
-                                    category={activeTab}
+                                    title={socialSuiteData.title}
+                                    imageUrl={socialSuiteData.imageUrl}
+                                    type={socialSuiteData.type}
+                                    category={socialSuiteData.category}
                                     onClose={() => setShowSocialSuite(false)}
-                                    articleId={lastCreatedId || ''}
+                                    articleId={socialSuiteData.articleId}
                                 />
                             )}
                         </AnimatePresence>
@@ -2212,7 +2270,7 @@ ${generateFestivalSocialsHtml()}
                                                     >
                                                         <Link2 className="w-4 h-4" /> Lien
                                                     </button>
-                                                    {(!widget.content.startsWith('<h2') && !widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
+                                                    {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
                                                         <>
                                                             <button
                                                                 type="button"
@@ -2261,6 +2319,14 @@ ${generateFestivalSocialsHtml()}
                                                                 title="Texte 4XL"
                                                             >
                                                                 <CaseUpper className="w-5 h-5" /> 4XL
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widget.id, 'bg-white')}
+                                                                className={`p-2 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase ${widget.content.includes('bg-white') ? 'text-neon-cyan bg-neon-cyan/10' : 'text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10'}`}
+                                                                title="Fond Blanc"
+                                                            >
+                                                                <Palette className="w-4 h-4" /> Fond
                                                             </button>
                                                             <button
                                                                 type="button"

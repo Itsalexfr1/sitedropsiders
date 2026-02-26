@@ -11,6 +11,7 @@ export function Footer() {
     const { t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
+    const [socials, setSocials] = useState((settings as any).socials || {});
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -20,9 +21,7 @@ export function Footer() {
                     const data = await response.json();
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
-                    if (data.email_password) {
-                        // kitMediaPassword was used here
-                    }
+                    if (data.socials) setSocials(data.socials);
                 }
             } catch (e) {
                 // Keep default
@@ -49,11 +48,11 @@ export function Footer() {
     };
 
     const socialLinks = [
-        { name: 'Instagram', icon: <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://instagram.com/dropsiders.eu', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://tiktok.com/@dropsiders.eu', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'YouTube', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://www.youtube.com/@dropsiders', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'X', icon: <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://x.com/dropsidersfr', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'Facebook', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: 'https://www.facebook.com/dropsidersfr', color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' }
+        { name: 'Instagram', icon: <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://instagram.com/${(socials.instagram || 'dropsiders.eu').replace('@', '')}`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://tiktok.com/@${(socials.tiktok || 'dropsiders.eu').replace('@', '')}`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'YouTube', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://www.youtube.com/@${(socials.youtube || 'dropsiders').replace('@', '')}`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'X', icon: <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://x.com/${(socials.twitter || socials.x || 'dropsidersfr').replace('@', '')}`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
+        { name: 'Facebook', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' }
     ];
 
     const navItems = [
