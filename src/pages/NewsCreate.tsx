@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Type, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -115,6 +115,309 @@ function VisualEditor({ content, onChange, className, widgetId, onFocus }: { con
     );
 }
 
+// Social Media Assets Generator
+function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
+    title: string,
+    imageUrl: string,
+    type: string,
+    category: string,
+    onClose: () => void,
+    articleId: string
+}) {
+    const [generating, setGenerating] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const storyCanvasRef = useRef<HTMLCanvasElement>(null);
+    const postCanvasRef = useRef<HTMLCanvasElement>(null);
+
+    const shareUrl = `${window.location.origin}/news/${articleId}`;
+    const promoText = `🎙️ NOUVEL ARTICLE : ${title.toUpperCase()}\n\nDécouvrez notre dernier reportage sur Dropsiders !\n\nLien en bio 🔗\n#dropsiders #festival #techno #hardstyle #edm`;
+
+    const generateImages = async () => {
+        if (!imageUrl) return;
+        setGenerating(true);
+
+        try {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = imageUrl;
+
+            await new Promise((resolve, reject) => {
+                img.onload = resolve;
+                img.onerror = reject;
+            });
+
+            // STORY (9:16 - 1080x1920)
+            if (storyCanvasRef.current) {
+                const ctx = storyCanvasRef.current.getContext('2d');
+                if (ctx) {
+                    // Background & Layout
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(0, 0, 1080, 1920);
+
+                    // Main Image with cover fit
+                    const scale = Math.max(1080 / img.width, 1920 / img.height);
+                    const x = (1080 - img.width * scale) / 2;
+                    const y = (1920 - img.height * scale) / 2;
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                    // Gradient Overlay
+                    const grad = ctx.createLinearGradient(0, 800, 0, 1920);
+                    grad.addColorStop(0, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.6, 'rgba(0,0,0,0.8)');
+                    grad.addColorStop(1, '#000000');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, 1080, 1920);
+
+                    // Category Banner
+                    ctx.fillStyle = type === 'Interview' ? '#BF00FF' : category === 'Musique' ? '#00FFFF' : '#FF1241';
+                    ctx.fillRect(80, 1450, 200, 50);
+                    ctx.fillStyle = category === 'Musique' ? '#000000' : '#ffffff';
+                    ctx.font = 'black 30px Inter, sans-serif';
+                    ctx.fillText(type.toUpperCase(), 100, 1485);
+
+                    // Title
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'black italic 80px Inter, sans-serif';
+                    const words = title.split(' ');
+                    let line = '';
+                    let yPos = 1600;
+                    for (let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        const metrics = ctx.measureText(testLine);
+                        if (metrics.width > 920 && n > 0) {
+                            ctx.fillText(line.toUpperCase(), 80, yPos);
+                            line = words[n] + ' ';
+                            yPos += 100;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    ctx.fillText(line.toUpperCase(), 80, yPos);
+
+                    // Footer Logo
+                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                    ctx.font = '30px Inter, sans-serif';
+                    ctx.fillText('DROPSIDERS.FR', 440, 1850);
+                }
+            }
+
+            // POST (1:1 - 1080x1080)
+            if (postCanvasRef.current) {
+                const ctx = postCanvasRef.current.getContext('2d');
+                if (ctx) {
+                    ctx.fillStyle = '#0a0a0a';
+                    ctx.fillRect(0, 0, 1080, 1080);
+
+                    const scale = Math.max(1080 / img.width, 1080 / img.height);
+                    const x = (1080 - img.width * scale) / 2;
+                    const y = (1080 - img.height * scale) / 2;
+                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+
+                    const grad = ctx.createLinearGradient(0, 400, 0, 1080);
+                    grad.addColorStop(0, 'rgba(0,0,0,0)');
+                    grad.addColorStop(0.7, 'rgba(0,0,0,0.8)');
+                    grad.addColorStop(1, '#000000');
+                    ctx.fillStyle = grad;
+                    ctx.fillRect(0, 0, 1080, 1080);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'black italic 60px Inter, sans-serif';
+                    const words = title.split(' ');
+                    let line = '';
+                    let yPos = 850;
+                    for (let n = 0; n < words.length; n++) {
+                        const testLine = line + words[n] + ' ';
+                        const metrics = ctx.measureText(testLine);
+                        if (metrics.width > 920 && n > 0) {
+                            ctx.fillText(line.toUpperCase(), 60, yPos);
+                            line = words[n] + ' ';
+                            yPos += 70;
+                        } else {
+                            line = testLine;
+                        }
+                    }
+                    ctx.fillText(line.toUpperCase(), 60, yPos);
+
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.font = '30px Inter, sans-serif';
+                    ctx.fillText('DROPSIDERS.FR', 440, 1030);
+                }
+            }
+
+        } catch (e) {
+            console.error("Error generating social assets:", e);
+        } finally {
+            setGenerating(false);
+        }
+    };
+
+    useEffect(() => {
+        generateImages();
+    }, [imageUrl]);
+
+    const download = (canvas: HTMLCanvasElement | null, filename: string) => {
+        if (!canvas) return;
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+
+    const copyToClipboard = (text: string) => {
+        navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+        >
+            <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                className="bg-zinc-900 border border-white/10 rounded-[32px] w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
+            >
+                {/* Header */}
+                <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
+                    <div>
+                        <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Social <span className="text-neon-red">Suite</span></h2>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Générez vos visuels Instagram en un clic</p>
+                    </div>
+                    <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+                        {/* Visuals Previews */}
+                        <div className="space-y-8">
+                            <div className="flex flex-col md:flex-row gap-6">
+                                {/* Story Card */}
+                                <div className="flex-1 space-y-3">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 text-center">Format Story (9:16)</div>
+                                    <div className="aspect-[9/16] bg-black rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative group">
+                                        <canvas ref={storyCanvasRef} width={1080} height={1920} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={() => download(storyCanvasRef.current, `story-${articleId}.png`)}
+                                                className="p-4 bg-white text-black rounded-full shadow-2xl hover:scale-110 active:scale-90 transition-all font-black"
+                                            >
+                                                <Download className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => download(storyCanvasRef.current, `story-${articleId}.png`)}
+                                        className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Download className="w-4 h-4" /> Télécharger Story
+                                    </button>
+                                </div>
+
+                                {/* Post Card */}
+                                <div className="flex-1 space-y-3">
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 text-center">Format Post (1:1)</div>
+                                    <div className="aspect-square bg-black rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative group">
+                                        <canvas ref={postCanvasRef} width={1080} height={1080} className="w-full h-full object-cover" />
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <button
+                                                onClick={() => download(postCanvasRef.current, `post-${articleId}.png`)}
+                                                className="p-4 bg-white text-black rounded-full shadow-2xl hover:scale-110 active:scale-90 transition-all font-black"
+                                            >
+                                                <Download className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => download(postCanvasRef.current, `post-${articleId}.png`)}
+                                        className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    >
+                                        <Download className="w-4 h-4" /> Télécharger Post
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Copier Text/Link */}
+                        <div className="space-y-6">
+                            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                <div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-red mb-4">Lien de l'article</div>
+                                    <div className="flex items-center gap-2 bg-black/40 p-3 rounded-xl border border-white/5 overflow-hidden">
+                                        <span className="text-gray-400 text-xs truncate flex-1">{shareUrl}</span>
+                                        <button
+                                            onClick={() => copyToClipboard(shareUrl)}
+                                            className="p-2 bg-white/5 hover:bg-neon-red hover:text-white rounded-lg transition-all"
+                                        >
+                                            <Copy className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 border-t border-white/5">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="text-[10px] font-black uppercase tracking-widest text-neon-red">Texte Promotionnel</div>
+                                        <button
+                                            onClick={() => copyToClipboard(promoText)}
+                                            className={`px-3 py-1 rounded-lg text-[9px] font-black flex items-center gap-2 transition-all ${copied ? 'bg-green-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                                        >
+                                            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                                            {copied ? 'COPIÉ' : 'COPIER TOUT'}
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        readOnly
+                                        value={promoText}
+                                        className="w-full h-40 bg-black/40 border border-white/5 rounded-xl p-4 text-xs text-gray-300 resize-none font-sans leading-relaxed"
+                                    />
+                                </div>
+
+                                <div className="pt-4 grid grid-cols-2 gap-3 mt-4">
+                                    <a
+                                        href={`https://www.instagram.com/`}
+                                        target="_blank"
+                                        className="flex items-center justify-center gap-2 py-4 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
+                                    >
+                                        <Instagram className="w-5 h-5" />
+                                        Ouvrir Instagram
+                                    </a>
+                                    <button
+                                        onClick={() => {
+                                            if (navigator.share) {
+                                                navigator.share({
+                                                    title: title,
+                                                    url: shareUrl
+                                                });
+                                            }
+                                        }}
+                                        className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                    >
+                                        <Share2 className="w-5 h-5" />
+                                        Partage Natif
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-neon-red/5 border border-neon-red/20 rounded-2xl">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic leading-relaxed text-center">
+                                    Astuce : Téléchargez les visuels sur votre téléphone, ouvrez Instagram, et faites glisser pour partager en story !
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+}
+
+
 export function NewsCreate() {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -149,6 +452,8 @@ export function NewsCreate() {
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [artistNameLabel, setArtistNameLabel] = useState('');
     const [festivalNameLabel, setFestivalNameLabel] = useState('');
+    const [showSocialSuite, setShowSocialSuite] = useState(false);
+    const [lastCreatedId, setLastCreatedId] = useState<string | null>(id);
 
 
 
@@ -1211,9 +1516,11 @@ ${generateFestivalSocialsHtml()}
             });
 
             if (response.ok) {
-                await response.json();
+                const data = await response.json();
                 setStatus('success');
                 setIsDirty(false);
+                setLastCreatedId(isEditing ? id : data.id || null);
+                setShowSocialSuite(true);
                 setMessage(isEditing ? 'Article mis à jour avec succès !' : (finalDate > new Date().toISOString().slice(0, 16) ? 'Article programmé avec succès !' : 'Article publié avec succès !'));
                 window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -1442,12 +1749,32 @@ ${generateFestivalSocialsHtml()}
                                 status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
                                 }`}>
                                 <div className="flex items-center gap-3">
-                                    <AlertCircle className="w-5 h-5" />
+                                    {status === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
                                     <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
+                                    {status === 'success' && (
+                                        <button
+                                            onClick={() => setShowSocialSuite(true)}
+                                            className="ml-auto px-3 py-1 bg-green-500/20 hover:bg-green-500 hover:text-white border border-green-500/40 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            REVOIR SOCIALS
+                                        </button>
+                                    )}
                                 </div>
-
                             </div>
                         )}
+
+                        <AnimatePresence>
+                            {showSocialSuite && (
+                                <SocialSuite
+                                    title={title}
+                                    imageUrl={imageUrl}
+                                    type={type}
+                                    category={activeTab}
+                                    onClose={() => setShowSocialSuite(false)}
+                                    articleId={lastCreatedId || ''}
+                                />
+                            )}
+                        </AnimatePresence>
 
                         {/* Metadata Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
