@@ -1,6 +1,20 @@
 {
   "products": [
     {
+      "name": "Casquette Dropsiders (Black)",
+      "price": "13.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124046/dropsiders/lhldcpayigtxkznqh9gp.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/casquette-dropsiders-black",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124053/dropsiders/r9zavjxawduzp6aov9yf.avif",
+      "id": 10,
+      "createdAt": "2026-02-26T16:41:00.736Z"
+    },
+    {
       "name": "Bonnet Dropsiders (Logo Black)",
       "price": "15.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123899/dropsiders/hpjiwj4hde4yn6170c2k.avif",
