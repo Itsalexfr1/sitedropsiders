@@ -534,9 +534,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     </div>
 
                     <div className="space-y-6">
-                        {/* Meta Badges */}
-                        <div className="flex flex-wrap gap-2">
-                            <span className={`px-5 py-2 rounded-full text-white font-black text-[10px] uppercase tracking-widest shadow-lg ${article.isFocus
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            <span className={`inline-flex items-center justify-center px-6 py-2.5 rounded-full text-white font-black text-[10px] uppercase tracking-widest shadow-lg ${article.isFocus
                                 ? 'bg-yellow-500 shadow-yellow-500/20'
                                 : (article.category || '').toLowerCase() === 'musique'
                                     ? 'bg-neon-green shadow-neon-green/20'

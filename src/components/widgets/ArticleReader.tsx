@@ -45,12 +45,9 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         setVoiceGender(newGender);
         localStorage.setItem('reader_gender', newGender);
 
-        // If playing, stop and restart with new voice? 
-        // Better to just let the user know it will apply next time or restart
         if (isPlaying) {
             window.speechSynthesis.cancel();
             setIsPlaying(false);
-            // Small delay to let synthesis reset
             setTimeout(() => speak(), 100);
         }
     };
@@ -64,69 +61,63 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
             return;
         }
 
+        // 1. Natural Text Processing
         const doc = new DOMParser().parseFromString(content, 'text/html');
-        const selectorsToRemove = [
-            'script', 'style', 'iframe', '.no-read',
-            '.artist-socials-premium', '.festival-socials-premium',
-            '.jw-widget-newsletter', '.youtube-player-widget', '.music-number'
-        ];
+        const selectorsToRemove = ['script', 'style', 'iframe', '.no-read', '.artist-socials-premium', '.festival-socials-premium', '.jw-widget-newsletter', '.youtube-player-widget', '.music-number'];
+        selectorsToRemove.forEach(selector => doc.querySelectorAll(selector).forEach(el => el.remove()));
 
-        selectorsToRemove.forEach(selector => {
-            doc.querySelectorAll(selector).forEach(el => el.remove());
-        });
+        // Add "..." for breathing pauses between sections
+        let authorText = author ? `${t('common.by')} ${author}... ` : '';
+        let textToRead = `${title}...... ${authorText} ${doc.body.innerText}`;
 
-        let authorText = author ? `${t('common.by')} ${author}. ` : '';
-        let textToRead = `${title}. ${authorText}${doc.body.innerText}`;
-
+        // Standardize punctuation for the engine (add slight breaths)
         textToRead = textToRead
             .replace(/\s+/g, ' ')
-            .replace(/([.!?])\s*/g, '$1 ')
+            .replace(/([.!?])\s*/g, '$1... ')
             .trim();
 
         const utterance = new SpeechSynthesisUtterance(textToRead);
         utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US';
-        utterance.rate = 1.0;
+
+        // Settings for natural pacing
+        utterance.rate = 0.94;
         utterance.pitch = 1.0;
+        utterance.volume = 1.0;
 
         const allVoices = voices.length > 0 ? voices : window.speechSynthesis.getVoices();
 
         if (allVoices.length > 0) {
             const langCode = language === 'fr' ? 'fr' : 'en';
 
-            // Priority keywords for premium/neural voices based on gender
-            const maleKeywords = ['Henri', 'Guy', 'Gilles', 'Claude', 'Thomas', 'Liam', 'Paul', 'Google français', 'Male'];
-            const femaleKeywords = ['Denise', 'Aria', 'Julie', 'Celine', 'Hortense', 'Libby', 'Female'];
+            // Priority for Neural/Natural voices
+            const maleHighPrio = ['Microsoft Henri Online', 'Microsoft Alain Online', 'Microsoft Thomas Online', 'Microsoft Guy Online', 'Google français', 'Henri', 'Gilles', 'Male'];
+            const femaleHighPrio = ['Microsoft Denise Online', 'Microsoft Aria Online', 'Microsoft Julie Online', 'Denise', 'Celine', 'Hortense', 'Female'];
 
-            const genderKeywords = voiceGender === 'male' ? maleKeywords : femaleKeywords;
-
-            // Filter voices for current language
+            const genderNames = voiceGender === 'male' ? maleHighPrio : femaleHighPrio;
             const langVoices = allVoices.filter(v =>
                 v.lang.toLowerCase().startsWith(langCode) ||
                 v.lang.toLowerCase().replace('_', '-').startsWith(langCode)
             );
 
-            // Find the best voice matching gender and high quality
             let bestVoice = null;
 
-            // Try neural/online voices first with gender
-            for (const keyword of genderKeywords) {
-                bestVoice = langVoices.find(v => v.name.includes(keyword) && (v.name.includes('Online') || v.name.includes('Natural')));
+            // Try specific high-quality matches first
+            for (const namePattern of genderNames) {
+                bestVoice = langVoices.find(v => v.name.includes(namePattern));
                 if (bestVoice) break;
             }
 
-            // Fallback to any voice with gender keywords
+            // Search for general "Online" (Neural) if no name matched
             if (!bestVoice) {
-                for (const keyword of genderKeywords) {
-                    bestVoice = langVoices.find(v => v.name.includes(keyword));
-                    if (bestVoice) break;
-                }
+                bestVoice = langVoices.find(v => v.name.includes('Online') || v.name.includes('Natural'));
             }
 
-            // Final fallback to any voice of the language
             if (!bestVoice) bestVoice = langVoices[0];
 
             if (bestVoice) {
                 utterance.voice = bestVoice;
+                // Neural voices can handle slightly faster rate
+                if (bestVoice.name.includes('Online')) utterance.rate = 1.0;
             }
         }
 
