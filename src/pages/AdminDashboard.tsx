@@ -1648,7 +1648,8 @@ export function AdminDashboard() {
 
                             <div className="space-y-4">
                                 <Link
-                                    to="/admin/shop"
+                                    to="/shop"
+                                    target="_blank"
                                     onClick={() => setIsShopModalOpen(false)}
                                     className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
                                 >
@@ -1657,7 +1658,21 @@ export function AdminDashboard() {
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-white uppercase italic mb-1">Aller au Shop</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer produits & commandes</p>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir la boutique en ligne</p>
+                                    </div>
+                                </Link>
+
+                                <Link
+                                    to="/admin/shop"
+                                    onClick={() => setIsShopModalOpen(false)}
+                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group"
+                                >
+                                    <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
+                                        <Plus className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gestion Catalogue</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Ajouter ou modifier des produits</p>
                                     </div>
                                 </Link>
 
