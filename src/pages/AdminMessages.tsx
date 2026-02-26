@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
 
 interface ContactMessage {
@@ -29,7 +29,7 @@ export function AdminMessages() {
 
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
-    const [destinationEmail, setDestinationEmail] = useState('');
+    const [destinationEmails, setDestinationEmails] = useState<string[]>(['']);
     const [senderEmail, setSenderEmail] = useState('');
     const [mailSubject, setMailSubject] = useState('');
 
@@ -107,7 +107,7 @@ export function AdminMessages() {
     };
 
     const handleReply = async () => {
-        const to = isNewMail ? destinationEmail : selected?.email;
+        const to = isNewMail ? destinationEmails.map(e => e.trim()).filter(Boolean).join(',') : selected?.email;
         if (!to || !replyBody.trim()) return;
 
         setReplyStatus('sending');
@@ -319,7 +319,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                         <button
                             onClick={() => {
                                 setIsNewMail(true);
-                                setDestinationEmail('');
+                                setDestinationEmails(['']);
                                 setSenderEmail('');
                                 setSelectedEditorUsernames([]);
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
@@ -540,15 +540,41 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                     </h3>
                                     <div className="mt-4 space-y-3">
                                         {isNewMail && (
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase text-gray-500 w-24">Destinataire :</span>
-                                                <input
-                                                    type="text"
-                                                    value={destinationEmail}
-                                                    onChange={(e) => setDestinationEmail(e.target.value)}
-                                                    placeholder="email1@partenaire.com, email2@test.com"
-                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1"
-                                                />
+                                            <div className="flex flex-col gap-3">
+                                                <div className="flex items-start gap-3 w-full">
+                                                    <span className="text-[10px] font-black uppercase text-gray-500 w-24 mt-2 flex-shrink-0">Destinataires :</span>
+                                                    <div className="flex-1 flex flex-col gap-2">
+                                                        {destinationEmails.map((email, i) => (
+                                                            <div key={i} className="flex items-center gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    value={email}
+                                                                    onChange={(e) => {
+                                                                        const newEmails = [...destinationEmails];
+                                                                        newEmails[i] = e.target.value;
+                                                                        setDestinationEmails(newEmails);
+                                                                    }}
+                                                                    placeholder="email@partenaire.com"
+                                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1"
+                                                                />
+                                                                {destinationEmails.length > 1 && (
+                                                                    <button
+                                                                        onClick={() => setDestinationEmails(destinationEmails.filter((_, index) => index !== i))}
+                                                                        className="p-1.5 bg-white/5 border border-white/10 rounded-lg hover:border-neon-red hover:text-neon-red text-gray-400 transition-all flex-shrink-0"
+                                                                    >
+                                                                        <X className="w-4 h-4" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                        <button
+                                                            onClick={() => setDestinationEmails([...destinationEmails, ''])}
+                                                            className="self-start mt-1 px-3 py-1 bg-white/5 border border-white/10 text-white rounded-lg hover:bg-white/10 hover:border-white/20 transition-all text-[9px] font-black uppercase flex items-center gap-1"
+                                                        >
+                                                            <Plus className="w-3 h-3" /> Ajouter un mail
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
                                         <div className="flex items-center gap-3">
