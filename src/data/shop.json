@@ -1,6 +1,20 @@
 {
   "products": [
     {
+      "name": "Mug Dropsiders White",
+      "price": "10.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126405/dropsiders/klsuqpr2lggzasr9m52p.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white",
+      "colors": [],
+      "colorImages": {},
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126414/dropsiders/qn6ezysg86qm1krl9r6w.avif",
+      "id": 25,
+      "createdAt": "2026-02-26T17:20:26.749Z"
+    },
+    {
       "name": "Mug Dropsiders White x Couleurs",
       "price": "13.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126215/dropsiders/lehdotiwamhhdvj8vlaf.avif",
