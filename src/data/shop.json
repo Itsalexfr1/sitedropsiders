@@ -1,22 +1,6 @@
 {
   "products": [
     {
-      "name": "Protection Airpods",
-      "price": "12.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771716237323-image_2026-02-22_002335230.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/protection-airpods",
-      "colors": [
-        "#000000"
-      ],
-      "colorImages": {},
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771716247682-image_2026-02-22_002345649.png",
-      "id": 11,
-      "createdAt": "2026-02-21T23:25:09.634Z"
-    },
-    {
       "name": "Gourde Dropsiders Black",
       "price": "21.50",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713886807-image_2026-02-21_234424754.png",
