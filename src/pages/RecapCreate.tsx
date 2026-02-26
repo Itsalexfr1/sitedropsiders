@@ -8,7 +8,7 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import recapsData from '../data/recaps.json';
 import editorsData from '../data/editors.json';
-import { AVAILABLE_COLORS } from '../data/colors';
+
 import '../styles/article-premium.css';
 
 
