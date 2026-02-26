@@ -131,7 +131,7 @@ Nouveautés majeures :
 - Agenda Interactif complet : Retrouvez tous les prochains festivals en un coup d'œil et planifiez vos sorties.
 - Boutique en ligne (Shop) : Découvrez notre sélection exclusive d'articles.
 - Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
-- Template Premium "Cyber-Néon" ultra-immersif.
+- Interface Premium ultra-immersive.
 - Accessibilité multilingue instantanée (Français / Anglais).
 - Engagement Boosté : Sections réseaux sociaux optimisées pour vos événements.
 
@@ -153,7 +153,7 @@ DATES : ${dates || '[DATES]'}
 Dropsiders propose une couverture premium unique :
 - Articles avec lecteur audio IA haute fidélité.
 - Mise en avant dans notre nouvel Agenda Interactif & Boutique.
-- Reportages photos et récaps immersifs (Style Cyber-Néon).
+- Reportages photos et récaps immersifs.
 - Audience engagée et passionnée.
 
 Nous serions ravis de couvrir votre événement et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils technologiques.
@@ -171,7 +171,7 @@ DATES: ${dates || '[DATES]'}
 Dropsiders offers a unique premium coverage:
 - Articles with high-fidelity AI audio player.
 - Featured in our new Interactive Agenda & Shop.
-- Immersive photo reports and recaps (Cyber-Neon style).
+- Immersive photo reports and recaps.
 - Engaged and passionate audience.
 
 We would be delighted to cover your event and highlight it to our community using our innovative technological tools.
