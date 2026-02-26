@@ -991,7 +991,7 @@ export function AdminDashboard() {
                                             }}
                                         >
                                             <span
-                                                className="text-[10px] font-black uppercase tracking-tighter italic whitespace-nowrap"
+                                                className={`font-black uppercase tracking-tighter italic whitespace-nowrap ${bannerState.size === 'small' ? 'text-[12px]' : bannerState.size === 'large' ? 'text-[16px]' : 'text-[14px]'}`}
                                                 style={{ color: bannerState.color }}
                                             >
                                                 {bannerState.text || 'MESSAGE DU BANDEAU'}

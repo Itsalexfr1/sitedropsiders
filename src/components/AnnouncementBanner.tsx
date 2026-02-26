@@ -52,6 +52,14 @@ export function AnnouncementBanner() {
         }
     };
 
+    const getFontSize = () => {
+        switch (settings.size) {
+            case 'small': return 'text-[12px]';
+            case 'large': return 'text-[16px]';
+            default: return 'text-[14px]';
+        }
+    };
+
     const getBgStyle = () => {
         if (!settings.bgColor) return { backgroundColor: 'rgba(10, 10, 10, 0.8)' };
 
@@ -93,7 +101,7 @@ export function AnnouncementBanner() {
                     {[...Array(10)].map((_, i) => (
                         <div key={i} className="flex items-center gap-4">
                             <span
-                                className="text-[10px] font-black uppercase tracking-[0.2em]"
+                                className={`${getFontSize()} font-black uppercase tracking-[0.2em]`}
                                 style={{ color: settings.color }}
                             >
                                 {bannerText}
@@ -120,7 +128,7 @@ export function AnnouncementBanner() {
                     {[...Array(10)].map((_, i) => (
                         <div key={i} className="flex items-center gap-4">
                             <span
-                                className="text-[10px] font-black uppercase tracking-[0.2em]"
+                                className={`${getFontSize()} font-black uppercase tracking-[0.2em]`}
                                 style={{ color: settings.color }}
                             >
                                 {bannerText}
