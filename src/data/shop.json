@@ -1,20 +1,6 @@
 {
   "products": [
     {
-      "name": "Coque Iphone Red/Orange",
-      "price": "13.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721374298-image_2026-02-22_014912206.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-red-orange",
-      "colors": [],
-      "colorImages": {},
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721387778-image_2026-02-22_014925745.png",
-      "id": 17,
-      "createdAt": "2026-02-22T00:49:52.338Z"
-    },
-    {
       "name": "Gobelet Dropsiders Red 2",
       "price": "12.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721050554-image_2026-02-22_014348466.png",
