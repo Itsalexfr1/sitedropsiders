@@ -1470,13 +1470,22 @@ export default {
             const BREVO_KEY = env.BREVO_API_KEY;
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
-                const { to, name, subject, message } = await request.json();
+                const { to, from, name, subject, message } = await request.json();
                 if (!to || !subject || !message) {
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
+
+                const senderEmail = (from && from.trim() !== '') ? from : 'contact@dropsiders.fr';
+
+                // Mail envoyé au mail indiqué + contact@dropsiders.fr
+                const recipients = [{ email: to, name: name || to }];
+                if (to !== 'contact@dropsiders.fr') {
+                    recipients.push({ email: 'contact@dropsiders.fr', name: 'Dropsiders Admin' });
+                }
+
                 const payload = {
-                    sender: { name: 'Dropsiders', email: 'contact@dropsiders.fr' },
-                    to: [{ email: to, name: name || to }],
+                    sender: { name: 'Dropsiders', email: senderEmail },
+                    to: recipients,
                     subject: subject,
                     htmlContent: `
                         <div style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif; color:#ffffff; background:#000000; padding:30px 5px; text-align:center;">

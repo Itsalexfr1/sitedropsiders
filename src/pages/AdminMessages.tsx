@@ -29,6 +29,7 @@ export function AdminMessages() {
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
     const [destinationEmail, setDestinationEmail] = useState('');
+    const [senderEmail, setSenderEmail] = useState('');
     const [mailSubject, setMailSubject] = useState('');
 
     const showNotif = (type: 'success' | 'error', msg: string) => {
@@ -88,6 +89,7 @@ export function AdminMessages() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
                     to: to,
+                    from: senderEmail,
                     name: isNewMail ? 'Partenaire' : selected?.name,
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     message: replyBody
@@ -120,11 +122,13 @@ Dropsiders V2 est enfin là ! 🎙️
 Nous avons le plaisir de vous annoncer le lancement de notre nouvelle plateforme média dédiée aux festivals, artistes et organisateurs d'événements.
 
 Nouveautés majeures :
-- Agenda Interactif : Retrouvez tous les prochains festivals en un coup d'œil.
+- Agenda Interactif complet : Retrouvez tous les prochains festivals en un coup d'œil et planifiez vos sorties.
 - Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
 - Template Premium "Cyber-Néon" ultra-immersif.
 - Accessibilité multilingue instantanée (Français / Anglais).
 - Engagement Boosté : Sections réseaux sociaux optimisées pour vos événements.
+
+Nous avons également mis en place un tout nouvel agenda dynamique pour centraliser toute l'actualité événementielle.
 
 Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains événements avec ces nouveaux outils technologiques innovants.
 
@@ -167,6 +171,7 @@ L'équipe Dropsiders.`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmail('');
+                                setSenderEmail('');
                                 setMailSubject('');
                                 setReplyBody('\n\n\n'); // Start with some space for signature
                                 setReplyModal(true);
@@ -378,10 +383,10 @@ L'équipe Dropsiders.`;
                                     <h3 className="text-lg font-black uppercase italic tracking-tight text-white">
                                         {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
                                     </h3>
-                                    {isNewMail ? (
-                                        <div className="mt-4 space-y-3">
+                                    <div className="mt-4 space-y-3">
+                                        {isNewMail && (
                                             <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase text-gray-500 w-12">À :</span>
+                                                <span className="text-[10px] font-black uppercase text-gray-500 w-24">Destinataire :</span>
                                                 <input
                                                     type="email"
                                                     value={destinationEmail}
@@ -390,8 +395,20 @@ L'équipe Dropsiders.`;
                                                     className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1"
                                                 />
                                             </div>
+                                        )}
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24">Expéditeur :</span>
+                                            <input
+                                                type="email"
+                                                value={senderEmail}
+                                                onChange={(e) => setSenderEmail(e.target.value)}
+                                                placeholder="contact@dropsiders.fr (par défaut)"
+                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-red focus:outline-none focus:border-neon-red/50 flex-1"
+                                            />
+                                        </div>
+                                        {isNewMail && (
                                             <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase text-gray-500 w-12">Objet :</span>
+                                                <span className="text-[10px] font-black uppercase text-gray-500 w-24">Objet :</span>
                                                 <input
                                                     type="text"
                                                     value={mailSubject}
@@ -400,10 +417,14 @@ L'équipe Dropsiders.`;
                                                     className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1 font-bold"
                                                 />
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <p className="text-neon-cyan text-sm mt-1">{selected?.email}</p>
-                                    )}
+                                        )}
+                                        {!isNewMail && (
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-black uppercase text-gray-500 w-24">Répondre à :</span>
+                                                <span className="text-neon-cyan text-sm flex-1">{selected?.email}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors self-start">
                                     <X className="w-5 h-5" />
