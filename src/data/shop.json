@@ -1,6 +1,30 @@
 {
   "products": [
     {
+      "name": "Tee Shirt Logo White ",
+      "price": "13.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122285/dropsiders/mduv8vqolts2wsuvbfck.avif",
+      "description": "I'm Here Only For The Techno",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-im-here-only-for-the-techno",
+      "colors": [
+        "#000000",
+        "#592B8C",
+        "#6b7280",
+        "#F62B32"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122293/dropsiders/apyq3tt7r8ekq2zwyxsv.avif",
+        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122306/dropsiders/e42qad6lnj3h9x1bmbfy.avif",
+        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122315/dropsiders/xww0j9rax1rwkrqrozxt.avif",
+        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122325/dropsiders/hl6svxpus7qan5sgccda.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "",
+      "id": 3,
+      "createdAt": "2026-02-26T16:12:21.048Z"
+    },
+    {
       "name": "Tee Shirt Logo White",
       "price": "18.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121901/dropsiders/cbjcdz7jmwvqgq4ohzvh.avif",
