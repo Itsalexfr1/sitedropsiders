@@ -69,23 +69,40 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
 
         // 2. Configure Utterance
         const utterance = new SpeechSynthesisUtterance(textToRead);
-
-        // Set language based on current site language
         utterance.lang = language === 'fr' ? 'fr-FR' : 'en-US';
 
-        // Natural speed and pitch
-        utterance.rate = 1.05;
+        // Slightly slower rate for better natural feel
+        utterance.rate = 0.95;
         utterance.pitch = 1.0;
 
-        // Try to find a better voice for the language if possible
+        // Voice Selection Logic
         const voices = window.speechSynthesis.getVoices();
         if (voices.length > 0) {
-            const preferredVoice = voices.find(v =>
-                v.lang.includes(language === 'fr' ? 'fr' : 'en') &&
-                (v.name.includes('Google') || v.name.includes('Premium') || v.name.includes('Natural'))
+            const langCode = language === 'fr' ? 'fr' : 'en';
+
+            // Priority keywords for premium voices
+            const premiumKeywords = ['Natural', 'Online', 'Google', 'Premium', 'Enhanced', 'Aria', 'Denise', 'Henri'];
+
+            // Filter voices for current language
+            const langVoices = voices.filter(v =>
+                v.lang.toLowerCase().startsWith(langCode) ||
+                v.lang.toLowerCase().replace('_', '-').startsWith(langCode)
             );
-            if (preferredVoice) {
-                utterance.voice = preferredVoice;
+
+            // Find the first voice that matches our premium keywords
+            let bestVoice = null;
+            for (const keyword of premiumKeywords) {
+                bestVoice = langVoices.find(v => v.name.includes(keyword));
+                if (bestVoice) break;
+            }
+
+            // Fallback to any voice of the language
+            if (!bestVoice) bestVoice = langVoices[0];
+
+            if (bestVoice) {
+                utterance.voice = bestVoice;
+                // If it's an online natural voice, we can slightly speed it back up
+                if (bestVoice.name.includes('Natural')) utterance.rate = 1.0;
             }
         }
 
@@ -106,8 +123,8 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         <button
             onClick={speak}
             className={`flex items-center gap-3 px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-widest transition-all duration-500 shadow-lg active:scale-95 group ${isPlaying
-                    ? 'bg-neon-red text-white shadow-neon-red/30 border border-neon-red ring-2 ring-neon-red/20'
-                    : 'bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white/70 hover:text-white hover:border-white/20'
+                ? 'bg-neon-red text-white shadow-neon-red/30 border border-neon-red ring-2 ring-neon-red/20'
+                : 'bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 text-white/70 hover:text-white hover:border-white/20'
                 }`}
             title={isPlaying ? t('article_reader.stop') : t('article_reader.play')}
         >
