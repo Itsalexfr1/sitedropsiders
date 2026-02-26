@@ -55,6 +55,7 @@ const EDITOR_COLORS = [
     '#FF0099', // neon-pink
     '#00FF88', // neon-mint
     '#7B61FF', // neon-indigo
+    '#FFFFFF', // blanc
 ];
 
 const getEditorColor = (username: string) => {
