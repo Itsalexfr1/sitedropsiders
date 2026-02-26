@@ -17,7 +17,7 @@ interface BannerSettings {
 
 export function AnnouncementBanner() {
     const { language } = useLanguage();
-    const [settings, setSettings] = useState<BannerSettings>(settingsData.announcement_banner as BannerSettings);
+    const [settings, setSettings] = useState<BannerSettings>((settingsData as any).announcement_banner as BannerSettings);
 
     useEffect(() => {
         const fetchSettings = async () => {
