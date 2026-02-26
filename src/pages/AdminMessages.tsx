@@ -223,7 +223,6 @@ FORMAT : Interview ${type}
 Dropsiders propose une vitrine premium :
 - Articles avec lecteur audio IA haute fidélité.
 - Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
-- Mise en avant dans notre Agenda Interactif & Boutique.
 - Audience engagée et passionnée.
 
 Vous pouvez consulter nos dernières interviews ici : https://dropsiders.fr/news (Filtre Interviews)
@@ -243,7 +242,6 @@ FORMAT: ${type} Interview
 Dropsiders offers a unique premium showcase:
 - Articles with high-fidelity AI audio player.
 - Social media promotion (Instagram, TikTok, etc.).
-- Featured in our Interactive Agenda & Shop.
 - Engaged and passionate audience.
 
 You can check our latest interviews here: https://dropsiders.fr/news
