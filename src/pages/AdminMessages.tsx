@@ -129,6 +129,7 @@ Nous avons le plaisir de vous annoncer le lancement de notre nouvelle plateforme
 
 Nouveautés majeures :
 - Agenda Interactif complet : Retrouvez tous les prochains festivals en un coup d'œil et planifiez vos sorties.
+- Boutique en ligne (Shop) : Découvrez notre sélection exclusive d'articles.
 - Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
 - Template Premium "Cyber-Néon" ultra-immersif.
 - Accessibilité multilingue instantanée (Français / Anglais).
@@ -151,7 +152,7 @@ DATES : ${dates || '[DATES]'}
 
 Dropsiders propose une couverture premium unique :
 - Articles avec lecteur audio IA haute fidélité.
-- Mise en avant dans notre nouvel Agenda Interactif.
+- Mise en avant dans notre nouvel Agenda Interactif & Boutique.
 - Reportages photos et récaps immersifs (Style Cyber-Néon).
 - Audience engagée et passionnée.
 
@@ -169,7 +170,7 @@ DATES: ${dates || '[DATES]'}
 
 Dropsiders offers a unique premium coverage:
 - Articles with high-fidelity AI audio player.
-- Featured in our new Interactive Agenda.
+- Featured in our new Interactive Agenda & Shop.
 - Immersive photo reports and recaps (Cyber-Neon style).
 - Engaged and passionate audience.
 
