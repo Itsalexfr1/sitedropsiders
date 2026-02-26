@@ -1,24 +1,6 @@
 {
   "products": [
     {
-      "name": "Gobelet Dropsiders White",
-      "price": "€12.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720526796-image_2026-02-22_013504699.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-white",
-      "colors": [
-        "#ffffff"
-      ],
-      "colorImages": {
-        "#ffffff": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720562310-image_2026-02-22_013540258.png"
-      },
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771720543016-image_2026-02-22_013520990.png",
-      "id": 12,
-      "createdAt": "2026-02-22T00:36:31.101Z"
-    },
-    {
       "name": "Protection Airpods",
       "price": "12.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771716237323-image_2026-02-22_002335230.png",
