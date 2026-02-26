@@ -186,35 +186,6 @@
       "createdAt": "2026-02-21T23:25:09.634Z"
     },
     {
-      "name": "Tee Shirt Logo White - Where Is The Drop ?",
-      "price": "17.50",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714745249-image_2026-02-21_235843172.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-where-is-the-drop",
-      "colors": [
-        "#000000",
-        "#dc2626",
-        "#bd00ff",
-        "#7c3aed",
-        "#38bdf8",
-        "#f472b6"
-      ],
-      "colorImages": {
-        "#000000": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714796065-image_2026-02-21_235934036.png",
-        "#dc2626": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714811002-image_2026-02-21_235948946.png",
-        "#7c3aed": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714851437-image_2026-02-22_000029392.png",
-        "#bd00ff": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714868597-image_2026-02-22_000046560.png",
-        "#38bdf8": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714881080-image_2026-02-22_000059040.png",
-        "#f472b6": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714896682-image_2026-02-22_000114643.png"
-      },
-      "images": [],
-      "category": "Vetements",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771714765991-image_2026-02-21_235903943.png",
-      "id": 10,
-      "createdAt": "2026-02-21T23:01:42.642Z",
-      "updatedAt": "2026-02-21T23:47:31.442Z"
-    },
-    {
       "name": "Gourde Dropsiders White",
       "price": "21.50",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771713964862-image_2026-02-21_234542805.png",
