@@ -562,10 +562,11 @@ The Dropsiders Team.`;
                                             <button
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
+                                                    setIsInterviewMode(false);
                                                     setReplyBody(PRESS_RELEASE_TEMPLATE);
                                                     setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${!isAccreditationMode ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Communiqué Standard
                                             </button>
