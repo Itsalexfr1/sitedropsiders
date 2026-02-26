@@ -166,8 +166,8 @@ L'équipe Dropsiders.`;
                             onClick={() => {
                                 setIsNewMail(true);
                                 setDestinationEmail('');
-                                setMailSubject('Dropsiders V2 - Nouveau Communiqué de Presse 🎙️');
-                                setReplyBody(PRESS_RELEASE_TEMPLATE);
+                                setMailSubject('');
+                                setReplyBody('\n\n\n'); // Start with some space for signature
                                 setReplyModal(true);
                             }}
                             className="px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red text-white transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
@@ -418,10 +418,13 @@ L'équipe Dropsiders.`;
                                         </div>
                                         {isNewMail && (
                                             <button
-                                                onClick={() => setReplyBody(PRESS_RELEASE_TEMPLATE)}
-                                                className="px-3 py-1 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[9px] font-black text-neon-red uppercase hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/5"
+                                                onClick={() => {
+                                                    setMailSubject('Dropsiders V2 - Nouveau Communiqué de Presse 🎙️');
+                                                    setReplyBody(PRESS_RELEASE_TEMPLATE);
+                                                }}
+                                                className="px-3 py-1 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[10px] font-black text-neon-red uppercase hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/5 flex items-center gap-2"
                                             >
-                                                Charger Communiqué 📄
+                                                Remplir via Communiqué 📄
                                             </button>
                                         )}
                                     </div>
