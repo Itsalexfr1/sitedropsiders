@@ -806,7 +806,7 @@ export default {
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, category, isFeatured, isFocus } = body;
+                const { title, date, summary, content, image, category, isFeatured, isFocus, author } = body;
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
                 // 1. Update news.json (Metadata only)
@@ -835,7 +835,8 @@ export default {
                     category: category || 'News',
                     isFeatured: isFeatured || false,
                     isFocus: isFocus || false,
-                    link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+                    link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                    author: author || requestUsername || 'Alex'
                 };
 
                 const updatedNews = [newArticle, ...currentNews];
@@ -921,7 +922,7 @@ export default {
             const FILE_PATH = 'src/data/news.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, category, date, isFeatured, isFocus } = body;
+                const { id, title, summary, content, image, category, date, isFeatured, isFocus, author } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -951,7 +952,8 @@ export default {
                     category: category || existing.category,
                     date: date || existing.date,
                     isFeatured: isFeatured !== undefined ? isFeatured : existing.isFeatured,
-                    isFocus: isFocus !== undefined ? isFocus : existing.isFocus
+                    isFocus: isFocus !== undefined ? isFocus : existing.isFocus,
+                    author: author || existing.author || requestUsername || 'Alex'
                 };
 
                 await saveGitHubFile(FILE_PATH, currentData, `Update news: ${title || existing.title}`, newsFile.sha);
