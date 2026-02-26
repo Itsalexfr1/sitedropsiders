@@ -26,6 +26,11 @@ export function AdminMessages() {
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
 
+    // New States for Custom Emails
+    const [isNewMail, setIsNewMail] = useState(false);
+    const [destinationEmail, setDestinationEmail] = useState('');
+    const [mailSubject, setMailSubject] = useState('');
+
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
         setTimeout(() => setNotification(null), 4000);
@@ -73,26 +78,30 @@ export function AdminMessages() {
     };
 
     const handleReply = async () => {
-        if (!selected || !replyBody.trim()) return;
+        const to = isNewMail ? destinationEmail : selected?.email;
+        if (!to || !replyBody.trim()) return;
+
         setReplyStatus('sending');
         try {
             const res = await fetch('/api/contacts/reply', {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({
-                    to: selected.email,
-                    name: selected.name,
-                    subject: `Re: ${selected.subject}`,
+                    to: to,
+                    name: isNewMail ? 'Partenaire' : selected?.name,
+                    subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
                     message: replyBody
                 })
             });
             if (res.ok) {
                 setReplyStatus('success');
                 setReplyBody('');
-                setMessages(prev => prev.map(m => m.id === selected.id ? { ...m, replied: true } : m));
-                setSelected(prev => prev ? { ...prev, replied: true } : prev);
+                if (selected && !isNewMail) {
+                    setMessages(prev => prev.map(m => m.id === selected.id ? { ...m, replied: true } : m));
+                    setSelected(prev => prev ? { ...prev, replied: true } : prev);
+                }
                 setTimeout(() => { setReplyModal(false); setReplyStatus('idle'); }, 1500);
-                showNotif('success', `Réponse envoyée à ${selected.name} !`);
+                showNotif('success', `Message envoyé à ${to} !`);
             } else {
                 const err = await res.json().catch(() => ({}));
                 setReplyError(err.error || 'Erreur lors de l\'envoi');
@@ -103,6 +112,22 @@ export function AdminMessages() {
             setReplyStatus('error');
         }
     };
+
+    const PRESS_RELEASE_TEMPLATE = `Bonjour,
+
+Dropsiders V2 est enfin là ! 🎙️ 
+
+Nous avons le plaisir de vous annoncer le lancement de notre nouvelle plateforme média dédiée aux festivals, artistes et organisateurs d'événements.
+
+Nouveautés majeures :
+- Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
+- Template Premium "Cyber-Néon" ultra-immersif.
+- Accessibilité multilingue instantanée (Français / Anglais).
+- Sections d'engagement réseaux sociaux optimisées.
+
+Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains événements avec ces nouveaux outils technologiques innovants.
+
+L'équipe Dropsiders.`;
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -136,7 +161,20 @@ export function AdminMessages() {
                             </div>
                         </div>
                     </div>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => {
+                                setIsNewMail(true);
+                                setDestinationEmail('');
+                                setMailSubject('Dropsiders V2 - Nouveau Communiqué de Presse 🎙️');
+                                setReplyBody(PRESS_RELEASE_TEMPLATE);
+                                setReplyModal(true);
+                            }}
+                            className="px-4 py-2 bg-neon-red/10 border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red text-white transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
+                        >
+                            <Send className="w-3 h-3" />
+                            Nouveau Message
+                        </button>
                         <a
                             href="https://mail.dropsiders.fr"
                             target="_blank"
@@ -147,7 +185,7 @@ export function AdminMessages() {
                             Accès Messagerie Pro
                         </a>
                         {unreadCount > 0 && (
-                            <div className="px-3 py-1 bg-neon-red rounded-full text-white text-xs font-black">
+                            <div className="hidden lg:block px-3 py-1 bg-neon-red rounded-full text-white text-[9px] font-black uppercase tracking-tight">
                                 {unreadCount} NOUVEAU{unreadCount > 1 ? 'X' : ''}
                             </div>
                         )}
@@ -271,6 +309,7 @@ export function AdminMessages() {
                                 <div className="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto">
                                     <button
                                         onClick={() => {
+                                            setIsNewMail(false);
                                             const sig = `\n\n\n`;
                                             setReplyBody(sig);
                                             setReplyModal(true);
@@ -318,9 +357,9 @@ export function AdminMessages() {
                 </div>
             </div>
 
-            {/* Reply Modal */}
+            {/* Reply / New Message Modal */}
             <AnimatePresence>
-                {replyModal && selected && (
+                {replyModal && (isNewMail || selected) && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -334,11 +373,38 @@ export function AdminMessages() {
                             className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden"
                         >
                             <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white">Répondre à {selected.name}</h3>
-                                    <p className="text-neon-cyan text-sm mt-1">{selected.email}</p>
+                                <div className="flex-1">
+                                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white">
+                                        {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
+                                    </h3>
+                                    {isNewMail ? (
+                                        <div className="mt-4 space-y-3">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-black uppercase text-gray-500 w-12">À :</span>
+                                                <input
+                                                    type="email"
+                                                    value={destinationEmail}
+                                                    onChange={(e) => setDestinationEmail(e.target.value)}
+                                                    placeholder="email@partenaire.com"
+                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-neon-cyan focus:outline-none focus:border-neon-cyan/50 flex-1"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-black uppercase text-gray-500 w-12">Objet :</span>
+                                                <input
+                                                    type="text"
+                                                    value={mailSubject}
+                                                    onChange={(e) => setMailSubject(e.target.value)}
+                                                    placeholder="Sujet du mail"
+                                                    className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1 font-bold"
+                                                />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <p className="text-neon-cyan text-sm mt-1">{selected?.email}</p>
+                                    )}
                                 </div>
-                                <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors">
+                                <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors self-start">
                                     <X className="w-5 h-5" />
                                 </button>
                             </div>
@@ -346,14 +412,24 @@ export function AdminMessages() {
                             <div className="flex flex-col md:flex-row h-[600px]">
                                 {/* Editor Side */}
                                 <div className="flex-1 p-6 space-y-4 border-r border-white/10 overflow-y-auto">
-                                    <div className="text-xs text-gray-500 font-bold uppercase tracking-widest">
-                                        Re: {selected.subject}
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest italic">
+                                            {isNewMail ? 'Corps du message' : `Re: ${selected?.subject}`}
+                                        </div>
+                                        {isNewMail && (
+                                            <button
+                                                onClick={() => setReplyBody(PRESS_RELEASE_TEMPLATE)}
+                                                className="px-3 py-1 bg-neon-red/10 border border-neon-red/30 rounded-lg text-[9px] font-black text-neon-red uppercase hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/5"
+                                            >
+                                                Charger Communiqué 📄
+                                            </button>
+                                        )}
                                     </div>
                                     <textarea
                                         value={replyBody}
                                         onChange={(e) => setReplyBody(e.target.value)}
                                         rows={15}
-                                        placeholder="Rédigez votre réponse..."
+                                        placeholder="Rédigez votre message..."
                                         className="w-full h-[400px] bg-black/60 border border-white/10 rounded-xl p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono"
                                     />
                                     {replyStatus === 'error' && (
@@ -460,6 +536,6 @@ export function AdminMessages() {
                     </motion.div>
                 )}
             </AnimatePresence>
-        </div >
+        </div>
     );
 }
