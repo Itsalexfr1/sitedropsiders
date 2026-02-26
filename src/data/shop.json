@@ -1,20 +1,6 @@
 {
   "products": [
     {
-      "name": "Coque Iphone Red/Black",
-      "price": "13.00",
-      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721446027-image_2026-02-22_015023984.png",
-      "description": "",
-      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-red-black",
-      "colors": [],
-      "colorImages": {},
-      "images": [],
-      "category": "Accessoires",
-      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721486830-image_2026-02-22_015104693.png",
-      "id": 18,
-      "createdAt": "2026-02-22T00:51:37.187Z"
-    },
-    {
       "name": "Coque Iphone Red/Orange",
       "price": "13.00",
       "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1771721374298-image_2026-02-22_014912206.png",
