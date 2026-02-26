@@ -1,6 +1,34 @@
 {
   "products": [
     {
+      "name": "Tee Shirt Logo White",
+      "price": "18.00",
+      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121901/dropsiders/cbjcdz7jmwvqgq4ohzvh.avif",
+      "description": "Where Is The Drop ?",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-where-is-the-drop",
+      "colors": [
+        "#000000",
+        "#991b1b",
+        "#592B8C",
+        "#7c3aed",
+        "#38bdf8",
+        "#FF4D8D"
+      ],
+      "colorImages": {
+        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121919/dropsiders/rvvdljgekhyhgduyv2xj.avif",
+        "#991b1b": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121942/dropsiders/igrpzw4e8t7nlrbsy4ke.avif",
+        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121964/dropsiders/pm0i52ruxofuwzxiinpj.avif",
+        "#7c3aed": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121979/dropsiders/vh78nwovtkbfxpqhtnr4.avif",
+        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121992/dropsiders/u4j7zoslek7zu3z4xl0w.avif",
+        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121999/dropsiders/ggukprjmw00jhlwn2nxz.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "",
+      "id": 2,
+      "createdAt": "2026-02-26T16:06:56.292Z"
+    },
+    {
       "name": "Hoodie Dropsiders Logo White",
       "price": "30",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121469/dropsiders/gvqps1r0ardd3udhiqbi.avif",
