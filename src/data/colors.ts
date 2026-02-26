@@ -10,6 +10,8 @@ export const AVAILABLE_COLORS = [
     { name: 'White', hex: '#ffffff' },
     { name: 'Black', hex: '#000000' },
     { name: 'Grey', hex: '#6b7280' },
+    { name: 'Brown', hex: '#795548' },
+    { name: 'Dark Brown', hex: '#4e342e' },
     { name: 'Cream', hex: '#f5f5dc' },
     { name: 'Red', hex: '#ff1241' },
     { name: 'Medium Red', hex: '#dc2626' },
