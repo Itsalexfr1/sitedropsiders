@@ -3,6 +3,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
+import editorsData from '../data/editors.json';
+
+const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
+
+const getEditorColor = (username: string) => {
+    const normalized = username.toLowerCase();
+    if (normalized === 'alex') return '#FF1241';
+    if (normalized === 'tanguy') return '#00FFFF';
+    if (normalized === 'julien') return '#BF00FF';
+    if (normalized === 'tiffany') return '#39FF14';
+    if (normalized === 'kevin') return '#FFF01F';
+    if (normalized === 'guiyoome') return '#FF5E00';
+    let hash = 0;
+    for (let i = 0; i < normalized.length; i++) {
+        hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
 
 interface ContactMessage {
     id: string;
@@ -613,15 +631,48 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                 />
                                             </div>
                                         )}
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 w-24">Signé par :</span>
-                                            <input
-                                                type="text"
-                                                value={signatureName}
-                                                onChange={(e) => setSignatureName(e.target.value)}
-                                                placeholder="Ex: Alex"
-                                                className="bg-black/50 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-white/20 flex-1"
-                                            />
+                                        <div className="flex flex-col gap-2">
+                                            <span className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-2">
+                                                <User className="w-3 h-3" /> Signé par : <span className="text-neon-red">*</span>
+                                            </span>
+                                            <div className="flex flex-wrap gap-2">
+                                                {(editorsData as any[]).map((editor: any) => {
+                                                    const editorColor = getEditorColor(editor.username.toLowerCase());
+                                                    const isSelected = signatureName === editor.name;
+                                                    return (
+                                                        <button
+                                                            key={editor.username}
+                                                            type="button"
+                                                            onClick={() => setSignatureName(editor.name)}
+                                                            className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${isSelected
+                                                                ? 'text-black shadow-lg'
+                                                                : 'bg-black/40 border-white/10 text-gray-400 hover:text-white hover:border-white/20'
+                                                                }`}
+                                                            style={isSelected ? {
+                                                                backgroundColor: editorColor,
+                                                                borderColor: editorColor,
+                                                                boxShadow: `0 0 15px ${editorColor}40`
+                                                            } : {}}
+                                                        >
+                                                            <div
+                                                                className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black"
+                                                                style={{
+                                                                    backgroundColor: isSelected ? 'rgba(0,0,0,0.3)' : `${editorColor}20`,
+                                                                    color: isSelected ? 'black' : editorColor
+                                                                }}
+                                                            >
+                                                                {editor.name.charAt(0)}
+                                                            </div>
+                                                            {editor.name}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            {!signatureName && (
+                                                <span className="text-[9px] text-neon-red/70 font-bold uppercase tracking-widest animate-pulse">
+                                                    ⚠ Sélectionnez un éditeur pour envoyer
+                                                </span>
+                                            )}
                                         </div>
                                         {!isNewMail && (
                                             <div className="flex items-center gap-3">
@@ -857,7 +908,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 </button>
                                 <button
                                     onClick={handleReply}
-                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim()}
+                                    disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && !signatureName)}
                                     className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Send className="w-4 h-4" />

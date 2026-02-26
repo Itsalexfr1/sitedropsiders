@@ -115,7 +115,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                 className={`p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 ${styles.hoverBorder} ${styles.shadow} transition-all duration-300`}
                             >
                                 <div className="flex justify-between items-start mb-2">
-                                    <div className="flex flex-col">
+                                    <div className="flex flex-col min-w-0 flex-1 mr-3">
                                         <div className="flex items-center flex-wrap gap-1 mb-1">
                                             <span
                                                 className={`text-[9px] font-black ${styles.text} border ${styles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
