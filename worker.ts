@@ -877,7 +877,7 @@ export default {
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, festival, location, youtubeId, category, isFeatured } = body;
+                const { title, date, summary, content, image, festival, location, youtubeId, category, isFeatured, author, showVideo } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 // 1. Update recaps.json
@@ -906,8 +906,10 @@ export default {
                     location: location || '',
                     category: category || 'Recaps',
                     isFeatured: isFeatured || false,
+                    showVideo: showVideo !== false,
                     link: `https://dropsiders.eu/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-                    images: extractedImages
+                    images: extractedImages,
+                    author: author || requestUsername || 'Alex'
                 };
 
                 const updatedData = [newItem, ...currentData];
@@ -1006,7 +1008,7 @@ export default {
             const FILE_PATH = 'src/data/recaps.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, date, festival, location, youtubeId, isFeatured } = body;
+                const { id, title, summary, content, image, date, festival, location, youtubeId, isFeatured, author, showVideo } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -1035,8 +1037,10 @@ export default {
                     festival: festival !== undefined ? festival : existing.festival,
                     location: location !== undefined ? location : existing.location,
                     youtubeId: youtubeId !== undefined ? youtubeId : (extractedYoutubeId || existing.youtubeId),
+                    showVideo: showVideo !== undefined ? showVideo : (existing.showVideo !== false),
                     images: extractedImages.length > 0 ? extractedImages : (existing.images || []),
-                    isFeatured: isFeatured !== undefined ? isFeatured : existing.isFeatured
+                    isFeatured: isFeatured !== undefined ? isFeatured : existing.isFeatured,
+                    author: author || existing.author || requestUsername || 'Alex'
                 };
 
                 await saveGitHubFile(FILE_PATH, currentData, `Update recap: ${title || existing.title}`, recapsFile.sha);

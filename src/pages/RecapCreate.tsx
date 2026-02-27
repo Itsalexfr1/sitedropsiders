@@ -135,6 +135,7 @@ export function RecapCreate() {
     const [festival, setFestival] = useState('');
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
+    const [showVideo, setShowVideo] = useState(true);
     const [isFeatured, setIsFeatured] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -226,6 +227,7 @@ export function RecapCreate() {
                             setFestival(data.recap.festival || '');
                             setLocationInput(data.recap.location || '');
                             setYoutubeId(data.recap.youtubeId || '');
+                            setShowVideo(data.recap.showVideo !== false);
                             setIsFeatured(data.recap.isFeatured || false);
 
                             let c = data.content || data.recap.content || '';
@@ -269,6 +271,7 @@ export function RecapCreate() {
                                 setFestival(localItem.festival || '');
                                 setLocationInput(localItem.location || '');
                                 setYoutubeId(localItem.youtubeId || '');
+                                setShowVideo(localItem.showVideo !== false);
                                 setIsFeatured(localItem.isFeatured || false);
                                 if (localItem.author) setAuthor(localItem.author);
                             }
@@ -386,6 +389,7 @@ export function RecapCreate() {
             setFestival(editingItem.festival || '');
             setLocationInput(editingItem.location || '');
             setYoutubeId(editingItem.youtubeId || '');
+            setShowVideo(editingItem.showVideo !== false);
             setIsFeatured(editingItem.isFeatured || false);
 
             // Parse Content into Widgets
@@ -902,6 +906,7 @@ export function RecapCreate() {
                     festival,
                     location: locationInput,
                     youtubeId,
+                    showVideo,
                     category: 'Recaps',
                     isFeatured,
                     author: author
@@ -932,6 +937,7 @@ export function RecapCreate() {
                 setFestival('');
                 setLocationInput('');
                 setYoutubeId('');
+                setShowVideo(true);
                 setIsFeatured(false);
                 setIsAuthorConfirmed(false);
                 setFestivalSocials({
@@ -1135,26 +1141,37 @@ export function RecapCreate() {
                                     <span>Vidéo de l'article</span>
                                     <span className="text-[10px] text-neon-cyan/80 normal-case font-bold">(S'affichera en bas de l'article)</span>
                                 </label>
-                                <div className="relative group">
-                                    <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={youtubeId}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            let id = val;
-                                            if (val.includes('youtube.com/watch?v=')) {
-                                                id = val.split('v=')[1].split('&')[0];
-                                            } else if (val.includes('youtu.be/')) {
-                                                id = val.split('youtu.be/')[1].split('?')[0];
-                                            } else if (val.includes('youtube.com/embed/')) {
-                                                id = val.split('youtube.com/embed/')[1].split('?')[0];
-                                            }
-                                            setYoutubeId(id);
-                                        }}
-                                        placeholder="URL Youtube ou ID"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
-                                    />
+                                <div className="relative flex items-center gap-4">
+                                    <div className="relative group flex-1">
+                                        <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={youtubeId}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                let id = val;
+                                                if (val.includes('youtube.com/watch?v=')) {
+                                                    id = val.split('v=')[1].split('&')[0];
+                                                } else if (val.includes('youtu.be/')) {
+                                                    id = val.split('youtu.be/')[1].split('?')[0];
+                                                } else if (val.includes('youtube.com/embed/')) {
+                                                    id = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                }
+                                                setYoutubeId(id);
+                                            }}
+                                            placeholder="URL Youtube ou ID"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                        />
+                                    </div>
+                                    <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-4 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
+                                        <input
+                                            type="checkbox"
+                                            checked={showVideo}
+                                            onChange={(e) => setShowVideo(e.target.checked)}
+                                            className="w-5 h-5 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
+                                        />
+                                        <span className="text-xs font-bold uppercase tracking-widest text-gray-300">Activer</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -1928,7 +1945,7 @@ export function RecapCreate() {
                                         </div>
                                     ))
                                 }
-                                {youtubeId && (
+                                {youtubeId && showVideo && (
                                     <div className="mt-16 mb-16">
                                         <h3 className="text-3xl font-display font-black text-white mb-10 uppercase italic flex items-center gap-4 group">
                                             <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30">
