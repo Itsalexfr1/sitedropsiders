@@ -34,7 +34,7 @@
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": false,
-    "showTickerBanner": false,
+    "showTickerBanner": true,
     "showInNavbar": false,
     "forceHomepage": false,
     "customCommands": "",
