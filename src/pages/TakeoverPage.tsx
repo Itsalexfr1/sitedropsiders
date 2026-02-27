@@ -327,7 +327,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     return (
-        <div className={`fixed ${isFocusMode ? 'top-0' : 'top-24'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
+        <div className={`fixed ${isFocusMode ? 'top-0' : 'top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
             {/* Live Banner Header */}
             {!isFocusMode && (
                 <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
