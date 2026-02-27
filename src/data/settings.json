@@ -42,7 +42,7 @@
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "Coucou",
+    "pinnedMessage": "",
     "chat_enabled": true
   }
 }
