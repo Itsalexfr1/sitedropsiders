@@ -22,16 +22,11 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "DQHSj6cphm0",
     "chat_enabled": true,
     "title": "Tomorrowland - Daybreak Session",
     "moderators": "",
-    "lineup": "",
-    "tickerType": "news",
-    "tickerText": "",
-    "tickerLink": "",
-    "tickerBgColor": "#ff0033",
-    "tickerTextColor": "#ffffff"
+    "lineup": ""
   }
 }
