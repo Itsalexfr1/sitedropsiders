@@ -62,6 +62,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [displayTitle, setDisplayTitle] = useState(settings.title);
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
+    const [editChannels, setEditChannels] = useState(settings.channels || '');
 
     // Sync with props when they change (e.g. from parent polling or settings update)
     useEffect(() => {
@@ -70,7 +71,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setDisplayLineup(settings.lineup || '');
         setEditLineup(settings.lineup || '');
         setNewVideoId(settings.youtubeId);
-    }, [settings.title, settings.lineup, settings.youtubeId]);
+        setEditChannels(settings.channels || '');
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation'>('general');
@@ -164,7 +166,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [activePoll, setActivePoll] = useState<{ question: string, options: string[], id: number } | null>(null);
     const [shazamLoading, setShazamLoading] = useState(false);
 
-    const [slowModeDuration] = useState(10);
+    const [slowModeDuration, setSlowModeDuration] = useState(2);
+    const [showSlowModePopup, setShowSlowModePopup] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
     const [shazamResult, setShazamResult] = useState<{ title: string, artist: string, image?: string, spotify?: string } | null>(null);
     const [showShazamNotify, setShowShazamNotify] = useState(false);
@@ -173,7 +176,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return JSON.parse(localStorage.getItem('chat_promoted_modos') || '[]');
     });
 
-    const [activeUsers] = useState<{ pseudo: string, country: string }[]>([]);
+    const activeUsers = messages.reduce((acc: { pseudo: string, country: string }[], m: any) => {
+        if (!m.isBot && m.pseudo && m.pseudo !== 'DROPSIDERS' && !acc.find((u) => u.pseudo.toUpperCase() === m.pseudo.toUpperCase())) {
+            acc.push({ pseudo: m.pseudo, country: m.country || 'FR' });
+        }
+        return acc;
+    }, []);
     const [isSending, setIsSending] = useState(false);
     const [userColor, setUserColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
 
@@ -1019,7 +1027,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto">
+                        <div
+                            className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto cursor-pointer hover:bg-white/10 transition-colors pointer-events-auto"
+                            onClick={() => setShowUsersPanel(!showUsersPanel)}
+                        >
                             <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
                             <div className="flex flex-col">
                                 <span className="text-[8px] font-black text-white uppercase tracking-widest leading-none">
@@ -1132,35 +1143,35 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </AnimatePresence>
 
-                        {/* Mini Planning Widget (Bottom Right) */}
+                        {/* Mini Planning Widget */}
                         <AnimatePresence>
                             {showLineup && (
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 30 }}
-                                    className="absolute inset-x-4 top-4 bottom-4 lg:inset-x-12 lg:top-12 lg:bottom-12 z-30 bg-black/30 backdrop-blur-2xl border border-white/20 rounded-[40px] shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden pointer-events-auto"
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="absolute inset-0 z-30 bg-black/40 backdrop-blur-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden pointer-events-auto flex flex-col items-center p-6 lg:p-12"
                                     onClick={e => e.stopPropagation()}
                                 >
-                                    <div className="w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
-                                        <div className="p-6 lg:p-10 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                                    <div className="w-full max-w-5xl flex flex-col h-full relative">
+                                        <div className="flex items-center justify-between mb-8 shrink-0">
                                             <div className="flex items-center gap-4">
-                                                <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
-                                                    <List className="w-6 h-6 text-neon-red" />
+                                                <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                                    <List className="w-6 h-6 text-neon-red drop-shadow-lg" />
                                                 </div>
                                                 <div>
-                                                    <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none">LINE UP <span className="text-neon-red">LIVE</span></h2>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Horaires et passages artistes en temps réel</p>
+                                                    <h2 className="text-3xl lg:text-5xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-md">LINE UP <span className="text-neon-red">LIVE</span></h2>
+                                                    <p className="text-[10px] lg:text-xs text-gray-300 font-bold uppercase tracking-[0.2em] mt-2 drop-shadow-md">Horaires et passages artistes en temps réel</p>
                                                 </div>
                                             </div>
-                                            <button onClick={() => setShowLineup(false)} className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors">
-                                                <X className="w-6 h-6 text-gray-400" />
+                                            <button onClick={() => setShowLineup(false)} className="p-4 bg-white/10 border border-white/20 rounded-full hover:bg-neon-red hover:border-neon-red transition-all shadow-lg active:scale-95 group">
+                                                <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
                                             </button>
                                         </div>
 
-                                        <div className="p-6 lg:p-10 space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-20 mt-4">
                                             {/* Header Grid */}
-                                            <div className="grid grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 px-6 mb-4 text-[11px] font-black text-gray-600 uppercase tracking-widest hidden lg:grid">
+                                            <div className="grid grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 px-6 mb-4 text-[11px] font-black text-white/50 uppercase tracking-widest hidden lg:grid drop-shadow-md">
                                                 <div>HEURE</div>
                                                 <div>ARTISTE</div>
                                                 <div>SCÈNE / STAGE</div>
@@ -1170,44 +1181,44 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {parseLineup(displayLineup || settings.lineup || '').map((item, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/[0.03] hover:border-neon-red/40 hover:bg-white/5 p-4 lg:p-6 rounded-2xl transition-all duration-300"
+                                                    className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/10 hover:border-neon-red/50 hover:bg-white/10 p-4 lg:p-6 rounded-2xl transition-all duration-300 shadow-lg backdrop-blur-md mb-3"
                                                 >
                                                     {/* Time Column */}
                                                     <div className="flex flex-col lg:block">
-                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">HEURE</span>
-                                                        <span className="text-neon-red font-black text-[16px] lg:text-[18px] tracking-tighter">
+                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">HEURE</span>
+                                                        <span className="text-neon-red font-black text-[20px] lg:text-[24px] tracking-tighter drop-shadow-lg">
                                                             {item.time?.replace(':', 'H') || '--H--'}
                                                         </span>
                                                     </div>
 
                                                     {/* Artist Column */}
                                                     <div className="flex flex-col min-w-0">
-                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">ARTISTE</span>
-                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[16px] lg:text-[20px] leading-tight group-hover:text-neon-red transition-colors">
+                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">ARTISTE</span>
+                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[20px] lg:text-[28px] leading-tight group-hover:text-neon-red transition-colors drop-shadow-lg">
                                                             {item.artist || '---'}
                                                         </h3>
                                                     </div>
 
                                                     {/* Stage Column */}
                                                     <div className="flex flex-col min-w-0 lg:block">
-                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
-                                                        <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider leading-none">
+                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
+                                                        <span className="text-[14px] font-bold text-gray-200 uppercase tracking-wider leading-none drop-shadow-md">
                                                             {item.stage || '---'}
                                                         </span>
                                                     </div>
 
                                                     {/* Festival Column */}
                                                     <div className="flex flex-col min-w-0 text-right lg:block">
-                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
-                                                        <span className="text-[11px] font-black text-white uppercase tracking-widest italic leading-none bg-neon-red/10 px-4 py-2 rounded-xl border border-neon-red/20 inline-block shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
+                                                        <span className="text-[12px] font-black text-white uppercase tracking-widest italic leading-none bg-neon-red/20 px-5 py-2.5 rounded-xl border border-neon-red/40 inline-block shadow-[0_0_20px_rgba(255,0,51,0.2)]">
                                                             {item.festival || 'DROPSIDERS LIVE'}
                                                         </span>
                                                     </div>
                                                 </div>
                                             ))}
                                             {parseLineup(editLineup || settings.lineup || '').length === 0 && (
-                                                <div className="py-12 text-center">
-                                                    <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em] italic">
+                                                <div className="py-20 text-center">
+                                                    <p className="text-sm font-black text-white/30 uppercase tracking-[0.3em] italic drop-shadow-md">
                                                         PROGRAMME À VENIR
                                                     </p>
                                                 </div>
@@ -1410,6 +1421,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </button>
                                                                 </div>
                                                                 <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Page En Ligne</label>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ enabled: !settings.enabled })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.enabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Accès Privé (Secret Code)</label>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ isSecret: !settings.isSecret })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.isSecret ? 'bg-neon-purple shadow-[0_0_15px_#bc13fe44]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.isSecret ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
                                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chat Actif</label>
                                                                     <button
                                                                         onClick={() => handleUpdateSettings({ chat_enabled: !settings.chat_enabled })}
@@ -1440,13 +1469,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     />
                                                                 </div>
                                                                 <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">IDs YouTube (séparés par des virgules)</label>
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">IDs YouTube (vidéo unique ou principale)</label>
                                                                     <input
                                                                         type="text"
                                                                         value={newVideoId}
                                                                         onChange={(e) => setNewVideoId(e.target.value)}
                                                                         className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="dQw4w9WgXcQ, abcdefghijk"
+                                                                        placeholder="dQw4w9WgXcQ"
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Multicanal (1 par ligne : ID:Nom)</label>
+                                                                    <textarea
+                                                                        value={editChannels}
+                                                                        onChange={(e) => setEditChannels(e.target.value)}
+                                                                        className="w-full h-24 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all custom-scrollbar"
+                                                                        placeholder="dQw4w9WgXcQ:Caméra 1&#10;abcdefghijk:Caméra 2"
                                                                     />
                                                                 </div>
                                                             </div>
@@ -1571,14 +1609,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
                                                                     <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
                                                                 </div>
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    {pollOptions.map((opt, i) => (
-                                                                        <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
-                                                                            const newOpts = [...pollOptions];
-                                                                            newOpts[i] = e.target.value;
-                                                                            setPollOptions(newOpts);
-                                                                        }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
-                                                                    ))}
+                                                                <div className="space-y-2">
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        {pollOptions.map((opt, i) => (
+                                                                            <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
+                                                                                const newOpts = [...pollOptions];
+                                                                                newOpts[i] = e.target.value;
+                                                                                setPollOptions(newOpts);
+                                                                            }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
+                                                                        ))}
+                                                                    </div>
+                                                                    {pollOptions.length < 6 && (
+                                                                        <button
+                                                                            onClick={() => setPollOptions([...pollOptions, ''])}
+                                                                            className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <span className="text-lg">+</span> Ajouter une option
+                                                                        </button>
+                                                                    )}
                                                                 </div>
                                                                 <div className="grid grid-cols-2 gap-3 pt-2">
                                                                     <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all">Lancer</button>
@@ -1761,6 +1809,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     title: editTitle,
                                                     lineup: editLineup,
                                                     youtubeId: newVideoId,
+                                                    channels: editChannels,
                                                     tickerType,
                                                     tickerBgColor,
                                                     tickerTextColor,
@@ -1790,476 +1839,502 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                {settings.chat_enabled && (
-                    <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20 border-t lg:border-t-0 lg:border-l border-white/10">
-                        {/* Glossy Header */}
-                        <div className="p-3 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-neon-red/10 rounded-lg">
-                                    <MessageSquare className="w-5 h-5 text-neon-red" />
-                                </div>
-                                <div>
-                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                        Chat en direct
-                                        {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30"><Clock className="w-2.5 h-2.5" /> Mode Lent</span>}
-                                    </h2>
-                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Spectateurs en direct</p>
-                                </div>
+                <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20 border-t lg:border-t-0 lg:border-l border-white/10">
+                    {/* Glossy Header */}
+                    <div className="p-3 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-neon-red/10 rounded-lg">
+                                <MessageSquare className="w-5 h-5 text-neon-red" />
                             </div>
-                            {hasModPowers && (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={() => setShowShopWidget(!showShopWidget)}
-                                        className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                        title="Boutique"
-                                    >
-                                        <Globe className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setIsSlowMode(!isSlowMode)}
-                                        className={`p-2 rounded-lg transition-all ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                        title={isSlowMode ? "Désactiver le mode lent" : "Activer le mode lent"}
-                                    >
-                                        <Clock className="w-4 h-4" />
+                            <div>
+                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                    Chat en direct
+                                    {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30"><Clock className="w-2.5 h-2.5" /> Mode Lent</span>}
+                                </h2>
+                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5 flex items-center gap-2">
+                                    <span className="w-1 h-1 rounded-full bg-neon-cyan animate-pulse" />
+                                    {viewersCount > 0 ? `${viewersCount} SPECTATEURS EN DIRECT` : `${activeUsers.length || '...'} SPECTATEURS EN DIRECT`}
+                                </p>
+                            </div>
+                        </div>
+                        {hasModPowers && (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setShowShopWidget(!showShopWidget)}
+                                    className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                    title="Boutique"
+                                >
+                                    <Globe className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (isSlowMode) {
+                                            setIsSlowMode(false);
+                                        } else {
+                                            setShowSlowModePopup(true);
+                                        }
+                                    }}
+                                    className={`p-2 rounded-lg transition-all relative ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                    title={isSlowMode ? "Désactiver le mode lent" : "Activer le mode lent"}
+                                >
+                                    <Clock className="w-4 h-4" />
+                                </button>
+                                {showSlowModePopup && (
+                                    <div className="absolute top-12 right-4 w-60 bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 shadow-2xl z-50">
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                        </h3>
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase mb-3 leading-relaxed">Délai (secondes) :</p>
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            value={slowModeDuration}
+                                            onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
+                                            className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-3"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2 bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 rounded-xl text-[9px] font-black uppercase hover:bg-yellow-500 hover:text-black transition-all">Activer</button>
+                                            <button onClick={() => setShowSlowModePopup(false)} className="px-3 py-2 bg-white/5 text-gray-400 rounded-xl text-[9px] font-black uppercase hover:bg-white/10 transition-all border border-white/5">Auto</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Shop Widget Overlay (Inside Chat) */}
+                    <AnimatePresence>
+                        {showShopWidget && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="bg-black/60 border-b border-white/10 overflow-hidden relative z-40"
+                            >
+                                <div className="p-4 flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
+                                    {shopProducts.map(p => (
+                                        <a key={p.id} href={p.url || '/shop'} target="_blank" className="flex-shrink-0 w-32 bg-white/5 border border-white/10 rounded-xl p-2 group hover:border-neon-red/50 transition-all">
+                                            <div className="aspect-square rounded-lg overflow-hidden mb-2 relative">
+                                                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                                <span className="absolute bottom-1 right-1 text-[8px] font-black text-white bg-neon-red px-1.5 py-0.5 rounded">{p.price}€</span>
+                                            </div>
+                                            <p className="text-[8px] font-black text-white uppercase tracking-widest truncate">{p.name}</p>
+                                        </a>
+                                    ))}
+                                </div>
+                                <div className="absolute top-2 right-2 flex items-center gap-2">
+                                    <span className="text-[7px] font-black text-neon-red bg-neon-red/10 px-2 py-0.5 rounded-full border border-neon-red/20 animate-pulse">DERNIERS ITEMS</span>
+                                    <button onClick={() => setShowShopWidget(false)} className="p-1 hover:bg-white/10 rounded">
+                                        <X className="w-3 h-3 text-gray-500" />
                                     </button>
                                 </div>
-                            )}
-                        </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                        {/* Shop Widget Overlay (Inside Chat) */}
-                        <AnimatePresence>
-                            {showShopWidget && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="bg-black/60 border-b border-white/10 overflow-hidden relative z-40"
-                                >
-                                    <div className="p-4 flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
-                                        {shopProducts.map(p => (
-                                            <a key={p.id} href={p.url || '/shop'} target="_blank" className="flex-shrink-0 w-32 bg-white/5 border border-white/10 rounded-xl p-2 group hover:border-neon-red/50 transition-all">
-                                                <div className="aspect-square rounded-lg overflow-hidden mb-2 relative">
-                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                                    <span className="absolute bottom-1 right-1 text-[8px] font-black text-white bg-neon-red px-1.5 py-0.5 rounded">{p.price}€</span>
-                                                </div>
-                                                <p className="text-[8px] font-black text-white uppercase tracking-widest truncate">{p.name}</p>
-                                            </a>
-                                        ))}
+                    <div className="flex-1 flex flex-row min-h-0">
+                        <div className="flex-1 flex flex-col min-h-0 relative z-10 w-full lg:w-[420px]">
+                            {isLocalBanned ? (
+                                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-black/40">
+                                    <div className="w-20 h-20 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.1)]">
+                                        <ShieldAlert className="w-10 h-10 text-neon-red" />
                                     </div>
-                                    <div className="absolute top-2 right-2 flex items-center gap-2">
-                                        <span className="text-[7px] font-black text-neon-red bg-neon-red/10 px-2 py-0.5 rounded-full border border-neon-red/20 animate-pulse">DERNIERS ITEMS</span>
-                                        <button onClick={() => setShowShopWidget(false)} className="p-1 hover:bg-white/10 rounded">
-                                            <X className="w-3 h-3 text-gray-500" />
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <div className="flex-1 flex flex-row min-h-0">
-                            <div className="flex-1 flex flex-col min-h-0 relative z-10 w-full lg:w-[420px]">
-                                {isLocalBanned ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-black/40">
-                                        <div className="w-20 h-20 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.1)]">
-                                            <ShieldAlert className="w-10 h-10 text-neon-red" />
-                                        </div>
-                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mb-2">Accès restreint</h3>
-                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
-                                            Vous avez été banni du chat. Vous ne pouvez plus voir ou envoyer de messages.
-                                        </p>
-                                        <button
-                                            onClick={handleUnbanRequest}
-                                            className="px-8 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mb-2">Accès restreint</h3>
+                                    <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                        Vous avez été banni du chat. Vous ne pouvez plus voir ou envoyer de messages.
+                                    </p>
+                                    <button
+                                        onClick={handleUnbanRequest}
+                                        className="px-8 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                    >
+                                        Demande de débannissement
+                                    </button>
+                                    <p className="mt-4 text-[9px] text-gray-600 font-bold uppercase">Disponible après 10 minutes</p>
+                                </div>
+                            ) : (
+                                <AnimatePresence mode="wait">
+                                    {!isJoined ? (
+                                        <motion.div
+                                            key="join-form"
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -10 }}
+                                            className="flex-1 p-8 flex flex-col justify-center relative z-10"
                                         >
-                                            Demande de débannissement
-                                        </button>
-                                        <p className="mt-4 text-[9px] text-gray-600 font-bold uppercase">Disponible après 10 minutes</p>
-                                    </div>
-                                ) : (
-                                    <AnimatePresence mode="wait">
-                                        {!isJoined ? (
-                                            <motion.div
-                                                key="join-form"
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                className="flex-1 p-8 flex flex-col justify-center relative z-10"
-                                            >
-                                                <div className="text-center mb-6 lg:mb-10">
-                                                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
-                                                        <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
-                                                    </div>
-                                                    <h3 className="text-lg lg:text-xl font-black text-white uppercase italic tracking-tighter">
-                                                        Rejoindre le <span className="text-neon-red">Chat</span>
-                                                    </h3>
-                                                    <p className="text-[10px] lg:text-xs text-gray-500 font-bold uppercase tracking-widest mt-2 px-4 italic">Identifiez-vous pour participer en direct</p>
+                                            <div className="text-center mb-6 lg:mb-10">
+                                                <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
+                                                    <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
+                                                </div>
+                                                <h3 className="text-lg lg:text-xl font-black text-white uppercase italic tracking-tighter">
+                                                    Rejoindre le <span className="text-neon-red">Chat</span>
+                                                </h3>
+                                                <p className="text-[10px] lg:text-xs text-gray-500 font-bold uppercase tracking-widest mt-2 px-4 italic">Identifiez-vous pour participer en direct</p>
+                                            </div>
+
+                                            <form onSubmit={handleJoin} className="space-y-4 max-w-sm mx-auto w-full">
+                                                <div className="group relative">
+                                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="PSEUDO"
+                                                        required
+                                                        value={pseudo}
+                                                        onChange={(e) => setPseudo(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                    />
                                                 </div>
 
-                                                <form onSubmit={handleJoin} className="space-y-4 max-w-sm mx-auto w-full">
-                                                    <div className="group relative">
-                                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
-                                                        <input
-                                                            type="text"
-                                                            placeholder="PSEUDO"
-                                                            required
-                                                            value={pseudo}
-                                                            onChange={(e) => setPseudo(e.target.value)}
-                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                        />
-                                                    </div>
+                                                <div className="group relative">
+                                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                    <input
+                                                        type="email"
+                                                        placeholder="EMAIL"
+                                                        required
+                                                        value={email}
+                                                        onChange={(e) => setEmail(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                    />
+                                                </div>
 
-                                                    <div className="group relative">
-                                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
-                                                        <input
-                                                            type="email"
-                                                            placeholder="EMAIL"
-                                                            required
-                                                            value={email}
-                                                            onChange={(e) => setEmail(e.target.value)}
-                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                        />
-                                                    </div>
+                                                <div className="group relative">
+                                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                    <input
+                                                        type="text"
+                                                        placeholder="PAYS"
+                                                        required
+                                                        value={country}
+                                                        onChange={(e) => setCountry(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                    />
+                                                </div>
 
-                                                    <div className="group relative">
-                                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
-                                                        <input
-                                                            type="text"
-                                                            placeholder="PAYS"
-                                                            required
-                                                            value={country}
-                                                            onChange={(e) => setCountry(e.target.value)}
-                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                        />
-                                                    </div>
-
-                                                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
-                                                        <div className="flex-1">
-                                                            <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={subscribeNewsletter}
-                                                                    onChange={(e) => setSubscribeNewsletter(e.target.checked)}
-                                                                    className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
-                                                                />
-                                                                Newsletter
-                                                            </label>
-                                                        </div>
-                                                    </div>
-
-                                                    {!isAdmin && (
-                                                        <div className="group relative">
-                                                            <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
+                                                    <div className="flex-1">
+                                                        <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
                                                             <input
-                                                                type="number"
-                                                                placeholder={`${captchaA} + ${captchaB} ?`}
-                                                                required
-                                                                value={captchaAnswer}
-                                                                onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                                type="checkbox"
+                                                                checked={subscribeNewsletter}
+                                                                onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+                                                                className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
                                                             />
-                                                        </div>
-                                                    )}
+                                                            Newsletter
+                                                        </label>
+                                                    </div>
+                                                </div>
 
-                                                    <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Couleur de votre pseudo</label>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {['#ffffff', '#00ffcc', '#00ccff', '#ff00ff', '#ccff00', '#ff9900', '#9933ff', '#33ff33', '#ffffff', '#ff66aa'].filter(c => {
+                                                {!isAdmin && (
+                                                    <div className="group relative">
+                                                        <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                        <input
+                                                            type="number"
+                                                            placeholder={`${captchaA} + ${captchaB} ?`}
+                                                            required
+                                                            value={captchaAnswer}
+                                                            onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Couleur de votre pseudo</label>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {['#ffffff', '#00ffcc', '#00ccff', '#ff00ff', '#ccff00', '#ff9900', '#9933ff', '#33ff33', '#ffffff', '#ff66aa'].filter(c => {
+                                                            const r = parseInt(c.slice(1, 3), 16);
+                                                            const g = parseInt(c.slice(3, 5), 16);
+                                                            const b = parseInt(c.slice(5, 7), 16);
+                                                            const isRed = r > 200 && g < 100 && b < 100;
+                                                            const isYellow = r > 200 && g > 200 && b < 100;
+                                                            return !isRed && !isYellow;
+                                                        }).map(color => (
+                                                            <button
+                                                                key={color}
+                                                                type="button"
+                                                                onClick={() => setUserColor(color)}
+                                                                className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${userColor === color ? 'border-white scale-110 shadow-[0_0_10px_white]' : 'border-transparent'}`}
+                                                                style={{ backgroundColor: color }}
+                                                            />
+                                                        ))}
+                                                        <input
+                                                            type="color"
+                                                            value={userColor}
+                                                            onChange={(e) => {
+                                                                const c = e.target.value;
                                                                 const r = parseInt(c.slice(1, 3), 16);
                                                                 const g = parseInt(c.slice(3, 5), 16);
                                                                 const b = parseInt(c.slice(5, 7), 16);
                                                                 const isRed = r > 200 && g < 100 && b < 100;
                                                                 const isYellow = r > 200 && g > 200 && b < 100;
-                                                                return !isRed && !isYellow;
-                                                            }).map(color => (
-                                                                <button
-                                                                    key={color}
-                                                                    type="button"
-                                                                    onClick={() => setUserColor(color)}
-                                                                    className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${userColor === color ? 'border-white scale-110 shadow-[0_0_10px_white]' : 'border-transparent'}`}
-                                                                    style={{ backgroundColor: color }}
-                                                                />
-                                                            ))}
-                                                            <input
-                                                                type="color"
-                                                                value={userColor}
-                                                                onChange={(e) => {
-                                                                    const c = e.target.value;
-                                                                    const r = parseInt(c.slice(1, 3), 16);
-                                                                    const g = parseInt(c.slice(3, 5), 16);
-                                                                    const b = parseInt(c.slice(5, 7), 16);
-                                                                    const isRed = r > 200 && g < 100 && b < 100;
-                                                                    const isYellow = r > 200 && g > 200 && b < 100;
-                                                                    if (!isRed && !isYellow) setUserColor(c);
-                                                                    else alert("Les couleurs rouge et jaune sont réservées à l'administration.");
-                                                                }}
-                                                                className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer p-0 overflow-hidden"
-                                                            />
-                                                        </div>
+                                                                if (!isRed && !isYellow) setUserColor(c);
+                                                                else alert("Les couleurs rouge et jaune sont réservées à l'administration.");
+                                                            }}
+                                                            className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer p-0 overflow-hidden"
+                                                        />
                                                     </div>
-
-                                                    <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
-                                                        Rejoindre
-                                                    </button>
-                                                </form>
-                                            </motion.div>
-                                        ) : (
-                                            <motion.div
-                                                key="chat-active"
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                exit={{ opacity: 0 }}
-                                                className="flex-1 flex flex-col min-h-0 relative z-10"
-                                            >
-                                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:y-6 scroll-smooth">
-                                                    {/* Pinned Message */}
-                                                    <AnimatePresence>
-                                                        {settings.pinnedMessage && (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: -20 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                exit={{ opacity: 0, y: -20 }}
-                                                                className="sticky top-0 z-30 mb-6"
-                                                            >
-                                                                <div className="bg-neon-red/10 border border-neon-red/30 backdrop-blur-xl rounded-2xl p-4 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group">
-                                                                    <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
-                                                                    <div className="flex items-start gap-3">
-                                                                        <div className="p-2 bg-neon-red/20 rounded-xl">
-                                                                            <Pin className="w-4 h-4 text-neon-red" />
-                                                                        </div>
-                                                                        <div className="flex-1 min-w-0">
-                                                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-1 flex items-center gap-2">
-                                                                                Message Épinglé
-                                                                                <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse" />
-                                                                            </p>
-                                                                            <p className="text-xs font-bold text-white leading-relaxed break-words">
-                                                                                {settings.pinnedMessage}
-                                                                            </p>
-                                                                        </div>
-                                                                        {hasModPowers && (
-                                                                            <button
-                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
-                                                                                className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all"
-                                                                                title="Désépingler"
-                                                                            >
-                                                                                <PinOff className="w-4 h-4" />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </motion.div>
-                                                        )}
-                                                    </AnimatePresence>
-                                                    {messages.map((msg, idx) => {
-                                                        const role = getRole(msg.pseudo);
-                                                        const isMsgAdmin = role === 'admin';
-                                                        const isMsgModo = role === 'modo';
-                                                        const isBot = msg.isBot || msg.pseudo === 'Dropsiders Bot';
-
-                                                        return (
-                                                            <motion.div
-                                                                key={msg.id || idx}
-                                                                initial={{ opacity: 0, x: 10 }}
-                                                                animate={{ opacity: 1, x: 0 }}
-                                                                transition={{ delay: Math.min(idx * 0.05, 1) }}
-                                                                className="group relative"
-                                                            >
-                                                                <div className="flex items-center gap-2 mb-1 px-1 truncate">
-                                                                    <div className="w-4 flex items-center justify-center">
-                                                                        {getCountryFlag(msg.country || 'FR')}
-                                                                    </div>
-                                                                    <span
-                                                                        className="text-[10px] font-black uppercase tracking-widest"
-                                                                        style={{ color: isBot ? '#00ffcc' : isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                                    >
-                                                                        {msg.pseudo}
-                                                                    </span>
-                                                                    {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
-                                                                    {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
-                                                                    {isBot && <span className="px-1.5 py-0.5 rounded bg-neon-cyan text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">BOT</span>}
-                                                                    <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
-                                                                </div>
-                                                                <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isBot ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-[#00ffcc] shadow-[0_0_20px_rgba(0,255,150,0.05)]' : isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
-                                                                    <span className="relative z-10 font-medium whitespace-pre-wrap">{msg.message}</span>
-                                                                    <div className="flex items-center gap-1">
-                                                                        {hasModPowers && (
-                                                                            <button
-                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })}
-                                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-neon-red transition-all shrink-0"
-                                                                                title="Épingler le message"
-                                                                            >
-                                                                                <Pin className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        )}
-                                                                        {hasModPowers && !isMsgAdmin && (
-                                                                            <button
-                                                                                onClick={() => handleDelete(msg.id)}
-                                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0"
-                                                                                title="Supprimer"
-                                                                            >
-                                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </motion.div>
-                                                        );
-                                                    })}
                                                 </div>
 
-                                                {/* Chat Input Bar */}
-                                                <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
-                                                    <form onSubmit={handleSendMessage} className="relative group">
-                                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within:opacity-40 blur-sm rounded-xl transition-opacity pointer-events-none" />
-                                                        <div className="relative flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
-                                                            <div className="flex items-center bg-white/[0.02] border-b border-white/5">
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                                                    className={`p-3 transition-all ${showEmojiPicker ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
-                                                                >
-                                                                    <Smile className="w-4 h-4" />
-                                                                </button>
-
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={async () => {
-                                                                        setShazamLoading(true);
-                                                                        await new Promise(r => setTimeout(r, 2500));
-                                                                        setShazamLoading(false);
-
-                                                                        const items = parseLineup(displayLineup || settings.lineup || '');
-                                                                        const now = new Date();
-                                                                        const currentHour = now.getHours();
-                                                                        const currentMin = now.getMinutes();
-
-                                                                        const identified = items.find(item => {
-                                                                            const [h, m] = (item.time || '').split(/[hH:]/).map(Number);
-                                                                            return h === currentHour && Math.abs(currentMin - m) < 60;
-                                                                        })?.artist || "Dropsiders Selection";
-
-                                                                        setRecentShazams(prev => [identified, ...prev].slice(0, 5));
-                                                                        setNewMessage(`🎵 Le titre actuel est identifié comme : ${identified} !`);
-                                                                        window.open('shazam://', '_blank');
-                                                                    }}
-                                                                    className={`p-3 transition-all flex items-center gap-2 ${shazamLoading ? 'text-[#0088ff] animate-pulse' : 'text-gray-500 hover:text-[#0088ff]'}`}
-                                                                >
-                                                                    <Music2 className="w-4 h-4" />
-                                                                    {shazamLoading && <span className="text-[8px] font-black uppercase tracking-widest">Identification...</span>}
-                                                                </button>
-                                                            </div>
-
-                                                            <div className="flex items-center">
-                                                                <input
-                                                                    type="text"
-                                                                    value={newMessage}
-                                                                    onChange={(e) => setNewMessage(e.target.value)}
-                                                                    placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrire un message..."}
-                                                                    className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
-                                                                />
-                                                                <button
-                                                                    type="submit"
-                                                                    disabled={!newMessage.trim() || isSending}
-                                                                    className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
-                                                                >
-                                                                    <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </form>
-
-                                                    {showEmojiPicker && (
+                                                <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
+                                                    Rejoindre
+                                                </button>
+                                            </form>
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            key="chat-active"
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="flex-1 flex flex-col min-h-0 relative z-10"
+                                        >
+                                            <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:y-6 scroll-smooth">
+                                                {/* Pinned Message */}
+                                                <AnimatePresence>
+                                                    {settings.pinnedMessage && (
                                                         <motion.div
-                                                            initial={{ opacity: 0, y: 5 }}
+                                                            initial={{ opacity: 0, y: -20 }}
                                                             animate={{ opacity: 1, y: 0 }}
-                                                            className="mt-2 p-2 bg-black border border-white/10 rounded-xl grid grid-cols-8 lg:grid-cols-10 gap-1 shadow-2xl h-40 overflow-y-auto custom-scrollbar"
+                                                            exit={{ opacity: 0, y: -20 }}
+                                                            className="sticky top-0 z-30 mb-6"
                                                         >
-                                                            {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳', '👑', '💎', '🖤', '👽', '👾', '🌍'].map(emoji => (
-                                                                <button
-                                                                    key={emoji}
-                                                                    type="button"
-                                                                    onClick={() => {
-                                                                        setNewMessage(prev => prev + emoji);
-                                                                        setShowEmojiPicker(false);
-                                                                    }}
-                                                                    className="p-2 hover:bg-white/10 rounded-lg text-lg transition-transform active:scale-90"
-                                                                >
-                                                                    {emoji}
-                                                                </button>
-                                                            ))}
+                                                            <div className="bg-neon-red/10 border border-neon-red/30 backdrop-blur-xl rounded-2xl p-4 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group">
+                                                                <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
+                                                                <div className="flex items-start gap-3">
+                                                                    <div className="p-2 bg-neon-red/20 rounded-xl">
+                                                                        <Pin className="w-4 h-4 text-neon-red" />
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                                            Message Épinglé
+                                                                            <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse" />
+                                                                        </p>
+                                                                        <p className="text-xs font-bold text-white leading-relaxed break-words">
+                                                                            {settings.pinnedMessage}
+                                                                        </p>
+                                                                    </div>
+                                                                    {hasModPowers && (
+                                                                        <button
+                                                                            onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                                            className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all"
+                                                                            title="Désépingler"
+                                                                        >
+                                                                            <PinOff className="w-4 h-4" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
                                                         </motion.div>
                                                     )}
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                )}
-                            </div>
-                        </div>
-
-                        {hasModPowers && (
-                            <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                                <button
-                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                    className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
-                                >
-                                    <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                                </button>
-                            </div>
-                        )}
-
-                        <AnimatePresence>
-                            {hasModPowers && showUsersPanel && (
-                                <motion.div
-                                    initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 250, opacity: 1 }}
-                                    exit={{ width: 0, opacity: 0 }}
-                                    className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
-                                >
-                                    <div className="w-[250px] flex flex-col h-full">
-                                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                            </h2>
-                                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                        </div>
-                                        <div className="flex-1 overflow-y-auto">
-                                            <div className="p-3 space-y-2">
-                                                {allActiveUsers.map(u => {
-                                                    const role = getRole(u.pseudo);
-                                                    const isUserAdmin = role === 'admin';
-                                                    const isUserModo = role === 'modo';
+                                                </AnimatePresence>
+                                                {messages.map((msg, idx) => {
+                                                    const role = getRole(msg.pseudo);
+                                                    const isMsgAdmin = role === 'admin';
+                                                    const isMsgModo = role === 'modo';
+                                                    const isBot = msg.isBot || msg.pseudo === 'Dropsiders Bot';
 
                                                     return (
-                                                        <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                            <div className="flex items-center gap-2 truncate">
+                                                        <motion.div
+                                                            key={msg.id || idx}
+                                                            initial={{ opacity: 0, x: 10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            transition={{ delay: Math.min(idx * 0.05, 1) }}
+                                                            className="group relative"
+                                                        >
+                                                            <div className="flex items-center gap-2 mb-1 px-1 truncate">
                                                                 <div className="w-4 flex items-center justify-center">
-                                                                    {getCountryFlag(u.country)}
+                                                                    {getCountryFlag(msg.country || 'FR')}
                                                                 </div>
-                                                                <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                    {u.pseudo}
-                                                                </span>
-                                                            </div>
-                                                            {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                <button
-                                                                    onClick={() => handlePromote(u.pseudo)}
-                                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                    title="Promouvoir Modérateur Chat"
+                                                                <span
+                                                                    className="text-[10px] font-black uppercase tracking-widest"
+                                                                    style={{ color: isBot ? '#00ffcc' : isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                 >
-                                                                    <Shield className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            )}
-                                                        </div>
+                                                                    {msg.pseudo}
+                                                                </span>
+                                                                {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
+                                                                {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
+                                                                {isBot && <span className="px-1.5 py-0.5 rounded bg-neon-cyan text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">BOT</span>}
+                                                                <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                            </div>
+                                                            <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isBot ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-[#00ffcc] shadow-[0_0_20px_rgba(0,255,150,0.05)]' : isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
+                                                                <span className="relative z-10 font-medium whitespace-pre-wrap">{msg.message}</span>
+                                                                <div className="flex items-center gap-1">
+                                                                    {hasModPowers && (
+                                                                        <button
+                                                                            onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })}
+                                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-neon-red transition-all shrink-0"
+                                                                            title="Épingler le message"
+                                                                        >
+                                                                            <Pin className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                    {hasModPowers && !isMsgAdmin && (
+                                                                        <button
+                                                                            onClick={() => handleDelete(msg.id)}
+                                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0"
+                                                                            title="Supprimer"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
                                                     );
                                                 })}
                                             </div>
+
+                                            {/* Chat Input Bar */}
+                                            <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
+                                                <form onSubmit={handleSendMessage} className="relative group">
+                                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within:opacity-40 blur-sm rounded-xl transition-opacity pointer-events-none" />
+                                                    <div className="relative flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
+                                                        <div className="flex items-center bg-white/[0.02] border-b border-white/5">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                                className={`p-3 transition-all ${showEmojiPicker ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                                            >
+                                                                <Smile className="w-4 h-4" />
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={async () => {
+                                                                    setShazamLoading(true);
+                                                                    await new Promise(r => setTimeout(r, 2500));
+                                                                    setShazamLoading(false);
+
+                                                                    const items = parseLineup(displayLineup || settings.lineup || '');
+                                                                    const now = new Date();
+                                                                    const currentHour = now.getHours();
+                                                                    const currentMin = now.getMinutes();
+
+                                                                    const identified = items.find(item => {
+                                                                        const [h, m] = (item.time || '').split(/[hH:]/).map(Number);
+                                                                        return h === currentHour && Math.abs(currentMin - m) < 60;
+                                                                    })?.artist || "Dropsiders Selection";
+
+                                                                    setRecentShazams(prev => [identified, ...prev].slice(0, 5));
+                                                                    setNewMessage(`🎵 Le titre actuel est identifié comme : ${identified} !`);
+                                                                    window.open('shazam://', '_blank');
+                                                                }}
+                                                                className={`p-3 transition-all flex items-center gap-2 ${shazamLoading ? 'text-[#0088ff] animate-pulse' : 'text-gray-500 hover:text-[#0088ff]'}`}
+                                                            >
+                                                                <Music2 className="w-4 h-4" />
+                                                                {shazamLoading && <span className="text-[8px] font-black uppercase tracking-widest">Identification...</span>}
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="flex items-center">
+                                                            <input
+                                                                type="text"
+                                                                value={newMessage}
+                                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                                placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrire un message..."}
+                                                                className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
+                                                            />
+                                                            <button
+                                                                type="submit"
+                                                                disabled={!newMessage.trim() || isSending}
+                                                                className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
+                                                            >
+                                                                <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </form>
+
+                                                {showEmojiPicker && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 5 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        className="mt-2 p-2 bg-black border border-white/10 rounded-xl grid grid-cols-8 lg:grid-cols-10 gap-1 shadow-2xl h-40 overflow-y-auto custom-scrollbar"
+                                                    >
+                                                        {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳', '👑', '💎', '🖤', '👽', '👾', '🌍'].map(emoji => (
+                                                            <button
+                                                                key={emoji}
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setNewMessage(prev => prev + emoji);
+                                                                    setShowEmojiPicker(false);
+                                                                }}
+                                                                className="p-2 hover:bg-white/10 rounded-lg text-lg transition-transform active:scale-90"
+                                                            >
+                                                                {emoji}
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            )}
+                        </div>
+                    </div>
+
+                    {hasModPowers && (
+                        <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                            <button
+                                onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
+                            >
+                                <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                            </button>
+                        </div>
+                    )}
+
+                    <AnimatePresence>
+                        {hasModPowers && showUsersPanel && (
+                            <motion.div
+                                initial={{ width: 0, opacity: 0 }}
+                                animate={{ width: 250, opacity: 1 }}
+                                exit={{ width: 0, opacity: 0 }}
+                                className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                            >
+                                <div className="w-[250px] flex flex-col h-full">
+                                    <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                        <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                            <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                        </h2>
+                                        <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto">
+                                        <div className="p-3 space-y-2">
+                                            {allActiveUsers.map(u => {
+                                                const role = getRole(u.pseudo);
+                                                const isUserAdmin = role === 'admin';
+                                                const isUserModo = role === 'modo';
+
+                                                return (
+                                                    <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <div className="w-4 flex items-center justify-center">
+                                                                {getCountryFlag(u.country)}
+                                                            </div>
+                                                            <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                {u.pseudo}
+                                                            </span>
+                                                        </div>
+                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                            <button
+                                                                onClick={() => handlePromote(u.pseudo)}
+                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                title="Promouvoir Modérateur Chat"
+                                                            >
+                                                                <Shield className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
             </div>
 
             {!isFocusMode && (
@@ -2270,7 +2345,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
                     <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                    <div className="flex items-center absolute whitespace-nowrap animate-ticker group-hover/ticker:[animation-play-state:paused] py-2">
+                    <div className="flex items-center absolute whitespace-nowrap animate-ticker hover:[animation-play-state:paused] py-2">
                         {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
                             <a
                                 key={`${news.id}-${i}`}
@@ -2367,7 +2442,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
                                         <div className="w-6 h-6 rounded-full bg-neon-cyan text-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
                                         <p className="text-[11px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                            Sélectionnez <span className="text-white">"CET ONGLET"</span> (ou "DROPSIDERS LIVE") dans la fenêtre qui s'ouvre.
+                                            ASSUREZ-VOUS D'ÊTRE SUR L'ONGLET <span className="text-white underline decoration-neon-cyan">"ONGLET CHROME"</span> ET SELECTIONNEZ <span className="text-white">"DROPSIDERS LIVE"</span>.
                                         </p>
                                     </div>
                                     <div className="flex items-start gap-4 p-4 bg-neon-red/10 rounded-2xl border border-neon-red/20">

@@ -53,7 +53,6 @@ export function AdminDashboard() {
     interface TakeoverState {
         enabled: boolean;
         youtubeId: string;
-        chat_enabled: boolean;
         title: string;
         moderators: string;
         lineup: string;
@@ -78,7 +77,6 @@ export function AdminDashboard() {
     const [takeoverState, setTakeoverState] = useState<TakeoverState>({
         enabled: false,
         youtubeId: '',
-        chat_enabled: true,
         title: 'LIVE TAKEOVER',
         moderators: '',
         lineup: '',
@@ -252,7 +250,6 @@ export function AdminDashboard() {
                     setTakeoverState({
                         enabled: data.takeover.enabled || false,
                         youtubeId: data.takeover.youtubeId || '',
-                        chat_enabled: data.takeover.chat_enabled !== false,
                         title: data.takeover.title || 'LIVE TAKEOVER',
                         moderators: data.takeover.moderators || '',
                         lineup: data.takeover.lineup || '',
@@ -2509,24 +2506,6 @@ export function AdminDashboard() {
 
                                 {takeoverTab === 'moderation' && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                        <div className="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/5">
-                                            <div className="flex items-center gap-4">
-                                                <div className={`p-3 rounded-2xl transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-gray-800 text-gray-400'}`}>
-                                                    <MessageSquare className="w-6 h-6" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-white font-black uppercase italic tracking-wider">Activer le Chat</p>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Interaction en direct</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={() => setTakeoverState({ ...takeoverState, chat_enabled: !takeoverState.chat_enabled })}
-                                                className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan' : 'bg-gray-800'}`}
-                                            >
-                                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.chat_enabled ? 'right-1 shadow-lg' : 'left-1'}`} />
-                                            </button>
-                                        </div>
-
                                         <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
                                             <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3 mb-4">
                                                 <ShieldAlert className="w-5 h-5 text-red-500" /> Sécurité des Liens
