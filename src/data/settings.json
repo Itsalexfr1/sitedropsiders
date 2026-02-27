@@ -27,13 +27,13 @@
     "title": "Tomorrowland - Daybreak Session",
     "moderators": "",
     "lineup": "",
-    "tickerType": "news",
+    "tickerType": "custom",
     "tickerText": "",
     "tickerLink": "",
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": false,
-    "showTickerBanner": true,
+    "showTickerBanner": false,
     "showInNavbar": false,
     "forceHomepage": false,
     "customCommands": "",
@@ -42,6 +42,7 @@
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "🤖 Liste des commandes : !lineup, !shop, !shazam, !news, !id"
+    "pinnedMessage": "🤖 Liste des commandes : !lineup, !shop, !shazam, !news, !id",
+    "chat_enabled": true
   }
 }
