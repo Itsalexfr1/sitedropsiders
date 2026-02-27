@@ -20,6 +20,7 @@ interface TakeoverProps {
         customCommands?: string;
         isSecret?: boolean;
         password?: string;
+        channels?: string;
     };
 }
 
@@ -189,9 +190,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [recentShazams, setRecentShazams] = useState<string[]>([]);
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
 
-    // Dynamic Video List (if comma separated in settings)
-    const videoList = settings.youtubeId?.split(',').map(id => id.trim()) || [];
-    const currentVideoId = videoList[activeVideoIndex] || videoList[0];
+    // Dynamic Video List with Titles
+    const channelItems = settings.channels
+        ? settings.channels.split('\n').filter(l => l.trim()).map(line => {
+            const [id, ...titleParts] = line.split(':');
+            return { id: id.trim(), title: titleParts.join(':').trim() || 'CAM' };
+        })
+        : (settings.youtubeId?.split(',').filter(id => id.trim()).map((id, idx) => ({
+            id: id.trim(),
+            title: `CAM ${idx + 1}`
+        })) || []);
+
+    const currentVideoId = channelItems[activeVideoIndex]?.id || channelItems[0]?.id || '';
 
     useEffect(() => {
         fetch('/api/shop')
@@ -897,15 +907,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </h1>
 
                         {/* Multi-Video Switcher */}
-                        {videoList.length > 1 && (
+                        {channelItems.length > 1 && (
                             <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                                {videoList.map((_, idx) => (
+                                {channelItems.map((item, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setActiveVideoIndex(idx)}
-                                        className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                        className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
                                     >
-                                        CAM {idx + 1}
+                                        {item.title}
                                     </button>
                                 ))}
                             </div>
@@ -993,20 +1003,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         ></iframe>
 
                         {/* Multi-Channel Switcher */}
-                        {videoList.length > 1 && (
+                        {channelItems.length > 1 && (
                             <div className="absolute top-6 left-6 z-30 flex flex-col gap-2">
                                 <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 flex flex-col gap-1 shadow-2xl">
                                     <p className="text-[7px] font-black text-gray-500 uppercase tracking-[0.2em] px-2 mb-1">Flux Disponibles</p>
-                                    {videoList.map((id, idx) => (
+                                    {channelItems.map((item, idx) => (
                                         <button
-                                            key={id}
+                                            key={idx}
                                             onClick={() => setActiveVideoIndex(idx)}
                                             className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all group ${activeVideoIndex === idx ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.3)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
                                         >
                                             <div className="relative">
                                                 <div className={`w-2 h-2 rounded-full ${activeVideoIndex === idx ? 'bg-white animate-pulse' : 'bg-gray-600'}`} />
                                             </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Channel {idx + 1}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">{item.title}</span>
                                             {activeVideoIndex === idx && <div className="ml-auto w-1 h-3 bg-white/30 rounded-full" />}
                                         </button>
                                     ))}

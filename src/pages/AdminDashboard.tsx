@@ -6,10 +6,11 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { translateText } from '../utils/translate';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -68,6 +69,7 @@ export function AdminDashboard() {
         forceHomepage: boolean;
         isSecret: boolean;
         password?: string;
+        channels: string;
     }
 
     const [takeoverState, setTakeoverState] = useState<TakeoverState>({
@@ -88,7 +90,8 @@ export function AdminDashboard() {
         showInNavbar: true,
         forceHomepage: true,
         isSecret: false,
-        password: '2026'
+        password: '2026',
+        channels: ''
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
@@ -258,7 +261,8 @@ export function AdminDashboard() {
                         forceHomepage: data.takeover.forceHomepage !== false,
                         customCommands: data.takeover.customCommands || '',
                         isSecret: data.takeover.isSecret || false,
-                        password: data.takeover.password || '2026'
+                        password: data.takeover.password || '2026',
+                        channels: data.takeover.channels || ''
                     });
                 }
             }
@@ -323,6 +327,28 @@ export function AdminDashboard() {
         }
     };
 
+
+    // Auto-translation for Banner
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (bannerState.text && bannerState.text.length > 5 && !bannerState.text_en) {
+                const translated = await translateText(bannerState.text, 'en');
+                setBannerState(prev => ({ ...prev, text_en: translated.toUpperCase() }));
+            }
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, [bannerState.text]);
+
+    // Auto-translation for Takeover Title
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (takeoverState.title && takeoverState.title.length > 5) {
+                // Here we could add a title_en if it existed, but usually takeover uses same title.
+                // If you want a specific EN title, we'd need to add it to the state.
+            }
+        }, 1500);
+        return () => clearTimeout(timer);
+    }, [takeoverState.title]);
 
     const fetchActions = async () => {
         try {
@@ -2233,10 +2259,14 @@ export function AdminDashboard() {
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled })}
-                                                className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled ? 'bg-neon-red shadow-[0_0_20px_#ff003344]' : 'bg-gray-800'}`}
+                                                onClick={() => {
+                                                    if (takeoverState.isSecret) return;
+                                                    setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled });
+                                                }}
+                                                disabled={takeoverState.isSecret}
+                                                className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled || takeoverState.isSecret ? 'bg-neon-red shadow-[0_0_20px_#ff003344]' : 'bg-gray-800'} ${takeoverState.isSecret ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
-                                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.enabled ? 'right-1' : 'left-1'}`} />
+                                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${(takeoverState.enabled || takeoverState.isSecret) ? 'right-1' : 'left-1'}`} />
                                             </button>
                                         </div>
 
@@ -2267,13 +2297,33 @@ export function AdminDashboard() {
                                                 </button>
                                             </div>
 
-                                            <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
-                                                <div className="flex flex-col">
-                                                    <p className="text-[11px] font-black text-neon-purple uppercase tracking-widest">Mode Secret</p>
-                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Accès par mot de passe</p>
+                                            <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5 group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex flex-col">
+                                                        <p className="text-[11px] font-black text-neon-purple uppercase tracking-widest flex items-center gap-2">
+                                                            Mode Secret (PWD: 2026)
+                                                            {takeoverState.isSecret && (
+                                                                <Link
+                                                                    to="/live"
+                                                                    target="_blank"
+                                                                    className="p-1 px-2 border border-neon-purple/30 bg-neon-purple/20 text-neon-purple rounded-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-1.5 group"
+                                                                    title="Voir le Live Secret"
+                                                                >
+                                                                    <ExternalLink className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                                                                    <span className="text-[8px] font-black uppercase tracking-widest">Voir le Live</span>
+                                                                </Link>
+                                                            )}
+                                                        </p>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Activation + Protection 2026</p>
+                                                    </div>
                                                 </div>
                                                 <button
-                                                    onClick={() => setTakeoverState({ ...takeoverState, isSecret: !takeoverState.isSecret })}
+                                                    onClick={() => setTakeoverState({
+                                                        ...takeoverState,
+                                                        isSecret: !takeoverState.isSecret,
+                                                        // If turning secret ON, also enable the live (takeover)
+                                                        enabled: !takeoverState.isSecret ? true : takeoverState.enabled
+                                                    })}
                                                     className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.isSecret ? 'bg-neon-purple shadow-[0_0_10px_#bc13fe44]' : 'bg-gray-800'}`}
                                                 >
                                                     <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.isSecret ? 'right-0.5' : 'left-0.5'}`} />
@@ -2281,33 +2331,97 @@ export function AdminDashboard() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                            <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Youtube className="w-4 h-4 text-neon-red" />
-                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">ID Vidéo YouTube</label>
+                                        <div className="space-y-4 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-2">
+                                                    <Video className="w-5 h-5 text-neon-red" />
+                                                    <h3 className="text-[11px] font-black text-white uppercase tracking-widest">Chaînes / Caméras</h3>
                                                 </div>
-                                                <input
-                                                    type="text"
-                                                    value={takeoverState.youtubeId}
-                                                    onChange={(e) => setTakeoverState({ ...takeoverState, youtubeId: e.target.value })}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none"
-                                                    placeholder="ID YouTube..."
-                                                />
+                                                <button
+                                                    onClick={() => {
+                                                        const current = (takeoverState.channels || '').split('\n').filter(l => l.length > 0);
+                                                        const updated = [...current, ':NOUVELLE CAM'].join('\n');
+                                                        setTakeoverState({ ...takeoverState, channels: updated });
+                                                    }}
+                                                    className="px-3 py-1.5 bg-neon-red text-white text-[8px] font-black uppercase rounded-lg hover:scale-105 transition-all"
+                                                >
+                                                    + Ajouter
+                                                </button>
                                             </div>
-                                            <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Pencil className="w-4 h-4 text-neon-cyan" />
-                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Titre du Live</label>
-                                                </div>
-                                                <input
-                                                    type="text"
-                                                    value={takeoverState.title}
-                                                    onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
-                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
-                                                    placeholder="Nom de l'event..."
-                                                />
+
+                                            <div className="space-y-3">
+                                                {(takeoverState.channels || '').split('\n').filter(l => l.length > 0).map((line, idx) => {
+                                                    const parts = line.split(':');
+                                                    const id = parts[0] || '';
+                                                    const title = parts.slice(1).join(':') || '';
+
+                                                    const updateChannel = (newId: string, newTitle: string) => {
+                                                        const rows = (takeoverState.channels || '').split('\n').map((l, i) => {
+                                                            if (i === idx) return `${newId}:${newTitle}`;
+                                                            return l;
+                                                        });
+                                                        setTakeoverState({ ...takeoverState, channels: rows.join('\n') });
+                                                    };
+
+                                                    const deleteChannel = () => {
+                                                        const rows = (takeoverState.channels || '').split('\n').filter((_, i) => i !== idx);
+                                                        setTakeoverState({ ...takeoverState, channels: rows.join('\n') });
+                                                    };
+
+                                                    return (
+                                                        <div key={idx} className="grid grid-cols-12 gap-2 bg-black/20 p-2 rounded-xl border border-white/5 group">
+                                                            <div className="col-span-5">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID Vidéo / Lien</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={id}
+                                                                        onChange={e => updateChannel(e.target.value, title)}
+                                                                        placeholder="ID YouTube..."
+                                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white focus:border-neon-red outline-none"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-span-6">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre Caméra</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={title}
+                                                                        onChange={e => updateChannel(id, e.target.value.toUpperCase())}
+                                                                        placeholder="EX: CAM 1, MAIN STAGE..."
+                                                                        className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-neon-red font-black uppercase focus:border-neon-red outline-none"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-span-1 flex items-end justify-center pb-1">
+                                                                <button onClick={deleteChannel} className="p-1.5 text-gray-600 hover:text-neon-red transition-all">
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+
+                                                {(!takeoverState.channels || takeoverState.channels.trim() === '') && (
+                                                    <div className="p-4 bg-black/20 border border-dashed border-white/10 rounded-xl text-center">
+                                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune caméra configurée</p>
+                                                    </div>
+                                                )}
                                             </div>
+                                        </div>
+                                        <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <Pencil className="w-4 h-4 text-neon-cyan" />
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Titre du Live</label>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={takeoverState.title}
+                                                onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
+                                                placeholder="Nom de l'event..."
+                                            />
                                         </div>
 
                                         <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
@@ -2423,11 +2537,12 @@ export function AdminDashboard() {
                                             <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Éditeur de <span className="text-neon-red">Planning</span></h3>
                                             <button
                                                 onClick={() => {
-                                                    const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim()).map(line => {
+                                                    const currentLines = (takeoverState.lineup || '').split('\n');
+                                                    const rows = currentLines.filter(l => l.length > 0).map(line => {
                                                         const timeMatch = line.match(/\[(.*?)\]/);
-                                                        const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0].trim() : '');
-                                                        const rest = line.replace(/\[.*?\]/, '').trim();
-                                                        const parts = rest.split('-').map(s => s.trim());
+                                                        const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0] : '');
+                                                        const rest = line.replace(/\[.*?\]/, '');
+                                                        const parts = rest.split('-');
                                                         return {
                                                             time: time,
                                                             artist: parts[0] || '',
@@ -2447,11 +2562,11 @@ export function AdminDashboard() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            {(takeoverState.lineup || '').split('\n').filter(l => l.trim()).map((line, idx) => {
+                                            {(takeoverState.lineup || '').split('\n').filter(l => l.length > 0).map((line, idx) => {
                                                 const timeMatch = line.match(/\[(.*?)\]/);
-                                                const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0].trim() : '');
-                                                const rest = line.replace(/\[.*?\]/, '').trim();
-                                                const parts = rest.split('-').map(s => s.trim());
+                                                const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0] : '');
+                                                const rest = line.replace(/\[.*?\]/, '');
+                                                const parts = rest.split('-');
                                                 const row = {
                                                     time: time,
                                                     artist: parts[0] || '',
@@ -2460,7 +2575,7 @@ export function AdminDashboard() {
                                                 };
 
                                                 const updateRow = (newData: Partial<typeof row>) => {
-                                                    const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim()).map((l, i) => {
+                                                    const rows = (takeoverState.lineup || '').split('\n').map((l, i) => {
                                                         if (i === idx) {
                                                             const updated = { ...row, ...newData };
                                                             return `[${updated.time || '00:00'}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.festival ? ` - ${updated.festival}` : ''}`;
@@ -2471,7 +2586,7 @@ export function AdminDashboard() {
                                                 };
 
                                                 const deleteRow = () => {
-                                                    const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim()).filter((_, i) => i !== idx);
+                                                    const rows = (takeoverState.lineup || '').split('\n').filter((_, i) => i !== idx);
                                                     setTakeoverState({ ...takeoverState, lineup: rows.join('\n') });
                                                 };
 
@@ -2584,8 +2699,8 @@ export function AdminDashboard() {
                                             <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Commandes <span className="text-neon-cyan">Bot</span></h3>
                                             <button
                                                 onClick={() => {
-                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map(line => {
-                                                        const parts = line.split(':').map(s => s.trim());
+                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.length > 0).map(line => {
+                                                        const parts = line.split(':');
                                                         return { cmd: parts[0] || '', res: parts[1] || '' };
                                                     });
                                                     const newRow = { cmd: '!nouveau', res: 'Votre réponse ici' };
@@ -2600,12 +2715,12 @@ export function AdminDashboard() {
                                         </div>
 
                                         <div className="space-y-3">
-                                            {(takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map((line, idx) => {
-                                                const parts = line.split(':').map(s => s.trim());
+                                            {(takeoverState.customCommands || '').split('\n').filter(l => l.length > 0).map((line, idx) => {
+                                                const parts = line.split(':');
                                                 const row = { cmd: parts[0] || '', res: parts[1] || '' };
 
                                                 const updateCmd = (newCmd: string) => {
-                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map((l, i) => {
+                                                    const rows = (takeoverState.customCommands || '').split('\n').map((l, i) => {
                                                         if (i === idx) return `${newCmd}:${row.res}`;
                                                         return l;
                                                     });
@@ -2613,7 +2728,7 @@ export function AdminDashboard() {
                                                 };
 
                                                 const updateRes = (newRes: string) => {
-                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map((l, i) => {
+                                                    const rows = (takeoverState.customCommands || '').split('\n').map((l, i) => {
                                                         if (i === idx) return `${row.cmd}:${newRes}`;
                                                         return l;
                                                     });
@@ -2621,7 +2736,7 @@ export function AdminDashboard() {
                                                 };
 
                                                 const deleteRow = () => {
-                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).filter((_, i) => i !== idx);
+                                                    const rows = (takeoverState.customCommands || '').split('\n').filter((_, i) => i !== idx);
                                                     setTakeoverState({ ...takeoverState, customCommands: rows.join('\n') });
                                                 };
 
