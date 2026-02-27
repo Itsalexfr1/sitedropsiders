@@ -2,21 +2,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
-    Pencil, List, Instagram, Facebook, Power, Smile, Activity,
+    Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2
 } from 'lucide-react';
 
-const XIcon = (props: any) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
-    </svg>
-);
-
-const SnapchatIcon = (props: any) => (
-    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
-        <path d="M11.996 1.984C8.683 1.984 6 4.717 6 8.086c0 1.071.303 2.062.825 2.91C3.134 11.458 1 14.195 1 17.35c0 1.993 1.616 3.608 3.608 3.608.204 0 .401-.017.593-.05.801.714 1.865 1.142 3.033 1.142.868 0 1.674-.236 2.366-.639.692.403 1.498.639 2.366.639 1.168 0 2.232-.428 3.033-1.142.192.033.389.05.593.05 1.993 0 3.608-1.616 3.608-3.608 0-3.155-2.134-5.892-5.825-6.354.522-.848.825-1.839.825-2.91 0-3.369-2.683-6.102-5.996-6.102z" />
-    </svg>
-);
 
 interface TakeoverProps {
     settings: {
@@ -1180,31 +1169,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
 
-    const handleShare = async (platform: 'x' | 'fb' | 'insta' | 'snap' | 'native') => {
-        const url = window.location.href;
-        const text = `Je regarde ${editTitle} sur Dropsiders ! 🚀`;
-
-        if (platform === 'native' || navigator.share && (platform === 'insta' || platform === 'snap')) {
-            try {
-                await navigator.share({
-                    title: 'Dropsiders Live',
-                    text: text,
-                    url: url
-                });
-                return;
-            } catch (err) {
-                console.log('Share failed or cancelled');
-            }
-        }
-
-        const encodedUrl = encodeURIComponent(url);
-        const encodedText = encodeURIComponent(text);
-
-        if (platform === 'x') window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`, '_blank');
-        else if (platform === 'fb') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
-        else if (platform === 'insta') window.open(`https://www.instagram.com/`, '_blank');
-        else if (platform === 'snap') window.open(`https://www.snapchat.com/`, '_blank');
-    };
 
     const handleCutLive = async () => {
         if (!window.confirm('Voulez-vous vraiment désactiver le LIVE ?')) return;
@@ -1576,10 +1540,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     {/* Instagram Section (Simplified as requested) */}
                                                     <div className="hidden lg:flex flex-col items-center justify-center absolute right-[10%] group-hover:right-[11%] transition-all opacity-20 group-hover:opacity-100 scale-90 group-hover:scale-100 duration-500">
                                                         {item.instagram && (
-                                                            <a 
-                                                                href={item.instagram} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer" 
+                                                            <a
+                                                                href={item.instagram}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
                                                                 className="flex flex-col items-center gap-1 group/insta p-2"
                                                             >
                                                                 <div className="p-2 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-lg shadow-lg transform group-hover/insta:rotate-12 transition-transform">
