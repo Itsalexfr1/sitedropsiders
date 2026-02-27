@@ -22,7 +22,7 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "DQHSj6cphm0",
     "chat_enabled": true,
     "title": "Tomorrowland - Daybreak Session",
@@ -40,6 +40,9 @@
     "customCommands": "",
     "isSecret": true,
     "password": "2026",
-    "channels": ""
+    "channels": "",
+    "autoMessage": "",
+    "autoMessageInterval": 60,
+    "pinnedMessage": ""
   }
 }
