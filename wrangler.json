@@ -28,5 +28,11 @@
         "GITHUB_OWNER": "Itsalexfr1",
         "GITHUB_REPO": "sitedropsiders",
         "GITHUB_FILE_PATH": "src/data/subscribers.json"
-    }
+    },
+    "kv_namespaces": [
+        {
+            "binding": "CHAT_KV",
+            "id": "PLACEHOLDER_KV_ID"
+        }
+    ]
 }

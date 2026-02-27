@@ -47,11 +47,45 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return JSON.parse(localStorage.getItem('chat_promoted_modos') || '[]');
     });
 
-    const [activeUsers, setActiveUsers] = useState<{ pseudo: string, country: string }[]>([]);
+    const [activeUsers] = useState<{ pseudo: string, country: string }[]>([]);
+    const [isSending, setIsSending] = useState(false);
 
+    const getAuthHeaders = () => {
+        const password = localStorage.getItem('admin_password') || '';
+        const username = localStorage.getItem('admin_user') || 'alex';
+        const sessionId = localStorage.getItem('admin_session_id') || '';
+        return {
+            'Content-Type': 'application/json',
+            'X-Admin-Password': password,
+            'X-Admin-Username': username,
+            'X-Session-ID': sessionId
+        };
+    };
+
+    // Fetch messages from server every 3 seconds
     useEffect(() => {
-        // Here we could fetch real active users from a backend socket if it existed.
-        // For now, it relies on users who join and send messages.
+        const fetchMessages = () => {
+            fetch('/api/chat/messages')
+                .then(res => res.ok ? res.json() : [])
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        setMessages(data);
+                        // Auto-scroll
+                        const chatContainer = document.getElementById('chat-messages');
+                        if (chatContainer) {
+                            const isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
+                            if (isAtBottom) {
+                                setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 50);
+                            }
+                        }
+                    }
+                })
+                .catch(() => { });
+        };
+
+        fetchMessages();
+        const interval = setInterval(fetchMessages, 3000);
+        return () => clearInterval(interval);
     }, []);
 
     const getFlagEmoji = (c: string) => {
@@ -129,57 +163,71 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
-    const handleSendMessage = (e: React.FormEvent) => {
+    const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (newMessage.trim()) {
-            if (isSlowMode && !hasModPowers) {
-                const now = Date.now();
-                if (now - lastMessageTime < 10000) { // 10 seconds
-                    alert('Le mode lent est activé. Veuillez patienter 10 secondes entre chaque message.');
-                    return;
-                }
-                setLastMessageTime(now);
-            }
+        if (!newMessage.trim() || isSending) return;
 
-            const msg = {
-                id: Date.now(),
-                pseudo: pseudo.toUpperCase(),
-                country: country || 'FR',
-                message: newMessage,
-                time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, msg]);
-            setNewMessage('');
-
-            // Auto scroll to bottom (simple version)
-            const chatContainer = document.getElementById('chat-messages');
-            if (chatContainer) {
-                setTimeout(() => {
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }, 100);
+        if (isSlowMode && !hasModPowers) {
+            const now = Date.now();
+            if (now - lastMessageTime < 10000) {
+                alert('Le mode lent est activé. Veuillez patienter 10 secondes entre chaque message.');
+                return;
             }
+            setLastMessageTime(now);
+        }
+
+        setIsSending(true);
+        const msgText = newMessage;
+        setNewMessage('');
+
+        try {
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: pseudo.toUpperCase(),
+                    country: country || 'FR',
+                    message: msgText
+                })
+            });
+        } catch (e) {
+            console.error('Failed to send message', e);
+        } finally {
+            setIsSending(false);
         }
     };
 
-    const handleDelete = (id: number) => {
-        if (hasModPowers) {
-            setMessages(prev => prev.filter(m => m.id !== id));
+    const handleDelete = async (id: number) => {
+        if (!hasModPowers) return;
+        setMessages(prev => prev.filter(m => m.id !== id)); // optimistic update
+        try {
+            await fetch('/api/chat/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            });
+        } catch (e) {
+            console.error('Failed to delete message', e);
         }
     };
 
     const handleBanClick = (name: string) => {
-        if (hasModPowers) {
-            setBanTarget(name);
-        }
+        if (hasModPowers) setBanTarget(name);
     };
 
-    const confirmBan = () => {
-        if (banTarget && hasModPowers) {
-            // Actual IP ban logic would go here
-            setMessages(prev => prev.filter(m => m.pseudo !== banTarget));
-            setBanTarget(null);
-            setBanDuration('10');
-            // Show some temporary notification if needed
+    const confirmBan = async () => {
+        if (!banTarget || !hasModPowers) return;
+        setMessages(prev => prev.filter(m => m.pseudo !== banTarget)); // optimistic
+        setBanTarget(null);
+        setBanDuration('10');
+        try {
+            await fetch('/api/chat/ban', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ pseudo: banTarget })
+            });
+        } catch (e) {
+            console.error('Failed to ban user', e);
         }
     };
 

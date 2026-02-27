@@ -57,6 +57,32 @@ export function AdminDashboard() {
         moderators: ''
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
+    const [takeoverTab, setTakeoverTab] = useState<'settings' | 'blocked'>('settings');
+    const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (isTakeoverModalOpen) {
+            setTakeoverTab('settings');
+            // Load banned users from server
+            const perms = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+            if (perms.includes('all') || perms.includes('takeover_modo')) {
+                const password = localStorage.getItem('admin_password') || '';
+                const username = localStorage.getItem('admin_user') || 'alex';
+                const sessionId = localStorage.getItem('admin_session_id') || '';
+                fetch('/api/chat/banned', {
+                    headers: {
+                        'X-Admin-Password': password,
+                        'X-Admin-Username': username,
+                        'X-Session-ID': sessionId
+                    }
+                })
+                    .then(r => r.ok ? r.json() : [])
+                    .then(data => setBannedChatUsers(Array.isArray(data) ? data : []))
+                    .catch(() => setBannedChatUsers([]));
+            }
+        }
+    }, [isTakeoverModalOpen]);
+
     const navigate = useNavigate();
 
     // Selection Interviews pour l'accueil
@@ -2133,100 +2159,163 @@ export function AdminDashboard() {
                                 </button>
                             </div>
 
-                            <div className="space-y-8">
-                                <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-white/10 transition-all">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`p-3 rounded-2xl transition-all ${takeoverState.enabled ? 'bg-neon-red/20 text-neon-red' : 'bg-gray-800 text-gray-400'}`}>
-                                            <Activity className="w-6 h-6" />
-                                        </div>
-                                        <div>
-                                            <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">La page d'accueil sera remplacée</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled })}
-                                        className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled ? 'bg-neon-red' : 'bg-gray-800'}`}
-                                    >
-                                        <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.enabled ? 'right-1 shadow-lg' : 'left-1'}`} />
-                                    </button>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Youtube className="w-4 h-4 text-neon-red" />
-                                        <label className="text-xs font-black text-gray-500 uppercase tracking-widest">ID ou URL Vidéo YouTube</label>
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={takeoverState.youtubeId}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            let id = val;
-                                            if (val.includes('v=')) id = val.split('v=')[1].split('&')[0];
-                                            else if (val.includes('youtu.be/')) id = val.split('youtu.be/')[1].split('?')[0];
-                                            setTakeoverState({ ...takeoverState, youtubeId: id });
-                                        }}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:border-neon-red outline-none transition-all placeholder-gray-700"
-                                        placeholder="Ex: dQw4w9WgXcQ ou URL complète"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activer le Chat</span>
-                                        <button
-                                            onClick={() => setTakeoverState({ ...takeoverState, chat_enabled: !takeoverState.chat_enabled })}
-                                            className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan' : 'bg-gray-800'}`}
-                                        >
-                                            <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${takeoverState.chat_enabled ? 'right-1' : 'left-1'}`} />
-                                        </button>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Titre de l'événement</label>
-                                        <input
-                                            type="text"
-                                            value={takeoverState.title}
-                                            onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block ml-1">Modérateurs (séparés par des virgules)</label>
-                                    <input
-                                        type="text"
-                                        value={takeoverState.moderators}
-                                        onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
-                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none"
-                                        placeholder="Ex: TANGUY, EMMA, MODERATEUR_1"
-                                    />
-                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Les modérateurs pourront supprimer les messages du chat</p>
-                                </div>
-
+                            <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-8 overflow-hidden z-20 relative">
                                 <button
-                                    onClick={saveTakeoverSettings}
-                                    disabled={isUpdatingTakeover}
-                                    className="w-full py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-3xl transition-all shadow-2xl shadow-neon-red/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                    onClick={() => setTakeoverTab('settings')}
+                                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'settings' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                 >
-                                    {isUpdatingTakeover ? (
-                                        <>
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                            Enregistrement...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="w-5 h-5" />
-                                            Déployer le Mode Live
-                                        </>
-                                    )}
+                                    RÉGLAGES
+                                </button>
+                                <button
+                                    onClick={() => setTakeoverTab('blocked')}
+                                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/20 text-red-500 shadow-lg' : 'text-gray-500 hover:text-red-400 hover:bg-white/5'}`}
+                                >
+                                    BLOQUÉS ({bannedChatUsers.length})
                                 </button>
                             </div>
+
+                            {takeoverTab === 'settings' ? (
+                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 relative z-30">
+                                    <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-white/10 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-3 rounded-2xl transition-all ${takeoverState.enabled ? 'bg-neon-red/20 text-neon-red' : 'bg-gray-800 text-gray-400'}`}>
+                                                <Activity className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">La page d'accueil sera remplacée</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled })}
+                                            className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled ? 'bg-neon-red' : 'bg-gray-800'}`}
+                                        >
+                                            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.enabled ? 'right-1 shadow-lg' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Youtube className="w-4 h-4 text-neon-red" />
+                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">ID ou URL Vidéo YouTube</label>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={takeoverState.youtubeId}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                let id = val;
+                                                if (val.includes('v=')) id = val.split('v=')[1].split('&')[0];
+                                                else if (val.includes('youtu.be/')) id = val.split('youtu.be/')[1].split('?')[0];
+                                                setTakeoverState({ ...takeoverState, youtubeId: id });
+                                            }}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:border-neon-red outline-none transition-all placeholder-gray-700"
+                                            placeholder="Ex: dQw4w9WgXcQ ou URL complète"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activer le Chat</span>
+                                            <button
+                                                onClick={() => setTakeoverState({ ...takeoverState, chat_enabled: !takeoverState.chat_enabled })}
+                                                className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan' : 'bg-gray-800'}`}
+                                            >
+                                                <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${takeoverState.chat_enabled ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Titre de l'événement</label>
+                                            <input
+                                                type="text"
+                                                value={takeoverState.title}
+                                                onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block ml-1">Modérateurs (séparés par des virgules)</label>
+                                        <input
+                                            type="text"
+                                            value={takeoverState.moderators}
+                                            onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none"
+                                            placeholder="Ex: TANGUY, EMMA, MODERATEUR_1"
+                                        />
+                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Les modérateurs pourront supprimer les messages du chat</p>
+                                    </div>
+
+                                    <button
+                                        onClick={saveTakeoverSettings}
+                                        disabled={isUpdatingTakeover}
+                                        className="w-full py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-3xl transition-all shadow-2xl shadow-neon-red/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                    >
+                                        {isUpdatingTakeover ? (
+                                            <>
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                Enregistrement...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-5 h-5" />
+                                                Déployer le Mode Live
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                    {bannedChatUsers.length === 0 ? (
+                                        <div className="text-center py-10 bg-white/5 border border-white/10 rounded-3xl">
+                                            <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Aucun utilisateur bloqué</p>
+                                        </div>
+                                    ) : (
+                                        bannedChatUsers.map(user => (
+                                            <div key={user} className="flex items-center justify-between p-4 bg-red-500/5 rounded-2xl border border-red-500/10">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
+                                                        <User className="w-4 h-4 text-red-500" />
+                                                    </div>
+                                                    <span className="text-sm font-black text-white uppercase tracking-widest">{user}</span>
+                                                </div>
+                                                <button
+                                                    onClick={async () => {
+                                                        const newBanned = bannedChatUsers.filter(u => u !== user);
+                                                        setBannedChatUsers(newBanned);
+                                                        try {
+                                                            const password = localStorage.getItem('admin_password') || '';
+                                                            const username = localStorage.getItem('admin_user') || 'alex';
+                                                            const sessionId = localStorage.getItem('admin_session_id') || '';
+                                                            await fetch('/api/chat/unban', {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                    'X-Admin-Password': password,
+                                                                    'X-Admin-Username': username,
+                                                                    'X-Session-ID': sessionId
+                                                                },
+                                                                body: JSON.stringify({ pseudo: user })
+                                                            });
+                                                        } catch (e) {
+                                                            console.error('Failed to unban', e);
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-white/5 hover:bg-green-500/20 text-gray-400 hover:text-green-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all border border-transparent hover:border-green-500/30"
+                                                >
+                                                    Débloquer
+                                                </button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            )}
                         </motion.div>
                     </div>
-                )}
-            </AnimatePresence>
-        </div>
+                )
+                }
+            </AnimatePresence >
+        </div >
     );
 }

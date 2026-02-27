@@ -575,7 +575,108 @@ export default {
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
+        // --- API: CHAT MESSAGES (using KV for real-time sharing) ---
+        const CHAT_MSG_KEY = 'chat_messages';
+        const CHAT_BAN_KEY = 'chat_banned_ips';
+
+        if (path === '/api/chat/messages' && request.method === 'GET') {
+            const raw = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_MSG_KEY) : null;
+            const messages = raw ? JSON.parse(raw) : [];
+            return new Response(JSON.stringify(messages), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/messages' && request.method === 'POST') {
+            const body = await request.json();
+            const { pseudo, country, message } = body;
+            if (!pseudo || !message) {
+                return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+            }
+            // Check ban list
+            if (env.CHAT_KV) {
+                const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
+                const banned = rawBans ? JSON.parse(rawBans) : [];
+                if (banned.includes(pseudo.toUpperCase())) {
+                    return new Response(JSON.stringify({ error: 'Banned' }), { status: 403, headers });
+                }
+            }
+            const raw = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_MSG_KEY) : null;
+            const messages = raw ? JSON.parse(raw) : [];
+            const newMsg = {
+                id: Date.now(),
+                pseudo: pseudo.toUpperCase(),
+                country: country || 'FR',
+                message: message.substring(0, 500),
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+            };
+            messages.push(newMsg);
+            // Keep last 200 messages
+            const trimmed = messages.slice(-200);
+            if (env.CHAT_KV) {
+                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify(trimmed), { expirationTtl: 86400 });
+            }
+            return new Response(JSON.stringify(newMsg), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/delete' && request.method === 'POST') {
+            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { id } = await request.json();
+            if (env.CHAT_KV) {
+                const raw = await env.CHAT_KV.get(CHAT_MSG_KEY);
+                const messages = raw ? JSON.parse(raw) : [];
+                const filtered = messages.filter(m => m.id !== id);
+                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify(filtered), { expirationTtl: 86400 });
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/ban' && request.method === 'POST') {
+            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { pseudo } = await request.json();
+            if (env.CHAT_KV) {
+                const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
+                const banned = rawBans ? JSON.parse(rawBans) : [];
+                if (!banned.includes(pseudo.toUpperCase())) {
+                    banned.push(pseudo.toUpperCase());
+                    await env.CHAT_KV.put(CHAT_BAN_KEY, JSON.stringify(banned), { expirationTtl: 604800 });
+                }
+                // Also remove their messages
+                const raw = await env.CHAT_KV.get(CHAT_MSG_KEY);
+                const messages = raw ? JSON.parse(raw) : [];
+                const filtered = messages.filter(m => m.pseudo !== pseudo.toUpperCase());
+                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify(filtered), { expirationTtl: 86400 });
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/unban' && request.method === 'POST') {
+            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { pseudo } = await request.json();
+            if (env.CHAT_KV) {
+                const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
+                const banned = rawBans ? JSON.parse(rawBans) : [];
+                const newBanned = banned.filter(u => u !== pseudo.toUpperCase());
+                await env.CHAT_KV.put(CHAT_BAN_KEY, JSON.stringify(newBanned), { expirationTtl: 604800 });
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/banned' && request.method === 'GET') {
+            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const rawBans = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_BAN_KEY) : null;
+            const banned = rawBans ? JSON.parse(rawBans) : [];
+            return new Response(JSON.stringify(banned), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/clear' && request.method === 'POST') {
+            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            if (env.CHAT_KV) {
+                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify([]), { expirationTtl: 86400 });
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
         // --- API: SETTINGS MANAGEMENT ---
+
         if (path === '/api/settings' && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const file = await fetchGitHubFile(SETTINGS_PATH);
