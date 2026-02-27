@@ -99,6 +99,67 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, []);
 
 
+    const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
+    const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
+    const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+        return () => clearInterval(timer);
+    }, []);
+
+    // Dynamic Video List with Titles
+    const channelItems = useMemo(() => {
+        const items = [];
+        if (settings.youtubeId) {
+            items.push({ id: settings.youtubeId.trim(), title: 'Flux Principal' });
+        }
+        if (settings.channels) {
+            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
+                const [id, ...titleParts] = line.split(':');
+                if (id && id.trim()) {
+                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM' });
+                }
+            });
+        }
+        return items;
+    }, [settings.youtubeId, settings.channels]);
+
+    // Memoized filtered lineup based on selected flux
+    const currentFluxLineup = useMemo(() => {
+        const items = parseLineup(displayLineup || settings.lineup || '');
+        const currentTitle = channelItems[activeVideoIndex]?.title || '';
+        if (!currentTitle || currentTitle.toLowerCase().includes('principal')) return items;
+        return items.filter(item => {
+            const sName = (item.stage || '').toLowerCase();
+            const fName = currentTitle.toLowerCase();
+            return sName.includes(fName) || fName.includes(sName);
+        });
+    }, [displayLineup, settings.lineup, activeVideoIndex, channelItems, parseLineup, currentTime]);
+
+    // Calculate current artist for the selected stage/flux
+    const fluxCurrentArtist = useMemo(() => {
+        if (currentFluxLineup.length === 0) {
+            return { artist: settings.currentArtist || '', instagram: settings.artistInstagram || '' };
+        }
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+        const currentItem = [...currentFluxLineup]
+            .filter(i => i.time.includes(':'))
+            .map(i => {
+                const [h, m] = i.time.split(':').map(Number);
+                return { ...i, total: h * 60 + m };
+            })
+            .sort((a, b) => b.total - a.total)
+            .find(i => i.total <= currentMinutes);
+
+        return {
+            artist: currentItem?.artist || settings.currentArtist || '',
+            instagram: currentItem?.instagram || settings.artistInstagram || ''
+        };
+    }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime]);
+
     const handleUnlock = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (enteredPassword === (settings.password || '2026')) {
@@ -865,7 +926,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return a.pseudo.localeCompare(b.pseudo);
         });
 
-    const isServerAdmin = adminAuth === 'true';
+    const isServerAdmin = adminAuth === true;
 
     // State for command edition
     const [cmdTrigger, setCmdTrigger] = useState('');
@@ -1290,13 +1351,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, x: -20 }}
                                 animate={{ opacity: 1, scale: 1, x: 0 }}
-                                key={channelItems[activeVideoIndex]?.title || 'Principal'}
+                                key={`${channelItems[activeVideoIndex]?.title}-${fluxCurrentArtist.artist}`}
                                 className="px-5 py-2.5 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
                             >
                                 <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_12px_#00ffff]" />
-                                <span className="text-[11px] font-black text-white uppercase tracking-[0.25em] italic">
-                                    {channelItems[activeVideoIndex]?.title || 'Flux Principal'}
-                                </span>
+                                <div className="flex flex-col">
+                                    <span className="text-[7px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-0.5">
+                                        {channelItems[activeVideoIndex]?.title || 'Flux Principal'}
+                                    </span>
+                                    <span className="text-[11px] font-black text-white uppercase tracking-[0.1em] italic">
+                                        {fluxCurrentArtist.artist || 'DROPSIDERS LIVE'}
+                                    </span>
+                                </div>
                             </motion.div>
                         </div>
                         <div className="absolute inset-0 z-0">
