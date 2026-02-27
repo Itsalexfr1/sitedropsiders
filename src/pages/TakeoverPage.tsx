@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -43,6 +43,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [isSlowMode, setIsSlowMode] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
 
+    const [promotedModos, setPromotedModos] = useState<string[]>(() => {
+        return JSON.parse(localStorage.getItem('chat_promoted_modos') || '[]');
+    });
+
+    const [viewersCount, setViewersCount] = useState(1243);
+    const [activeUsers, setActiveUsers] = useState<{ pseudo: string, country: string }[]>([]);
+
+    useEffect(() => {
+        // some fake names to populate the users list
+        const fakePseudos = ['LUCAS', 'EMMA', 'MARC', 'CHLOÉ', 'TOM', 'SARAH', 'JULIEN', 'MIA', 'LEO', 'ALEX', 'SOPHIE', 'THOMAS', 'CLAIRE', 'MAXIME', 'LAURA', 'NICOLAS', 'JULIE', 'ANTOINE', 'PAULINE', 'MATHIEU', 'CAMILLE', 'ROMAIN', 'MARIE', 'PIERRE', 'CÉLINE', 'QUENTIN', 'ANAÏS', 'GUILLAUME', 'JUSTINE', 'FLORIANT'];
+        const fakeCountries = ['FR', 'BE', 'CH', 'CA', 'ES', 'IT', 'UK'];
+
+        // Pick 15-20 random fake users initially
+        const initialUsers = Array.from({ length: 20 }, () => ({
+            pseudo: fakePseudos[Math.floor(Math.random() * fakePseudos.length)],
+            country: fakeCountries[Math.floor(Math.random() * fakeCountries.length)]
+        })).filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
+
+        setActiveUsers(initialUsers);
+
+        const interval = setInterval(() => {
+            setViewersCount(prev => Math.max(1200, prev + Math.floor(Math.random() * 5) - 2));
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, []);
+
     const getFlagEmoji = (c: string) => {
         if (!c) return '🌍';
         const code = c.toUpperCase().trim();
@@ -69,6 +96,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const getRole = (name: string) => {
         if (name === 'DROPSIDERS' || name === adminUser) return 'admin';
         if (settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(name.toUpperCase())) return 'modo';
+        if (promotedModos.includes(name.toUpperCase())) return 'modo';
         return 'user';
     };
 
@@ -171,6 +199,29 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
+    const handlePromote = (name: string) => {
+        if (!promotedModos.includes(name.toUpperCase())) {
+            const newModos = [...promotedModos, name.toUpperCase()];
+            setPromotedModos(newModos);
+            localStorage.setItem('chat_promoted_modos', JSON.stringify(newModos));
+        }
+    };
+
+    const allActiveUsers = [
+        ...(isJoined ? [{ pseudo: pseudo, country: country || 'FR' }] : []),
+        ...messages.map(m => ({ pseudo: m.pseudo, country: m.country })),
+        ...activeUsers
+    ].filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i)
+        .sort((a, b) => {
+            const roleA = getRole(a.pseudo);
+            const roleB = getRole(b.pseudo);
+            // Admins first, then Modos, then users
+            const weightA = roleA === 'admin' ? 3 : roleA === 'modo' ? 2 : 1;
+            const weightB = roleB === 'admin' ? 3 : roleB === 'modo' ? 2 : 1;
+            if (weightA !== weightB) return weightB - weightA;
+            return a.pseudo.localeCompare(b.pseudo);
+        });
+
     return (
         <div className="flex flex-col h-[100dvh] bg-black pt-20 overflow-hidden">
             {/* Live Banner Header */}
@@ -184,6 +235,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-widest">
                         {settings.title}
                     </h1>
+                </div>
+                <div className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0">
+                    <Users className="w-4 h-4 text-neon-red" />
+                    <span className="text-xs font-black text-white uppercase tracking-widest">{viewersCount.toLocaleString('fr-FR')} Spectateurs</span>
                 </div>
             </div>
 
@@ -446,6 +501,47 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         {/* Gradient Background Effect */}
                         <div className="absolute inset-0 pointer-events-none">
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-neon-red/5 blur-[100px] rounded-full" />
+                        </div>
+                    </div>
+                )}
+
+                {/* User List Panel (Moderators only) */}
+                {hasModPowers && (
+                    <div className="hidden xl:flex flex-col w-[250px] bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0">
+                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                            </h2>
+                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                        </div>
+                        <div className="flex-1 overflow-y-auto w-full">
+                            <div className="p-3 space-y-2">
+                                {allActiveUsers.map(u => {
+                                    const role = getRole(u.pseudo);
+                                    const isUserAdmin = role === 'admin';
+                                    const isUserModo = role === 'modo';
+
+                                    return (
+                                        <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                            <div className="flex items-center gap-2 truncate">
+                                                <span className="text-xs">{getFlagEmoji(u.country)}</span>
+                                                <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                    {u.pseudo}
+                                                </span>
+                                            </div>
+                                            {hasModPowers && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                <button
+                                                    onClick={() => handlePromote(u.pseudo)}
+                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                    title="Promouvoir Modérateur Chat"
+                                                >
+                                                    <Shield className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
                     </div>
                 )}
