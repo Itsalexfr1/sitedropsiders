@@ -60,7 +60,8 @@ const PERMISSION_CATEGORIES = [
                 id: 'banner', label: "Bandeau d'annonce", description: 'Gérer le message défilant du site.'
             },
             { id: 'spotify', label: 'Playlists Spotify', description: "Gérer les playlists de la page d'accueil." },
-            { id: 'team', label: 'Gestion Team', description: 'Gérer les membres de la Dream Team.' }
+            { id: 'team', label: 'Gestion Team', description: 'Gérer les membres de la Dream Team.' },
+            { id: 'takeover_modo', label: 'Modérateur Live Takeover', description: 'Autorise la modération (suppression, ban) sur le chat du Live Takeover.' }
         ]
     },
     {
