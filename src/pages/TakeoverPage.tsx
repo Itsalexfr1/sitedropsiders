@@ -499,38 +499,43 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         <div className="p-3 space-y-3 max-h-72 overflow-y-auto custom-scrollbar bg-black/40 backdrop-blur-xl">
                                             {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
-                                                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3 shadow-sm hover:border-neon-red/50 transition-all group">
-                                                    <div className="flex items-center justify-between mb-2">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">H</span>
-                                                            <span className="text-[11px] font-black text-white uppercase tracking-tighter">
-                                                                {item.time}
-                                                            </span>
-                                                        </div>
-                                                        {item.festival && (
-                                                            <div className="flex flex-col items-end text-right">
-                                                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Festival</span>
-                                                                <span className="text-[9px] font-black text-neon-red uppercase tracking-widest italic leading-none">
+                                                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-sm hover:border-neon-red/50 transition-all group flex items-center gap-3">
+                                                    <div className="flex flex-col shrink-0 min-w-[35px]">
+                                                        <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter">H</span>
+                                                        <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">
+                                                            {item.time}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="w-px h-6 bg-white/10 shrink-0" />
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter block">Artiste</span>
+                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[11px] leading-tight truncate group-hover:text-neon-red transition-colors">
+                                                            {item.artist}
+                                                        </h3>
+                                                    </div>
+
+                                                    <div className="w-px h-6 bg-white/10 shrink-0" />
+
+                                                    <div className="shrink-0 text-right min-w-[50px]">
+                                                        <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter block">Stage</span>
+                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider leading-none truncate">
+                                                            {item.stage}
+                                                        </span>
+                                                    </div>
+
+                                                    {item.festival && (
+                                                        <>
+                                                            <div className="w-px h-6 bg-white/10 shrink-0" />
+                                                            <div className="shrink-0 text-right min-w-[50px]">
+                                                                <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter block">Fest</span>
+                                                                <span className="text-[8px] font-black text-neon-red uppercase tracking-widest italic leading-none truncate">
                                                                     {item.festival}
                                                                 </span>
                                                             </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="space-y-1.5 pt-2 border-t border-white/5">
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Artiste</span>
-                                                            <h3 className="text-white font-black uppercase italic tracking-widest text-sm leading-tight group-hover:text-neon-red transition-colors">
-                                                                {item.artist}
-                                                            </h3>
-                                                        </div>
-                                                        <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Scène / Stage</span>
-                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                                                {item.stage}
-                                                            </span>
-                                                        </div>
-                                                    </div>
+                                                        </>
+                                                    )}
                                                 </div>
                                             ))}
                                             {parseLineup(editLineup || settings.lineup || '').length === 0 && (
