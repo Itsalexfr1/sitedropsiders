@@ -145,8 +145,8 @@
   {
     "id": 7,
     "title": "Récap : Ultra Europe 2025",
-    "date": "2026-02-27T00:39",
-    "summary": "Récap : I Love Techno Europe 2025  Du 11 au 13 juillet 2025, le légendaire festival Ultra Europe a enflammé la ville de Split, en Croatie, avec une édition précédentencore ...",
+    "date": "2026-02-27T03:00",
+    "summary": "Répour ope 2025 Ultra Europe 2025 : Une édition monumentale sous le soleil de Split Du 11 au 13 juillet 2025, le légendaire festival a enflammé la ville de Split, en Croatie, avec une édition encore p...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810468/dropsiders/images/sk0nrycg7w59i6biadfg.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772149111/dropsiders/tajyhv5oplbhanzhcxe3.jpg",
@@ -154,14 +154,17 @@
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772149192/dropsiders/knvw8hdy0f69lfn1adkc.jpg",
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772149198/dropsiders/t0t6cphtql8kp75wzyt2.jpg"
     ],
-    "youtubeId": "",
+    "youtubeId": "Ku0TR4rvYTk",
     "link": "https://www.dropsiders.fr/repour ope-2025",
     "category": "Recaps",
     "content": "",
     "author": "Alex",
-    "festival": "",
+    "festival": "Ultra Europe",
     "location": "Split, Croatie",
-    "isFeatured": false
+    "isFeatured": false,
+    "country": "Croatie",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 8,
