@@ -506,41 +506,43 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const cmd = command.toLowerCase().trim();
         let response = '';
 
-        if (cmd === '!help') {
-            response = "🤖 Commandes disponibles : \n!help - Liste des commandes\n!lineup - Voir le programme\n!shop - Accéder à la boutique\n!shazam - Identifier la musique\n!news - Dernières actus\n!id - ID du live\n!vote - Comment voter";
-        } else if (cmd === '!lineup' || cmd === '!planning') {
-            const items = parseLineup(displayLineup || settings.lineup || '');
-            if (items.length > 0) {
-                response = "📅 PROGRAMME : \n" + items.map(i => `• ${i.time} : ${i.artist}`).join('\n');
-            } else {
-                response = "📅 Pas de planning disponible pour le moment.";
+        // Check custom commands FIRST so user can override defaults
+        const custom = (settings.customCommands || '').split('\n').filter(l => l.includes(':'));
+        for (const line of custom) {
+            const trigger = line.split(':')[0].trim().toLowerCase();
+            if (cmd === trigger) {
+                const originalRes = line.split(':').slice(1).join(':').trim();
+                response = originalRes;
+                break;
             }
-        } else if (cmd === '!shop') {
-            response = "🛒 Retrouvez tout notre merchandising sur la boutique officielle : https://dropsiders.com/shop";
-        } else if (cmd === '!id') {
-            response = `🎥 ID Vidéo actuelle : ${newVideoId}`;
-        } else if (cmd === '!news') {
-            if (latestNews.length > 0) {
-                response = `🗞️ DERNIÈRE MINUTE : ${latestNews[0].title} - À lire sur le site !`;
-            } else {
-                response = "🗞️ Pas de nouvelles actus pour l'instant.";
-            }
-        } else if (cmd === '!shazam') {
-            response = "🔍 Laisse moi écouter... Ah ! C'est sûrement un banger de Dropsiders ! Appuie sur le bouton 🎵 pour une identification précise.";
-        } else if (cmd === '!vote') {
-            response = "📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)";
-        } else if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
-            response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
-        } else {
-            // Check custom commands
-            const custom = (settings.customCommands || '').split('\n').filter(l => l.includes(':'));
-            for (const line of custom) {
-                const trigger = line.split(':')[0].trim().toLowerCase();
-                if (cmd === trigger) {
-                    const originalRes = line.split(':').slice(1).join(':').trim();
-                    response = originalRes;
-                    break;
+        }
+
+        if (!response) {
+            if (cmd === '!help') {
+                response = "🤖 Commandes disponibles : \n!help - Liste des commandes\n!lineup - Voir le programme\n!shop - Accéder à la boutique\n!shazam - Identifier la musique\n!news - Dernières actus\n!id - ID du live\n!vote - Comment voter";
+            } else if (cmd === '!lineup' || cmd === '!planning') {
+                const items = parseLineup(displayLineup || settings.lineup || '');
+                if (items.length > 0) {
+                    response = "📅 PROGRAMME : \n" + items.map(i => `• ${i.time} : ${i.artist}`).join('\n');
+                } else {
+                    response = "📅 Pas de planning disponible pour le moment.";
                 }
+            } else if (cmd === '!shop') {
+                response = "🛒 Retrouvez tout notre merchandising sur la boutique officielle : https://dropsiders.com/shop";
+            } else if (cmd === '!id') {
+                response = `🎥 ID Vidéo actuelle : ${newVideoId}`;
+            } else if (cmd === '!news') {
+                if (latestNews.length > 0) {
+                    response = `🗞️ DERNIÈRE MINUTE : ${latestNews[0].title} - À lire sur le site !`;
+                } else {
+                    response = "🗞️ Pas de nouvelles actus pour l'instant.";
+                }
+            } else if (cmd === '!shazam') {
+                response = "🔍 Laisse moi écouter... Ah ! C'est sûrement un banger de Dropsiders ! Appuie sur le bouton 🎵 pour une identification précise.";
+            } else if (cmd === '!vote') {
+                response = "📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)";
+            } else if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
+                response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
             }
         }
 
@@ -2101,7 +2103,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         ) : (
                             <div className="flex-1 flex flex-col min-h-0">
                                 {/* Chat Messages - ALWAYS VISIBLE */}
-                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-5 lg:space-y-6 scroll-smooth custom-scrollbar pointer-events-auto">
+                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3 scroll-smooth custom-scrollbar pointer-events-auto">
                                     {/* Pinned Message */}
                                     {settings.pinnedMessage && (
                                         <div className="sticky top-0 z-30 mb-8 bg-neon-red/10 border border-neon-red/30 backdrop-blur-2xl rounded-2xl p-4 shadow-[0_0_30px_rgba(255,0,51,0.2)] relative overflow-hidden">
@@ -2133,12 +2135,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 animate={{ opacity: 1, x: 0 }}
                                                 className="group relative"
                                             >
-                                                <div className="flex items-center gap-2 mb-1.5 px-1">
+                                                <div className="flex items-center gap-2 mb-1 px-1">
                                                     <div className="w-4 flex items-center justify-center opacity-80">
                                                         {getCountryFlag(msg.country || 'FR')}
                                                     </div>
                                                     <span
-                                                        className="text-[12px] lg:text-[14px] font-black uppercase tracking-widest"
+                                                        className="text-[11px] lg:text-[13px] font-black uppercase tracking-widest"
                                                         style={{ color: isBot ? '#00ffcc' : isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                     >
                                                         {msg.pseudo}
@@ -2146,7 +2148,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     {isMsgAdmin && <span className="px-2 py-0.5 rounded bg-neon-red text-white text-[8px] font-black uppercase tracking-[0.1em]">ADMIN</span>}
                                                     <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                 </div>
-                                                <div className={`p-4 rounded-xl text-[13px] font-medium leading-relaxed break-words relative border ${isBot ? 'bg-neon-cyan/5 border-neon-cyan/15 text-[#00ffcc]' : isMsgAdmin ? 'bg-neon-red/5 border-neon-red/15 text-white' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}>
+                                                <div className={`p-2.5 px-3.5 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? 'bg-neon-cyan/5 border-neon-cyan/15 text-[#00ffcc]' : isMsgAdmin ? 'bg-neon-red/5 border-neon-red/15 text-white' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}>
                                                     <span className="relative z-10">{msg.message}</span>
                                                     {hasModPowers && !isMsgAdmin && (
                                                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
