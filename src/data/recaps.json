@@ -655,7 +655,7 @@
   {
     "id": 31,
     "title": "Récap : Eurockéennes 2024",
-    "date": "2026-02-27T01:35",
+    "date": "2026-02-27T02:00",
     "summary": "Festival français mythique, les Eurocks ont été créés en 1989 et sont devenus au fil du temps un arrêt important dans la tournée des plus grands artistes. Le festival a d'ailleurs été élu en 2020 meilleur festival du monde lors de la pour Awards de Londres.",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810708/dropsiders/images/xm7aubjw337rd8jciha9.jpg",
     "images": [
@@ -676,8 +676,10 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Belfort, France",
+    "isFeatured": false,
+    "showVideo": true,
+    "year": "2024"
   },
   {
     "id": 32,
