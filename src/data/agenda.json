@@ -169,7 +169,11 @@
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810933/dropsiders/images/bffbp8kcj3amcwuv7qya.png",
     "description": "Le chapitre final de la People of Tomorrow à à â€šà â€šÆ’à â€š Boom.",
     "url": "https://www.tomorrowland.com",
-    "genre": "Multi Styles"
+    "genre": "Multi Styles",
+    "country": "",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isLiveDropsiders": true
   },
   {
     "id": 12,
