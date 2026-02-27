@@ -1364,38 +1364,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <span className="hidden sm:inline">Planning</span>
                             </button>
                         </div>
-                        <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-md">
-                            <button
-                                onClick={() => handleShare('x')}
-                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
-                                title="Partager sur X"
-                            >
-                                <XIcon className="w-4 h-4" />
-                            </button>
-                            <div className="w-px h-3 bg-white/20" />
-                            <button
-                                onClick={() => handleShare('fb')}
-                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
-                                title="Partager sur Facebook"
-                            >
-                                <Facebook className="w-4 h-4" />
-                            </button>
-                            <div className="w-px h-3 bg-white/20" />
-                            <button
-                                onClick={() => handleShare('insta')}
-                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
-                                title="Partager sur Instagram"
-                            >
-                                <Instagram className="w-4 h-4" />
-                            </button>
-                            <div className="w-px h-3 bg-white/20" />
-                            <button
-                                onClick={() => handleShare('snap')}
-                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
-                                title="Partager sur Snapchat"
-                            >
-                                <SnapchatIcon className="w-4 h-4 fill-[#FFFC00]" />
-                            </button>
+                        <div className="flex items-center gap-2">
+                            {/* Social buttons removed here */}
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1551,9 +1521,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-20 mt-4">
                                             {/* Header Grid */}
-                                            <div className="grid grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 px-6 mb-4 text-[8px] font-black text-white/50 uppercase tracking-widest hidden lg:grid drop-shadow-md">
-                                                <div>HEURE</div>
-                                                <div>ARTISTE</div>
+                                            <div className="grid grid-cols-[100px_2fr_1fr_1.5fr] gap-6 px-12 mb-4 text-[8px] font-black text-white/50 uppercase tracking-[0.3em] hidden lg:grid drop-shadow-md text-center">
+                                                <div className="text-left">HEURE</div>
+                                                <div className="text-left">ARTISTE</div>
                                                 <div>SCÈNE / STAGE</div>
                                                 <div className="text-right">ÉVÉNEMENT</div>
                                             </div>
@@ -1561,7 +1531,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/10 hover:border-neon-red/50 hover:bg-white/10 p-4 lg:p-6 rounded-2xl transition-all duration-300 shadow-lg backdrop-blur-md mb-3"
+                                                    className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/10 hover:border-neon-red/50 hover:bg-white/10 p-4 lg:p-8 rounded-[2.5rem] transition-all duration-300 shadow-2xl backdrop-blur-md mb-4 relative overflow-hidden"
                                                 >
                                                     {/* Time Column */}
                                                     <div className="flex flex-col lg:block">
@@ -1585,9 +1555,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
 
                                                     {/* Stage Column */}
-                                                    <div className="flex flex-col min-w-0 lg:block">
+                                                    <div className="flex flex-col min-w-0 lg:flex items-center justify-center">
                                                         <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
-                                                        <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider leading-none drop-shadow-md">
+                                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none drop-shadow-md bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
                                                             {item.stage || '---'}
                                                         </span>
                                                     </div>
@@ -1603,28 +1573,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     </div>
 
-                                                    {/* Instagram Box (Mobile/Hidden Desktop unless needed) */}
-                                                    {item.instagram && (
-                                                        <div className="col-span-2 lg:hidden mt-2">
-                                                            <a href={item.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest">
-                                                                <Instagram className="w-3 h-3 text-pink-500" />
-                                                                SUIVRE SUR INSTAGRAM
-                                                            </a>
-                                                        </div>
-                                                    )}
-
-                                                    {/* Instagram Frame (Desktop Only - positioned if we want it) */}
-                                                    <div className="hidden lg:flex justify-end items-center absolute right-[6%] group-hover:right-[4%] transition-all opacity-0 group-hover:opacity-100">
+                                                    {/* Instagram Section (Simplified as requested) */}
+                                                    <div className="hidden lg:flex flex-col items-center justify-center absolute right-[10%] group-hover:right-[11%] transition-all opacity-20 group-hover:opacity-100 scale-90 group-hover:scale-100 duration-500">
                                                         {item.instagram && (
-                                                            <a
-                                                                href={item.instagram}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="px-4 py-2 bg-black/60 border border-white/10 hover:border-neon-purple/50 rounded-xl flex items-center gap-3 transition-all group/insta"
+                                                            <a 
+                                                                href={item.instagram} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer" 
+                                                                className="flex flex-col items-center gap-1 group/insta p-2"
                                                             >
-                                                                <Instagram className="w-4 h-4 text-neon-purple group-hover/insta:scale-110 transition-transform" />
-                                                                <span className="text-[9px] font-black text-white/70 group-hover/insta:text-white uppercase tracking-widest">
-                                                                    View Profile
+                                                                <div className="p-2 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-lg shadow-lg transform group-hover/insta:rotate-12 transition-transform">
+                                                                    <Instagram className="w-4 h-4 text-white" />
+                                                                </div>
+                                                                <span className="text-[7px] font-black text-white/30 group-hover/insta:text-neon-purple uppercase tracking-[0.3em] transition-colors mt-1">
+                                                                    {item.instagram.split('/').pop() || 'INSTAGRAM'}
                                                                 </span>
                                                             </a>
                                                         )}
@@ -1941,7 +1903,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
                                                                         <Activity className="w-4 h-4 text-neon-red" />
                                                                     </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-red">Supérieur</span></h3>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 2 <span className="text-neon-red">(Titre & Infos)</span></h3>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => setShowTopBanner(!showTopBanner)}
@@ -1962,7 +1924,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
                                                                         <Activity className="w-4 h-4 text-neon-red" />
                                                                     </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-red">Défilant</span></h3>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Défilant)</span></h3>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => setShowTickerBanner(!showTickerBanner)}
