@@ -3030,14 +3030,16 @@
     "date": "2026-06-13",
     "startDate": "2026-06-13",
     "endDate": "2026-06-13",
-    "location": "Münsterplatz Fribourg, Allemagne",
+    "location": "MÜNSTERPLATZ FRIBOURG",
     "type": "Showcase",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771947213/dropsiders/zhqodmk5l5qqcfiwpwvi.jpg",
     "url": "https://www.seayou-festival.de/ontour/index_fra.html",
     "genre": "Multi Styles",
     "month": "JUIN",
     "isWeekly": false,
-    "isSoldOut": false
+    "isSoldOut": false,
+    "country": "ALLEMAGNE",
+    "isLiveDropsiders": false
   },
   {
     "id": 265,
