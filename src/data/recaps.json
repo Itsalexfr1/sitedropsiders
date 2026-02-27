@@ -218,8 +218,8 @@
   {
     "id": 10,
     "title": "Récap : David Guetta au Vélodrome",
-    "date": "2026-02-27T00:45",
-    "summary": "Samedi 21 Juin avait lieu la Fête de la Musique... et quelle fête, à Marseille, puisque pour David Guetta de nous présenter son show",
+    "date": "2026-02-27T02:56",
+    "summary": "Récap : David Guetta au Vélodrome David Guetta au Stade Vélodrome : Un \"Monolith\" historique pour la Fête de la Musique Le samedi 21 juin, Marseille célébrait la Fête de la Musique d'une manière monum...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810489/dropsiders/images/hae2boe1mrlcqad0ybzi.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810490/dropsiders/images/vf5wkz4rjzrwvuyqjrpz.jpg",
@@ -239,8 +239,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "Marseille, France",
-    "isFeatured": false
+    "location": "Marseille",
+    "isFeatured": false,
+    "country": "France",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 11,
