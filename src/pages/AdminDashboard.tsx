@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -55,15 +55,24 @@ export function AdminDashboard() {
         chat_enabled: true,
         title: 'LIVE TAKEOVER',
         moderators: '',
-        lineup: ''
+        lineup: '',
+        tickerType: 'news' as 'news' | 'planning' | 'custom',
+        tickerText: '',
+        tickerLink: '',
+        tickerBgColor: '#000000',
+        tickerTextColor: '#ffffff',
+        showTopBanner: true,
+        showTickerBanner: false,
+        showInNavbar: true,
+        forceHomepage: true
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
-    const [takeoverTab, setTakeoverTab] = useState<'settings' | 'blocked'>('settings');
+    const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
 
     useEffect(() => {
         if (isTakeoverModalOpen) {
-            setTakeoverTab('settings');
+            setTakeoverTab('general');
             // Load banned users from server
             const perms = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
             if (perms.includes('all') || perms.includes('takeover_modo')) {
@@ -213,7 +222,16 @@ export function AdminDashboard() {
                         chat_enabled: data.takeover.chat_enabled !== false,
                         title: data.takeover.title || 'LIVE TAKEOVER',
                         moderators: data.takeover.moderators || '',
-                        lineup: data.takeover.lineup || ''
+                        lineup: data.takeover.lineup || '',
+                        tickerType: data.takeover.tickerType || 'news',
+                        tickerText: data.takeover.tickerText || '',
+                        tickerLink: data.takeover.tickerLink || '',
+                        tickerBgColor: data.takeover.tickerBgColor || '#000000',
+                        tickerTextColor: data.takeover.tickerTextColor || '#ffffff',
+                        showTopBanner: data.takeover.showTopBanner !== false,
+                        showTickerBanner: data.takeover.showTickerBanner === true,
+                        showInNavbar: data.takeover.showInNavbar !== false,
+                        forceHomepage: data.takeover.forceHomepage !== false
                     });
                 }
             }
@@ -2161,170 +2179,344 @@ export function AdminDashboard() {
                                 </button>
                             </div>
 
-                            <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-8 overflow-hidden z-20 relative">
-                                <button
-                                    onClick={() => setTakeoverTab('settings')}
-                                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'settings' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                >
-                                    RÉGLAGES
-                                </button>
-                                <button
-                                    onClick={() => setTakeoverTab('blocked')}
-                                    className={`flex-1 py-3 text-xs font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/20 text-red-500 shadow-lg' : 'text-gray-500 hover:text-red-400 hover:bg-white/5'}`}
-                                >
-                                    BLOQUÉS ({bannedChatUsers.length})
-                                </button>
+                            <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 overflow-x-auto z-20 relative no-scrollbar">
+                                <div className="flex min-w-max">
+                                    <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VIDÉO</button>
+                                    <button onClick={() => setTakeoverTab('ticker')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'ticker' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}>BANDEAU</button>
+                                    <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MODÉRATION</button>
+                                    <button onClick={() => setTakeoverTab('planning')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'planning' ? 'bg-neon-purple/10 text-neon-purple shadow-lg' : 'text-gray-500 hover:text-white'}`}>PLANNING</button>
+                                    <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>ÉQUIPE</button>
+                                    <button onClick={() => setTakeoverTab('bot')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'bot' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>BOT</button>
+                                    <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÉS</button>
+                                </div>
                             </div>
 
-                            {takeoverTab === 'settings' ? (
-                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-300 relative z-30">
-                                    <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-white/10 transition-all">
-                                        <div className="flex items-center gap-4">
-                                            <div className={`p-3 rounded-2xl transition-all ${takeoverState.enabled ? 'bg-neon-red/20 text-neon-red' : 'bg-gray-800 text-gray-400'}`}>
-                                                <Activity className="w-6 h-6" />
+                            <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar relative z-30">
+                                {takeoverTab === 'general' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-3 rounded-2xl transition-all ${takeoverState.enabled ? 'bg-neon-red/20 text-neon-red' : 'bg-gray-800 text-gray-400'}`}>
+                                                    <Activity className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le système Live est opérationnel</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">La page d'accueil sera remplacée</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled })}
-                                            className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled ? 'bg-neon-red' : 'bg-gray-800'}`}
-                                        >
-                                            <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.enabled ? 'right-1 shadow-lg' : 'left-1'}`} />
-                                        </button>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Youtube className="w-4 h-4 text-neon-red" />
-                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest">ID ou URL Vidéo YouTube</label>
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={takeoverState.youtubeId}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                let id = val;
-                                                if (val.includes('v=')) id = val.split('v=')[1].split('&')[0];
-                                                else if (val.includes('youtu.be/')) id = val.split('youtu.be/')[1].split('?')[0];
-                                                setTakeoverState({ ...takeoverState, youtubeId: id });
-                                            }}
-                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:border-neon-red outline-none transition-all placeholder-gray-700"
-                                            placeholder="Ex: dQw4w9WgXcQ ou URL complète"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activer le Chat</span>
                                             <button
-                                                onClick={() => setTakeoverState({ ...takeoverState, chat_enabled: !takeoverState.chat_enabled })}
-                                                className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan' : 'bg-gray-800'}`}
+                                                onClick={() => setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled })}
+                                                className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled ? 'bg-neon-red shadow-[0_0_20px_#ff003344]' : 'bg-gray-800'}`}
                                             >
-                                                <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${takeoverState.chat_enabled ? 'right-1' : 'left-1'}`} />
+                                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.enabled ? 'right-1' : 'left-1'}`} />
                                             </button>
                                         </div>
-                                        <div className="space-y-1">
-                                            <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Titre de l'événement</label>
-                                            <input
-                                                type="text"
-                                                value={takeoverState.title}
-                                                onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
-                                            />
-                                        </div>
-                                    </div>
 
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block ml-1">Modérateurs (séparés par des virgules)</label>
-                                        <input
-                                            type="text"
-                                            value={takeoverState.moderators}
-                                            onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none"
-                                            placeholder="Ex: TANGUY, EMMA, MODERATEUR_1"
-                                        />
-                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Les modérateurs pourront supprimer les messages du chat</p>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block ml-1">Line Up / Programme (affiché sur la vidéo)</label>
-                                        <textarea
-                                            value={takeoverState.lineup}
-                                            onChange={(e) => setTakeoverState({ ...takeoverState, lineup: e.target.value })}
-                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none resize-none"
-                                            placeholder={"20:00 - ARTISTE 1\n21:00 - ARTISTE 2\n22:30 - ARTISTE 3"}
-                                            rows={5}
-                                        />
-                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Laissez vide pour masquer le bouton Line Up</p>
-                                    </div>
-
-                                    <button
-                                        onClick={saveTakeoverSettings}
-                                        disabled={isUpdatingTakeover}
-                                        className="w-full py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-3xl transition-all shadow-2xl shadow-neon-red/20 flex items-center justify-center gap-3 disabled:opacity-50"
-                                    >
-                                        {isUpdatingTakeover ? (
-                                            <>
-                                                <Loader2 className="w-5 h-5 animate-spin" />
-                                                Enregistrement...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Save className="w-5 h-5" />
-                                                Déployer le Mode Live
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 max-h-[50vh] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                    {bannedChatUsers.length === 0 ? (
-                                        <div className="text-center py-10 bg-white/5 border border-white/10 rounded-3xl">
-                                            <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Aucun utilisateur bloqué</p>
-                                        </div>
-                                    ) : (
-                                        bannedChatUsers.map(user => (
-                                            <div key={user} className="flex items-center justify-between p-4 bg-red-500/5 rounded-2xl border border-red-500/10">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center">
-                                                        <User className="w-4 h-4 text-red-500" />
-                                                    </div>
-                                                    <span className="text-sm font-black text-white uppercase tracking-widest">{user}</span>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
+                                                <div className="flex flex-col">
+                                                    <p className="text-[11px] font-black text-white uppercase tracking-widest">Forcer l'accueil</p>
+                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Remplace la Home par le Live</p>
                                                 </div>
                                                 <button
-                                                    onClick={async () => {
-                                                        const newBanned = bannedChatUsers.filter(u => u !== user);
-                                                        setBannedChatUsers(newBanned);
-                                                        try {
-                                                            const password = localStorage.getItem('admin_password') || '';
-                                                            const username = localStorage.getItem('admin_user') || 'alex';
-                                                            const sessionId = localStorage.getItem('admin_session_id') || '';
-                                                            await fetch('/api/chat/unban', {
-                                                                method: 'POST',
-                                                                headers: {
-                                                                    'Content-Type': 'application/json',
-                                                                    'X-Admin-Password': password,
-                                                                    'X-Admin-Username': username,
-                                                                    'X-Session-ID': sessionId
-                                                                },
-                                                                body: JSON.stringify({ pseudo: user })
-                                                            });
-                                                        } catch (e) {
-                                                            console.error('Failed to unban', e);
-                                                        }
-                                                    }}
-                                                    className="px-4 py-2 bg-white/5 hover:bg-green-500/20 text-gray-400 hover:text-green-500 rounded-xl text-xs font-black uppercase tracking-widest transition-all border border-transparent hover:border-green-500/30"
+                                                    onClick={() => setTakeoverState({ ...takeoverState, forceHomepage: !takeoverState.forceHomepage })}
+                                                    className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.forceHomepage ? 'bg-neon-red' : 'bg-gray-800'}`}
                                                 >
-                                                    Débloquer
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.forceHomepage ? 'right-0.5' : 'left-0.5'}`} />
                                                 </button>
                                             </div>
-                                        ))
-                                    )}
-                                </div>
-                            )}
+
+                                            <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
+                                                <div className="flex flex-col">
+                                                    <p className="text-[11px] font-black text-white uppercase tracking-widest">Afficher dans le Menu</p>
+                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Icône Video en haut du site</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setTakeoverState({ ...takeoverState, showInNavbar: !takeoverState.showInNavbar })}
+                                                    className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.showInNavbar ? 'bg-neon-cyan' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.showInNavbar ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Youtube className="w-4 h-4 text-neon-red" />
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">ID Vidéo YouTube</label>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState.youtubeId}
+                                                    onChange={(e) => setTakeoverState({ ...takeoverState, youtubeId: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none"
+                                                    placeholder="ID YouTube..."
+                                                />
+                                            </div>
+                                            <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Pencil className="w-4 h-4 text-neon-cyan" />
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Titre du Live</label>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={takeoverState.title}
+                                                    onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
+                                                    placeholder="Nom de l'event..."
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                    <Globe className="w-4 h-4 text-neon-cyan" />
+                                                </div>
+                                                <p className="text-[11px] font-black text-white uppercase tracking-widest">Haut de Page (Menu/Logo)</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setTakeoverState({ ...takeoverState, showTopBanner: !takeoverState.showTopBanner })}
+                                                className={`w-12 h-6 rounded-full relative transition-all ${takeoverState.showTopBanner ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
+                                            >
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.showTopBanner ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'ticker' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5">
+                                            <div>
+                                                <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3">
+                                                    <Activity className="w-5 h-5 text-neon-red" /> Activer le Bandeau
+                                                </p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau défilant sous le player</p>
+                                            </div>
+                                            <button
+                                                onClick={() => setTakeoverState({ ...takeoverState, showTickerBanner: !takeoverState.showTickerBanner })}
+                                                className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.showTickerBanner ? 'bg-neon-red shadow-[0_0_20px_#ff003344]' : 'bg-gray-800'}`}
+                                            >
+                                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.showTickerBanner ? 'right-1' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Type de contenu</label>
+                                                <select
+                                                    value={takeoverState.tickerType}
+                                                    onChange={(e) => setTakeoverState({ ...takeoverState, tickerType: e.target.value as any })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none cursor-pointer"
+                                                >
+                                                    <option value="news">Actu Automatique</option>
+                                                    <option value="planning">Programme En Cours</option>
+                                                    <option value="custom">Texte Perso</option>
+                                                </select>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Fond</label>
+                                                    <input type="color" value={takeoverState.tickerBgColor} onChange={e => setTakeoverState({ ...takeoverState, tickerBgColor: e.target.value })} className="w-full h-[42px] bg-black/40 border border-white/10 rounded-xl p-1 cursor-pointer" />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Texte</label>
+                                                    <input type="color" value={takeoverState.tickerTextColor} onChange={e => setTakeoverState({ ...takeoverState, tickerTextColor: e.target.value })} className="w-full h-[42px] bg-black/40 border border-white/10 rounded-xl p-1 cursor-pointer" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {takeoverState.tickerType === 'custom' && (
+                                            <div className="grid grid-cols-1 gap-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Message Perso</label>
+                                                    <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Lien au clic (Optionnel)</label>
+                                                    <input type="text" value={takeoverState.tickerLink} onChange={e => setTakeoverState({ ...takeoverState, tickerLink: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="https://..." />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'moderation' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="flex items-center justify-between p-5 bg-white/5 rounded-3xl border border-white/5">
+                                            <div className="flex items-center gap-4">
+                                                <div className={`p-3 rounded-2xl transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-gray-800 text-gray-400'}`}>
+                                                    <MessageSquare className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-black uppercase italic tracking-wider">Activer le Chat</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Interaction en direct</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setTakeoverState({ ...takeoverState, chat_enabled: !takeoverState.chat_enabled })}
+                                                className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan' : 'bg-gray-800'}`}
+                                            >
+                                                <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.chat_enabled ? 'right-1 shadow-lg' : 'left-1'}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
+                                            <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3 mb-4">
+                                                <ShieldAlert className="w-5 h-5 text-red-500" /> Sécurité des Liens
+                                            </p>
+                                            <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl">
+                                                <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Bloqueur auto de liens</span>
+                                                <span className="px-3 py-1 bg-green-500/10 text-green-500 rounded-lg text-[9px] font-black uppercase border border-green-500/20">Toujours Actif</span>
+                                            </div>
+                                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les modérateurs peuvent partager des liens.</p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'planning' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest block ml-1">Programme (Sauts de lignes pour séparer)</label>
+                                            <textarea
+                                                value={takeoverState.lineup}
+                                                onChange={(e) => setTakeoverState({ ...takeoverState, lineup: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-xs text-white focus:border-neon-red outline-none min-h-[250px] font-mono"
+                                                placeholder={"20:00 - ARTISTE 1\n21:00 - INTERVIEW\n22:00 - ARTISTE 2"}
+                                            />
+                                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2 bg-white/5 p-3 rounded-xl italic">
+                                                * Ce texte sera affiché en transparence sur la vidéo et accessible via la commande !lineup.
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'mods' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <Shield className="w-5 h-5 text-neon-red" />
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">Modérateurs</span></h3>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={takeoverState.moderators}
+                                                onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-neon-red outline-none"
+                                                placeholder="Séparez par des virgules (EX: ALEX, TANGUY, EMMA)"
+                                            />
+                                            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-widest">
+                                                    LES UTILISATEURS LISTÉS ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
+                                                    <br /><span className="text-white">• SUPPRIMER DES MESSAGES</span>
+                                                    <br /><span className="text-white">• ENVOYER DES LIENS</span>
+                                                    <br /><span className="text-white">• BANNIR DES VIEWERS (SI ADMIN)</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'bot' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-4">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                    <MessageSquare className="w-5 h-5 text-neon-cyan" />
+                                                </div>
+                                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Commandes <span className="text-neon-cyan">Bot</span></h3>
+                                            </div>
+                                            <div className="overflow-hidden border border-white/10 rounded-2xl">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className="bg-white/5">
+                                                            <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
+                                                            <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Action</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="text-[10px] font-bold text-gray-300">
+                                                        <tr className="hover:bg-white/[0.02] transition-colors">
+                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
+                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Liste les commandes</td>
+                                                        </tr>
+                                                        <tr className="hover:bg-white/[0.02] transition-colors">
+                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!lineup</td>
+                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Affiche le programme</td>
+                                                        </tr>
+                                                        <tr className="hover:bg-white/[0.02] transition-colors">
+                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!shop</td>
+                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Lien boutique</td>
+                                                        </tr>
+                                                        <tr className="hover:bg-white/[0.02] transition-colors">
+                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!news</td>
+                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Dernière actu</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'blocked' && (
+                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        {bannedChatUsers.length === 0 ? (
+                                            <div className="text-center py-10 bg-white/5 border border-white/10 rounded-2xl">
+                                                <p className="text-gray-500 text-xs font-black uppercase tracking-widest italic">Aucun utilisateur banni du chat</p>
+                                            </div>
+                                        ) : (
+                                            bannedChatUsers.map(user => (
+                                                <div key={user} className="flex items-center justify-between p-4 bg-red-500/5 rounded-xl border border-red-500/10 hover:bg-red-500/10 transition-all">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center">
+                                                            <User className="w-4 h-4 text-red-500" />
+                                                        </div>
+                                                        <span className="text-[11px] font-black text-white uppercase tracking-widest">{user}</span>
+                                                    </div>
+                                                    <button
+                                                        onClick={async () => {
+                                                            const newBanned = bannedChatUsers.filter(u => u !== user);
+                                                            setBannedChatUsers(newBanned);
+                                                            try {
+                                                                const password = localStorage.getItem('admin_password') || '';
+                                                                const username = localStorage.getItem('admin_user') || 'alex';
+                                                                const sessionId = localStorage.getItem('admin_session_id') || '';
+                                                                await fetch('/api/chat/unban', {
+                                                                    method: 'POST',
+                                                                    headers: {
+                                                                        'Content-Type': 'application/json',
+                                                                        'X-Admin-Password': password,
+                                                                        'X-Admin-Username': username,
+                                                                        'X-Session-ID': sessionId
+                                                                    },
+                                                                    body: JSON.stringify({ pseudo: user })
+                                                                });
+                                                            } catch (e) { }
+                                                        }}
+                                                        className="px-4 py-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
+                                                    >
+                                                        Débloquer
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            <button
+                                onClick={saveTakeoverSettings}
+                                disabled={isUpdatingTakeover}
+                                className="w-full mt-8 py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-[2rem] transition-all shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50 relative z-30"
+                            >
+                                {isUpdatingTakeover ? (
+                                    <><Loader2 className="w-5 h-5 animate-spin" /> Mise à jour...</>
+                                ) : (
+                                    <><Save className="w-5 h-5" /> Enregistrer les réglages</>
+                                )}
+                            </button>
                         </motion.div>
                     </div>
                 )

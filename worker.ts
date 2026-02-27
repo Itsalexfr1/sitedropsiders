@@ -577,16 +577,18 @@ export default {
         }
 
         // --- API: CHAT MESSAGES (using KV for real-time sharing) ---
-        const CHAT_MSG_KEY = 'chat_messages';
-        const CHAT_BAN_KEY = 'chat_banned_ips';
-        const CHAT_VIEWERS_KEY = 'chat_viewers';
+        const getChatKey = (channel) => channel ? `chat_messages_${channel}` : 'chat_messages';
+        const getBannedKey = () => 'chat_banned_ips';
+        const getViewersKey = (channel) => channel ? `chat_viewers_${channel}` : 'chat_viewers';
 
         // Ping endpoint: called by every page visitor to register presence
         if (path === '/api/chat/ping' && request.method === 'POST') {
             const body = await request.json();
+            const channel = body.channel;
             const id = (body.pseudo || 'anon-' + Math.random().toString(36).substr(2, 8)).toUpperCase().substring(0, 30);
             if (env.CHAT_KV) {
-                const rawViewers = await env.CHAT_KV.get(CHAT_VIEWERS_KEY);
+                const key = getViewersKey(channel);
+                const rawViewers = await env.CHAT_KV.get(key);
                 const viewers = rawViewers ? JSON.parse(rawViewers) : {};
                 viewers[id] = Date.now();
                 // Clean up pings older than 45 seconds
@@ -594,15 +596,17 @@ export default {
                 const cleaned = Object.fromEntries(
                     Object.entries(viewers).filter(([, ts]) => (now - Number(ts)) < 45000)
                 );
-                await env.CHAT_KV.put(CHAT_VIEWERS_KEY, JSON.stringify(cleaned), { expirationTtl: 60 });
+                await env.CHAT_KV.put(key, JSON.stringify(cleaned), { expirationTtl: 60 });
                 return new Response(JSON.stringify({ count: Object.keys(cleaned).length }), { status: 200, headers });
             }
             return new Response(JSON.stringify({ count: 0 }), { status: 200, headers });
         }
 
         if (path === '/api/chat/viewers' && request.method === 'GET') {
+            const channel = url.searchParams.get('channel');
             if (env.CHAT_KV) {
-                const rawViewers = await env.CHAT_KV.get(CHAT_VIEWERS_KEY);
+                const key = getViewersKey(channel);
+                const rawViewers = await env.CHAT_KV.get(key);
                 const viewers = rawViewers ? JSON.parse(rawViewers) : {};
                 const now = Date.now();
                 const active = Object.entries(viewers).filter(([, ts]) => (now - Number(ts)) < 45000);
@@ -614,70 +618,123 @@ export default {
 
 
         if (path === '/api/chat/messages' && request.method === 'GET') {
-            const raw = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_MSG_KEY) : null;
+            const channel = url.searchParams.get('channel');
+            const key = getChatKey(channel);
+            const raw = env.CHAT_KV ? await env.CHAT_KV.get(key) : null;
             const messages = raw ? JSON.parse(raw) : [];
             return new Response(JSON.stringify(messages), { status: 200, headers });
         }
 
         if (path === '/api/chat/messages' && request.method === 'POST') {
             const body = await request.json();
-            const { pseudo, country, message } = body;
+            const { pseudo, country, message, color, channel } = body;
             if (!pseudo || !message) {
                 return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
             }
             // Check ban list
             if (env.CHAT_KV) {
-                const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
+                const rawBans = await env.CHAT_KV.get(getBannedKey());
                 const banned = rawBans ? JSON.parse(rawBans) : [];
                 if (banned.includes(pseudo.toUpperCase())) {
                     return new Response(JSON.stringify({ error: 'Banned' }), { status: 403, headers });
                 }
             }
-            const raw = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_MSG_KEY) : null;
+            const key = getChatKey(channel);
+            const raw = env.CHAT_KV ? await env.CHAT_KV.get(key) : null;
             const messages = raw ? JSON.parse(raw) : [];
             const newMsg = {
                 id: Date.now(),
                 pseudo: pseudo.toUpperCase(),
                 country: country || 'FR',
                 message: message.substring(0, 500),
+                color: color || '#ffffff',
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
             };
             messages.push(newMsg);
+
+            // --- BOT LOGIC ---
+            const botResponse = async (text) => {
+                const botMsg = {
+                    id: Date.now() + 1,
+                    pseudo: 'DS-BOT',
+                    country: 'FR',
+                    message: text,
+                    color: '#00ffcc', // Cyberpunk Mint
+                    isBot: true,
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                };
+                messages.push(botMsg);
+            };
+
+            const cmd = message.trim().toLowerCase();
+            if (cmd.startsWith('!')) {
+                if (cmd === '!help' || cmd === '!commands') {
+                    await botResponse('🤖 Liste des commandes : !lineup, !shop, !shazam, !news, !id');
+                } else if (cmd === '!lineup' || cmd === '!planning') {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    const lineup = settingsFile?.content?.takeover?.lineup || 'Aucun planning configuré.';
+                    await botResponse('📅 PLANNING LIVE :\n' + lineup.substring(0, 300));
+                } else if (cmd === '!shop' || cmd === '!boutique') {
+                    const shopFile = await fetchGitHubFile('src/data/shop.json');
+                    const products = shopFile?.content?.products || [];
+                    if (products.length > 0) {
+                        const random = products[Math.floor(Math.random() * products.length)];
+                        await botResponse(`🛍️ SHOP : ${random.name} - ${random.price}€\nLien : https://shop.dropsiders.fr`);
+                    } else {
+                        await botResponse('🛍️ La boutique est disponible sur shop.dropsiders.fr');
+                    }
+                } else if (cmd === '!shazam' || cmd === '!musique') {
+                    await botResponse('🎵 Utilisez le bouton Shazam (icône bleue) pour identifier le titre actuel !');
+                } else if (cmd === '!news' || cmd === '!actu') {
+                    const newsFile = await fetchGitHubFile('src/data/news.json');
+                    const latest = newsFile?.content?.[0];
+                    if (latest) {
+                        await botResponse(`🔥 DERNIÈRE ACTU : ${latest.title}\nLien : https://dropsiders.fr/news/${latest.id}`);
+                    }
+                } else if (cmd === '!id') {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    await botResponse(`📺 YOUTUBE ID : ${settingsFile?.content?.takeover?.youtubeId || 'N/A'}`);
+                }
+            }
+
             // Keep last 200 messages
             const trimmed = messages.slice(-200);
             if (env.CHAT_KV) {
-                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify(trimmed), { expirationTtl: 86400 });
+                await env.CHAT_KV.put(key, JSON.stringify(trimmed), { expirationTtl: 86400 });
             }
             return new Response(JSON.stringify(newMsg), { status: 200, headers });
         }
 
         if (path === '/api/chat/delete' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            const { id } = await request.json();
+            const { id, channel } = await request.json();
             if (env.CHAT_KV) {
-                const raw = await env.CHAT_KV.get(CHAT_MSG_KEY);
+                const key = getChatKey(channel);
+                const raw = await env.CHAT_KV.get(key);
                 const messages = raw ? JSON.parse(raw) : [];
                 const filtered = messages.filter(m => m.id !== id);
-                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify(filtered), { expirationTtl: 86400 });
+                await env.CHAT_KV.put(key, JSON.stringify(filtered), { expirationTtl: 86400 });
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
         if (path === '/api/chat/ban' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            const { pseudo } = await request.json();
+            const { pseudo, channel } = await request.json();
             if (env.CHAT_KV) {
-                const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
+                const banKey = getBannedKey();
+                const rawBans = await env.CHAT_KV.get(banKey);
                 const banned = rawBans ? JSON.parse(rawBans) : [];
                 if (!banned.includes(pseudo.toUpperCase())) {
                     banned.push(pseudo.toUpperCase());
-                    await env.CHAT_KV.put(CHAT_BAN_KEY, JSON.stringify(banned), { expirationTtl: 604800 });
+                    await env.CHAT_KV.put(banKey, JSON.stringify(banned), { expirationTtl: 604800 });
                 }
-                // Also remove their messages
-                const raw = await env.CHAT_KV.get(CHAT_MSG_KEY);
+                // Also remove their messages from CURRENT channel
+                const key = getChatKey(channel);
+                const raw = await env.CHAT_KV.get(key);
                 const messages = raw ? JSON.parse(raw) : [];
                 const filtered = messages.filter(m => m.pseudo !== pseudo.toUpperCase());
-                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify(filtered), { expirationTtl: 86400 });
+                await env.CHAT_KV.put(key, JSON.stringify(filtered), { expirationTtl: 86400 });
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
@@ -686,25 +743,29 @@ export default {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const { pseudo } = await request.json();
             if (env.CHAT_KV) {
-                const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
+                const banKey = getBannedKey();
+                const rawBans = await env.CHAT_KV.get(banKey);
                 const banned = rawBans ? JSON.parse(rawBans) : [];
                 const newBanned = banned.filter(u => u !== pseudo.toUpperCase());
-                await env.CHAT_KV.put(CHAT_BAN_KEY, JSON.stringify(newBanned), { expirationTtl: 604800 });
+                await env.CHAT_KV.put(banKey, JSON.stringify(newBanned), { expirationTtl: 604800 });
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
         if (path === '/api/chat/banned' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            const rawBans = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_BAN_KEY) : null;
+            const banKey = getBannedKey();
+            const rawBans = env.CHAT_KV ? await env.CHAT_KV.get(banKey) : null;
             const banned = rawBans ? JSON.parse(rawBans) : [];
             return new Response(JSON.stringify(banned), { status: 200, headers });
         }
 
         if (path === '/api/chat/clear' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { channel } = await request.json();
             if (env.CHAT_KV) {
-                await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify([]), { expirationTtl: 86400 });
+                const key = getChatKey(channel);
+                await env.CHAT_KV.put(key, JSON.stringify([]), { expirationTtl: 86400 });
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }

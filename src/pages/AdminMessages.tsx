@@ -573,20 +573,30 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
+                        onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
                         className="fixed inset-0 z-[100] flex items-end md:items-center justify-center p-4 bg-black/80 backdrop-blur-md"
                     >
                         <motion.div
                             initial={{ y: 50, opacity: 0 }}
                             animate={{ y: 0, opacity: 1 }}
                             exit={{ y: 50, opacity: 0 }}
-                            className="bg-[#111] border border-white/10 rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-[#111] border border-white/10 rounded-[2rem] w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         >
-                            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                                <div className="flex-1">
-                                    <h3 className="text-lg font-black uppercase italic tracking-tight text-white">
-                                        {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
-                                    </h3>
-                                    <div className="mt-4 space-y-3">
+                            {/* Sticky Header */}
+                            <div className="p-6 border-b border-white/10 flex items-center justify-between bg-[#111] shrink-0">
+                                <h3 className="text-lg font-black uppercase italic tracking-tight text-white">
+                                    {isNewMail ? 'NOUVEAU MESSAGE' : `Répondre à ${selected?.name}`}
+                                </h3>
+                                <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+
+                            {/* Scrollable Content */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                                <div className="space-y-6">
+                                    <div className="space-y-3">
                                         {isNewMail && (
                                             <div className="flex flex-col gap-3">
                                                 <div className="flex items-start gap-3 w-full">
@@ -699,7 +709,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                     </div>
 
                                     {isNewMail && (
-                                        <div className="mt-6 flex flex-wrap gap-2">
+                                        <div className="flex flex-wrap gap-2">
                                             <button
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
@@ -733,91 +743,67 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             >
                                                 Demande Interview
                                             </button>
-                                            <button
-                                                onClick={() => {
-                                                    setIsAccreditationMode(false);
-                                                    setIsInterviewMode(false);
-                                                    setReplyBody('');
-                                                }}
-                                                className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10 flex items-center gap-2 ml-auto"
-                                            >
-                                                <Trash2 className="w-3 h-3" />
-                                                Vider
-                                            </button>
                                         </div>
                                     )}
 
                                     {isNewMail && (
-                                        <div className="mt-4 flex items-center justify-between">
+                                        <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
-                                                Langue du message :
+                                                Langue :
                                             </span>
                                             <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
                                                 <button
                                                     onClick={() => setAccreditationLang('FR')}
                                                     className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
                                                 >
-                                                    FRANÇAIS
+                                                    FR
                                                 </button>
                                                 <button
                                                     onClick={() => setAccreditationLang('EN')}
                                                     className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
                                                 >
-                                                    ENGLISH
+                                                    EN
                                                 </button>
                                             </div>
                                         </div>
                                     )}
 
                                     {isNewMail && (isAccreditationMode || isInterviewMode) && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            className={`mt-4 p-4 border rounded-2xl space-y-4 ${isAccreditationMode ? 'bg-neon-purple/5 border-neon-purple/20' : 'bg-neon-red/5 border-neon-red/20'}`}
-                                        >
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className={`text-[10px] font-black uppercase tracking-widest ${isAccreditationMode ? 'text-neon-purple' : 'text-neon-red'}`}>
-                                                    Options {isAccreditationMode ? 'Accréditation' : 'Interview'}
-                                                </span>
-                                            </div>
-
+                                        <div className={`p-4 border rounded-2xl space-y-4 ${isAccreditationMode ? 'bg-neon-purple/5 border-neon-purple/20' : 'bg-neon-red/5 border-neon-red/20'}`}>
                                             {isAccreditationMode ? (
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                     <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom du Festival</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Festival</label>
                                                         <input
                                                             type="text"
                                                             value={festivalName}
                                                             onChange={(e) => setFestivalName(e.target.value)}
-                                                            placeholder="Ex: Tomorrowland"
-                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-purple"
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Dates</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Dates</label>
                                                         <input
                                                             type="text"
                                                             value={festivalDates}
                                                             onChange={(e) => setFestivalDates(e.target.value)}
-                                                            placeholder="Ex: 21-23 Juillet 2026"
-                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-purple"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-purple"
                                                         />
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                     <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom de l'Artiste / DJ</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Artiste / DJ</label>
                                                         <input
                                                             type="text"
                                                             value={djName}
                                                             onChange={(e) => setDjName(e.target.value)}
-                                                            placeholder="Ex: Carl Cox"
-                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-neon-red"
+                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
                                                         />
                                                     </div>
                                                     <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Type d'Interview</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Format</label>
                                                         <div className="flex bg-black/40 rounded-xl p-1 border border-white/5">
                                                             {['Vidéo', 'Écrite'].map((t) => (
                                                                 <button
@@ -832,102 +818,58 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     </div>
                                                 </div>
                                             )}
-                                        </motion.div>
-                                    )}
-                                </div>
-                                <button onClick={() => { setReplyModal(false); setReplyStatus('idle'); }} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors self-start">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="flex flex-col md:flex-row h-[600px]">
-                                {/* Editor Side */}
-                                <div className="flex-1 p-6 space-y-4 border-r border-white/10 overflow-y-auto">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest italic">
-                                            {isNewMail ? 'Corps du message' : `Re: ${selected?.subject}`}
-                                        </div>
-                                    </div>
-                                    <textarea
-                                        value={replyBody}
-                                        onChange={(e) => setReplyBody(e.target.value)}
-                                        rows={15}
-                                        placeholder="Rédigez votre message..."
-                                        className="w-full h-[400px] bg-black/60 border border-white/10 rounded-xl p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono"
-                                    />
-                                    {replyStatus === 'error' && (
-                                        <div className="flex items-center gap-2 text-neon-red text-sm">
-                                            <AlertCircle className="w-4 h-4" />
-                                            {replyError}
                                         </div>
                                     )}
-                                    {replyStatus === 'success' && (
-                                        <div className="flex items-center gap-2 text-green-400 text-sm">
-                                            <CheckCircle className="w-4 h-4" />
-                                            Message envoyé avec succès !
+
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        {/* Editor Side */}
+                                        <div className="flex-1 space-y-2">
+                                            <div className="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-2">Message</div>
+                                            <textarea
+                                                value={replyBody}
+                                                onChange={(e) => setReplyBody(e.target.value)}
+                                                placeholder="Rédigez votre message..."
+                                                className="w-full h-[350px] bg-black/40 border border-white/10 rounded-2xl p-4 text-white text-sm resize-none focus:outline-none focus:border-neon-cyan transition-all font-mono custom-scrollbar"
+                                            />
                                         </div>
-                                    )}
-                                </div>
 
-                                {/* Preview Side */}
-                                <div className="flex-1 bg-black p-6 overflow-y-auto hidden md:block border-l border-white/5">
-                                    <div className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Aperçu du Mail</div>
-
-                                    <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.9] origin-top">
-                                        {/* Fake Email Body */}
-                                        <div className="p-8 pb-4">
-                                            <div className="text-white/80 text-sm leading-relaxed whitespace-pre-wrap min-h-[100px]">
-                                                {replyBody || "[Votre message apparaîtra ici]"}
-                                            </div>
-
-                                            {/* Signature Preview */}
-                                            <div className="mt-12 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-2xl overflow-hidden shadow-2xl">
-                                                <div className="p-6 text-center">
-                                                    <div className="text-white text-sm font-black italic uppercase mb-2">
-                                                        Cordialement, <br />
-                                                        {signatureName && (
-                                                            <span className="text-gray-400 block mb-1 text-[11px] normal-case">
-                                                                {signatureName}
-                                                            </span>
-                                                        )}
-                                                        L'équipe <span className="text-neon-red">Dropsiders</span>
+                                        {/* Preview Side */}
+                                        <div className="flex-1 bg-black/60 border border-white/10 rounded-2xl p-6 hidden md:block">
+                                            <div className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em] mb-4 text-center">Aperçu</div>
+                                            <div className="bg-[#111] border border-white/5 rounded-2xl overflow-hidden shadow-2xl scale-[0.85] origin-top">
+                                                <div className="p-6">
+                                                    <div className="text-white/80 text-[11px] leading-relaxed whitespace-pre-wrap min-h-[100px]">
+                                                        {replyBody || "[Votre message apparaîtra ici]"}
                                                     </div>
-
-                                                    <div className="text-neon-red text-[8px] font-black uppercase tracking-widest mb-6 pb-3 border-b border-white/5">
-                                                        NEWS · RÉCAPS · INTERVIEWS · CONCOURS
+                                                    <div className="mt-8 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-xl overflow-hidden p-4">
+                                                        <div className="text-white text-[10px] font-black italic uppercase text-center">
+                                                            Cordialement, <br />
+                                                            {signatureName && <span className="text-gray-400 block mb-1 text-[9px] normal-case">{signatureName}</span>}
+                                                            L'équipe <span className="text-neon-red">Dropsiders</span>
+                                                        </div>
                                                     </div>
-
-                                                    <div className="grid grid-cols-3 gap-2">
-                                                        <div className="bg-white/5 border border-white/10 border-b-2 border-b-neon-red py-2 px-1 rounded-lg text-[7px] font-black text-white text-center uppercase">🌐 SITE</div>
-                                                        <div className="bg-white/5 border border-white/10 border-b-2 border-b-neon-cyan py-2 px-1 rounded-lg text-[7px] font-black text-white text-center uppercase">🛍️ SHOP</div>
-                                                        <div className="bg-gradient-to-r from-neon-red to-red-600 py-2 px-1 rounded-lg text-[7px] font-black text-white text-center uppercase shadow-lg shadow-neon-red/20">📩 Newsletter</div>
-                                                    </div>
-                                                </div>
-                                                <div className="bg-[#080808] p-3 text-center opacity-40">
-                                                    <div className="text-[10px] font-bold text-white tracking-widest italic">DROPSIDERS</div>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="bg-black p-4 text-center border-t border-white/5">
-                                            <p className="text-[7px] text-gray-700 font-black tracking-widest uppercase">DROPSIDERS · TOUTE L'ACTU DES FESTIVALS</p>
-                                        </div>
                                     </div>
+                                    {replyStatus === 'error' && <p className="text-neon-red text-xs font-bold text-center">⚠ {replyError}</p>}
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#111]">
+                            {/* Sticky Footer */}
+                            <div className="p-6 border-t border-white/10 flex justify-end gap-3 bg-[#111] shrink-0">
                                 <button
                                     onClick={() => { setReplyModal(false); setReplyStatus('idle'); }}
-                                    className="px-6 py-2.5 bg-white/5 text-gray-400 font-bold uppercase rounded-xl hover:bg-white/10 text-sm"
+                                    className="px-6 py-2.5 bg-white/5 text-gray-400 font-bold uppercase rounded-xl hover:bg-white/10 text-[10px]"
                                 >
                                     Annuler
                                 </button>
                                 <button
                                     onClick={handleReply}
                                     disabled={replyStatus === 'sending' || replyStatus === 'success' || !replyBody.trim() || (isNewMail && !signatureName)}
-                                    className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="px-8 py-2.5 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-black uppercase rounded-xl hover:opacity-90 transition-all flex items-center gap-2 text-[10px] disabled:opacity-50"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    <Send className="w-3.5 h-3.5" />
                                     {replyStatus === 'sending' ? 'Envoi...' : 'Envoyer via Brevo'}
                                 </button>
                             </div>

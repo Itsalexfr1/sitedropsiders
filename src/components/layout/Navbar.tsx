@@ -25,6 +25,7 @@ export function Navbar() {
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
     const [socials, setSocials] = useState((settings as any).socials || {});
     const [takeoverEnabled, setTakeoverEnabled] = useState(settings.takeover?.enabled || false);
+    const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
@@ -45,7 +46,10 @@ export function Navbar() {
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
                     if (data.socials) setSocials(data.socials);
-                    if (data.takeover) setTakeoverEnabled(data.takeover.enabled);
+                    if (data.takeover) {
+                        setTakeoverEnabled(data.takeover.enabled);
+                        setTakeoverSettings(data.takeover);
+                    }
                 }
             } catch (e) {
                 // Keep default
@@ -63,7 +67,7 @@ export function Navbar() {
         { name: t('nav.team'), path: '/team' },
         { name: t('nav.contact'), path: '/contact' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
-        ...(takeoverEnabled ? [{
+        ...(takeoverEnabled && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
             name: 'LIVE',
             path: '/',
             icon: Video,

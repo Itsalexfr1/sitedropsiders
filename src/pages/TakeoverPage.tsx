@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile, Activity, HelpCircle } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -46,10 +46,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [settings.title, settings.lineup, settings.youtubeId]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods'>('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation'>('general');
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
-    const [showPollEditor, setShowPollEditor] = useState(false);
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
     const [pseudo, setPseudo] = useState(() => {
@@ -137,8 +136,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [activePoll, setActivePoll] = useState<{ question: string, options: string[], id: number } | null>(null);
     const [shazamLoading, setShazamLoading] = useState(false);
 
-    const [slowModeDuration, setSlowModeDuration] = useState(10);
+    const [slowModeDuration] = useState(10);
     const [lastMessageTime, setLastMessageTime] = useState(0);
+    const [shazamResult, setShazamResult] = useState<{ title: string, artist: string, image?: string, spotify?: string } | null>(null);
+    const [showShazamNotify, setShowShazamNotify] = useState(false);
 
     const [promotedModos, setPromotedModos] = useState<string[]>(() => {
         return JSON.parse(localStorage.getItem('chat_promoted_modos') || '[]');
@@ -160,10 +161,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         };
     };
 
+    const [shopProducts, setShopProducts] = useState<any[]>([]);
+    const [showShopWidget, setShowShopWidget] = useState(false);
+    const [recentShazams, setRecentShazams] = useState<string[]>([]);
+    const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+
+    // Dynamic Video List (if comma separated in settings)
+    const videoList = settings.youtubeId?.split(',').map(id => id.trim()) || [];
+    const currentVideoId = videoList[activeVideoIndex] || videoList[0];
+
+    useEffect(() => {
+        fetch('/api/shop')
+            .then(res => res.json())
+            .then(data => setShopProducts(data.slice(0, 10)))
+            .catch(() => { });
+    }, []);
+
     // Fetch messages from server every 3 seconds
     useEffect(() => {
         const fetchMessages = () => {
-            fetch('/api/chat/messages')
+            fetch(`/api/chat/messages?channel=${currentVideoId}`)
                 .then(res => res.ok ? res.json() : [])
                 .then(data => {
                     if (Array.isArray(data)) {
@@ -200,7 +217,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         fetchMessages();
         const interval = setInterval(fetchMessages, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [currentVideoId]);
 
     const getCountryFlag = (c: string) => {
         if (!c) return <Globe className="w-3.5 h-3.5 text-gray-500" />;
@@ -241,14 +258,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return 'user';
     };
 
-    // Ping every 20s to count real viewers
+    // Ping every 20s to count real viewers (per channel)
     useEffect(() => {
         const pingId = isJoined ? pseudo.toUpperCase() : ('anon-' + Math.random().toString(36).substr(2, 6));
         const doPing = () => {
             fetch('/api/chat/ping', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pseudo: pingId })
+                body: JSON.stringify({ pseudo: pingId, channel: currentVideoId })
             })
                 .then(r => r.ok ? r.json() : null)
                 .then(data => { if (data?.count !== undefined) setViewersCount(data.count); })
@@ -257,7 +274,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         doPing();
         const interval = setInterval(doPing, 20000);
         return () => clearInterval(interval);
-    }, [isJoined, pseudo]);
+    }, [isJoined, pseudo, currentVideoId]);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -311,6 +328,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     console.error('Failed to subscribe:', err);
                 }
             }
+
+            // --- BOT WELCOME ---
+            fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: 'Dropsiders Bot',
+                    message: `👋 Bienvenue dans le chat @${pseudo.toUpperCase()} ! Profite bien du live sur ce flux ! 🔥`,
+                    country: 'FR',
+                    isBot: true,
+                    color: '#00ffcc',
+                    channel: currentVideoId
+                })
+            });
         }
     };
 
@@ -343,12 +374,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 pseudo: 'DROPSIDERS',
                 message: msg,
                 country: 'FR',
-                color: '#ff0033'
+                color: '#ff0033',
+                channel: currentVideoId
             })
         });
         setPollQuestion("");
         setPollOptions(["", ""]);
-        setShowPollEditor(false);
     };
 
     const handleStopPoll = async () => {
@@ -370,11 +401,61 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 pseudo: 'DROPSIDERS',
                 message: '🛑 SONDAGE TERMINÉ',
                 country: 'FR',
-                color: '#ff0033'
+                color: '#ff0033',
+                channel: currentVideoId
             })
         });
         setActivePoll(null);
-        setShowPollEditor(false);
+    };
+
+    const processBotCommand = async (command: string) => {
+        const cmd = command.toLowerCase().trim();
+        let response = '';
+
+        if (cmd === '!help') {
+            response = "🤖 Commandes disponibles : \n!help - Liste des commandes\n!lineup - Voir le programme\n!shop - Accéder à la boutique\n!shazam - Identifier la musique\n!news - Dernières actus\n!id - ID du live\n!vote - Comment voter";
+        } else if (cmd === '!lineup' || cmd === '!planning') {
+            const items = parseLineup(displayLineup || settings.lineup || '');
+            if (items.length > 0) {
+                response = "📅 PROGRAMME : \n" + items.map(i => `• ${i.time} : ${i.artist}`).join('\n');
+            } else {
+                response = "📅 Pas de planning disponible pour le moment.";
+            }
+        } else if (cmd === '!shop') {
+            response = "🛒 Retrouvez tout notre merchandising sur la boutique officielle : https://dropsiders.com/shop";
+        } else if (cmd === '!id') {
+            response = `🎥 ID Vidéo actuelle : ${newVideoId}`;
+        } else if (cmd === '!news') {
+            if (latestNews.length > 0) {
+                response = `🗞️ DERNIÈRE MINUTE : ${latestNews[0].title} - À lire sur le site !`;
+            } else {
+                response = "🗞️ Pas de nouvelles actus pour l'instant.";
+            }
+        } else if (cmd === '!shazam') {
+            response = "🔍 Laisse moi écouter... Ah ! C'est sûrement un banger de Dropsiders ! Appuie sur le bouton 🎵 pour une identification précise.";
+        } else if (cmd === '!vote') {
+            response = "📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)";
+        } else if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
+            response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
+        }
+
+        if (response) {
+            // Wait a small bit for realism
+            setTimeout(async () => {
+                await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pseudo: 'Dropsiders Bot',
+                        message: response,
+                        country: 'FR',
+                        isBot: true,
+                        color: '#00ffcc',
+                        channel: currentVideoId
+                    })
+                });
+            }, 800);
+        }
     };
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -394,6 +475,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const msgText = newMessage;
         setNewMessage('');
 
+        // Link blocking logic
+        const hasLinks = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9]+\.[a-z]{2,})/i.test(msgText);
+        if (hasLinks && !hasModPowers) {
+            // Auto-block and notify
+            setTimeout(async () => {
+                await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pseudo: 'Dropsiders Bot',
+                        message: `🚫 @${pseudo.toUpperCase()}, les liens ne sont autorisés que pour les modérateurs et administrateurs.`,
+                        country: 'FR',
+                        isBot: true,
+                        color: '#00ffcc'
+                    })
+                });
+            }, 500);
+            setIsSending(false);
+            return;
+        }
+
+        if (msgText.startsWith('!')) {
+            await processBotCommand(msgText);
+        }
+
         try {
             await fetch('/api/chat/messages', {
                 method: 'POST',
@@ -402,7 +508,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     pseudo: pseudo.toUpperCase(),
                     country: country || 'FR',
                     message: msgText,
-                    color: userColor
+                    color: userColor,
+                    channel: currentVideoId
                 })
             });
         } catch (e) {
@@ -419,20 +526,115 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             await fetch('/api/chat/delete', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id })
+                body: JSON.stringify({ id, channel: currentVideoId })
             });
         } catch (e) {
             console.error('Failed to delete message', e);
         }
     };
 
+    const handleShazam = async () => {
+        if (shazamLoading) return;
+        setShazamLoading(true);
+
+        try {
+            // Capture audio from the tab
+            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+                video: { displaySurface: 'browser' },
+                audio: true,
+                systemAudio: 'include'
+            } as any);
+
+            const audioTrack = stream.getAudioTracks()[0];
+            if (!audioTrack) {
+                stream.getTracks().forEach((t: any) => t.stop());
+                throw new Error("Aucun flux audio détecté");
+            }
+
+            // Record 8 seconds
+            const recorder = new MediaRecorder(new MediaStream([audioTrack]));
+            const chunks: Blob[] = [];
+            recorder.ondataavailable = (e) => chunks.push(e.data);
+            recorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: recorder.mimeType });
+                stream.getTracks().forEach((t: any) => t.stop());
+
+                // Prepare form data for AudD
+                const formData = new FormData();
+                formData.append('file', blob);
+                formData.append('api_token', '0707d622c51645acc2e4fa26ed64538d');
+                formData.append('return', 'spotify');
+
+                try {
+                    const res = await fetch('https://api.audd.io/', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+
+                    if (data.status === 'success' && data.result) {
+                        setShazamResult({
+                            title: data.result.title,
+                            artist: data.result.artist,
+                            image: data.result.spotify?.album?.images?.[0]?.url || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop",
+                            spotify: data.result.spotify?.external_urls?.spotify || "https://open.spotify.com"
+                        });
+                        setShowShazamNotify(true);
+
+                        // Auto hide after 12s
+                        setTimeout(() => setShowShazamNotify(false), 12000);
+                    } else {
+                        alert("Désolé, je n'ai pas réussi à identifier ce morceau. 😕");
+                    }
+                } catch (err) {
+                    console.error("Shazam API Error", err);
+                    alert("Erreur de connexion au service d'identification.");
+                } finally {
+                    setShazamLoading(false);
+                }
+            };
+
+            recorder.start();
+            setTimeout(() => {
+                if (recorder.state === 'recording') recorder.stop();
+            }, 8000);
+
+        } catch (err: any) {
+            console.error("Shazam Capture Error", err);
+            setShazamLoading(false);
+            if (err.name !== 'NotAllowedError') {
+                alert("Erreur Shazam : " + (err.message || "Capture impossible"));
+            }
+        }
+    };
 
 
-    const handlePromote = (name: string) => {
+
+    const handlePromote = async (name: string) => {
         if (!promotedModos.includes(name.toUpperCase())) {
             const newModos = [...promotedModos, name.toUpperCase()];
             setPromotedModos(newModos);
             localStorage.setItem('chat_promoted_modos', JSON.stringify(newModos));
+
+            // Also add to permanent settings
+            const currentMods = (settings.moderators || '').split(',').map(m => m.trim()).filter(m => m);
+            if (!currentMods.map(m => m.toLowerCase()).includes(name.toLowerCase())) {
+                const updatedMods = [...currentMods, name].join(',');
+                await handleUpdateSettings({ moderators: updatedMods });
+            }
+
+            // Notify in chat
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: 'Dropsiders Bot',
+                    message: `🛡️ @${name.toUpperCase()} a été promu modérateur du chat par un administrateur !`,
+                    country: 'FR',
+                    isBot: true,
+                    color: '#00ffcc'
+                })
+            });
         }
     };
 
@@ -600,6 +802,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         <h1 className="text-lg md:text-2xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
                             {displayTitle}
                         </h1>
+
+                        {/* Multi-Video Switcher */}
+                        {videoList.length > 1 && (
+                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
+                                {videoList.map((_, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => setActiveVideoIndex(idx)}
+                                        className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                    >
+                                        CAM {idx + 1}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                         <div className="flex items-center gap-2">
                             {isAdmin && (
                                 <button
@@ -676,11 +893,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <div className="w-full aspect-video lg:aspect-auto lg:h-full bg-black">
                         <iframe
                             className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${newVideoId || settings.youtubeId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
+                            src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
                             title={settings.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         ></iframe>
+
+                        {/* Multi-Channel Switcher */}
+                        {videoList.length > 1 && (
+                            <div className="absolute top-6 left-6 z-30 flex flex-col gap-2">
+                                <div className="bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl p-1.5 flex flex-col gap-1 shadow-2xl">
+                                    <p className="text-[7px] font-black text-gray-500 uppercase tracking-[0.2em] px-2 mb-1">Flux Disponibles</p>
+                                    {videoList.map((id, idx) => (
+                                        <button
+                                            key={id}
+                                            onClick={() => setActiveVideoIndex(idx)}
+                                            className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all group ${activeVideoIndex === idx ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.3)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                        >
+                                            <div className="relative">
+                                                <div className={`w-2 h-2 rounded-full ${activeVideoIndex === idx ? 'bg-white animate-pulse' : 'bg-gray-600'}`} />
+                                            </div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Channel {idx + 1}</span>
+                                            {activeVideoIndex === idx && <div className="ml-auto w-1 h-3 bg-white/30 rounded-full" />}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Active Poll Overlay */}
                         <AnimatePresence>
@@ -698,20 +937,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <p className="text-[11px] font-bold text-white mb-4">{activePoll.question}</p>
                                     <div className="space-y-2">
                                         {activePoll.options.map((opt, i) => {
-                                            // Calculate generic votes if actual votes aren't tracked
-                                            // Mock real-time results for preview (based on chat message parsing if we had it, using random for mock visual)
-                                            const totalVotes = messages.filter(m => /^[0-9]+$/.test(m.message.trim())).length;
+                                            const totalVotes = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim())).length;
                                             const optVotes = messages.filter(m => m.message.trim() === String(i + 1)).length;
                                             const percentage = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
 
                                             return (
-                                                <div key={i} className="relative h-7 bg-white/5 rounded-lg overflow-hidden flex items-center px-3 border border-white/5">
-                                                    <div className="absolute left-0 top-0 bottom-0 bg-neon-red/30 transition-all duration-500" style={{ width: `${percentage}%` }} />
-                                                    <span className="relative z-10 text-[9px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
-                                                        <span className="text-gray-500">{i + 1}.</span> {opt}
+                                                <button
+                                                    key={i}
+                                                    onClick={async () => {
+                                                        if (!isJoined) return alert("Rejoignez le chat pour voter !");
+                                                        setNewMessage(String(i + 1));
+                                                        // Auto send vote
+                                                        await fetch('/api/chat/messages', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                pseudo: pseudo.toUpperCase(),
+                                                                country: country || 'FR',
+                                                                message: String(i + 1),
+                                                                color: userColor
+                                                            })
+                                                        });
+                                                        setNewMessage('');
+                                                    }}
+                                                    className="w-full relative h-10 group/vote bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden flex items-center px-4 border border-white/5 hover:border-neon-red/30 transition-all duration-300"
+                                                >
+                                                    <div className="absolute left-0 top-0 bottom-0 bg-neon-red/20 transition-all duration-700 ease-out" style={{ width: `${percentage}%` }} />
+                                                    <span className="relative z-10 text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-3">
+                                                        <span className="w-5 h-5 flex items-center justify-center bg-black/40 rounded-md text-gray-400 group-hover/vote:text-neon-red transition-colors">{i + 1}</span>
+                                                        {opt}
                                                     </span>
-                                                    <span className="relative z-10 text-[9px] font-black text-neon-red ml-auto">{percentage}%</span>
-                                                </div>
+                                                    <span className="relative z-10 text-[11px] font-black text-neon-red ml-auto drop-shadow-[0_0_5px_rgba(255,0,51,0.5)]">{percentage}%</span>
+                                                </button>
                                             )
                                         })}
                                     </div>
@@ -724,10 +981,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         <AnimatePresence>
                             {showLineup && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[95%] lg:w-[1000px] bg-black/95 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto"
+                                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                                    className="absolute inset-x-4 top-4 bottom-4 lg:inset-x-12 lg:top-12 lg:bottom-12 z-30 bg-black/30 backdrop-blur-2xl border border-white/20 rounded-[40px] shadow-[0_0_100px_rgba(0,0,0,0.8)] overflow-hidden pointer-events-auto"
                                     onClick={e => e.stopPropagation()}
                                 >
                                     <div className="w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
@@ -840,14 +1097,68 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                             <button
+                                onClick={handleShazam}
+                                disabled={shazamLoading}
+                                className={`flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all backdrop-blur-md shadow-2xl active:scale-95 group ${shazamLoading ? 'border-neon-cyan' : 'hover:bg-neon-cyan hover:border-neon-cyan/50'}`}
+                            >
+                                <Music2 className={`w-4 h-4 text-neon-cyan group-hover:text-white ${shazamLoading ? 'animate-spin' : ''}`} />
+                                {shazamLoading ? "Écoute en cours..." : "Shazam"}
+                            </button>
+                            <button
                                 onClick={() => setIsFocusMode(!isFocusMode)}
                                 className="flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-neon-red transition-all backdrop-blur-md shadow-2xl active:scale-95 group"
                                 title={isFocusMode ? "Quitter le mode Focus" : "Mode Focus (Plein Écran)"}
                             >
                                 {isFocusMode ? <Minimize2 className="w-4 h-4 text-neon-red group-hover:text-white" /> : <Maximize2 className="w-4 h-4 text-neon-red group-hover:text-white" />}
-                                {isFocusMode ? "Quitter le plein écran" : "Mode Focus"}
+                                {isFocusMode ? "Quitter" : "Focus"}
                             </button>
                         </div>
+
+                        {/* Shazam Notification Overlay */}
+                        <AnimatePresence>
+                            {showShazamNotify && shazamResult && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -50, x: '-50%' }}
+                                    animate={{ opacity: 1, y: 0, x: '-50%' }}
+                                    exit={{ opacity: 0, y: -50, x: '-50%' }}
+                                    className="absolute top-8 left-1/2 z-[45] w-[320px] lg:w-[400px] bg-black/40 backdrop-blur-3xl border border-white/20 rounded-3xl p-4 shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
+                                >
+                                    <div className="absolute top-0 left-0 right-0 h-1 bg-neon-cyan animate-pulse" />
+                                    <div className="flex items-center gap-4">
+                                        <div className="relative w-16 h-16 shrink-0 aspect-square rounded-2xl overflow-hidden border border-white/10">
+                                            <img src={shazamResult.image} className="w-full h-full object-cover" alt="Track" />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                <Music2 className="w-6 h-6 text-neon-cyan drop-shadow-[0_0_8px_#00ffff]" />
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[9px] font-black text-neon-cyan uppercase tracking-widest mb-1">Musique Identifiée</p>
+                                            <h4 className="text-white font-black text-sm uppercase italic truncate tracking-tight">{shazamResult.title}</h4>
+                                            <p className="text-gray-400 font-bold text-[10px] uppercase truncate">{shazamResult.artist}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowShazamNotify(false)}
+                                            className="p-1 hover:bg-white/10 rounded-full transition-colors"
+                                        >
+                                            <X className="w-4 h-4 text-gray-500" />
+                                        </button>
+                                    </div>
+                                    <div className="mt-4 flex gap-2">
+                                        <a
+                                            href={shazamResult.spotify || '#'}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex-1 flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-[#1DB954] border border-white/10 hover:border-transparent rounded-xl text-[9px] font-black uppercase tracking-widest text-white transition-all group"
+                                        >
+                                            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.508 17.302c-.223.367-.714.484-1.077.262-2.92-1.785-6.598-2.185-10.932-1.192-.418.093-.83-.173-.923-.591-.093-.418.173-.83.591-.923 4.743-1.085 8.79-.619 12.079 1.388.367.22.484.71.262 1.056zm1.47-3.253c-.282.458-.883.6-1.341.32-3.34-2.053-8.432-2.651-12.382-1.454-.515.156-1.054-.133-1.21-.649-.156-.516.133-1.054.649-1.21 4.512-1.368 10.125-.694 13.965 1.664.458.282.6.883.32 1.329zm.135-3.376C15.118 8.169 8.514 7.948 4.717 9.102c-.628.19-1.295-.162-1.485-.79-.19-.628.162-1.295.79-1.485 4.356-1.322 11.642-1.056 16.275 1.693.564.335.748 1.066.413 1.631-.335.564-1.067.747-1.632.413z" />
+                                            </svg>
+                                            Ouvrir Spotify
+                                        </a>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Full Edit Modal Layer */}
                         <AnimatePresence>
@@ -878,22 +1189,43 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 onClick={() => setActiveSettingsTab('general')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'general' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Live / Bandeau / Sondage
+                                                Live / Vidéo
                                                 {activeSettingsTab === 'general' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('ticker')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'ticker' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Bandeau
+                                                {activeSettingsTab === 'ticker' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('moderation')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Modération
+                                                {activeSettingsTab === 'moderation' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveSettingsTab('planning')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'planning' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Éditeur Planning
+                                                Planning
                                                 {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveSettingsTab('mods')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'mods' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Modérateurs
+                                                Équipe
                                                 {activeSettingsTab === 'mods' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('bot')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'bot' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Bot
+                                                {activeSettingsTab === 'bot' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                         </div>
 
@@ -901,116 +1233,203 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <div className="flex-1 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
                                             {activeSettingsTab === 'general' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 rounded-3xl">
-                                                            <div className="flex items-center justify-between">
-                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Afficher le Haut de Page</label>
-                                                                <button
-                                                                    onClick={() => setShowTopBanner(!showTopBanner)}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
-                                                                >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${showTopBanner ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                </button>
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Activity className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-red">Affichage</span></h3>
                                                             </div>
-                                                            <div className="flex items-center justify-between">
-                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Afficher le Bandeau Défilant</label>
-                                                                <button
-                                                                    onClick={() => setShowTickerBanner(!showTickerBanner)}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
-                                                                >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${showTickerBanner ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                </button>
+                                                            <div className="space-y-3">
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Haut de Page (Logo/Menu)</label>
+                                                                    <button
+                                                                        onClick={() => setShowTopBanner(!showTopBanner)}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${showTopBanner ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chat Actif</label>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ chat_enabled: !settings.chat_enabled })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.chat_enabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.chat_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 rounded-3xl">
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Titre du Live</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editTitle}
-                                                                    onChange={(e) => setEditTitle(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                />
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Youtube className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
                                                             </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">ID YouTube</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={newVideoId}
-                                                                    onChange={(e) => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                />
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Titre de l'événement</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editTitle}
+                                                                        onChange={(e) => setEditTitle(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="TITRE LIVE..."
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">IDs YouTube (séparés par des virgules)</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={newVideoId}
+                                                                        onChange={(e) => setNewVideoId(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="dQw4w9WgXcQ, abcdefghijk"
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            )}
 
-                                                    <div className="space-y-4 bg-white/[0.02] border border-white/5 p-5 rounded-3xl">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 italic">Réglage du <span className="text-neon-red">Bandeau</span></label>
+                                            {activeSettingsTab === 'ticker' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Activity className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-red">Défilant</span></h3>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setShowTickerBanner(!showTickerBanner)}
+                                                                className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                            >
+                                                                <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                            </button>
                                                         </div>
-                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                                                            <div className="space-y-1.5 lg:col-span-2">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Type</label>
+
+                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                                            <div className="col-span-2 space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Type de contenu</label>
                                                                 <select
                                                                     value={tickerType}
                                                                     onChange={(e) => setTickerType(e.target.value as any)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red cursor-pointer"
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red cursor-pointer"
                                                                 >
-                                                                    <option value="news">Actualités</option>
-                                                                    <option value="planning">Programme</option>
-                                                                    <option value="custom">Texte Perso</option>
+                                                                    <option value="news">📢 Actualités automatiques</option>
+                                                                    <option value="planning">📅 Programme en cours</option>
+                                                                    <option value="custom">✍️ Texte personnalisé</option>
                                                                 </select>
                                                             </div>
                                                             <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Fond</label>
-                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-1.5">
-                                                                    <input type="color" value={tickerBgColor} onChange={(e) => setTickerBgColor(e.target.value)} className="w-8 h-6 bg-transparent border-none cursor-pointer" />
-                                                                    <span className="text-[9px] text-gray-500 font-bold uppercase truncate">{tickerBgColor}</span>
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
+                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
+                                                                    <input type="color" value={tickerBgColor} onChange={(e) => setTickerBgColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                    <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerBgColor}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Texte</label>
-                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-1.5">
-                                                                    <input type="color" value={tickerTextColor} onChange={(e) => setTickerTextColor(e.target.value)} className="w-8 h-6 bg-transparent border-none cursor-pointer" />
-                                                                    <span className="text-[9px] text-gray-500 font-bold uppercase truncate">{tickerTextColor}</span>
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
+                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
+                                                                    <input type="color" value={tickerTextColor} onChange={(e) => setTickerTextColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                    <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerTextColor}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
 
                                                         {tickerType === 'custom' && (
-                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
-                                                                <input type="text" value={tickerText} onChange={(e) => setTickerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red" placeholder="Votre message..." />
-                                                                <input type="text" value={tickerLink} onChange={(e) => setTickerLink(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red" placeholder="Lien (ex: https://...)" />
+                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Votre message</label>
+                                                                    <input type="text" value={tickerText} onChange={(e) => setTickerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien au clic (Optionnel)</label>
+                                                                    <input type="text" value={tickerLink} onChange={(e) => setTickerLink(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="https://..." />
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>
+                                                </div>
+                                            )}
 
-                                                    <div className="space-y-4 bg-white/[0.02] border border-white/5 p-5 rounded-3xl">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 italic">Système de <span className="text-neon-red">Sondage</span></label>
-                                                            <button onClick={() => setShowPollEditor(!showPollEditor)} className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${showPollEditor ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-500'}`}>
-                                                                {showPollEditor ? 'Masquer' : 'Gérer'}
-                                                            </button>
+                                            {activeSettingsTab === 'moderation' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <ShieldAlert className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Outils de <span className="text-neon-red">Modération</span></h3>
+                                                            </div>
+
+                                                            <div className="space-y-4">
+                                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                                    <div>
+                                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-1">
+                                                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                                                        </p>
+                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Limite l'envoi de messages</p>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => setIsSlowMode(!isSlowMode)}
+                                                                        className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${isSlowMode ? 'bg-yellow-500 shadow-[0_0_15px_#eab30844] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                    >
+                                                                        <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-3">
+                                                                        <Globe className="w-3.5 h-3.5 text-neon-cyan" /> Filtre de Liens
+                                                                    </p>
+                                                                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bloquer les liens externes</span>
+                                                                        <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] font-black uppercase border border-green-500/20">Toujours Actif</span>
+                                                                    </div>
+                                                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2 italic px-1">* Seuls les modérateurs et l'administration peuvent envoyer des liens.</p>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        {showPollEditor && (
-                                                            <div className="space-y-4 animate-in fade-in duration-300">
-                                                                <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-[10px] text-white font-bold outline-none focus:border-neon-red" />
+
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <HelpCircle className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
+                                                            </div>
+
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
+                                                                    <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
+                                                                </div>
                                                                 <div className="grid grid-cols-2 gap-2">
                                                                     {pollOptions.map((opt, i) => (
                                                                         <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
                                                                             const newOpts = [...pollOptions];
                                                                             newOpts[i] = e.target.value;
                                                                             setPollOptions(newOpts);
-                                                                        }} className="w-full bg-black/20 border border-white/5 rounded-lg p-2 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
+                                                                        }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
                                                                     ))}
                                                                 </div>
-                                                                <button onClick={handleSendPoll} className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white hover:bg-neon-red transition-all">Lancer le sondage</button>
-                                                                {activePoll && (
-                                                                    <button onClick={handleStopPoll} className="w-full py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[9px] font-black text-red-500 hover:bg-red-500 hover:text-white transition-all">Supprimer le sondage en cours</button>
-                                                                )}
+                                                                <div className="grid grid-cols-2 gap-3 pt-2">
+                                                                    <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all">Lancer</button>
+                                                                    {activePoll && (
+                                                                        <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[9px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer</button>
+                                                                    )}
+                                                                </div>
                                                             </div>
-                                                        )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
@@ -1093,6 +1512,78 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {activeSettingsTab === 'bot' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                            <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
+                                                        </label>
+                                                        <div className="overflow-hidden border border-white/10 rounded-2xl">
+                                                            <table className="w-full text-left border-collapse">
+                                                                <thead>
+                                                                    <tr className="bg-white/5">
+                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
+                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Description</th>
+                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10 text-right">Statut</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="text-[10px] font-bold text-gray-300">
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!help</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Affiche la liste complète des commandes.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!lineup</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Affiche le programme actuel dans le chat.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!shop</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Envoie le lien direct vers la boutique.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!news</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Affiche le titre de la dernière actualité.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!id</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Partage l'ID de la vidéo actuelle.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!shazam</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Explique comment identifier le son.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!vote</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Aide pour participer aux sondages.</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    </tr>
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Ces commandes sont utilisables par tous les membres du chat.</p>
+
+                                                        {recentShazams.length > 0 && (
+                                                            <div className="mt-8 space-y-3">
+                                                                <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] text-center italic">Dernières Identifications <span className="text-neon-cyan">Shazam</span></h4>
+                                                                <div className="flex flex-wrap justify-center gap-2">
+                                                                    {recentShazams.map((song, i) => (
+                                                                        <span key={i} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold text-gray-400">
+                                                                            {song}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
@@ -1148,18 +1639,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </div>
                             {hasModPowers && (
                                 <div className="flex items-center gap-2">
-                                    {isSlowMode && (
-                                        <select
-                                            value={slowModeDuration}
-                                            onChange={(e) => setSlowModeDuration(Number(e.target.value))}
-                                            className="bg-white/5 border border-white/10 rounded-lg py-1 px-2 text-[10px] font-black text-neon-yellow outline-none"
-                                        >
-                                            <option value="5">5s</option>
-                                            <option value="10">10s</option>
-                                            <option value="30">30s</option>
-                                            <option value="60">60s</option>
-                                        </select>
-                                    )}
+                                    <button
+                                        onClick={() => setShowShopWidget(!showShopWidget)}
+                                        className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                        title="Boutique"
+                                    >
+                                        <Globe className="w-4 h-4" />
+                                    </button>
                                     <button
                                         onClick={() => setIsSlowMode(!isSlowMode)}
                                         className={`p-2 rounded-lg transition-all ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
@@ -1170,6 +1656,37 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </div>
                             )}
                         </div>
+
+                        {/* Shop Widget Overlay (Inside Chat) */}
+                        <AnimatePresence>
+                            {showShopWidget && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="bg-black/60 border-b border-white/10 overflow-hidden relative z-40"
+                                >
+                                    <div className="p-4 flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
+                                        {shopProducts.map(p => (
+                                            <a key={p.id} href={p.url || '/shop'} target="_blank" className="flex-shrink-0 w-32 bg-white/5 border border-white/10 rounded-xl p-2 group hover:border-neon-red/50 transition-all">
+                                                <div className="aspect-square rounded-lg overflow-hidden mb-2 relative">
+                                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                                    <span className="absolute bottom-1 right-1 text-[8px] font-black text-white bg-neon-red px-1.5 py-0.5 rounded">{p.price}€</span>
+                                                </div>
+                                                <p className="text-[8px] font-black text-white uppercase tracking-widest truncate">{p.name}</p>
+                                            </a>
+                                        ))}
+                                    </div>
+                                    <div className="absolute top-2 right-2 flex items-center gap-2">
+                                        <span className="text-[7px] font-black text-neon-red bg-neon-red/10 px-2 py-0.5 rounded-full border border-neon-red/20 animate-pulse">DERNIERS ITEMS</span>
+                                        <button onClick={() => setShowShopWidget(false)} className="p-1 hover:bg-white/10 rounded">
+                                            <X className="w-3 h-3 text-gray-500" />
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         <div className="flex-1 flex flex-row min-h-0">
                             <div className="flex-1 flex flex-col min-h-0 relative z-10 w-full lg:w-[420px]">
@@ -1330,6 +1847,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         const role = getRole(msg.pseudo);
                                                         const isMsgAdmin = role === 'admin';
                                                         const isMsgModo = role === 'modo';
+                                                        const isBot = msg.isBot || msg.pseudo === 'Dropsiders Bot';
 
                                                         return (
                                                             <motion.div
@@ -1345,15 +1863,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </div>
                                                                     <span
                                                                         className="text-[10px] font-black uppercase tracking-widest"
-                                                                        style={{ color: isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                                        style={{ color: isBot ? '#00ffcc' : isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                     >
                                                                         {msg.pseudo}
                                                                     </span>
                                                                     {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
                                                                     {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
+                                                                    {isBot && <span className="px-1.5 py-0.5 rounded bg-neon-cyan text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">BOT</span>}
                                                                     <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                 </div>
-                                                                <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
+                                                                <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isBot ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-[#00ffcc] shadow-[0_0_20px_rgba(0,255,150,0.05)]' : isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
                                                                     <span className="relative z-10 font-medium whitespace-pre-wrap">{msg.message}</span>
                                                                     {hasModPowers && !isMsgAdmin && (
                                                                         <button
@@ -1373,62 +1892,63 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
                                                     <form onSubmit={handleSendMessage} className="relative group">
                                                         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within:opacity-40 blur-sm rounded-xl transition-opacity pointer-events-none" />
-                                                        <div className="relative flex items-center bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
-                                                            <div className="flex items-center px-1.5 border-r border-white/10 gap-0.5">
+                                                        <div className="relative flex flex-col bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
+                                                            <div className="flex items-center bg-white/[0.02] border-b border-white/5">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                                                    className={`p-2 rounded-lg transition-all ${showEmojiPicker ? 'bg-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                                                    title="Emojis"
+                                                                    className={`p-3 transition-all ${showEmojiPicker ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                                                 >
                                                                     <Smile className="w-4 h-4" />
                                                                 </button>
+
                                                                 <button
                                                                     type="button"
-                                                                    className={`p-2 rounded-lg transition-all flex items-center justify-center ${shazamLoading ? 'bg-[#0088ff] text-white animate-pulse' : 'text-gray-500 hover:text-[#0088ff] hover:bg-[#0088ff]/10'}`}
-                                                                    title="Reconnaître la musique (Shazam)"
-                                                                    onClick={() => {
-                                                                        if (shazamLoading) return;
+                                                                    onClick={async () => {
                                                                         setShazamLoading(true);
-                                                                        setTimeout(() => {
-                                                                            setShazamLoading(false);
-                                                                            // Open Shazam app
-                                                                            window.location.href = 'shazam://';
-                                                                            // Also set the text
-                                                                            setNewMessage(prev => prev ? prev + ' 🎵 Titre trouvé via Shazam : ' : '🎵 Titre trouvé via Shazam : ');
-                                                                        }, 3000);
+                                                                        await new Promise(r => setTimeout(r, 2500));
+                                                                        setShazamLoading(false);
+
+                                                                        const items = parseLineup(displayLineup || settings.lineup || '');
+                                                                        const now = new Date();
+                                                                        const currentHour = now.getHours();
+                                                                        const currentMin = now.getMinutes();
+
+                                                                        const identified = items.find(item => {
+                                                                            const [h, m] = (item.time || '').split(/[hH:]/).map(Number);
+                                                                            return h === currentHour && Math.abs(currentMin - m) < 60;
+                                                                        })?.artist || "Dropsiders Selection";
+
+                                                                        setRecentShazams(prev => [identified, ...prev].slice(0, 5));
+                                                                        setNewMessage(`🎵 Le titre actuel est identifié comme : ${identified} !`);
+                                                                        window.open('shazam://', '_blank');
                                                                     }}
+                                                                    className={`p-3 transition-all flex items-center gap-2 ${shazamLoading ? 'text-[#0088ff] animate-pulse' : 'text-gray-500 hover:text-[#0088ff]'}`}
                                                                 >
-                                                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
-                                                                        <path d="M12 0c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0zm0 4.42c-4.185 0-7.58 3.394-7.58 7.58 0 4.186 3.395 7.58 7.58 7.58 4.186 0 7.58-3.394 7.58-7.58 0-4.185-3.394-7.58-7.58-7.58zM10.7 6.568c2.41 0 4.718 1.59 5.37 3.888L13.71 11.03c-.24-.875-1.14-1.61-2.043-1.61-.678 0-1.57.386-1.57 1.55 0 1.856 4.57 1.297 4.57 4.53 0 1.244-.724 2.926-2.97 2.926-2.742 0-4.943-1.66-5.65-4.134l2.352-.59c.29 .974 1.22 1.702 2.26 1.702.658 0 1.603-.354 1.603-1.6 0-1.845-4.57-1.275-4.57-4.552 0-1.234.752-2.69 3.015-2.69z" />
-                                                                    </svg>
+                                                                    <Music2 className="w-4 h-4" />
+                                                                    {shazamLoading && <span className="text-[8px] font-black uppercase tracking-widest">Identification...</span>}
                                                                 </button>
                                                             </div>
-                                                            {shazamLoading && (
-                                                                <div className="absolute left-[80px] top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
-                                                                    <div className="w-1.5 h-1.5 bg-[#0088ff] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                                                    <div className="w-1.5 h-1.5 bg-[#0088ff] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                                                    <div className="w-1.5 h-1.5 bg-[#0088ff] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                                                </div>
-                                                            )}
-                                                            <input
-                                                                type="text"
-                                                                value={newMessage}
-                                                                onChange={(e) => setNewMessage(e.target.value)}
-                                                                placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : (shazamLoading ? "" : "Écrivrez votre message...")}
-                                                                className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
-                                                            />
-                                                            <button
-                                                                type="submit"
-                                                                disabled={!newMessage.trim() || isSending}
-                                                                className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
-                                                            >
-                                                                <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                            </button>
+
+                                                            <div className="flex items-center">
+                                                                <input
+                                                                    type="text"
+                                                                    value={newMessage}
+                                                                    onChange={(e) => setNewMessage(e.target.value)}
+                                                                    placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrire un message..."}
+                                                                    className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
+                                                                />
+                                                                <button
+                                                                    type="submit"
+                                                                    disabled={!newMessage.trim() || isSending}
+                                                                    className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
+                                                                >
+                                                                    <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </form>
 
-                                                    {/* Emoji Picker Placeholder / Quick Emojis */}
                                                     {showEmojiPicker && (
                                                         <motion.div
                                                             initial={{ opacity: 0, y: 5 }}
@@ -1456,69 +1976,69 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </AnimatePresence>
                                 )}
                             </div>
+                        </div>
 
-                            {hasModPowers && (
-                                <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                                    <button
-                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                        className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
-                                    >
-                                        <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                                    </button>
-                                </div>
-                            )}
+                        {hasModPowers && (
+                            <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                <button
+                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                    className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
+                                >
+                                    <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                </button>
+                            </div>
+                        )}
 
-                            <AnimatePresence>
-                                {hasModPowers && showUsersPanel && (
-                                    <motion.div
-                                        initial={{ width: 0, opacity: 0 }}
-                                        animate={{ width: 250, opacity: 1 }}
-                                        exit={{ width: 0, opacity: 0 }}
-                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
-                                    >
-                                        <div className="w-[250px] flex flex-col h-full">
-                                            <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                    <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                                </h2>
-                                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                            </div>
-                                            <div className="flex-1 overflow-y-auto">
-                                                <div className="p-3 space-y-2">
-                                                    {allActiveUsers.map(u => {
-                                                        const role = getRole(u.pseudo);
-                                                        const isUserAdmin = role === 'admin';
-                                                        const isUserModo = role === 'modo';
+                        <AnimatePresence>
+                            {hasModPowers && showUsersPanel && (
+                                <motion.div
+                                    initial={{ width: 0, opacity: 0 }}
+                                    animate={{ width: 250, opacity: 1 }}
+                                    exit={{ width: 0, opacity: 0 }}
+                                    className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                >
+                                    <div className="w-[250px] flex flex-col h-full">
+                                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                            </h2>
+                                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto">
+                                            <div className="p-3 space-y-2">
+                                                {allActiveUsers.map(u => {
+                                                    const role = getRole(u.pseudo);
+                                                    const isUserAdmin = role === 'admin';
+                                                    const isUserModo = role === 'modo';
 
-                                                        return (
-                                                            <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                                <div className="flex items-center gap-2 truncate">
-                                                                    <div className="w-4 flex items-center justify-center">
-                                                                        {getCountryFlag(u.country)}
-                                                                    </div>
-                                                                    <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                        {u.pseudo}
-                                                                    </span>
+                                                    return (
+                                                        <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                            <div className="flex items-center gap-2 truncate">
+                                                                <div className="w-4 flex items-center justify-center">
+                                                                    {getCountryFlag(u.country)}
                                                                 </div>
-                                                                {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                    <button
-                                                                        onClick={() => handlePromote(u.pseudo)}
-                                                                        className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                        title="Promouvoir Modérateur Chat"
-                                                                    >
-                                                                        <Shield className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                )}
+                                                                <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                    {u.pseudo}
+                                                                </span>
                                                             </div>
-                                                        );
-                                                    })}
-                                                </div>
+                                                            {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                <button
+                                                                    onClick={() => handlePromote(u.pseudo)}
+                                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                    title="Promouvoir Modérateur Chat"
+                                                                >
+                                                                    <Shield className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 )}
             </div>

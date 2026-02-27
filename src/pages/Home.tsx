@@ -150,7 +150,7 @@ export function Home() {
         return () => window.removeEventListener('storage', checkExit);
     }, []);
 
-    if (takeover?.enabled && !hasExitedLive) {
+    if (takeover?.enabled && (takeover.forceHomepage !== false) && !hasExitedLive) {
         return <TakeoverPage settings={takeover} />;
     }
 
