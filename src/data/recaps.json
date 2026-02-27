@@ -166,8 +166,8 @@
   {
     "id": 8,
     "title": "Récap : Les Ardentes 2025",
-    "date": "2026-02-27T00:42",
-    "summary": "Récap : Les Ardentes 2025  Pendant quatre jours, le Parc Astrid de Liège s'est transformé en un immense théâtre musiques urbaines, électroniques et alter...",
+    "date": "2026-02-27T02:58",
+    "summary": "Récap : Les Ardentes 2025 Les Ardentes 2025 : Une édition entre déferlante rap et audace électronique Les Ardentes 2025 ont confirmé leur statut de festival majeur européen, avec une programmation aud...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810472/dropsiders/images/xdeirtzga25yzchrfu3v.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810472/dropsiders/images/oit9isuwdq3gnjsjdqag.jpg",
@@ -187,9 +187,12 @@
     "category": "Recaps",
     "content": "",
     "author": "Alex",
-    "festival": "",
-    "location": "Liége, Belgique",
-    "isFeatured": false
+    "festival": "Les Ardentes",
+    "location": "Liége",
+    "isFeatured": false,
+    "country": "Belgique",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 9,
