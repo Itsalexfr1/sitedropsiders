@@ -24,14 +24,14 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "DQHSj6cphm0",
-    "chat_enabled": false,
+    "chat_enabled": true,
     "title": "Tomorrowland - Daybreak Session",
     "moderators": "",
     "lineup": "06h30|Anyma|FreedomStage|Tomorrowland",
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
-    "tickerBgColor": "#000000",
+    "tickerBgColor": "#ff0033",
     "tickerTextColor": "#ffffff"
   }
 }
