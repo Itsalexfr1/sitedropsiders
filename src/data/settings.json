@@ -22,7 +22,7 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "DQHSj6cphm0",
     "title": "Tomorrowland - Daybreak Session",
     "moderators": "",
