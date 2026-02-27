@@ -11,7 +11,11 @@
     "description": "L'edition hivernale magique de Tomorrowland dans les Alpes françaises.",
     "url": "https://winter.tomorrowland.com/fr/bienvenue",
     "genre": "Multi Styles",
-    "month": "Mars"
+    "month": "MARS",
+    "country": "",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": true
   },
   {
     "id": 2,
