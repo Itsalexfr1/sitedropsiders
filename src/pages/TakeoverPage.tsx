@@ -1227,9 +1227,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }
 
     return (
-        <div className={`fixed ${isFocusMode ? 'top-0' : 'top-[70px] lg:top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
-            {/* Live Banner Header */}
-            {!isFocusMode && showTopBanner && (
+        <div className={`fixed ${showTopBanner ? 'top-[70px] lg:top-32' : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
+            {/* Live Banner Header - Conditionally based on top banner enabled */}
+            {showTopBanner && !isFocusMode && (
                 <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
@@ -1372,8 +1372,87 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
                 {/* Video Section */}
-                <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
-                    <div className="w-full aspect-video lg:aspect-none lg:flex-1 lg:h-full relative bg-black group overflow-hidden">
+                <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
+
+                    {/* Header Controls Overlay (When showTopBanner is false, we bring some elements here or we just keep it permanently on top of the video container) */}
+                    <div className="w-full bg-[#111] border-b border-white/10 px-4 py-3 flex items-center justify-between z-20 shrink-0">
+                        <div className="flex items-center gap-4 flex-1">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
+                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                                <span className="text-[10px] md:text-xs font-black text-red-500 uppercase tracking-widest hidden sm:inline">EN DIRECT</span>
+                            </div>
+                            <div className="flex flex-col min-w-0 flex-1">
+                                <h1 id="takeover-title" className="text-xs md:text-lg font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
+                                    {displayTitle}
+                                </h1>
+                                {fluxCurrentArtist.artist && (
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <div className="flex items-center gap-1.5">
+                                            <Music2 className="w-2.5 h-2.5 text-neon-cyan shadow-[0_0_8px_#00ffff66]" />
+                                            <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest truncate max-w-[120px] md:max-w-[200px]">
+                                                {fluxCurrentArtist.artist}
+                                            </span>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Multi-Video Switcher */}
+                            {channelItems.length > 1 && (
+                                <div id="channel-switcher" className="hidden md:flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 shrink-0">
+                                    {channelItems.map((item, idx) => (
+                                        <button
+                                            key={idx}
+                                            id={`channel-btn-${idx}`}
+                                            onClick={() => setActiveVideoIndex(idx)}
+                                            className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                        >
+                                            {item.title}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0">
+                            {/* Actions Group */}
+                            <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 mr-2">
+                                <button onClick={() => handleShare('x')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><XIcon className="w-3.5 h-3.5" /></button>
+                                <div className="w-px h-3 bg-white/20" />
+                                <button onClick={() => handleShare('fb')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><Facebook className="w-3.5 h-3.5" /></button>
+                                <div className="w-px h-3 bg-white/20" />
+                                <button onClick={() => handleShare('insta')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><Instagram className="w-3.5 h-3.5" /></button>
+                                <div className="w-px h-3 bg-white/20" />
+                                <button onClick={() => handleShare('snap')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><SnapchatIcon className="w-3.5 h-3.5 fill-[#FFFC00]" /></button>
+                            </div>
+
+                            {hasModPowers && (
+                                <button
+                                    id="admin-edit-btn"
+                                    onClick={() => setShowEditModal(true)}
+                                    className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all"
+                                    title="Modifier le Live"
+                                >
+                                    <Edit2 className="w-4 h-4 text-neon-red" />
+                                </button>
+                            )}
+
+                            {!isFocusMode && showTopBanner === false && (
+                                <button
+                                    onClick={() => {
+                                        sessionStorage.setItem('exited_live', 'true');
+                                        window.location.href = '/';
+                                    }}
+                                    className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-lg text-gray-400 hover:text-neon-red transition-all"
+                                    title="Quitter le Live"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
                         {!isFocusMode && (
                             <div className="absolute top-6 left-6 z-20 pointer-events-none">
@@ -2109,7 +2188,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <div className="grid grid-cols-4 gap-2">
                                                             <input type="text" placeholder="Heure (22:00)" value={lineupTime} onChange={e => setLineupTime(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
                                                             <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Stage / Scène" value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
+                                                                <option value="" disabled>Sélectionner un Stage</option>
+                                                                <option value="Flux Principal">Flux Principal</option>
+                                                                {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
+                                                                {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
+                                                                {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
+                                                            </select>
                                                             <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
                                                             <button onClick={appendLineup} className="col-span-4 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
                                                         </div>
@@ -2130,12 +2215,42 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <tbody>
                                                                         {editLineup.split('\n').filter(l => l.trim()).map((line, idx) => {
                                                                             const m = line.match(/^\[(\d{1,2}:\d{2})\]\s*(.+?)\s*-\s*(.+?)\s*-\s*(https?:\/\/[^\s]*)$/);
+
+                                                                            const deleteLine = () => {
+                                                                                const lines = editLineup.split('\n').filter(l => l.trim());
+                                                                                lines.splice(idx, 1);
+                                                                                setEditLineup(lines.join('\n'));
+                                                                            };
+
                                                                             if (!m) return (
-                                                                                <tr key={idx} className="hover:bg-white/[0.02]">
-                                                                                    <td colSpan={5} className="px-4 py-2 border-b border-white/5 text-[9px] text-gray-600 italic font-bold">{line}</td>
+                                                                                <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
+                                                                                    <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
+                                                                                    <td className="px-4 py-2 border-b border-white/5 text-right">
+                                                                                        <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
+                                                                                            <X className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </td>
                                                                                 </tr>
                                                                             );
+
                                                                             const [, time, artist, stage, instagram] = m;
+
+                                                                            const editOption = () => {
+                                                                                setLineupTime(time);
+                                                                                setLineupArtist(artist.trim());
+
+                                                                                // On essaye de matcher le stage avec les options existantes
+                                                                                const lowerStage = stage.trim().toLowerCase();
+                                                                                if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
+                                                                                else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
+                                                                                else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
+                                                                                else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
+                                                                                else setLineupStage(stage.trim());
+
+                                                                                setLineupInstagram(instagram.trim());
+                                                                                deleteLine();
+                                                                            };
+
                                                                             return (
                                                                                 <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
                                                                                     <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
@@ -2144,15 +2259,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     <td className="px-4 py-2.5 border-b border-white/5">
                                                                                         <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace('https://', '')}</a>
                                                                                     </td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-right">
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                const lines = editLineup.split('\n').filter(l => l.trim());
-                                                                                                lines.splice(idx, 1);
-                                                                                                setEditLineup(lines.join('\n'));
-                                                                                            }}
-                                                                                            className="p-1 opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all"
-                                                                                        >
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
+                                                                                        <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all" title="Éditer">
+                                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
                                                                                             <X className="w-3.5 h-3.5" />
                                                                                         </button>
                                                                                     </td>
