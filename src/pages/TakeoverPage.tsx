@@ -115,6 +115,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [captchaB] = useState(Math.floor(Math.random() * 10) + 1);
     const [captchaAnswer, setCaptchaAnswer] = useState('');
 
+    const [lineupTime, setLineupTime] = useState("");
+    const [lineupArtist, setLineupArtist] = useState("");
+    const [lineupStage, setLineupStage] = useState("");
+    const [lineupFestival, setLineupFestival] = useState("");
+
     const [isSlowMode, setIsSlowMode] = useState(false);
     const [slowModeDuration, setSlowModeDuration] = useState(10);
     const [lastMessageTime, setLastMessageTime] = useState(0);
@@ -275,6 +280,43 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 }
             }
         }
+    };
+
+    const appendLineup = () => {
+        if (!lineupTime || !lineupArtist) return;
+        const newEntry = `[${lineupTime}] ${lineupArtist}${lineupStage ? ' - ' + lineupStage : ''}${lineupFestival ? ' - ' + lineupFestival : ''}`;
+        setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
+        setLineupTime(""); setLineupArtist(""); setLineupStage(""); setLineupFestival("");
+    };
+
+    const handleSendPoll = () => {
+        if (!pollQuestion) return;
+        let msg = `📊 SONDAGE : ${pollQuestion}\n`;
+        msg += pollOptions.filter(o => o.trim()).map((o, i) => `${i + 1}. ${o}`).join('\n');
+        msg += "\n(Répondez avec le chiffre correspondant dans le chat)";
+
+        const password = localStorage.getItem('admin_password') || '';
+        const username = localStorage.getItem('admin_user') || 'alex';
+        const sessionId = localStorage.getItem('admin_session_id') || '';
+
+        fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Admin-Password': password,
+                'X-Admin-Username': username,
+                'X-Session-ID': sessionId
+            },
+            body: JSON.stringify({
+                pseudo: 'DROPSIDERS',
+                message: msg,
+                country: 'FR',
+                color: '#ff0033'
+            })
+        });
+        setPollQuestion("");
+        setPollOptions(["", ""]);
+        setShowPollEditor(false);
     };
 
     const handleSendMessage = async (e: React.FormEvent) => {
@@ -866,7 +908,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         }} className="w-full bg-black/20 border border-white/5 rounded-lg p-2 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
                                                                     ))}
                                                                 </div>
-                                                                <button className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white hover:bg-neon-red transition-all">Lancer le sondage</button>
+                                                                <button onClick={handleSendPoll} className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white hover:bg-neon-red transition-all">Lancer le sondage</button>
                                                             </div>
                                                         )}
                                                     </div>
@@ -880,6 +922,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
                                                                 <Pencil className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Éditeur de Planning
                                                             </label>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                                                            <input type="text" placeholder="Heure (ex: 22:00)" value={lineupTime} onChange={e => setLineupTime(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Scène (Optionnel)" value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Festival (Optionnel)" value={lineupFestival} onChange={e => setLineupFestival(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <button onClick={appendLineup} className="col-span-2 lg:col-span-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black hover:bg-neon-red text-white transition-all shadow-[0_0_15px_rgba(255,0,51,0.1)] hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] active:scale-95">Ajouter au planning</button>
                                                         </div>
                                                         <textarea
                                                             value={editLineup}
