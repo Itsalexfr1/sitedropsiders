@@ -756,7 +756,7 @@
   {
     "id": 37,
     "title": "Récap : Tomorrowland Winter 2024",
-    "date": "2026-02-27T01:58",
+    "date": "2026-02-27T02:16",
     "summary": "Tomorrowland Winter 2024 : La magie du cirque au sommet de l'Alpe d'Huez Tomorrowland Winter 2024 a été une expérience magique sur le thème du cirque Amicorum Spectaculum , combinant musique électro, ...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810740/dropsiders/images/ocrdrhekftc7mtl0syyc.jpg",
     "images": [
@@ -772,10 +772,11 @@
     "content": "",
     "author": "Alex",
     "festival": "Tomorrowland Winter",
-    "location": "Alpe Dhuez, France",
+    "location": "Alpe Dhuez",
     "isFeatured": false,
     "showVideo": false,
-    "year": "2024"
+    "year": "2024",
+    "country": "France"
   },
   {
     "id": 40,
