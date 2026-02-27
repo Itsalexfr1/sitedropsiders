@@ -22,9 +22,10 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "DQHSj6cphm0",
     "chat_enabled": true,
-    "title": "Tomorrowland One World Radio"
+    "title": "Tomorrowland One World Radio",
+    "moderators": ""
   }
 }
