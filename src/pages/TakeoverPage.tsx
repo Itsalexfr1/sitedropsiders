@@ -1225,11 +1225,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </button>
                                                                 <button
                                                                     type="button"
-                                                                    className="p-2 rounded-lg text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 transition-all"
+                                                                    className="p-2 rounded-lg text-gray-500 hover:text-[#0088ff] hover:bg-[#0088ff]/10 transition-all flex items-center justify-center"
                                                                     title="Reconnaître la musique (Shazam)"
                                                                     onClick={() => alert("Recherche Shazam en cours...")}
                                                                 >
-                                                                    <Music2 className="w-4 h-4" />
+                                                                    <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
+                                                                        <path d="M12 0c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0zm0 4.42c-4.185 0-7.58 3.394-7.58 7.58 0 4.186 3.395 7.58 7.58 7.58 4.186 0 7.58-3.394 7.58-7.58 0-4.185-3.394-7.58-7.58-7.58zM10.7 6.568c2.41 0 4.718 1.59 5.37 3.888L13.71 11.03c-.24-.875-1.14-1.61-2.043-1.61-.678 0-1.57.386-1.57 1.55 0 1.856 4.57 1.297 4.57 4.53 0 1.244-.724 2.926-2.97 2.926-2.742 0-4.943-1.66-5.65-4.134l2.352-.59c.29 .974 1.22 1.702 2.26 1.702.658 0 1.603-.354 1.603-1.6 0-1.845-4.57-1.275-4.57-4.552 0-1.234.752-2.69 3.015-2.69z" />
+                                                                    </svg>
                                                                 </button>
                                                             </div>
                                                             <input
