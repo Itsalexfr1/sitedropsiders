@@ -83,6 +83,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         if (auth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
     });
+    const [showShazamInfo, setShowShazamInfo] = useState(false);
 
     useEffect(() => {
         const banned = localStorage.getItem('chat_banned') === 'true';
@@ -617,9 +618,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         try {
             // Capture audio from the tab
             const stream = await (navigator.mediaDevices as any).getDisplayMedia({
-                video: { displaySurface: 'browser' },
-                audio: true,
-                systemAudio: 'include'
+                video: {
+                    displaySurface: 'browser'
+                },
+                audio: {
+                    suppressLocalAudioPlayback: false
+                },
+                systemAudio: 'include',
+                preferCurrentTab: true
             } as any);
 
             const audioTrack = stream.getAudioTracks()[0];
@@ -1246,7 +1252,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                             <button
-                                onClick={handleShazam}
+                                onClick={() => setShowShazamInfo(true)}
                                 disabled={shazamLoading}
                                 className={`flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all backdrop-blur-md shadow-2xl active:scale-95 group ${shazamLoading ? 'border-neon-cyan' : 'hover:bg-neon-cyan hover:border-neon-cyan/50'}`}
                             >
@@ -2319,6 +2325,85 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </div>
                 </div>
             )}
+
+            {/* Shazam Instructions Modal */}
+            <AnimatePresence>
+                {showShazamInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+                        onClick={() => setShowShazamInfo(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,255,255,0.1)]"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="relative p-8 lg:p-12 text-center space-y-8">
+                                {/* Decorative Background */}
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-neon-cyan/10 blur-[100px] rounded-full pointer-events-none" />
+
+                                <div className="relative">
+                                    <div className="w-24 h-24 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(0,255,255,0.1)]">
+                                        <Music2 className="w-10 h-10 text-neon-cyan animate-pulse" />
+                                    </div>
+                                    <h3 className="text-2xl lg:text-3xl font-black text-white uppercase italic tracking-tighter">
+                                        Identifier le <span className="text-neon-cyan">Son</span>
+                                    </h3>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-3">Instructions pour la capture audio</p>
+                                </div>
+
+                                <div className="space-y-4 text-left">
+                                    <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <div className="w-6 h-6 rounded-full bg-neon-cyan text-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</div>
+                                        <p className="text-[11px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Cliquez sur le bouton <span className="text-neon-cyan">"DÉMARRER L'ÉCOUTE"</span> ci-dessous.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <div className="w-6 h-6 rounded-full bg-neon-cyan text-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
+                                        <p className="text-[11px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Sélectionnez <span className="text-white">"CET ONGLET"</span> (ou "DROPSIDERS LIVE") dans la fenêtre qui s'ouvre.
+                                        </p>
+                                    </div>
+                                    <div className="flex items-start gap-4 p-4 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                        <div className="w-6 h-6 rounded-full bg-neon-red text-white text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">!</div>
+                                        <p className="text-[11px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                            IMPORTANT : COCHEZ LA CASE <span className="underline decoration-neon-red">"PARTAGER L'AUDIO DU SYSTÈME"</span> (EN BAS À GAUCHE).
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                                    <button
+                                        onClick={() => {
+                                            setShowShazamInfo(false);
+                                            handleShazam();
+                                        }}
+                                        className="flex-1 py-5 bg-neon-cyan text-black text-xs font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-neon-cyan/20"
+                                    >
+                                        Démarrer l'écoute
+                                    </button>
+                                    <button
+                                        onClick={() => setShowShazamInfo(false)}
+                                        className="px-8 py-5 bg-white/5 border border-white/10 text-gray-500 text-xs font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+
+                                <p className="text-[9px] text-gray-700 font-bold uppercase tracking-widest pt-4">
+                                    Analyse propulsée par AudD Music Recognition
+                                </p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <style>{`
                 @keyframes ticker {
