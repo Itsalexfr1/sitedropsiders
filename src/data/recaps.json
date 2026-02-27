@@ -319,7 +319,7 @@
   {
     "id": 14,
     "title": "Récap : Elrow Town Madrid 2025",
-    "date": "2026-02-27T00:58",
+    "date": "2026-02-27T02:24",
     "summary": "Ce week-end, Elrow Town a enflammé Madrid et on peut vous le dire: le soleil, les good vibes et l'univers complètement déjanté d'Elrow étaient bel et bien au rendez-vous !",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810516/dropsiders/images/t7cw8yigypggblq6k4sk.jpg",
     "images": [
@@ -334,8 +334,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "Madrid, Espagne ",
-    "isFeatured": false
+    "location": "Madrid",
+    "isFeatured": false,
+    "country": "Espagne",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 15,
