@@ -42,6 +42,7 @@ interface TakeoverProps {
         pinnedMessage?: string;
         currentArtist?: string;
         artistInstagram?: string;
+        showShop?: boolean;
     };
 }
 
@@ -121,7 +122,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setEditArtistInstagram(settings.artistInstagram || '');
         setLocalCustomCommands(settings.customCommands || '');
         setLocalModerators(settings.moderators || '');
-    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators]);
+        setShowShopWidget(settings.showShop ?? false);
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist'>('general');
@@ -586,6 +588,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 response = `🎪 Festival actuel : ${festivalName.toUpperCase()} ! 🎉`;
             }
 
+            if (hasModPowers) {
+                if (cmd === '!shop on') {
+                    handleUpdateSettings({ showShop: true });
+                    response = "🛒 Le shop est maintenant visible pour tout le monde ! 🔥";
+                } else if (cmd === '!shop off') {
+                    handleUpdateSettings({ showShop: false });
+                    response = "🛒 Le shop est désormais masqué. 🔒";
+                }
+            }
+
             if (!response && (cmd.includes('merci bot') || cmd.includes('cool bot'))) {
                 response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
             }
@@ -925,6 +937,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                     if (updates.moderators !== undefined) {
                         setLocalModerators(updates.moderators);
+                    }
+                    if (updates.showShop !== undefined) {
+                        settings.showShop = updates.showShop;
+                        setShowShopWidget(updates.showShop);
                     }
                     // Update the settings object reference if possible, though local states are safer here
                 }
@@ -1639,6 +1655,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         className={`w-12 h-6 rounded-full p-1 transition-all ${settings.enabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
                                                                     >
                                                                         <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Affichage Shop (Global)</label>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ showShop: !settings.showShop })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.showShop ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.showShop ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                     </button>
                                                                 </div>
                                                                 <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
