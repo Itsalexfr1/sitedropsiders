@@ -126,11 +126,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const currentFluxLineup = useMemo(() => {
         const items = parseLineup(displayLineup || settings.lineup || '');
         const currentTitle = channelItems[activeVideoIndex]?.title || '';
-        // If it's the first channel (main flux), show all items
-        if (!currentTitle || activeVideoIndex === 0) return items;
+        // Filter items based on stage name matching current flux title
+        if (!currentTitle) return items;
         return items.filter(item => {
             const sName = (item.stage || '').toLowerCase();
             const fName = currentTitle.toLowerCase();
+            if (!sName) return activeVideoIndex === 0;
             return sName.includes(fName) || fName.includes(sName);
         });
     }, [displayLineup, settings.lineup, activeVideoIndex, channelItems, parseLineup, currentTime]);
@@ -152,8 +153,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             .find(i => i.total <= currentMinutes);
 
         return {
-            artist: currentItem?.artist || (activeVideoIndex === 0 ? settings.currentArtist : '') || '',
-            instagram: currentItem?.instagram || (activeVideoIndex === 0 ? settings.artistInstagram : '') || ''
+            artist: currentItem?.artist || (activeVideoIndex === 0 && (!displayLineup && !settings.lineup) ? settings.currentArtist : '') || '',
+            instagram: currentItem?.instagram || (activeVideoIndex === 0 && (!displayLineup && !settings.lineup) ? settings.artistInstagram : '') || ''
         };
     }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime]);
 
@@ -1796,36 +1797,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3 mb-2">
                                                                 <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">1</span></h3>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">1 + 2</span></h3>
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 1</label>
-                                                                    <input type="text" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 1" />
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 1</label>
+                                                                        <input type="text" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 1" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 2</label>
+                                                                        <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
+                                                                    </div>
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 1</label>
                                                                     <div className="flex gap-2">
                                                                         <input type="text" value={stage1} onChange={e => setStage1(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
                                                                         <button onClick={() => alert('Stage 1 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3 mb-2">
-                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">2 + 3</span></h3>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 2</label>
-                                                                        <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
-                                                                    </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 3</label>
-                                                                        <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
                                                                     </div>
                                                                 </div>
                                                                 <div className="space-y-1.5">
@@ -1835,25 +1824,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <button onClick={() => alert('Stage 2 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
                                                                     </div>
                                                                 </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 3</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
-                                                                        <button onClick={() => alert('Stage 3 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
-                                                                    </div>
-                                                                </div>
                                                             </div>
                                                         </div>
 
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3 mb-2">
                                                                 <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">4</span></h3>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">3 + 4</span></h3>
                                                             </div>
                                                             <div className="space-y-3">
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 3</label>
+                                                                        <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 4</label>
+                                                                        <input type="text" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 4" />
+                                                                    </div>
+                                                                </div>
                                                                 <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 4</label>
-                                                                    <input type="text" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 4" />
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 3</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 3 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 4</label>
