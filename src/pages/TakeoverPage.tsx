@@ -502,7 +502,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3 shadow-sm hover:border-neon-red/50 transition-all group">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Heure</span>
+                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">H</span>
                                                             <span className="text-[11px] font-black text-white uppercase tracking-tighter">
                                                                 {item.time}
                                                             </span>
@@ -671,6 +671,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <input
                                                                     type="text"
                                                                     value={item.artist}
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === ' ') e.stopPropagation();
+                                                                    }}
                                                                     onChange={(e) => {
                                                                         const lines = editLineup.split('\n');
                                                                         const parts = lines[i].split('|');
