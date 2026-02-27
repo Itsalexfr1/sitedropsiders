@@ -163,8 +163,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             .find(i => i.total <= currentMinutes);
 
         return {
-            artist: currentItem?.artist || settings.currentArtist || '',
-            instagram: currentItem?.instagram || settings.artistInstagram || ''
+            artist: currentItem?.artist || (activeVideoIndex === 0 ? settings.currentArtist : '') || '',
+            instagram: currentItem?.instagram || (activeVideoIndex === 0 ? settings.artistInstagram : '') || ''
         };
     }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime]);
 
@@ -1429,80 +1429,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {/* Video Section */}
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
 
-                    {/* Header Controls Overlay (Merged / Hidden based on showTopBanner) */}
-                    <div className={`w-full bg-[#111] border-b border-white/10 px-4 py-3 items-center justify-between z-20 shrink-0 ${showTopBanner ? 'flex' : 'hidden'}`}>
-                        <div className="flex items-center gap-4 flex-1">
 
-                            <div className="flex flex-col min-w-0 flex-1">
-                                <h1 id="takeover-title" className="text-xs md:text-lg font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
-                                    {displayTitle}
-                                </h1>
-                                {fluxCurrentArtist.artist && (
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        <div className="flex items-center gap-1.5">
-                                            <Music2 className="w-2.5 h-2.5 text-neon-cyan shadow-[0_0_8px_#00ffff66]" />
-                                            <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest truncate max-w-[120px] md:max-w-[200px]">
-                                                {fluxCurrentArtist.artist}
-                                            </span>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Multi-Video Switcher */}
-                            {channelItems.length > 1 && (
-                                <div id="channel-switcher" className="hidden md:flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 shrink-0">
-                                    {channelItems.map((item, idx) => (
-                                        <button
-                                            key={idx}
-                                            id={`channel-btn-${idx}`}
-                                            onClick={() => setActiveVideoIndex(idx)}
-                                            className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
-                                        >
-                                            {item.title}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                            {/* Actions Group */}
-                            <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 mr-2">
-                                <button onClick={() => handleShare('x')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><XIcon className="w-3.5 h-3.5" /></button>
-                                <div className="w-px h-3 bg-white/20" />
-                                <button onClick={() => handleShare('fb')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><Facebook className="w-3.5 h-3.5" /></button>
-                                <div className="w-px h-3 bg-white/20" />
-                                <button onClick={() => handleShare('insta')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><Instagram className="w-3.5 h-3.5" /></button>
-                                <div className="w-px h-3 bg-white/20" />
-                                <button onClick={() => handleShare('snap')} className="p-1.5 hover:bg-white/10 rounded-md text-white transition-all"><SnapchatIcon className="w-3.5 h-3.5 fill-[#FFFC00]" /></button>
-                            </div>
-
-                            {hasModPowers && (
-                                <button
-                                    id="admin-edit-btn"
-                                    onClick={() => setShowEditModal(true)}
-                                    className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all"
-                                    title="Modifier le Live"
-                                >
-                                    <Edit2 className="w-4 h-4 text-neon-red" />
-                                </button>
-                            )}
-
-                            {!isFocusMode && showTopBanner === false && (
-                                <button
-                                    onClick={() => {
-                                        sessionStorage.setItem('exited_live', 'true');
-                                        window.location.href = '/';
-                                    }}
-                                    className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-lg text-gray-400 hover:text-neon-red transition-all"
-                                    title="Quitter le Live"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                            )}
-                        </div>
-                    </div>
 
                     <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
@@ -1668,9 +1595,39 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     {/* Festival Column */}
                                                     <div className="flex flex-col min-w-0 text-right lg:block">
                                                         <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
-                                                        <span className="text-[9px] font-black text-white uppercase tracking-widest italic leading-none bg-neon-red/20 px-3 py-1.5 rounded-lg border border-neon-red/40 inline-block shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                                            {item.festival || '---'}
-                                                        </span>
+                                                        <div className="inline-block relative group/event">
+                                                            <div className="absolute -inset-2 bg-neon-red/10 rounded-xl blur-md opacity-0 group-hover/event:opacity-100 transition-opacity" />
+                                                            <span className="relative text-[9px] font-black text-white uppercase tracking-widest italic leading-none bg-black/40 px-4 py-2 rounded-xl border border-white/10 group-hover/event:border-neon-red/50 group-hover/event:text-neon-red transition-all shadow-xl block min-w-[120px] text-center">
+                                                                {item.festival || '---'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Instagram Box (Mobile/Hidden Desktop unless needed) */}
+                                                    {item.instagram && (
+                                                        <div className="col-span-2 lg:hidden mt-2">
+                                                            <a href={item.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 bg-gradient-to-r from-purple-600/20 to-pink-600/20 border border-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest">
+                                                                <Instagram className="w-3 h-3 text-pink-500" />
+                                                                SUIVRE SUR INSTAGRAM
+                                                            </a>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Instagram Frame (Desktop Only - positioned if we want it) */}
+                                                    <div className="hidden lg:flex justify-end items-center absolute right-[6%] group-hover:right-[4%] transition-all opacity-0 group-hover:opacity-100">
+                                                        {item.instagram && (
+                                                            <a
+                                                                href={item.instagram}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="px-4 py-2 bg-black/60 border border-white/10 hover:border-neon-purple/50 rounded-xl flex items-center gap-3 transition-all group/insta"
+                                                            >
+                                                                <Instagram className="w-4 h-4 text-neon-purple group-hover/insta:scale-110 transition-transform" />
+                                                                <span className="text-[9px] font-black text-white/70 group-hover/insta:text-white uppercase tracking-widest">
+                                                                    View Profile
+                                                                </span>
+                                                            </a>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
