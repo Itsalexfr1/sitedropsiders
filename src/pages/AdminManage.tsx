@@ -19,6 +19,52 @@ const LOCAL_DATA: Record<string, any[]> = {
     'galerie.json': galerieDataLocal as any[],
 };
 
+const EDITOR_COLORS = [
+    '#FF1241', // neon-red
+    '#00FFFF', // neon-cyan
+    '#BF00FF', // neon-purple
+    '#39FF14', // neon-green
+    '#FFF01F', // neon-yellow
+    '#FF5E00', // neon-orange
+    '#00BFFF', // neon-blue
+    '#FF0099', // neon-pink
+    '#00FF88', // neon-mint
+    '#7B61FF', // neon-indigo
+    '#FFFFFF', // blanc
+];
+
+const getEditorColor = (username: string) => {
+    if (!username) return EDITOR_COLORS[1];
+    const normalized = username.toLowerCase();
+    if (normalized === 'alex') return '#FF1241';
+    if (normalized === 'tanguy') return '#00FFFF';
+    if (normalized === 'julien') return '#BF00FF';
+    if (normalized === 'tiffany') return '#39FF14';
+    if (normalized === 'kevin') return '#FFF01F';
+    if (normalized === 'guiyoome') return '#FF5E00';
+
+    let hash = 0;
+    for (let i = 0; i < normalized.length; i++) {
+        hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return EDITOR_COLORS[Math.abs(hash) % EDITOR_COLORS.length];
+};
+
+const getAuthorTextStyle = (username: string) => {
+    if (!username) return { color: '#00FFFF' };
+    const normalized = username.toLowerCase();
+    const color = getEditorColor(normalized);
+    if (normalized === 'alex') {
+        return {
+            background: 'linear-gradient(to right, #FF1241, #FF0099, #BF00FF)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            display: 'inline-block'
+        };
+    }
+    return { color };
+};
+
 async function fetchJson(file: string): Promise<any[]> {
     try {
         const endpoint = `/api/${file.replace('.json', '')}`;
@@ -769,7 +815,14 @@ export function AdminManage() {
                                                                 </span>
                                                             );
                                                         })()}
-                                                        <span className="text-xs text-gray-500 truncate max-w-xs">{item.location || item.summary?.substring(0, 50)}</span>
+                                                        <span className="text-xs text-gray-400 lowercase italic opacity-60">
+                                                            {item.location ? (
+                                                                <>
+                                                                    {item.location}
+                                                                    {item.country && <span className="text-neon-cyan not-italic ml-1">({item.country})</span>}
+                                                                </>
+                                                            ) : item.summary?.substring(0, 50)}
+                                                        </span>
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
@@ -779,17 +832,18 @@ export function AdminManage() {
                                                                 href={getAuthorInsta(item.author)!}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="text-xs font-black uppercase text-neon-cyan tracking-wider hover:text-white transition-colors underline decoration-neon-cyan/30"
+                                                                className="text-xs font-black uppercase tracking-wider hover:opacity-80 transition-opacity underline decoration-white/10"
+                                                                style={getAuthorTextStyle(item.author)}
                                                             >
                                                                 {item.author}
                                                             </a>
                                                         ) : (
-                                                            <span className="text-xs font-black uppercase text-neon-cyan tracking-wider">
+                                                            <span className="text-xs font-black uppercase tracking-wider" style={getAuthorTextStyle(item.author)}>
                                                                 {item.author}
                                                             </span>
                                                         )
                                                     ) : (
-                                                        <span className="text-xs font-black uppercase text-neon-cyan tracking-wider">
+                                                        <span className="text-xs font-black uppercase tracking-wider" style={getAuthorTextStyle('Alex')}>
                                                             Alex
                                                         </span>
                                                     )}
