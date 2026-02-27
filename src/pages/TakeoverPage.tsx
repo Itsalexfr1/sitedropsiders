@@ -75,7 +75,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
-    const [isJoined, setIsJoined] = useState(false);
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [displayTitle, setDisplayTitle] = useState(settings.title);
@@ -131,9 +130,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
     const [pseudo, setPseudo] = useState(() => {
-        const auth = localStorage.getItem('admin_auth') === 'true';
-        if (auth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
+        const adminAuth = localStorage.getItem('admin_auth') === 'true';
+        if (adminAuth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
+    });
+    const [isJoined, setIsJoined] = useState(() => {
+        const adminAuth = localStorage.getItem('admin_auth') === 'true';
+        const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
+        return adminAuth || editeurAuth || localStorage.getItem('chat_joined') === 'true';
     });
     const [showShazamInfo, setShowShazamInfo] = useState(false);
 
