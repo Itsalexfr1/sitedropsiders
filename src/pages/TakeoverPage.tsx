@@ -45,6 +45,10 @@ interface TakeoverProps {
         showShop?: boolean;
         shopItems?: string;
         mainFluxName?: string;
+        botColor?: string;
+        botBgColor?: string;
+        adminColor?: string;
+        adminBgColor?: string;
     };
 }
 
@@ -116,7 +120,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const channelItems = useMemo(() => {
         const items = [];
         if (settings.youtubeId) {
-            items.push({ id: settings.youtubeId.trim(), title: 'Flux Principal' });
+            items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal' });
         }
         if (settings.channels) {
             settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
@@ -127,13 +131,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             });
         }
         return items;
-    }, [settings.youtubeId, settings.channels]);
+    }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
 
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
         const items = parseLineup(displayLineup || settings.lineup || '');
         const currentTitle = channelItems[activeVideoIndex]?.title || '';
-        if (!currentTitle || currentTitle.toLowerCase().includes('principal')) return items;
+        // If it's the first channel (main flux), show all items
+        if (!currentTitle || activeVideoIndex === 0) return items;
         return items.filter(item => {
             const sName = (item.stage || '').toLowerCase();
             const fName = currentTitle.toLowerCase();
@@ -315,6 +320,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [tickerTextColor, setTickerTextColor] = useState(settings.tickerTextColor || '#ffffff');
     const [showTopBanner, setShowTopBanner] = useState(settings.showTopBanner ?? true);
     const [showTickerBanner, setShowTickerBanner] = useState(settings.showTickerBanner ?? true);
+
+    const [botColor, setBotColor] = useState(settings.botColor || '#00ffcc');
+    const [botBgColor, setBotBgColor] = useState(settings.botBgColor || 'rgba(0, 255, 204, 0.05)');
+    const [adminColor, setAdminColor] = useState(settings.adminColor || '#ff0033');
+    const [adminBgColor, setAdminBgColor] = useState(settings.adminBgColor || 'rgba(255, 0, 51, 0.05)');
 
     // Collapsible Chat
     const [showUsersPanel, setShowUsersPanel] = useState(true);
@@ -630,7 +640,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return;
         }
         const timeStr = `${lineupHour.padStart(2, '0')}:${lineupMinute.padStart(2, '0')}`;
-        const newEntry = `[${timeStr}] ${lineupArtist} - ${lineupStage} - ${lineupInstagram}`;
+        // Enregistrement au format: [HH:MM] Artist - Stage - Event - Instagram
+        // On laisse une case vide pour Event (Festival)
+        const newEntry = `[${timeStr}] ${lineupArtist} - ${lineupStage} - - ${lineupInstagram}`;
         setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
         setLineupHour(""); setLineupMinute(""); setLineupArtist(""); setLineupStage(""); setLineupInstagram("");
     };
@@ -966,6 +978,29 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [cmdResponse, setCmdResponse] = useState('');
     const [isEditingCmd, setIsEditingCmd] = useState<string | null>(null);
 
+    const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
+
+    const handleDemote = async (name: string) => {
+        const currentMods = localModerators.split('\n').map(m => m.trim()).filter(Boolean);
+        const newMods = currentMods.filter(m => m.toUpperCase() !== name.toUpperCase()).join('\n');
+        setLocalModerators(newMods);
+        try {
+            await handleUpdateSettings({ moderators: newMods });
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: 'DROPSIDERS BOT',
+                    message: `⚠️ @${name.toUpperCase()} n'est plus modérateur.`,
+                    country: 'FR',
+                    isBot: true,
+                    color: '#00ffcc'
+                })
+            });
+            setExpandedUserId(null);
+        } catch (e) { console.error(e); }
+    };
+
     const handleUpdateSettings = useCallback(async (updates: Partial<TakeoverProps['settings']>) => {
         setIsSaving(true);
         try {
@@ -983,7 +1018,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         tickerBgColor: updates.tickerBgColor ?? tickerBgColor,
                         tickerTextColor: updates.tickerTextColor ?? tickerTextColor,
                         showTopBanner: updates.showTopBanner ?? showTopBanner,
-                        showTickerBanner: updates.showTickerBanner ?? showTickerBanner
+                        showTickerBanner: updates.showTickerBanner ?? showTickerBanner,
+                        botColor: updates.botColor ?? botColor,
+                        botBgColor: updates.botBgColor ?? botBgColor,
+                        adminColor: updates.adminColor ?? adminColor,
+                        adminBgColor: updates.adminBgColor ?? adminBgColor
                     }
                 };
 
@@ -999,6 +1038,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     if (updates.lineup !== undefined) setDisplayLineup(updates.lineup);
                     if (updates.showTopBanner !== undefined) setShowTopBanner(updates.showTopBanner);
                     if (updates.showTickerBanner !== undefined) setShowTickerBanner(updates.showTickerBanner);
+
+                    if (updates.botColor !== undefined) setBotColor(updates.botColor);
+                    if (updates.botBgColor !== undefined) setBotBgColor(updates.botBgColor);
+                    if (updates.adminColor !== undefined) setAdminColor(updates.adminColor);
+                    if (updates.adminBgColor !== undefined) setAdminBgColor(updates.adminBgColor);
 
                     if (updates.autoMessage !== undefined) {
                         settings.autoMessage = updates.autoMessage;
@@ -1033,6 +1077,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     if (updates.showShop !== undefined) {
                         settings.showShop = updates.showShop;
                         setShowShopWidget(updates.showShop);
+                    }
+                    if (updates.mainFluxName !== undefined) {
+                        settings.mainFluxName = updates.mainFluxName;
+                    }
+                    if (updates.lineup !== undefined) {
+                        settings.lineup = updates.lineup;
                     }
                 }
             }
@@ -1379,13 +1429,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {/* Video Section */}
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
 
-                    {/* Header Controls Overlay (When showTopBanner is false, we bring some elements here or we just keep it permanently on top of the video container) */}
-                    <div className="w-full bg-[#111] border-b border-white/10 px-4 py-3 flex items-center justify-between z-20 shrink-0">
+                    {/* Header Controls Overlay (Merged / Hidden based on showTopBanner) */}
+                    <div className={`w-full bg-[#111] border-b border-white/10 px-4 py-3 items-center justify-between z-20 shrink-0 ${showTopBanner ? 'flex' : 'hidden'}`}>
                         <div className="flex items-center gap-4 flex-1">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
-                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                                <span className="text-[10px] md:text-xs font-black text-red-500 uppercase tracking-widest hidden sm:inline">EN DIRECT</span>
-                            </div>
+
                             <div className="flex flex-col min-w-0 flex-1">
                                 <h1 id="takeover-title" className="text-xs md:text-lg font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
                                     {displayTitle}
@@ -2179,9 +2226,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* Apparence Admin */}
+                                                    <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                <Pencil className="w-4 h-4 text-neon-red" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-red">Admin</span></h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-red transition-all">
+                                                                    <input type="color" value={adminColor} onChange={(e) => handleUpdateSettings({ adminColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{adminColor}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
+                                                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-4 py-[10px] focus-within:border-neon-red transition-all">
+                                                                    <input type="text" placeholder="ex: rgba(255, 0, 51, 0.05)" value={adminBgColor} onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })} className="bg-transparent border-none text-xs font-bold text-white outline-none w-full" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             )}
-
                                             {activeSettingsTab === 'planning' && (
                                                 <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
@@ -2315,6 +2386,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                             {activeSettingsTab === 'bot' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+
+                                                    {/* Apparence Bot */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                <Pencil className="w-4 h-4 text-neon-cyan" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
+                                                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-4 py-[10px] focus-within:border-neon-cyan transition-all">
+                                                                    <input type="text" placeholder="ex: rgba(0, 255, 204, 0.05)" value={botBgColor} onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })} className="bg-transparent border-none text-xs font-bold text-white outline-none w-full" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     {/* Auto Message Management */}
                                                     <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
                                                         <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
@@ -2779,14 +2876,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                     <span
                                                         className="text-[11px] lg:text-[13px] font-black uppercase tracking-widest"
-                                                        style={{ color: isBot ? '#00ffcc' : isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                        style={{ color: isBot ? botColor : isMsgAdmin ? adminColor : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                     >
                                                         {msg.pseudo}
                                                     </span>
-                                                    {isMsgAdmin && <span className="px-2 py-0.5 rounded bg-neon-red text-white text-[8px] font-black uppercase tracking-[0.1em]">ADMIN</span>}
+                                                    {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: adminColor, boxShadow: `0 0 10px ${adminColor}66` }}>ADMIN</span>}
                                                     <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                 </div>
-                                                <div className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? 'bg-neon-cyan/5 border-neon-cyan/15 text-[#00ffcc]' : isMsgAdmin ? 'bg-neon-red/5 border-neon-red/15 text-white' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}>
+                                                <div
+                                                    className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                    style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: adminBgColor, borderColor: `${adminColor}40`, color: '#ffffff' } : {}}
+                                                >
                                                     {/* Message with clickable links */}
                                                     <span className="relative z-10">
                                                         {(() => {
@@ -2988,26 +3088,74 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             const role = getRole(u.pseudo);
                                             const isUserAdmin = role === 'admin';
                                             const isUserModo = role === 'modo';
+                                            const isExpanded = expandedUserId === u.pseudo;
 
                                             return (
-                                                <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                    <div className="flex items-center gap-2 truncate">
-                                                        <div className="w-4 flex items-center justify-center">
-                                                            {getCountryFlag(u.country)}
+                                                <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
+                                                    <div
+                                                        onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
+                                                        className="flex items-center justify-between group p-2 cursor-pointer select-none"
+                                                    >
+                                                        <div className="flex items-center gap-2 truncate">
+                                                            <div className="w-4 flex items-center justify-center">
+                                                                {getCountryFlag(u.country)}
+                                                            </div>
+                                                            <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                {u.pseudo}
+                                                            </span>
                                                         </div>
-                                                        <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                            {u.pseudo}
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            {(isUserAdmin || isUserModo) && (
+                                                                <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
+                                                                    {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
+                                                                    {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
+                                                                </span>
+                                                            )}
+                                                            {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
+                                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                    title="Promouvoir Modérateur Chat"
+                                                                >
+                                                                    <Shield className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                        <button
-                                                            onClick={() => handlePromote(u.pseudo)}
-                                                            className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                            title="Promouvoir Modérateur Chat"
-                                                        >
-                                                            <Shield className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    )}
+
+                                                    <AnimatePresence>
+                                                        {isExpanded && (
+                                                            <motion.div
+                                                                initial={{ height: 0, opacity: 0 }}
+                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                exit={{ height: 0, opacity: 0 }}
+                                                                className="overflow-hidden border-t border-white/5"
+                                                            >
+                                                                <div className="p-3 space-y-3 bg-black/40">
+                                                                    <div className="space-y-1.5">
+                                                                        <div className="flex items-center justify-between text-[10px]">
+                                                                            <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
+                                                                            <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
+                                                                        </div>
+                                                                        <div className="flex items-center justify-between text-[10px]">
+                                                                            <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
+                                                                            <span className="text-gray-400 font-italic">Non disponible</span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {isAdmin && isUserModo && pseudo !== u.pseudo && (
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
+                                                                            className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                        >
+                                                                            <Shield className="w-3.5 h-3.5" />
+                                                                            Retirer MODO
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </div>
                                             );
                                         })}
