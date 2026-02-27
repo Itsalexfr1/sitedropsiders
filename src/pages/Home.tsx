@@ -88,7 +88,7 @@ export function Home() {
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
                             </div>
                             <div className="">
-                                <AgendaWidget maxItems={item.maxAgendaItems || 5} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                                <AgendaWidget maxItems={item.maxAgendaItems || 8} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                             </div>
                         </div>
                     </section>
