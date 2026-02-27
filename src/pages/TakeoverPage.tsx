@@ -234,7 +234,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist' | 'shop'>('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist' | 'shop' | 'stages'>('general');
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
     const [pollQuestion, setPollQuestion] = useState('');
@@ -1701,7 +1701,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 onClick={() => setActiveSettingsTab('moderation')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Modération
+                                                Sécurité & Équipe
                                                 {activeSettingsTab === 'moderation' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
@@ -1712,11 +1712,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
-                                                onClick={() => setActiveSettingsTab('mods')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'mods' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                                onClick={() => setActiveSettingsTab('stages')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'stages' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Équipe
-                                                {activeSettingsTab === 'mods' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                                Stages
+                                                {activeSettingsTab === 'stages' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveSettingsTab('shop')}
@@ -1994,12 +1994,68 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {activeSettingsTab === 'moderation' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                        {/* Section Équipe fusionnée */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Shield className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Équipe de <span className="text-neon-red">Modération</span></h3>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <div className="flex gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        id="add-mod-input"
+                                                                        placeholder="Pseudo du modérateur..."
+                                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-red transition-all"
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter') {
+                                                                                const input = e.currentTarget;
+                                                                                handleAddModerator(input.value);
+                                                                                input.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const input = document.getElementById('add-mod-input') as HTMLInputElement;
+                                                                            handleAddModerator(input.value);
+                                                                            if (input) input.value = '';
+                                                                        }}
+                                                                        className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all font-bold"
+                                                                    >
+                                                                        Ajouter
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                    {localModerators?.split(',').filter(m => m.trim()).map(mod => (
+                                                                        <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} />
+                                                                                <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
+                                                                            </div>
+                                                                            <button
+                                                                                onClick={() => handleRemoveModerator(mod.trim())}
+                                                                                className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
+                                                                            >
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    ))}
+                                                                    {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Outils de Sécurité */}
                                                         <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="p-2 bg-neon-red/10 rounded-xl">
                                                                     <ShieldAlert className="w-4 h-4 text-neon-red" />
                                                                 </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Outils de <span className="text-neon-red">Modération</span></h3>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Outils de <span className="text-neon-red">Sécurité</span></h3>
                                                             </div>
 
                                                             <div className="space-y-4">
@@ -2026,12 +2082,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bloquer les liens externes</span>
                                                                         <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] font-black uppercase border border-green-500/20">Toujours Actif</span>
                                                                     </div>
-                                                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-2 italic px-1">* Seuls les modérateurs et l'administration peuvent envoyer des liens.</p>
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                        {/* Gestion Sondage */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem] lg:col-span-2">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="p-2 bg-neon-red/10 rounded-xl">
                                                                     <HelpCircle className="w-4 h-4 text-neon-red" />
@@ -2039,34 +2095,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
                                                             </div>
 
-                                                            <div className="space-y-4">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
-                                                                    <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                    <div className="grid grid-cols-2 gap-2">
-                                                                        {pollOptions.map((opt, i) => (
-                                                                            <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
-                                                                                const newOpts = [...pollOptions];
-                                                                                newOpts[i] = e.target.value;
-                                                                                setPollOptions(newOpts);
-                                                                            }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
-                                                                        ))}
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <div className="space-y-4">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
+                                                                        <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
                                                                     </div>
-                                                                    {pollOptions.length < 6 && (
-                                                                        <button
-                                                                            onClick={() => setPollOptions([...pollOptions, ''])}
-                                                                            className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                                                                        >
-                                                                            <span className="text-lg">+</span> Ajouter une option
-                                                                        </button>
-                                                                    )}
+                                                                    <div className="space-y-2">
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            {pollOptions.map((opt, i) => (
+                                                                                <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
+                                                                                    const newOpts = [...pollOptions];
+                                                                                    newOpts[i] = e.target.value;
+                                                                                    setPollOptions(newOpts);
+                                                                                }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
+                                                                            ))}
+                                                                        </div>
+                                                                        {pollOptions.length < 6 && (
+                                                                            <button
+                                                                                onClick={() => setPollOptions([...pollOptions, ''])}
+                                                                                className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                                            >
+                                                                                <Plus className="w-3 h-3" /> Ajouter une option
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                                <div className="grid grid-cols-2 gap-3 pt-2">
-                                                                    <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[9px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all">Lancer</button>
+                                                                <div className="flex flex-col justify-end gap-3">
+                                                                    <button onClick={handleSendPoll} className="py-4 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer le Sondage</button>
                                                                     {activePoll && (
-                                                                        <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[9px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer</button>
+                                                                        <button onClick={handleStopPoll} className="py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer le Sondage</button>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -2102,58 +2160,93 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 </div>
                                             )}
 
-                                            {activeSettingsTab === 'mods' && (
+                                            {activeSettingsTab === 'stages' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <Shield className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Modérateurs Actuels
-                                                        </label>
-                                                        <div className="flex gap-2 mb-4">
-                                                            <input
-                                                                type="text"
-                                                                id="add-mod-input"
-                                                                placeholder="Pseudo du modérateur..."
-                                                                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-red transition-all"
-                                                                onKeyDown={(e) => {
-                                                                    if (e.key === 'Enter') {
-                                                                        const input = e.currentTarget;
-                                                                        handleAddModerator(input.value);
-                                                                        input.value = '';
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <button
-                                                                onClick={() => {
-                                                                    const input = document.getElementById('add-mod-input') as HTMLInputElement;
-                                                                    handleAddModerator(input.value);
-                                                                    if (input) input.value = '';
-                                                                }}
-                                                                className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all"
-                                                            >
-                                                                Ajouter
-                                                            </button>
-                                                        </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {[
+                                                            { id: 'principal', name: 'Flux Principal', color: 'text-neon-red', bg: 'bg-neon-red' },
+                                                            { id: 's1', name: stage1Name, color: 'text-neon-cyan', bg: 'bg-neon-cyan' },
+                                                            { id: 's2', name: stage2Name, color: 'text-yellow-500', bg: 'bg-yellow-500' },
+                                                            { id: 's3', name: stage3Name, color: 'text-neon-purple', bg: 'bg-neon-purple' }
+                                                        ].map(stage => {
+                                                            const stageLineup = parseLineup(editLineup).filter(item => {
+                                                                const s = (item.stage || '').toLowerCase();
+                                                                const f = stage.name.toLowerCase();
+                                                                return s.includes(f) || f.includes(s) || (stage.id === 'principal' && (s === '' || s.includes('principal') || s.includes('main')));
+                                                            });
 
-                                                        <div className="space-y-2">
-                                                            {localModerators?.split(',').filter(m => m.trim()).map(mod => (
-                                                                <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} title={isUserOnline(mod.trim()) ? "En ligne" : "Hors ligne"} />
-                                                                        <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
+                                                            return (
+                                                                <div key={stage.id} className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <h3 className={`text-[10px] font-black uppercase italic tracking-widest ${stage.color} flex items-center gap-2`}>
+                                                                            <Activity className="w-3.5 h-3.5" /> {stage.name}
+                                                                        </h3>
+                                                                        <span className="text-[9px] bg-white/10 px-2 py-0.5 rounded-full text-white/50 font-bold">{stageLineup.length} Artistes</span>
                                                                     </div>
-                                                                    <button
-                                                                        onClick={() => handleRemoveModerator(mod.trim())}
-                                                                        className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" />
-                                                                    </button>
+
+                                                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                        {stageLineup.length === 0 ? (
+                                                                            <p className="text-[9px] text-gray-600 italic py-4 text-center">Aucun artiste programmé sur cette scène.</p>
+                                                                        ) : (
+                                                                            stageLineup.map((item, idx) => (
+                                                                                <div key={idx} className="flex items-center justify-between p-2.5 bg-black/40 border border-white/5 rounded-xl group/item">
+                                                                                    <div className="flex flex-col min-w-0">
+                                                                                        <p className="text-[10px] font-black text-white truncate">{item.artist}</p>
+                                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{item.time} {item.festival ? `• ${item.festival}` : ''}</p>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            const lines = editLineup.split('\n').filter(l => l.trim());
+                                                                                            const lineToMatch = `[${item.time}] ${item.artist}`;
+                                                                                            const newLines = lines.filter(l => !l.includes(lineToMatch));
+                                                                                            setEditLineup(newLines.join('\n'));
+                                                                                        }}
+                                                                                        className="p-1.5 text-gray-600 hover:text-neon-red opacity-0 group-hover/item:opacity-100 transition-all"
+                                                                                    >
+                                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="pt-2 border-t border-white/5 space-y-2">
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <input
+                                                                                type="text"
+                                                                                id={`time-${stage.id}`}
+                                                                                placeholder="Heure (22:00)"
+                                                                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-[9px] text-white outline-none focus:border-white/20 font-bold"
+                                                                            />
+                                                                            <input
+                                                                                type="text"
+                                                                                id={`artist-${stage.id}`}
+                                                                                placeholder="Nom Artiste"
+                                                                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-[9px] text-white outline-none focus:border-white/20 font-bold"
+                                                                            />
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const t = (document.getElementById(`time-${stage.id}`) as HTMLInputElement).value;
+                                                                                const a = (document.getElementById(`artist-${stage.id}`) as HTMLInputElement).value;
+                                                                                if (!t || !a) return;
+                                                                                const newEntry = `[${t}] ${a} - ${stage.name} - ---`;
+                                                                                setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
+                                                                                (document.getElementById(`time-${stage.id}`) as HTMLInputElement).value = '';
+                                                                                (document.getElementById(`artist-${stage.id}`) as HTMLInputElement).value = '';
+                                                                            }}
+                                                                            className={`w-full py-2 ${stage.bg} text-black text-[9px] font-black uppercase rounded-lg hover:opacity-80 transition-all shadow-lg shadow-black/20`}
+                                                                        >
+                                                                            Ajouter
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                            ))}
-                                                            {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
-                                                        </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
                                             )}
+
 
                                             {activeSettingsTab === 'bot' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
