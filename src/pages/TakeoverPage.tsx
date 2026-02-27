@@ -1825,9 +1825,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {activeSettingsTab === 'bot' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
-                                                        </label>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
+                                                            </label>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setIsEditingCmd(null);
+                                                                    setCmdTrigger('');
+                                                                    setCmdResponse('');
+                                                                    document.getElementById('cmd-input')?.focus();
+                                                                }}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" /> Ajouter
+                                                            </button>
+                                                        </div>
                                                         <div className="overflow-hidden border border-white/10 rounded-2xl">
                                                             <table className="w-full text-left border-collapse">
                                                                 <thead>
@@ -1838,40 +1851,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody className="text-[10px] font-bold text-gray-300">
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!help</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Affiche la liste complète des commandes.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
-                                                                    </tr>
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!lineup</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Affiche le programme actuel dans le chat.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
-                                                                    </tr>
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!shop</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Envoie le lien direct vers la boutique.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
-                                                                    </tr>
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!news</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Affiche le titre de la dernière actualité.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
-                                                                    </tr>
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!id</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Partage l'ID de la vidéo actuelle.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
-                                                                    </tr>
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!shazam</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Explique comment identifier le son.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
-                                                                    </tr>
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-red font-black">!vote</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Aide pour participer aux sondages.</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors group">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Liste des commandes</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right flex items-center justify-end px-4 h-[45px]">
+                                                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Système</span>
+                                                                        </td>
                                                                     </tr>
                                                                     {/* Custom Commands List */}
                                                                     {(settings.customCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
@@ -1882,22 +1867,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">{trigger}</td>
                                                                                 <td className="px-4 py-3 border-b border-white/5 text-xs truncate max-w-[150px]">{response}</td>
                                                                                 <td className="px-4 py-3 border-b border-white/5 text-right">
-                                                                                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                    <div className="flex items-center justify-end gap-1">
                                                                                         <button
                                                                                             onClick={() => {
                                                                                                 setCmdTrigger(trigger);
                                                                                                 setCmdResponse(response);
                                                                                                 setIsEditingCmd(trigger.toLowerCase());
                                                                                             }}
-                                                                                            className="p-1 hover:bg-white/10 rounded text-gray-400 hover:text-white"
+                                                                                            className="p-1 px-2 bg-white/5 hover:bg-neon-cyan/20 rounded text-neon-cyan transition-all"
+                                                                                            title="Editer"
                                                                                         >
-                                                                                            <Edit2 className="w-3 h-3" />
+                                                                                            <Edit2 className="w-3.5 h-3.5" />
                                                                                         </button>
                                                                                         <button
                                                                                             onClick={() => handleDeleteCommand(trigger)}
-                                                                                            className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-500"
+                                                                                            className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all"
+                                                                                            title="Supprimer"
                                                                                         >
-                                                                                            <Trash2 className="w-3 h-3" />
+                                                                                            <Trash2 className="w-3.5 h-3.5" />
                                                                                         </button>
                                                                                     </div>
                                                                                 </td>
@@ -1930,6 +1917,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="relative">
                                                                         <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-neon-cyan" />
                                                                         <input
+                                                                            id="cmd-input"
                                                                             type="text"
                                                                             value={cmdTrigger}
                                                                             onChange={e => setCmdTrigger(e.target.value)}
@@ -2013,9 +2001,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[440px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-[100] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-20px_0_50px_rgba(0,0,0,0.5)]">
+                <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                     {/* Glossy Header */}
-                    <div className="p-3 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
+                    <div className="p-4 lg:p-7 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
                                 <MessageSquare className="w-5 h-5 text-neon-red" />
@@ -2173,7 +2161,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </div>
 
                                 {/* Chat Input Area - Join or Form */}
-                                <div className="p-4 lg:p-6 bg-black/90 border-t border-white/10 relative z-50 shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
+                                <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
                                     {!isJoined ? (
                                         <div className="p-5 lg:p-6 bg-white/[0.02] border border-white/10 rounded-2xl lg:rounded-3xl backdrop-blur-md">
                                             <h4 className="text-[10px] lg:text-[12px] font-black text-white uppercase tracking-[0.3em] mb-4 text-center">Participer au Direct</h4>
