@@ -107,7 +107,11 @@
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771811265/dropsiders/EDC%202026%20LINE%20UP.png",
     "description": "Celebration des 30 ans sous le ciel électrique du Speedway.",
     "url": "https://lasvegas.electricdaisycarnival.com/",
-    "genre": "Multi Styles"
+    "genre": "Multi Styles",
+    "country": "",
+    "month": "MAI",
+    "isWeekly": false,
+    "isLiveDropsiders": true
   },
   {
     "id": 8,
