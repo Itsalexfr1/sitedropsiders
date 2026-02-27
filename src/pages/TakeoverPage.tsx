@@ -10,6 +10,13 @@ interface TakeoverProps {
         title: string;
         moderators?: string;
         lineup?: string;
+        tickerType?: 'news' | 'planning' | 'custom';
+        tickerText?: string;
+        tickerLink?: string;
+        tickerBgColor?: string;
+        tickerTextColor?: string;
+        showTopBanner?: boolean;
+        showTickerBanner?: boolean;
     };
 }
 
@@ -103,11 +110,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
     // Ticker Settings
-    const [tickerType, setTickerType] = useState<'news' | 'planning' | 'custom'>('news');
-    const [tickerText, setTickerText] = useState('');
-    const [tickerLink, setTickerLink] = useState('');
-    const [tickerBgColor, setTickerBgColor] = useState('#ff0033');
-    const [tickerTextColor, setTickerTextColor] = useState('#ffffff');
+    const [tickerType, setTickerType] = useState<'news' | 'planning' | 'custom'>(settings.tickerType || 'news');
+    const [tickerText, setTickerText] = useState(settings.tickerText || '');
+    const [tickerLink, setTickerLink] = useState(settings.tickerLink || '');
+    const [tickerBgColor, setTickerBgColor] = useState(settings.tickerBgColor || '#ff0033');
+    const [tickerTextColor, setTickerTextColor] = useState(settings.tickerTextColor || '#ffffff');
+    const [showTopBanner, setShowTopBanner] = useState(settings.showTopBanner ?? true);
+    const [showTickerBanner, setShowTickerBanner] = useState(settings.showTickerBanner ?? true);
+
+    // Collapsible Chat
+    const [showUsersPanel, setShowUsersPanel] = useState(true);
+
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
@@ -450,11 +463,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     takeover: {
                         ...currentSettings.takeover,
                         ...updates,
-                        tickerType,
-                        tickerText,
-                        tickerLink,
-                        tickerBgColor,
-                        tickerTextColor
+                        tickerType: updates.tickerType ?? tickerType,
+                        tickerText: updates.tickerText ?? tickerText,
+                        tickerLink: updates.tickerLink ?? tickerLink,
+                        tickerBgColor: updates.tickerBgColor ?? tickerBgColor,
+                        tickerTextColor: updates.tickerTextColor ?? tickerTextColor,
+                        showTopBanner: updates.showTopBanner ?? showTopBanner,
+                        showTickerBanner: updates.showTickerBanner ?? showTickerBanner
                     }
                 };
 
@@ -889,21 +904,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-4 rounded-3xl">
                                                             <div className="flex items-center justify-between">
-                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activation Live</label>
+                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Afficher le Haut de Page</label>
                                                                 <button
-                                                                    onClick={() => handleUpdateSettings({ enabled: !settings.enabled })}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.enabled ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                    onClick={() => setShowTopBanner(!showTopBanner)}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
                                                                 >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${showTopBanner ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                 </button>
                                                             </div>
                                                             <div className="flex items-center justify-between">
-                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activation Chat</label>
+                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Afficher le Bandeau Défilant</label>
                                                                 <button
-                                                                    onClick={() => handleUpdateSettings({ chat_enabled: !settings.chat_enabled })}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.chat_enabled ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                    onClick={() => setShowTickerBanner(!showTickerBanner)}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
                                                                 >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.chat_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${showTickerBanner ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -1082,7 +1097,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
                                             <button
-                                                onClick={() => handleUpdateSettings({ title: editTitle, lineup: editLineup, youtubeId: newVideoId })}
+                                                onClick={() => handleUpdateSettings({
+                                                    title: editTitle,
+                                                    lineup: editLineup,
+                                                    youtubeId: newVideoId,
+                                                    tickerType,
+                                                    tickerBgColor,
+                                                    tickerTextColor,
+                                                    tickerText,
+                                                    tickerLink,
+                                                    showTopBanner,
+                                                    showTickerBanner
+                                                })}
                                                 disabled={isSaving}
                                                 className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
                                             >
@@ -1366,7 +1392,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         setShazamLoading(true);
                                                                         setTimeout(() => {
                                                                             setShazamLoading(false);
-                                                                            // Mock finding a track
+                                                                            // Open Shazam app
+                                                                            window.location.href = 'shazam://';
+                                                                            // Also set the text
                                                                             setNewMessage(prev => prev ? prev + ' 🎵 Titre trouvé via Shazam : ' : '🎵 Titre trouvé via Shazam : ');
                                                                         }, 3000);
                                                                     }}
@@ -1430,46 +1458,66 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </div>
 
                             {hasModPowers && (
-                                <div className="hidden xl:flex flex-col w-[250px] bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0">
-                                    <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                        <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                        </h2>
-                                        <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto w-full">
-                                        <div className="p-3 space-y-2">
-                                            {allActiveUsers.map(u => {
-                                                const role = getRole(u.pseudo);
-                                                const isUserAdmin = role === 'admin';
-                                                const isUserModo = role === 'modo';
-
-                                                return (
-                                                    <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                        <div className="flex items-center gap-2 truncate">
-                                                            <div className="w-4 flex items-center justify-center">
-                                                                {getCountryFlag(u.country)}
-                                                            </div>
-                                                            <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                {u.pseudo}
-                                                            </span>
-                                                        </div>
-                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                            <button
-                                                                onClick={() => handlePromote(u.pseudo)}
-                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                title="Promouvoir Modérateur Chat"
-                                                            >
-                                                                <Shield className="w-3.5 h-3.5" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
+                                <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                    <button
+                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                        className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
+                                    >
+                                        <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                    </button>
                                 </div>
                             )}
+
+                            <AnimatePresence>
+                                {hasModPowers && showUsersPanel && (
+                                    <motion.div
+                                        initial={{ width: 0, opacity: 0 }}
+                                        animate={{ width: 250, opacity: 1 }}
+                                        exit={{ width: 0, opacity: 0 }}
+                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                    >
+                                        <div className="w-[250px] flex flex-col h-full">
+                                            <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                                </h2>
+                                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto">
+                                                <div className="p-3 space-y-2">
+                                                    {allActiveUsers.map(u => {
+                                                        const role = getRole(u.pseudo);
+                                                        const isUserAdmin = role === 'admin';
+                                                        const isUserModo = role === 'modo';
+
+                                                        return (
+                                                            <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <div className="w-4 flex items-center justify-center">
+                                                                        {getCountryFlag(u.country)}
+                                                                    </div>
+                                                                    <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                        {u.pseudo}
+                                                                    </span>
+                                                                </div>
+                                                                {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                    <button
+                                                                        onClick={() => handlePromote(u.pseudo)}
+                                                                        className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                        title="Promouvoir Modérateur Chat"
+                                                                    >
+                                                                        <Shield className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
                 )}

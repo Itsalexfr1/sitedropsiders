@@ -169,10 +169,16 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                             )}
                                         </div>
                                         <h4
-                                            className={`font-display font-bold text-white ${styles.groupHoverText} transition-all duration-300 line-clamp-2 uppercase italic tracking-tighter text-sm`}
+                                            className={`font-display font-bold text-white flex items-center gap-2 ${styles.groupHoverText} transition-all duration-300 line-clamp-2 uppercase italic tracking-tighter text-sm`}
                                             title={event.title}
                                         >
                                             {event.title}
+                                            {event.isLiveDropsiders && (
+                                                <div className="flex items-center gap-1.5 shrink-0 px-1.5 py-0.5 bg-neon-red/20 border border-neon-red/30 rounded-full">
+                                                    <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse shadow-[0_0_8px_#ff0033]" />
+                                                    <span className="text-[7px] font-black uppercase text-neon-red tracking-widest break-normal whitespace-nowrap">Live</span>
+                                                </div>
+                                            )}
                                         </h4>
                                     </div>
                                     <div className="text-center bg-white/5 rounded-lg p-1.5 min-w-[3.2rem] border border-white/5 flex flex-col justify-center min-h-[3.2rem]">
