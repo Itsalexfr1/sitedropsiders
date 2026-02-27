@@ -171,8 +171,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
     const [isFocusMode, setIsFocusMode] = useState(false);
-    const [email] = useState('');
-    const [country] = useState(() => {
+    const [email, setEmail] = useState('');
+    const [country, setCountry] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return 'FR';
         return '';
@@ -197,10 +197,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const [subscribeNewsletter] = useState(false);
+    const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
     const [captchaA] = useState(Math.floor(Math.random() * 10) + 1);
     const [captchaB] = useState(Math.floor(Math.random() * 10) + 1);
-    const [captchaAnswer] = useState('');
+    const [captchaAnswer, setCaptchaAnswer] = useState('');
 
     const [lineupTime, setLineupTime] = useState("");
     const [lineupArtist, setLineupArtist] = useState("");
@@ -431,7 +431,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!pseudo.trim()) return;
+        // Security check - captcha
+        if (!isAdmin && parseInt(captchaAnswer) !== captchaA + captchaB) {
+            alert("Erreur de sécurité : addition incorrecte. Veuillez prouver que vous êtes un humain.");
+            return;
+        }
+
+        if (!pseudo.trim() || !email.trim() || !country.trim()) {
+            alert("Merci de remplir tous les champs (pseudo, email, pays).");
+            return;
+        }
 
         setIsJoined(true);
         localStorage.setItem('chat_joined', 'true');
@@ -2212,19 +2221,66 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 {/* Chat Input Area - Join or Form */}
                                 <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
                                     {!isJoined ? (
-                                        <div className="p-5 lg:p-6 bg-white/[0.02] border border-white/10 rounded-2xl lg:rounded-3xl backdrop-blur-md">
+                                        <div className="p-5 lg:p-6 bg-white/[0.02] border border-white/10 rounded-2xl lg:rounded-3xl backdrop-blur-md space-y-3">
                                             <h4 className="text-[10px] lg:text-[12px] font-black text-white uppercase tracking-[0.3em] mb-4 text-center">Participer au Direct</h4>
-                                            <form onSubmit={handleJoin} className="flex gap-2">
-                                                <input
-                                                    type="text"
-                                                    placeholder="PSEUDO"
-                                                    required
-                                                    value={pseudo}
-                                                    onChange={(e) => setPseudo(e.target.value)}
-                                                    className="flex-1 bg-black/50 border border-white/10 rounded-xl lg:rounded-2xl px-5 py-3 lg:py-4 text-xs font-bold text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                />
-                                                <button className="px-6 lg:px-8 py-3 lg:py-4 bg-neon-red text-white text-[10px] lg:text-[12px] font-black uppercase tracking-widest rounded-xl lg:rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-neon-red/20">
-                                                    JOIN
+                                            <form onSubmit={handleJoin} className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <input
+                                                        type="text"
+                                                        placeholder="PSEUDO"
+                                                        required
+                                                        value={pseudo}
+                                                        onChange={(e) => setPseudo(e.target.value)}
+                                                        className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                    />
+                                                    <input
+                                                        type="email"
+                                                        placeholder="EMAIL"
+                                                        required
+                                                        value={email}
+                                                        onChange={(e) => setEmail(e.target.value)}
+                                                        className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                    />
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <select
+                                                        required
+                                                        value={country}
+                                                        onChange={(e) => setCountry(e.target.value)}
+                                                        className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                    >
+                                                        <option value="">PAYS</option>
+                                                        <option value="FR">🇫🇷 France</option>
+                                                        <option value="BE">🇧🇪 Belgique</option>
+                                                        <option value="CH">🇨🇭 Suisse</option>
+                                                        <option value="CA">🇨🇦 Canada</option>
+                                                        <option value="DE">🇩🇪 Allemagne</option>
+                                                        <option value="ES">🇪🇸 Espagne</option>
+                                                        <option value="IT">🇮🇹 Italie</option>
+                                                        <option value="GB">🇬🇧 Royaume-Uni</option>
+                                                        <option value="US">🇺🇸 États-Unis</option>
+                                                        <option value="OTHER">🌍 Autre</option>
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                        required
+                                                        value={captchaAnswer}
+                                                        onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                        className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                    />
+                                                </div>
+                                                <label className="flex items-center gap-2 cursor-pointer group">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={subscribeNewsletter}
+                                                        onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+                                                        className="w-4 h-4 accent-neon-red rounded"
+                                                    />
+                                                    <span className="text-[10px] text-gray-500 group-hover:text-white transition-colors">S'abonner à la newsletter Dropsiders</span>
+                                                </label>
+                                                <button className="w-full py-3 bg-neon-red text-white text-[10px] lg:text-[12px] font-black uppercase tracking-widest rounded-xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20">
+                                                    REJOINDRE LE LIVE
                                                 </button>
                                             </form>
                                         </div>
