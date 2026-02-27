@@ -2571,6 +2571,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                     handleUpdateSettings({
                                                         title: editTitle,
+                                                        mainFluxName: editMainFluxName,
                                                         lineup: editLineup,
                                                         youtubeId: fId,
                                                         channels: newChannels.join('\n'),
