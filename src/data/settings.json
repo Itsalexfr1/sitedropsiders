@@ -22,9 +22,9 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": false,
-    "youtubeId": "",
+    "enabled": true,
+    "youtubeId": "DQHSj6cphm0",
     "chat_enabled": true,
-    "title": "LIVE TAKEOVER"
+    "title": "Tomorrowland One World Radio"
   }
 }
