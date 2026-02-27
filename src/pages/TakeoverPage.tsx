@@ -810,7 +810,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 });
 
                 if (saveRes.ok) {
-                    setShowEditModal(false);
                     setShowVideoEdit(false);
                     setDisplayTitle(updates.title || editTitle);
                     if (updates.lineup !== undefined) setDisplayLineup(updates.lineup);
@@ -1410,7 +1409,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                     className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-4 lg:p-10 flex flex-col items-center overflow-y-auto custom-scrollbar"
-                                    onClick={() => setShowEditModal(false)}
+
                                 >
                                     <motion.div
                                         initial={{ scale: 0.95, opacity: 0 }}
