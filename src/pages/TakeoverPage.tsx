@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
         youtubeId: string;
         chat_enabled: boolean;
         title: string;
+        moderators?: string;
     };
 }
 
@@ -19,6 +20,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [country, setCountry] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
+
+    const adminUser = localStorage.getItem('admin_user')?.toUpperCase() || '';
+    const isAdmin = localStorage.getItem('admin_auth') === 'true' || pseudo === 'DROPSIDERS' || pseudo === adminUser;
+    const isModo = settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(pseudo?.toUpperCase() || '');
+    const hasModPowers = isAdmin || isModo;
+
+    const getRole = (name: string) => {
+        if (name === 'DROPSIDERS' || name === adminUser) return 'admin';
+        if (settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(name.toUpperCase())) return 'modo';
+        return 'user';
+    };
 
     useEffect(() => {
         // Mock some initial messages
@@ -76,6 +88,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     chatContainer.scrollTop = chatContainer.scrollHeight;
                 }, 100);
             }
+        }
+    };
+
+    const handleDelete = (id: number) => {
+        if (hasModPowers) {
+            setMessages(prev => prev.filter(m => m.id !== id));
+        }
+    };
+
+    const handleBan = (name: string) => {
+        if (isAdmin) {
+            alert(`L'IP de l'utilisateur ${name} a été bannie.`);
+            setMessages(prev => prev.filter(m => m.pseudo !== name));
         }
     };
 
@@ -189,25 +214,55 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 className="flex-1 flex flex-col min-h-0 relative z-10"
                             >
                                 <div id="chat-messages" className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
-                                    {messages.map((msg, idx) => (
-                                        <motion.div
-                                            key={msg.id}
-                                            initial={{ opacity: 0, x: 10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className="group"
-                                        >
-                                            <div className="flex items-center gap-2 mb-1.5 px-1">
-                                                <span className={`text-[9px] font-black uppercase tracking-widest ${msg.pseudo === 'DROPSIDERS' ? 'text-neon-red' : 'text-gray-400'}`}>
-                                                    {msg.pseudo}
-                                                </span>
-                                                <span className="text-[7px] text-gray-700 font-bold uppercase">{msg.time}</span>
-                                            </div>
-                                            <div className={`px-4 py-3 rounded-2xl text-xs font-medium leading-relaxed tracking-wide ${msg.pseudo === 'DROPSIDERS' ? 'bg-neon-red/10 border border-neon-red/20 text-white' : 'bg-white/5 border border-white/5 text-gray-300'}`}>
-                                                {msg.message}
-                                            </div>
-                                        </motion.div>
-                                    ))}
+                                    {messages.map((msg, idx) => {
+                                        const role = getRole(msg.pseudo);
+                                        const isMsgAdmin = role === 'admin';
+                                        const isMsgModo = role === 'modo';
+
+                                        return (
+                                            <motion.div
+                                                key={msg.id}
+                                                initial={{ opacity: 0, x: 10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: idx * 0.05 }}
+                                                className="group relative"
+                                            >
+                                                <div className="flex items-center gap-2 mb-1.5 px-1">
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest ${isMsgAdmin ? 'text-neon-red' : isMsgModo ? 'text-yellow-500' : 'text-gray-400'}`}>
+                                                        {msg.pseudo}
+                                                    </span>
+                                                    {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest">Admin</span>}
+                                                    {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest">Modo</span>}
+                                                    <span className="text-[7px] text-gray-700 font-bold uppercase">{msg.time}</span>
+                                                </div>
+                                                <div className={`px-4 py-3 rounded-2xl text-xs font-medium leading-relaxed tracking-wide ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/5 text-gray-300'}`}>
+                                                    {msg.message}
+                                                </div>
+
+                                                {/* Moderation Actions */}
+                                                {hasModPowers && (
+                                                    <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md rounded-lg p-1 border border-white/10">
+                                                        <button
+                                                            onClick={() => handleDelete(msg.id)}
+                                                            className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
+                                                            title="Supprimer le message"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                        {isAdmin && !isMsgAdmin && (
+                                                            <button
+                                                                onClick={() => handleBan(msg.pseudo)}
+                                                                className="p-1.5 hover:bg-neon-red/20 rounded-md text-gray-400 hover:text-neon-red transition-colors"
+                                                                title="Bannir l'IP"
+                                                            >
+                                                                <ShieldAlert className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </motion.div>
+                                        );
+                                    })}
                                 </div>
 
                                 <form onSubmit={handleSendMessage} className="p-6 bg-black/80 backdrop-blur-xl border-t border-white/10">

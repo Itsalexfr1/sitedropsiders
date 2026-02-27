@@ -53,7 +53,8 @@ export function AdminDashboard() {
         enabled: false,
         youtubeId: '',
         chat_enabled: true,
-        title: 'LIVE TAKEOVER'
+        title: 'LIVE TAKEOVER',
+        moderators: ''
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const navigate = useNavigate();
@@ -183,7 +184,8 @@ export function AdminDashboard() {
                         enabled: data.takeover.enabled || false,
                         youtubeId: data.takeover.youtubeId || '',
                         chat_enabled: data.takeover.chat_enabled !== false,
-                        title: data.takeover.title || 'LIVE TAKEOVER'
+                        title: data.takeover.title || 'LIVE TAKEOVER',
+                        moderators: data.takeover.moderators || ''
                     });
                 }
             }
@@ -2189,6 +2191,18 @@ export function AdminDashboard() {
                                             className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
                                         />
                                     </div>
+                                </div>
+
+                                <div className="space-y-1">
+                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block ml-1">Modérateurs (séparés par des virgules)</label>
+                                    <input
+                                        type="text"
+                                        value={takeoverState.moderators}
+                                        onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-red outline-none"
+                                        placeholder="Ex: TANGUY, EMMA, MODERATEUR_1"
+                                    />
+                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Les modérateurs pourront supprimer les messages du chat</p>
                                 </div>
 
                                 <button

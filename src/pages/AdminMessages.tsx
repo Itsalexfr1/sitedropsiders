@@ -157,12 +157,20 @@ Dropsiders V2 est enfin là ! 🎙️
 Nous avons le plaisir de vous annoncer le lancement de notre nouvelle plateforme média dédiée aux festivals, artistes et organisateurs d'événements.
 
 Nouveautés majeures :
+
 - Agenda Interactif complet : Retrouvez tous les prochains festivals en un coup d'œil et planifiez vos sorties.
+
 - Boutique en ligne (Shop) : Découvrez notre sélection exclusive d'articles.
+
 - Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
+
 - Interface Premium ultra-immersive.
+
 - Accessibilité multilingue instantanée (Français / Anglais).
+
 - Engagement Boosté : Sections réseaux sociaux optimisées & Posts dédiés.
+
+- Live Takeover : Lors des gros directs de festivals tels que Tomorrowland, Ultra, EDC, ou Creamfields, nous activerons un chat interactif directement sur la page d'accueil du site !
 
 Nous avons également mis en place un tout nouvel agenda dynamique pour centraliser toute l'actualité événementielle.
 
@@ -177,12 +185,20 @@ Dropsiders V2 is finally here! 🎙️
 We are pleased to announce the launch of our new media platform dedicated to festivals, artists, and event organizers.
 
 Key features:
+
 - Complete Interactive Agenda: Find all upcoming festivals at a glance and plan your trips.
+
 - Online Shop: Discover our exclusive selection of items.
+
 - Smart Audio Player (High-fidelity AI) for all articles.
+
 - Ultra-immersive Premium Interface.
+
 - Instant multilingual accessibility (French / English).
+
 - Boosted Engagement: Optimized social media sections & dedicated posts.
+
+- Live Takeover: During major festival broadcasts such as Tomorrowland, Ultra, EDC, or Creamfields, we will activate an interactive chat directly on the website's homepage!
 
 We have also implemented a brand new dynamic agenda to centralize all event news.
 
