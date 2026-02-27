@@ -293,7 +293,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             alert("Erreur de connexion.");
         }
     };
-    const [isFocusMode, setIsFocusMode] = useState(false);
+    const isFocusMode = false;
     const [email, setEmail] = useState('');
     const [country, setCountry] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
