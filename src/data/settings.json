@@ -27,11 +27,6 @@
     "chat_enabled": true,
     "title": "Tomorrowland - Daybreak Session",
     "moderators": "",
-    "lineup": "06h30|Anyma|FreedomStage|Tomorrowland",
-    "tickerType": "news",
-    "tickerText": "",
-    "tickerLink": "",
-    "tickerBgColor": "#ff0033",
-    "tickerTextColor": "#ffffff"
+    "lineup": "06h30|Anyma|FreedomStage|Tomorrowland"
   }
 }
