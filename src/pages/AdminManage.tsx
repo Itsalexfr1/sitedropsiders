@@ -5,6 +5,7 @@ import { ImageUploadModal } from '../components/ImageUploadModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
+import { FlagIcon } from '../components/ui/FlagIcon';
 
 // Import des données locales (fallback si GitHub inaccessible)
 import newsDataLocal from '../data/news.json';
@@ -815,11 +816,17 @@ export function AdminManage() {
                                                                 </span>
                                                             );
                                                         })()}
-                                                        <span className="text-xs text-gray-400 lowercase italic opacity-60">
+                                                        <span className="text-xs text-gray-400 uppercase italic opacity-60 flex items-center gap-1.5">
                                                             {item.location ? (
                                                                 <>
                                                                     {item.location}
-                                                                    {item.country && <span className="text-neon-cyan not-italic ml-1">({item.country})</span>}
+                                                                    {item.country && (
+                                                                        <>
+                                                                            <span className="text-neon-cyan not-italic">•</span>
+                                                                            <span className="text-neon-cyan not-italic">{item.country}</span>
+                                                                            <FlagIcon location={item.country} className="w-3.5 h-2.5 ml-0.5" />
+                                                                        </>
+                                                                    )}
                                                                 </>
                                                             ) : item.summary?.substring(0, 50)}
                                                         </span>

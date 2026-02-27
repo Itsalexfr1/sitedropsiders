@@ -12,20 +12,12 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
 
-    const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-
-    useEffect(() => {
-        const handleResize = () => setIsMobile(window.innerWidth < 768);
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
     const latestRecaps = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
         return (recapsData as any[])
             .filter(item => (item.date || '').substring(0, 10) <= today)
-            .slice(0, isMobile ? 4 : 8);
-    }, [isMobile]);
+            .slice(0, 8);
+    }, []);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});
 

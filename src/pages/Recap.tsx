@@ -52,16 +52,44 @@ export function Recap() {
     };
     const articlesPerPage = 8; // 2 rows of 4 items per page
 
-    const recaps = useMemo(() => {
+    const recapsByYear = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
         const base = (recapsData as any[])
             .filter(item => (item.date || '').substring(0, 10) <= today)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            .sort((a, b) => {
+                // Primary sort: Year (desc)
+                const yearA = Number(a.year) || new Date(a.date).getFullYear();
+                const yearB = Number(b.year) || new Date(b.date).getFullYear();
+                if (yearB !== yearA) return yearB - yearA;
+                // Secondary sort: Date (desc)
+                return new Date(b.date).getTime() - new Date(a.date).getTime();
+            });
 
-        if (activeTab === 'all') return base;
-        return base.filter(item => item.type === activeTab);
+        const filtered = activeTab === 'all' ? base : base.filter(item => item.type === activeTab);
+
+        // Group by year
+        const groups: Record<number, any[]> = {};
+        filtered.forEach(item => {
+            const y = Number(item.year) || new Date(item.date).getFullYear();
+            if (!groups[y]) groups[y] = [];
+            groups[y].push(item);
+        });
+
+        // Convert to sorted array of objects [{year: 2024, items: [...]}, ...]
+        return Object.keys(groups)
+            .map(y => Number(y))
+            .sort((a, b) => b - a)
+            .map(y => ({
+                year: y,
+                items: groups[y]
+            }));
     }, [activeTab]);
-    const totalPages = Math.ceil(recaps.length / articlesPerPage);
+
+    const totalArticles = useMemo(() => recapsByYear.reduce((acc, group) => acc + group.items.length, 0), [recapsByYear]);
+    const totalPages = Math.ceil(totalArticles / articlesPerPage);
+
+    // Flat list for pagination logic
+    const flatRecaps = useMemo(() => recapsByYear.flatMap(group => group.items), [recapsByYear]);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
     const [translatedSummaries, setTranslatedSummaries] = useState<Record<number, string>>({});
@@ -69,7 +97,7 @@ export function Recap() {
     useEffect(() => {
         if (language === 'en') {
             const startIndex = (currentPage - 1) * articlesPerPage;
-            const currentArticles = recaps.slice(startIndex, startIndex + articlesPerPage);
+            const currentArticles = flatRecaps.slice(startIndex, startIndex + articlesPerPage);
 
             Promise.all(
                 currentArticles.map((item: any) =>
@@ -95,10 +123,27 @@ export function Recap() {
                 setTranslatedSummaries(summaryMap);
             });
         }
-    }, [language, currentPage, recaps]);
+    }, [language, currentPage, flatRecaps]);
 
     const startIndex = (currentPage - 1) * articlesPerPage;
-    const currentArticles = recaps.slice(startIndex, startIndex + articlesPerPage);
+    const currentArticles = flatRecaps.slice(startIndex, startIndex + articlesPerPage);
+
+    // Re-group currentArticles by year for display
+    const displayedGroups = useMemo(() => {
+        const groups: Record<number, any[]> = {};
+        currentArticles.forEach(item => {
+            const y = Number(item.year) || new Date(item.date).getFullYear();
+            if (!groups[y]) groups[y] = [];
+            groups[y].push(item);
+        });
+        return Object.keys(groups)
+            .map(y => Number(y))
+            .sort((a, b) => b - a)
+            .map(y => ({
+                year: y,
+                items: groups[y]
+            }));
+    }, [currentArticles]);
 
     const playHoverSound = useHoverSound();
 
@@ -215,74 +260,84 @@ export function Recap() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                            className="space-y-16 w-full"
                         >
-                            {currentArticles.length > 0 ? (
-                                currentArticles.map((item: any) => (
-                                    <motion.article
-                                        key={item.id}
-                                        onMouseEnter={playHoverSound}
-                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative flex flex-col"
-                                    >
-                                        {isAdmin && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    handleEdit(item);
-                                                }}
-                                                disabled={loadingEditId === item.id}
-                                                className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
-                                                title="Modifier"
-                                            >
-                                                {loadingEditId === item.id ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : (
-                                                    <Edit2 className="w-3 h-3" />
-                                                )}
-                                            </button>
-                                        )}
-                                        <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-1 flex flex-col">
-                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
-                                                <img
-                                                    src={item.coverImage || item.image}
-                                                    alt={item.title}
-                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
-                                                {item.festival && (
-                                                    <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full">
-                                                        <span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span>
-                                                    </div>
-                                                )}
-                                                {item.location && (
-                                                    <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2">
-                                                        <span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span>
-                                                        <FlagIcon location={item.location} className="w-3.5 h-2.5" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="p-6 flex flex-col flex-1">
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                                            {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
-                                                        </span>
-                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
-                                                    </div>
-                                                </div>
-                                                <h2
-                                                    className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                />
-                                                <p
-                                                    className="text-gray-400 text-sm line-clamp-3"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                />
-                                            </div>
-                                        </Link>
-                                    </motion.article>
+                            {displayedGroups.length > 0 ? (
+                                displayedGroups.map((group) => (
+                                    <div key={group.year} className="space-y-8">
+                                        <div className="flex items-center gap-4">
+                                            <h2 className="text-3xl font-display font-black text-white italic tracking-tighter shrink-0">{group.year}</h2>
+                                            <div className="h-px bg-white/10 flex-1" />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                            {group.items.map((item: any) => (
+                                                <motion.article
+                                                    key={item.id}
+                                                    onMouseEnter={playHoverSound}
+                                                    className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative flex flex-col"
+                                                >
+                                                    {isAdmin && (
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                handleEdit(item);
+                                                            }}
+                                                            disabled={loadingEditId === item.id}
+                                                            className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                            title="Modifier"
+                                                        >
+                                                            {loadingEditId === item.id ? (
+                                                                <Loader2 className="w-3 h-3 animate-spin" />
+                                                            ) : (
+                                                                <Edit2 className="w-3 h-3" />
+                                                            )}
+                                                        </button>
+                                                    )}
+                                                    <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-1 flex flex-col">
+                                                        <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
+                                                            <img
+                                                                src={item.coverImage || item.image}
+                                                                alt={item.title}
+                                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                            />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
+                                                            {item.festival && (
+                                                                <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full">
+                                                                    <span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span>
+                                                                </div>
+                                                            )}
+                                                            {item.location && (
+                                                                <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2">
+                                                                    <span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span>
+                                                                    <FlagIcon location={item.location} className="w-3.5 h-2.5" />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="p-6 flex flex-col flex-1">
+                                                            <div className="flex justify-between items-center mb-3">
+                                                                <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
+                                                                <div className="flex flex-col items-end">
+                                                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                                                        {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
+                                                                    </span>
+                                                                    <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                                </div>
+                                                            </div>
+                                                            <h2
+                                                                className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
+                                                                dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                            />
+                                                            <p
+                                                                className="text-gray-400 text-sm line-clamp-3"
+                                                                dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
+                                                            />
+                                                        </div>
+                                                    </Link>
+                                                </motion.article>
+                                            ))}
+                                        </div>
+                                    </div>
                                 ))
                             ) : (
                                 <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
