@@ -481,7 +481,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     initial={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
-                                    className="absolute bottom-20 right-4 w-72 max-w-[calc(100%-2rem)] z-30 pointer-events-auto"
+                                    className="absolute bottom-20 right-4 w-96 max-w-[calc(100%-2rem)] z-30 pointer-events-auto"
                                     onClick={e => e.stopPropagation()}
                                 >
                                     <div className="bg-black/95 backdrop-blur-2xl border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(255,0,51,0.1)]">
