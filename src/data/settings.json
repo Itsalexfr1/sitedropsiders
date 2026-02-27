@@ -34,7 +34,7 @@
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
     "showTickerBanner": true,
-    "showInNavbar": false,
+    "showInNavbar": true,
     "forceHomepage": false,
     "customCommands": "",
     "isSecret": false,
@@ -42,7 +42,6 @@
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "",
-    "chat_enabled": true
+    "pinnedMessage": ""
   }
 }
