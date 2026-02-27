@@ -2152,13 +2152,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         />
                                                                         <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
                                                                     </div>
-                                                                    <input
-                                                                        type="text"
-                                                                        placeholder="ex: rgba(255, 0, 51, 0.05)"
-                                                                        value={adminBgColor}
-                                                                        onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })}
-                                                                        className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
-                                                                    />
+                                                                    <div className="flex flex-1 items-center gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="ex: rgba(255, 0, 51, 0.05)"
+                                                                            value={adminBgColor}
+                                                                            onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })}
+                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => alert(`Couleur Admin Validée : ${adminBgColor}`)}
+                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-red hover:text-white transition-all whitespace-nowrap"
+                                                                        >
+                                                                            VALIDER
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2332,13 +2340,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         />
                                                                         <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
                                                                     </div>
-                                                                    <input
-                                                                        type="text"
-                                                                        placeholder="ex: rgba(0, 255, 204, 0.05)"
-                                                                        value={botBgColor}
-                                                                        onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
-                                                                        className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
-                                                                    />
+                                                                    <div className="flex flex-1 items-center gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="ex: rgba(0, 255, 204, 0.05)"
+                                                                            value={botBgColor}
+                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
+                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
+                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
+                                                                        >
+                                                                            VALIDER
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
