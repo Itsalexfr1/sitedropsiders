@@ -39,6 +39,7 @@
     "forceHomepage": false,
     "customCommands": "",
     "isSecret": true,
-    "password": "2026"
+    "password": "2026",
+    "channels": ""
   }
 }
