@@ -294,8 +294,8 @@
   {
     "id": 13,
     "title": "Récap : DJ Snake, The Final Show",
-    "date": "2026-02-27T00:57",
-    "summary": "Il l'avait annoncé fin 2023 : le 10 mai 2025 allait marquer l'histoire de la musique électronique en France. Un Stade de France complet en quelques minutes, un after surprise à l'Accor Arena annoncé dans la foulée… Tout indiquait que cette soirée à Paris, sa ville, serait dantesque. Et elle l'a été. Retour sur un événement hors norme.",
+    "date": "2026-02-27T02:51",
+    "summary": "Récap : DJ Snake, The Final Show Dans la légende ! Il l'avait annoncé fin 2023 : le 10 mai 2025 allait marquer l'histoire de la musique électronique en France. Un Stade de France complet en quelques m...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810511/dropsiders/images/tckatpigotvzwbqtskis.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810511/dropsiders/images/uhevnhilluixcocty0pe.jpg",
@@ -313,8 +313,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "Paris, France",
-    "isFeatured": false
+    "location": "Paris",
+    "isFeatured": false,
+    "country": "France",
+    "showVideo": false,
+    "year": "2025"
   },
   {
     "id": 14,
