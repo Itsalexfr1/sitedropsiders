@@ -151,7 +151,11 @@
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810931/dropsiders/images/bodsg4aofdxmsebzgexg.png",
     "description": "Premier week-end du plus grand festival EDM au monde.",
     "url": "https://www.tomorrowland.com",
-    "genre": "Multi Styles"
+    "genre": "Multi Styles",
+    "country": "",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isLiveDropsiders": true
   },
   {
     "id": 10,
