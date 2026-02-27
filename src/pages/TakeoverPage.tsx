@@ -1367,26 +1367,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                     <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
-                        {!isFocusMode && (
-                            <div className="absolute top-6 left-6 z-20 pointer-events-none">
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, x: -20 }}
-                                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                                    key={`${channelItems[activeVideoIndex]?.title}-${fluxCurrentArtist.artist}`}
-                                    className="px-5 py-2.5 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-                                >
-                                    <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_12px_#00ffff]" />
-                                    <div className="flex flex-col">
-                                        <span className="text-[7px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-0.5">
-                                            {channelItems[activeVideoIndex]?.title || 'Flux Principal'}
-                                        </span>
-                                        <span className="text-[11px] font-black text-white uppercase tracking-[0.1em] italic">
-                                            {fluxCurrentArtist.artist || 'DROPSIDERS LIVE'}
-                                        </span>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
+                        {/* Redundant Stream Name Badge removed */}
                         <div className="absolute inset-0 z-0">
                             <iframe
                                 className="w-full h-full border-none"
@@ -1485,75 +1466,49 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-20 mt-4">
                                             {/* Header Grid */}
-                                            <div className="grid grid-cols-[100px_2fr_1fr_1.5fr] gap-6 px-12 mb-4 text-[8px] font-black text-white/50 uppercase tracking-[0.3em] hidden lg:grid drop-shadow-md text-center">
+                                            <div className="grid grid-cols-[100px_1fr_1fr] gap-8 px-10 mb-6 text-[9px] font-black text-white/30 uppercase tracking-[0.3em] hidden lg:grid">
                                                 <div className="text-left">HEURE</div>
                                                 <div className="text-left">ARTISTE</div>
-                                                <div>SCÈNE / STAGE</div>
-                                                <div className="text-right">ÉVÉNEMENT</div>
+                                                <div className="text-right pr-10">SCÈNE</div>
                                             </div>
 
                                             {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/10 hover:border-neon-red/50 hover:bg-white/10 p-4 lg:p-8 rounded-[2.5rem] transition-all duration-300 shadow-2xl backdrop-blur-md mb-4 relative overflow-hidden"
+                                                    className="group grid grid-cols-[80px_1fr_1fr] lg:grid-cols-[100px_1fr_1fr] gap-4 lg:gap-8 items-center bg-white/[0.015] border border-white/5 hover:border-white/20 hover:bg-white/[0.04] p-5 lg:p-7 rounded-[2rem] transition-all duration-500 mb-2 relative overflow-hidden"
                                                 >
+                                                    <div className="absolute inset-0 bg-gradient-to-r from-neon-red/0 via-white/0 to-white/0 group-hover:from-white/[0.02] transition-colors pointer-events-none" />
                                                     {/* Time Column */}
-                                                    <div className="flex flex-col lg:block">
-                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">HEURE</span>
-                                                        <span className="text-neon-red font-black text-[14px] lg:text-[17px] tracking-tighter drop-shadow-lg">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-white/40 font-black text-[13px] lg:text-[15px] tracking-tight group-hover:text-white transition-colors duration-500">
                                                             {item.time?.replace(':', 'H') || '--H--'}
                                                         </span>
                                                     </div>
 
                                                     {/* Artist Column */}
-                                                    <div className="flex flex-col min-w-0">
-                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">ARTISTE</span>
-                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[14px] lg:text-[20px] leading-tight group-hover:text-neon-red transition-colors drop-shadow-lg flex items-center gap-2">
+                                                    <div className="flex items-center gap-4 min-w-0">
+                                                        <h3 className="text-white font-black uppercase italic tracking-wider text-[16px] lg:text-[22px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500">
                                                             {item.artist || '---'}
-                                                            {item.instagram && (
-                                                                <a href={item.instagram} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="p-1.5 bg-neon-purple/20 rounded-lg text-neon-purple hover:bg-neon-purple hover:text-white transition-all">
-                                                                    <Instagram className="w-3 h-3" />
-                                                                </a>
-                                                            )}
                                                         </h3>
-                                                    </div>
-
-                                                    {/* Stage Column */}
-                                                    <div className="flex flex-col min-w-0 lg:flex items-center justify-center">
-                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
-                                                        <span className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.2em] leading-none drop-shadow-md bg-white/5 px-3 py-1.5 rounded-full border border-white/5">
-                                                            {item.stage || '---'}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Festival Column */}
-                                                    <div className="flex flex-col min-w-0 text-right lg:block">
-                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
-                                                        <div className="inline-block relative group/event">
-                                                            <div className="absolute -inset-2 bg-neon-red/10 rounded-xl blur-md opacity-0 group-hover/event:opacity-100 transition-opacity" />
-                                                            <span className="relative text-[9px] font-black text-white uppercase tracking-widest italic leading-none bg-black/40 px-4 py-2 rounded-xl border border-white/10 group-hover/event:border-neon-red/50 group-hover/event:text-neon-red transition-all shadow-xl block min-w-[120px] text-center">
-                                                                {item.festival || '---'}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Instagram Section (Simplified as requested) */}
-                                                    <div className="hidden lg:flex flex-col items-center justify-center absolute right-[10%] group-hover:right-[11%] transition-all opacity-20 group-hover:opacity-100 scale-90 group-hover:scale-100 duration-500">
                                                         {item.instagram && (
-                                                            <a
+                                                            <motion.a
+                                                                whileHover={{ scale: 1.2, rotate: 5 }}
                                                                 href={item.instagram}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="flex flex-col items-center gap-1 group/insta p-2"
+                                                                onClick={e => e.stopPropagation()}
+                                                                className="w-7 h-7 flex items-center justify-center bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-full p-1.5 shadow-lg opacity-60 hover:opacity-100 transition-opacity"
                                                             >
-                                                                <div className="p-2 bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600 rounded-lg shadow-lg transform group-hover/insta:rotate-12 transition-transform">
-                                                                    <Instagram className="w-4 h-4 text-white" />
-                                                                </div>
-                                                                <span className="text-[7px] font-black text-white/30 group-hover/insta:text-neon-purple uppercase tracking-[0.3em] transition-colors mt-1">
-                                                                    {item.instagram.split('/').pop() || 'INSTAGRAM'}
-                                                                </span>
-                                                            </a>
+                                                                <Instagram className="w-full h-full text-white" />
+                                                            </motion.a>
                                                         )}
+                                                    </div>
+
+                                                    {/* Stage Column */}
+                                                    <div className="flex items-center justify-end pr-8">
+                                                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] px-4 py-1.5 bg-white/5 border border-white/5 rounded-full whitespace-nowrap group-hover:border-white/10 group-hover:text-white/70 transition-all duration-500">
+                                                            {item.stage || '---'}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             ))}
