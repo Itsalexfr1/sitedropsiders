@@ -49,8 +49,8 @@
   {
     "id": 3,
     "title": "Récap : John Summit - Ushuaia Ibiza",
-    "date": "2026-02-27T00:52",
-    "summary": "Récap : John Summit - Ushuaia Ibiza  John Summit embrase Ushuaia Ibiza le 9 septembre 2025 Le mardi 9 septembre, Ushuaia Ibiza a accueilli l'une des soirées les plus...",
+    "date": "2026-02-27T02:53",
+    "summary": "Récap : John Summit - Ushuaia Ibiza John Summit embrase Ushuaia Ibiza le 9 septembre 2025 John Summit à l'Ushuaïa Ibiza : La consécration en plein air Le mardi 9 septembre, l' Ushuaïa Ibiza a accueill...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810443/dropsiders/images/ygocx8hv1uzsrgyjbtu5.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810444/dropsiders/images/erxdwslaewizz8zv7fjn.jpg",
@@ -65,9 +65,12 @@
     "category": "Recaps",
     "content": "",
     "author": "Alex",
-    "festival": "",
-    "location": "Ibiza, Espagne",
-    "isFeatured": false
+    "festival": "Ushuaia",
+    "location": "Ibiza",
+    "isFeatured": false,
+    "country": "Espagne",
+    "showVideo": false,
+    "year": "2025"
   },
   {
     "id": 4,
