@@ -78,11 +78,16 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '2fr 1fr' : columns.replace('_', ' ')) : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : columns.replace('_', ' ')) : '1fr',
+                                height: window.innerWidth > 1024 ? '750px' : 'auto'
                             }}
                         >
-                            <RecapWidget accentColor={accentColor} resolvedColor={color} />
-                            <AgendaWidget maxItems={item.maxAgendaItems} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                            <div className="h-full overflow-hidden">
+                                <RecapWidget accentColor={accentColor} resolvedColor={color} />
+                            </div>
+                            <div className="h-full overflow-hidden">
+                                <AgendaWidget maxItems={item.maxAgendaItems || 10} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                            </div>
                         </div>
                     </section>
                 );

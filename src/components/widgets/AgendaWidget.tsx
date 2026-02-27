@@ -93,7 +93,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                 </Link>
             </div>
 
-            <div className="pr-2 space-y-3 mb-4">
+            <div className="flex-1 overflow-y-auto pr-2 space-y-3 mb-4 custom-scrollbar">
                 {upcomingEvents.map((event: any, index: number) => {
                     const styles = getEventStyles(event.genre);
                     return (
