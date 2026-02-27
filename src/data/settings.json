@@ -24,7 +24,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "DQHSj6cphm0",
-    "chat_enabled": false,
+    "chat_enabled": true,
     "title": "Tomorrowland - Daybreak Session",
     "moderators": "",
     "lineup": "",
