@@ -504,7 +504,7 @@
   {
     "id": 25,
     "title": "Récap : Sonus Festival 2024",
-    "date": "2026-02-27T01:18",
+    "date": "2026-02-27T02:19",
     "summary": "Le Sonus Festival 2024 s'est déroulé du 18 au 22 août sur la célèbre plage de Zrće, à Pag, en Croatie, marquant son 10e anniversaire avec une ambiance mémorable de musique électroniques a réuni certains des plus grands noms de la scène techno et house, attirant des festivaliers du monde entier, notamment des Britanniques, des Slovènes et des Italiens.",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810649/dropsiders/images/lromoiivrikihmox9wiw.jpg",
     "images": [
@@ -520,8 +520,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Zrce",
+    "isFeatured": false,
+    "country": "Croatie",
+    "showVideo": true,
+    "year": "2024"
   },
   {
     "id": 27,
