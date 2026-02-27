@@ -563,7 +563,7 @@
   {
     "id": 28,
     "title": "Récap : Parookaville 2024",
-    "date": "2026-02-27T01:24",
+    "date": "2026-02-27T02:17",
     "summary": "Parookaville 2024 : L'alternative à Tomorrowland ? Parookaville 2024 a une fois de plus montré pourquoi il est l'un des meilleurs festivals de musique électronique en Europe. Du 19 au 21 juillet, 225 ...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810671/dropsiders/images/krtrmvczq9ocfhlmzbmi.jpg",
     "images": [
@@ -593,8 +593,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Weeze",
+    "isFeatured": false,
+    "country": "Allemagne",
+    "showVideo": true,
+    "year": "2024"
   },
   {
     "id": 29,
