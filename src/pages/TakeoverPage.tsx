@@ -627,9 +627,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Chat Section */}
                 {settings.chat_enabled && (
-                    <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20 border-l border-white/10">
+                    <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20 border-t lg:border-t-0 lg:border-l border-white/10">
                         {/* Glossy Header */}
-                        <div className="p-4 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
+                        <div className="p-3 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-neon-red/10 rounded-lg">
                                     <MessageSquare className="w-5 h-5 text-neon-red" />
@@ -662,14 +662,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     exit={{ opacity: 0, y: -10 }}
                                     className="flex-1 p-8 flex flex-col justify-center relative z-10"
                                 >
-                                    <div className="text-center mb-10">
-                                        <div className="w-16 h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
-                                            <Youtube className="w-8 h-8 text-neon-red" />
+                                    <div className="text-center mb-6 lg:mb-10">
+                                        <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
+                                            <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
                                         </div>
-                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        <h3 className="text-xl lg:text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                             Rejoindre le <span className="text-neon-red">LIVE</span>
                                         </h3>
-                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-3">Identifiez-vous pour discuter</p>
+                                        <p className="text-gray-500 text-[8px] lg:text-[10px] font-bold uppercase tracking-[0.2em] mt-2 lg:mt-3">Identifiez-vous pour discuter</p>
                                     </div>
 
                                     <form onSubmit={handleJoin} className="space-y-4">
@@ -681,7 +681,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 required
                                                 value={pseudo}
                                                 onChange={(e) => setPseudo(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
                                             />
                                         </div>
                                         <div className="group relative">
@@ -692,7 +692,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 required
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
                                             />
                                         </div>
                                         <div className="group relative">
@@ -703,22 +703,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 required
                                                 value={country}
                                                 onChange={(e) => setCountry(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
                                             />
                                         </div>
 
-                                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
                                             <div className="flex-1">
-                                                <label className="text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
+                                                <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
                                                     <input
                                                         type="checkbox"
                                                         checked={subscribeNewsletter}
                                                         onChange={(e) => setSubscribeNewsletter(e.target.checked)}
-                                                        className="w-4 h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
+                                                        className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
                                                     />
-                                                    S'inscrire à la newsletter
+                                                    Newsletter
                                                 </label>
-                                                <p className="text-[9px] text-gray-500 mt-1 uppercase tracking-widest">Recevez nos dernières actualités (Optionnel)</p>
                                             </div>
                                         </div>
 
@@ -727,17 +726,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
                                                 <input
                                                     type="number"
-                                                    placeholder={`Sécurité : Combien font ${captchaA} + ${captchaB} ?`}
+                                                    placeholder={`${captchaA} + ${captchaB} ?`}
                                                     required
                                                     value={captchaAnswer}
                                                     onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
                                                 />
                                             </div>
                                         )}
 
-                                        <button className="w-full py-5 bg-neon-red text-white text-xs font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
-                                            Accéder au chat
+                                        <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
+                                            Rejoindre
                                         </button>
                                     </form>
                                 </motion.div>
@@ -748,7 +747,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     animate={{ opacity: 1 }}
                                     className="flex-1 flex flex-col min-h-0 relative z-10"
                                 >
-                                    <div id="chat-messages" className="flex-1 overflow-y-auto p-6 space-y-6 scroll-smooth">
+                                    <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:space-y-6 scroll-smooth">
                                         {messages.map((msg, idx) => {
                                             const role = getRole(msg.pseudo);
                                             const isMsgAdmin = role === 'admin';
@@ -801,22 +800,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         })}
                                     </div>
 
-                                    <form onSubmit={handleSendMessage} className="p-6 bg-black/80 backdrop-blur-xl border-t border-white/10">
-                                        <div className="relative flex items-center gap-3">
+                                    <form onSubmit={handleSendMessage} className="p-3 lg:p-6 bg-black/80 backdrop-blur-xl border-t border-white/10">
+                                        <div className="relative flex items-center gap-2 lg:gap-3">
                                             <div className="flex-1 relative group">
                                                 <input
                                                     type="text"
-                                                    placeholder="Tapez votre message..."
+                                                    placeholder="Message..."
                                                     value={newMessage}
                                                     onChange={(e) => setNewMessage(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-gray-200 focus:border-neon-red outline-none text-xs font-medium placeholder-gray-600 transition-all"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 px-4 lg:px-5 text-gray-200 focus:border-neon-red outline-none text-[11px] lg:text-xs font-medium placeholder-gray-600 transition-all"
                                                 />
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-2 opacity-0 group-focus-within:opacity-100 transition-opacity">
-                                                    <span className="text-[8px] text-gray-500 font-bold">ENTER</span>
-                                                </div>
                                             </div>
-                                            <button className="p-4 bg-neon-red text-white rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20 active:scale-90">
-                                                <Send className="w-5 h-5" />
+                                            <button className="p-3 lg:p-4 bg-neon-red text-white rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20 active:scale-90">
+                                                <Send className="w-4 h-4 lg:w-5 lg:h-5" />
                                             </button>
                                         </div>
                                     </form>
