@@ -663,15 +663,24 @@ export function AdminDashboard() {
                                 <RefreshCw className="w-4 h-4" />
                                 Actualiser
                             </button>
-                            {/* Bouton Bandeau - Admin */}
+                            {/* Boutons Admin : Bandeau et Takeover */}
                             {isAdminAcc && (
-                                <button
-                                    onClick={() => setIsBannerModalOpen(true)}
-                                    className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${bannerState.enabled ? 'bg-neon-orange/10 border-neon-orange/40 text-neon-orange hover:bg-neon-orange hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                                >
-                                    <Megaphone className="w-4 h-4" />
-                                    Bandeau
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => setIsBannerModalOpen(true)}
+                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${bannerState.enabled ? 'bg-neon-orange/10 border-neon-orange/40 text-neon-orange hover:bg-neon-orange hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                    >
+                                        <Megaphone className="w-4 h-4" />
+                                        Bandeau
+                                    </button>
+                                    <button
+                                        onClick={() => setIsTakeoverModalOpen(true)}
+                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                    >
+                                        <Youtube className="w-4 h-4" />
+                                        Live / Takeover
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
