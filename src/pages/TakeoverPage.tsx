@@ -2304,95 +2304,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {activeSettingsTab === 'bot' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
-                                                    {/* Apparence Bot */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                <Pencil className="w-4 h-4 text-neon-cyan" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
-                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <div className="relative group/picker">
-                                                                        <input
-                                                                            type="color"
-                                                                            value={botColor}
-                                                                            onChange={(e) => {
-                                                                                const hex = e.target.value;
-                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
-                                                                            }}
-                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
-                                                                        />
-                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
-                                                                    </div>
-                                                                    <div className="flex flex-1 items-center gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            placeholder="ex: rgba(0, 255, 204, 0.05)"
-                                                                            value={botBgColor}
-                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
-                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
-                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
-                                                                        >
-                                                                            VALIDER
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Auto Message Management */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
-                                                        </label>
-
-                                                        <div className="space-y-4">
-                                                            <div className="space-y-2">
-                                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
-                                                                <textarea
-                                                                    value={settings.autoMessage || ''}
-                                                                    onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
-                                                                    placeholder="Message à envoyer automatiquement..."
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
-                                                                />
-                                                            </div>
-
-                                                            <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
-                                                                </div>
-                                                                <div className="flex items-center gap-3">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={settings.autoMessageInterval || 60}
-                                                                        onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
-                                                                        className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
-                                                                        min="10"
-                                                                    />
-                                                                    <Clock className="w-4 h-4 text-gray-500" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
-                                                    </div>
-
                                                     <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
@@ -2529,6 +2440,96 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         )}
                                                     </div>
+
+                                                    {/* Apparence Bot */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                <Pencil className="w-4 h-4 text-neon-cyan" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                                    <div className="relative group/picker">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={botColor}
+                                                                            onChange={(e) => {
+                                                                                const hex = e.target.value;
+                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
+                                                                            }}
+                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
+                                                                        />
+                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
+                                                                    </div>
+                                                                    <div className="flex flex-1 items-center gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="ex: rgba(0, 255, 204, 0.05)"
+                                                                            value={botBgColor}
+                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
+                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
+                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
+                                                                        >
+                                                                            VALIDER
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Auto Message Management */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
+                                                        </label>
+
+                                                        <div className="space-y-4">
+                                                            <div className="space-y-2">
+                                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
+                                                                <textarea
+                                                                    value={settings.autoMessage || ''}
+                                                                    onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
+                                                                    placeholder="Message à envoyer automatiquement..."
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
+                                                                />
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={settings.autoMessageInterval || 60}
+                                                                        onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
+                                                                        className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
+                                                                        min="10"
+                                                                    />
+                                                                    <Clock className="w-4 h-4 text-gray-500" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
+                                                    </div>
+
                                                 </div>
                                             )}
 
