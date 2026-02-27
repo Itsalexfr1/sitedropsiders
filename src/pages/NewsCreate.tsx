@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette, MapPin } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -455,7 +455,9 @@ export function NewsCreate() {
     const editingItem = location.state?.item;
 
     const [title, setTitle] = useState('');
-    const [summary, setSummary] = useState('');
+    const [locationInput, setLocationInput] = useState('');
+    const [country, setCountry] = useState('');
+    const [isAutoLocating, setIsAutoLocating] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
     const [date, setDate] = useState(() => {
         const now = new Date();
@@ -493,6 +495,31 @@ export function NewsCreate() {
 
 
 
+
+    // Auto-location effect
+    useEffect(() => {
+        const timeoutId = setTimeout(async () => {
+            if (locationInput && locationInput.length >= 3 && !country) {
+                setIsAutoLocating(true);
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}&limit=1`);
+                    const data = await response.json();
+                    if (data && data[0]) {
+                        const displayName = data[0].display_name;
+                        const parts = displayName.split(', ');
+                        const countryName = parts[parts.length - 1];
+                        setCountry(countryName);
+                    }
+                } catch (error) {
+                    console.error('Auto-location error:', error);
+                } finally {
+                    setIsAutoLocating(false);
+                }
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    }, [locationInput]);
 
     // Widget System State
     const [widgets, setWidgets] = useState<{ id: string, content: string }[]>(() => {
@@ -578,7 +605,8 @@ export function NewsCreate() {
 
         const parseAndInitialize = (articleData: any, fullContent: string) => {
             setTitle(articleData.title || '');
-            setSummary(articleData.summary || '');
+            setLocationInput(articleData.location || '');
+            setCountry(articleData.country || '');
             setImageUrl(articleData.image || '');
             const dateValue = articleData.date || new Date().toISOString();
             let finalDate = dateValue;
@@ -832,13 +860,13 @@ export function NewsCreate() {
     // Track changes
     useEffect(() => {
         if (isEditing && editingItem && !initialDataLoaded.current) {
-            if (title === editingItem.title && summary === editingItem.summary) {
+            if (title === editingItem.title && locationInput === editingItem.location) {
                 initialDataLoaded.current = true;
             }
             return;
         }
         if (!isEditing && !initialDataLoaded.current) {
-            if (title || summary || imageUrl) {
+            if (title || locationInput || imageUrl) {
                 initialDataLoaded.current = true;
             }
             return;
@@ -847,7 +875,7 @@ export function NewsCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, summary, imageUrl, widgets, date, category, youtubeId, isFeatured, musicItems, artistSocials, interviewQuestions]);
+    }, [title, locationInput, imageUrl, widgets, date, category, youtubeId, isFeatured, musicItems, artistSocials, interviewQuestions]);
 
 
 
@@ -1558,7 +1586,8 @@ ${generateFestivalSocialsHtml()}
             const payload = {
                 id: isEditing ? id : undefined,
                 title: fixEncoding(title),
-                summary: fixEncoding(summary),
+                location: fixEncoding(locationInput),
+                country: fixEncoding(country),
                 date: finalDate,
                 image: finalImageUrl,
                 category: finalCategory,
@@ -1600,7 +1629,8 @@ ${generateFestivalSocialsHtml()}
                 if (!isEditing) {
                     // Reset to TRUE initial state
                     setTitle('');
-                    setSummary('');
+                    setLocationInput('');
+                    setCountry('');
                     setWidgets(isInterviewVideo ? [] : [
                         { id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DE L\'ARTICLE</h2>' }
                     ]);
@@ -1817,6 +1847,8 @@ ${generateFestivalSocialsHtml()}
 
                     <div className="space-y-6">
 
+
+
                         {/* Status Message */}
                         {status !== 'idle' && (
                             <div className={`p-4 rounded-xl flex flex-col gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
@@ -1849,45 +1881,6 @@ ${generateFestivalSocialsHtml()}
                                 />
                             )}
                         </AnimatePresence>
-
-                        {/* Metadata Fields */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Titre <span className="text-neon-red">*</span></label>
-                                <div className="relative group">
-                                    <input
-                                        type="text"
-                                        value={title}
-                                        onChange={(e) => setTitle(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pr-12 text-white focus:border-neon-cyan outline-none"
-                                        placeholder="Titre de l'article"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setTitle(fixEncoding(title))}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white/5 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red rounded-lg transition-all"
-                                        title="Réparer les caractères"
-                                    >
-                                        <Wand2 className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Année (Opt)</label>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="number"
-                                        value={year}
-                                        onChange={(e) => setYear(e.target.value)}
-                                        placeholder="Ex: 2025"
-                                        min="2000"
-                                        max="2100"
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none"
-                                    />
-                                </div>
-                            </div>
-                        </div>
 
                         {/* Author Selector */}
                         <div data-section="editor-selection" className="space-y-6">
@@ -1968,27 +1961,99 @@ ${generateFestivalSocialsHtml()}
                             </div>
                         </div>
 
-                        {(activeTab !== 'Musique' && !(type === 'Interview' && interviewSubtype === 'video')) && (
+
+
+
+                        {/* Metadata Fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Résumé (Intro) <span className="text-neon-red">*</span></label>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Titre <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
-                                    <textarea
-                                        value={summary}
-                                        onChange={(e) => setSummary(e.target.value)}
-                                        className="w-full h-24 bg-black/20 border border-white/10 rounded-lg p-3 pr-12 text-white focus:border-neon-cyan outline-none resize-none"
-                                        placeholder="Un court résumé..."
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pr-12 text-white focus:border-neon-cyan outline-none"
+                                        placeholder="Titre de l'article"
                                     />
                                     <button
                                         type="button"
-                                        onClick={() => setSummary(fixEncoding(summary))}
-                                        className="absolute right-3 top-3 p-1.5 bg-white/5 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red rounded-lg transition-all"
+                                        onClick={() => setTitle(fixEncoding(title))}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white/5 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red rounded-lg transition-all"
                                         title="Réparer les caractères"
                                     >
                                         <Wand2 className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
-                        )}
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Année (Opt)</label>
+                                <div className="relative group">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="number"
+                                        value={year}
+                                        onChange={(e) => setYear(e.target.value)}
+                                        placeholder="Ex: 2025"
+                                        min="2000"
+                                        max="2100"
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Ville</label>
+                                <div className="relative group">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={locationInput}
+                                        onChange={(e) => setLocationInput(e.target.value)}
+                                        placeholder="Ex: Boom"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays</label>
+                                <div className="relative group">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={country}
+                                        onChange={(e) => setCountry(e.target.value)}
+                                        placeholder="Ex: France"
+                                        className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
+                                    />
+                                    {isAutoLocating && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                            <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année</label>
+                                <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="number"
+                                        value={year}
+                                        onChange={(e) => setYear(e.target.value)}
+                                        placeholder="Ex: 2025"
+                                        min="2000"
+                                        max="2100"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
 
                         {/* Image & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -2056,25 +2121,34 @@ ${generateFestivalSocialsHtml()}
                                         )}
                                     </div>
                                 </div>
-                                <input
-                                    type="text"
-                                    value={youtubeId}
-                                    onChange={(e) => {
-                                        let val = e.target.value;
-                                        if (val.includes('youtube.com/watch?v=')) {
-                                            val = val.split('v=')[1].split('&')[0];
-                                        } else if (val.includes('youtu.be/')) {
-                                            val = val.split('youtu.be/')[1].split('?')[0];
-                                        } else if (val.includes('youtube.com/embed/')) {
-                                            val = val.split('youtube.com/embed/')[1].split('?')[0];
-                                        }
-                                        setYoutubeId(val);
-                                    }}
-                                    className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                    placeholder="ID ou URL YouTube"
-                                />
-                                {!(type === 'Interview' && interviewSubtype === 'video') && (
-                                    <p className="mt-2 text-[10px] text-gray-500 italic">S'affichera tout en bas de l'article si activé</p>
+                                {showVideo && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="space-y-4"
+                                    >
+                                        <input
+                                            type="text"
+                                            value={youtubeId}
+                                            onChange={(e) => {
+                                                let val = e.target.value;
+                                                if (val.includes('youtube.com/watch?v=')) {
+                                                    val = val.split('v=')[1].split('&')[0];
+                                                } else if (val.includes('youtu.be/')) {
+                                                    val = val.split('youtu.be/')[1].split('?')[0];
+                                                } else if (val.includes('youtube.com/embed/')) {
+                                                    val = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                }
+                                                setYoutubeId(val);
+                                            }}
+                                            className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                            placeholder="ID ou URL YouTube"
+                                        />
+                                        {!(type === 'Interview' && interviewSubtype === 'video') && (
+                                            <p className="text-[10px] text-gray-500 italic">S'affichera tout en bas de l'article</p>
+                                        )}
+                                    </motion.div>
                                 )}
                             </div>
                         </div>
@@ -2624,8 +2698,8 @@ ${generateFestivalSocialsHtml()}
                                                 >
                                                     <Columns className="w-4 h-4" />
                                                 </button>
+
                                             </div>
-                                            <div className="h-px flex-1 bg-white/10 group-hover/adder:bg-neon-cyan/30 transition-colors" />
                                         </div>
                                     </div>
                                 ))}
@@ -2991,8 +3065,20 @@ ${generateFestivalSocialsHtml()}
                                     </span>
                                 </div>
                                 <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(title || 'TITRE DE L\'ARTICLE') }} />
-                                {summary && (
-                                    <p className="article-body-premium text-gray-400 text-lg md:text-xl leading-relaxed italic" dangerouslySetInnerHTML={{ __html: standardizeContent(summary) }} />
+                                {(locationInput || country) && (
+                                    <div className="flex items-center gap-3 text-gray-400 text-sm font-bold uppercase tracking-widest mt-2 mb-6">
+                                        {locationInput && (
+                                            <span className="flex items-center gap-2">
+                                                <MapPin className="w-4 h-4 text-neon-cyan" /> {locationInput}
+                                            </span>
+                                        )}
+                                        {locationInput && country && <span className="w-1 h-1 rounded-full bg-white/20" />}
+                                        {country && (
+                                            <span className="flex items-center gap-2">
+                                                <Globe className="w-4 h-4 text-neon-cyan" /> {country}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                             {activeTab === 'Musique' ? (
@@ -3819,7 +3905,7 @@ ${generateFestivalSocialsHtml()}
                 onCancel={() => blocker.reset?.()}
                 accentColor="neon-red"
             />
-        </div>
+        </div >
     );
 }
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, CheckCircle2, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -125,7 +125,6 @@ export function RecapCreate() {
     const editingItem = location.state?.item;
 
     const [title, setTitle] = useState('');
-    const [summary, setSummary] = useState('');
     const [coverImage, setCoverImage] = useState('');
     const [date, setDate] = useState(() => {
         const now = new Date();
@@ -184,6 +183,31 @@ export function RecapCreate() {
         { id: 'initial-1', content: '<h2 class="premium-section-title">TITRE DU RÉCAP</h2>' }
     ]);
 
+    // Auto-location effect
+    useEffect(() => {
+        const timeoutId = setTimeout(async () => {
+            if (locationInput && locationInput.length >= 3 && !country) {
+                setIsAutoLocating(true);
+                try {
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}&limit=1`);
+                    const data = await response.json();
+                    if (data && data[0]) {
+                        const displayName = data[0].display_name;
+                        const parts = displayName.split(', ');
+                        const countryName = parts[parts.length - 1];
+                        setCountry(countryName);
+                    }
+                } catch (error) {
+                    console.error('Auto-location error:', error);
+                } finally {
+                    setIsAutoLocating(false);
+                }
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    }, [locationInput]);
+
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string, aspectRatio?: string, widgetId?: string }>({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto' });
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2', index?: number, widgetId?: string, initialImage?: string }>({ type: 'main' });
@@ -214,7 +238,6 @@ export function RecapCreate() {
                         const data = await response.json();
                         if (data.recap) {
                             setTitle(data.recap.title || '');
-                            setSummary(data.recap.summary || '');
                             setCoverImage(data.recap.image || '');
                             const dateValue = data.recap.date || new Date().toISOString();
                             let finalDate = dateValue;
@@ -259,7 +282,6 @@ export function RecapCreate() {
                             const localItem = (recapsData as any[]).find(r => String(r.id) === String(id));
                             if (localItem) {
                                 setTitle(localItem.title);
-                                setSummary(localItem.summary);
                                 setCoverImage(localItem.image);
                                 const localDateValue = localItem.date || new Date().toISOString();
                                 let localFinalDate = localDateValue;
@@ -350,13 +372,13 @@ export function RecapCreate() {
     // Track changes
     useEffect(() => {
         if (isEditing && editingItem && !initialDataLoaded.current) {
-            if (title === editingItem.title && summary === editingItem.summary) {
+            if (title === editingItem.title) {
                 initialDataLoaded.current = true;
             }
             return;
         }
         if (!isEditing && !initialDataLoaded.current) {
-            if (title || summary || coverImage) {
+            if (title || coverImage) {
                 initialDataLoaded.current = true;
             }
             return;
@@ -364,7 +386,7 @@ export function RecapCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, summary, coverImage, widgets, date, festival, locationInput, country, youtubeId, isFeatured, festivalSocials, artistSocials]);
+    }, [title, coverImage, widgets, date, festival, locationInput, country, youtubeId, isFeatured, festivalSocials, artistSocials]);
 
     // Autolocation Logic
     useEffect(() => {
@@ -422,7 +444,6 @@ export function RecapCreate() {
     useEffect(() => {
         if (isEditing && editingItem) {
             setTitle(editingItem.title);
-            setSummary(editingItem.summary);
             setCoverImage(editingItem.image);
             setDate(editingItem.date);
             setFestival(editingItem.festival || '');
@@ -940,7 +961,6 @@ export function RecapCreate() {
                 body: JSON.stringify({
                     id: isEditing ? id : undefined,
                     title: fixEncoding(title),
-                    summary: fixEncoding(summary),
                     content: fixEncoding(finalContent),
                     image: coverImage,
                     date: finalDate,
@@ -974,7 +994,6 @@ export function RecapCreate() {
 
             if (!isEditing) {
                 setTitle('');
-                setSummary('');
                 setWidgets([{ id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DU RÉCAP</h2>' }]);
                 setCoverImage('');
                 setFestival('');
@@ -1154,69 +1173,208 @@ export function RecapCreate() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
-                        {/* Title */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre du Récap <span className="text-neon-red">*</span></label>
-                            <div className="relative group">
-                                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                <input
-                                    type="text"
-                                    value={title}
-                                    onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Ex: Récap : Tomorrowland 2026"
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
-                                    required
-                                />
+                        {/* Status Message */}
+                        {status !== 'idle' && (
+                            <div className={`p-4 rounded-xl flex flex-col gap-3 ${status === 'error' ? 'bg-red-500/10 text-red-500' :
+                                status === 'success' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500'
+                                }`}>
+                                <div className="flex items-center gap-3">
+                                    {status === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
+                                    <p className="font-bold uppercase tracking-wider text-xs">{message}</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Author Selector */}
+                        <div data-section="editor-selection" className="space-y-6">
+                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
+                            </label>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                                {(editorsData as any[]).map((editor: any) => {
+                                    const editorColor = getEditorColor(editor.username.toLowerCase());
+                                    const isSelected = author === editor.name;
+                                    return (
+                                        <button
+                                            key={editor.username}
+                                            type="button"
+                                            onClick={() => {
+                                                setAuthor(editor.name);
+                                                setIsAuthorConfirmed(false);
+                                            }}
+                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${isSelected
+                                                ? 'bg-white/10'
+                                                : 'bg-black/40 border-white/10 hover:border-white/20'
+                                                }`}
+                                            style={{
+                                                borderColor: isSelected ? editorColor : 'rgba(255,255,255,0.1)',
+                                                boxShadow: isSelected ? `0 0 20px ${editorColor}20` : 'none'
+                                            }}
+                                        >
+                                            <div
+                                                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                                                style={{
+                                                    backgroundColor: isSelected ? editorColor : 'rgba(255,255,255,0.05)',
+                                                    color: isSelected ? '#000' : '#666'
+                                                }}
+                                            >
+                                                <User className="w-5 h-5" />
+                                            </div>
+                                            <span
+                                                className="text-[10px] font-black uppercase tracking-widest transition-colors"
+                                                style={getAuthorTextStyle(editor.username)}
+                                            >
+                                                {editor.name}
+                                            </span>
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2">
+                                                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: editorColor }} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div
+                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
+                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
+                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
+                                    }`}
+                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
+                            >
                                 <button
                                     type="button"
-                                    onClick={() => setTitle(fixEncoding(title))}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white/5 hover:bg-neon-cyan/20 text-gray-500 hover:text-neon-cyan rounded-lg transition-all"
-                                    title="Réparer les caractères"
+                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
+                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
+                                        : 'bg-black/40 border-white/20'
+                                        }`}
                                 >
-                                    <Wand2 className="w-4 h-4" />
+                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
                                 </button>
+                                <div className="flex flex-col">
+                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
+                                        Confirmer l'Éditeur
+                                    </span>
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                        Je certifie que <span className="font-black" style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span> est bien l'auteur de ce contenu
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Title & Cover */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Titre du Récap <span className="text-neon-red">*</span></label>
+                                <div className="relative group">
+                                    <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        placeholder="Ex: Récap : Tomorrowland 2026"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setTitle(fixEncoding(title))}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 bg-white/5 hover:bg-neon-cyan/20 text-gray-500 hover:text-neon-cyan rounded-lg transition-all"
+                                        title="Réparer les caractères"
+                                    >
+                                        <Wand2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture <span className="text-neon-red">*</span></label>
+                                <div className="flex gap-2">
+                                    <div className="relative group flex-1">
+                                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={coverImage}
+                                            onChange={(e) => setCoverImage(e.target.value)}
+                                            placeholder="https://..."
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setUploadTarget({ type: 'main', initialImage: coverImage });
+                                            setShowUploadModal(true);
+                                        }}
+                                        className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                    >
+                                        Upload
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         {/* Date & Youtube */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date de l'événement <span className="text-neon-red">*</span></label>
+                                <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="datetime-local"
+                                        value={date}
+                                        onChange={(e) => setDate(e.target.value)}
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider flex items-center justify-between">
                                     <span>Vidéo de l'article</span>
-                                    <span className="text-[10px] text-neon-cyan/80 normal-case font-bold">(S'affichera en bas de l'article)</span>
-                                </label>
-                                <div className="relative flex items-center gap-4">
-                                    <div className="relative group flex-1">
-                                        <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={youtubeId}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
-                                                let id = val;
-                                                if (val.includes('youtube.com/watch?v=')) {
-                                                    id = val.split('v=')[1].split('&')[0];
-                                                } else if (val.includes('youtu.be/')) {
-                                                    id = val.split('youtu.be/')[1].split('?')[0];
-                                                } else if (val.includes('youtube.com/embed/')) {
-                                                    id = val.split('youtube.com/embed/')[1].split('?')[0];
-                                                }
-                                                setYoutubeId(id);
-                                            }}
-                                            placeholder="URL Youtube ou ID"
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
-                                        />
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Activer :</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowVideo(!showVideo)}
+                                            className={`w-10 h-5 rounded-full relative transition-colors ${showVideo ? 'bg-neon-red' : 'bg-gray-800'}`}
+                                        >
+                                            <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${showVideo ? 'right-1' : 'left-1'}`} />
+                                        </button>
                                     </div>
-                                    <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-4 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
-                                        <input
-                                            type="checkbox"
-                                            checked={showVideo}
-                                            onChange={(e) => setShowVideo(e.target.checked)}
-                                            className="w-5 h-5 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
-                                        />
-                                        <span className="text-xs font-bold uppercase tracking-widest text-gray-300">Activer</span>
-                                    </label>
-                                </div>
+                                </label>
+                                <AnimatePresence>
+                                    {showVideo && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="relative group"
+                                        >
+                                            <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                            <input
+                                                type="text"
+                                                value={youtubeId}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    let id = val;
+                                                    if (val.includes('youtube.com/watch?v=')) {
+                                                        id = val.split('v=')[1].split('&')[0];
+                                                    } else if (val.includes('youtu.be/')) {
+                                                        id = val.split('youtu.be/')[1].split('?')[0];
+                                                    } else if (val.includes('youtube.com/embed/')) {
+                                                        id = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                    }
+                                                    setYoutubeId(id);
+                                                }}
+                                                placeholder="ID ou URL YouTube"
+                                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                            />
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
 
@@ -1405,134 +1563,8 @@ export function RecapCreate() {
                             )}
                         </div>
 
-                        {/* Author Selector */}
-                        <div data-section="editor-selection" className="space-y-6 pt-8 border-t border-white/10 mt-4">
-                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
-                            </label>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                                {(editorsData as any[]).map((editor: any) => {
-                                    const editorColor = getEditorColor(editor.username.toLowerCase());
-                                    const isSelected = author === editor.name;
-                                    return (
-                                        <button
-                                            key={editor.username}
-                                            type="button"
-                                            onClick={() => {
-                                                setAuthor(editor.name);
-                                                setIsAuthorConfirmed(false);
-                                            }}
-                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${isSelected
-                                                ? 'bg-white/10'
-                                                : 'bg-black/40 border-white/10 hover:border-white/20'
-                                                }`}
-                                            style={{
-                                                borderColor: isSelected ? editorColor : 'rgba(255,255,255,0.1)',
-                                                boxShadow: isSelected ? `0 0 20px ${editorColor}20` : 'none'
-                                            }}
-                                        >
-                                            <div
-                                                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
-                                                style={{
-                                                    backgroundColor: isSelected ? editorColor : 'rgba(255,255,255,0.05)',
-                                                    color: isSelected ? '#000' : '#666'
-                                                }}
-                                            >
-                                                <User className="w-5 h-5" />
-                                            </div>
-                                            <span
-                                                className="text-[10px] font-black uppercase tracking-widest transition-colors"
-                                                style={getAuthorTextStyle(editor.username)}
-                                            >
-                                                {editor.name}
-                                            </span>
-                                            {isSelected && (
-                                                <div className="absolute top-2 right-2">
-                                                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: editorColor }} />
-                                                </div>
-                                            )}
-                                        </button>
-                                    );
-                                })}
-                            </div>
 
-                            <div
-                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
-                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
-                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
-                                    }`}
-                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
-                            >
-                                <button
-                                    type="button"
-                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
-                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
-                                        : 'bg-black/40 border-white/20'
-                                        }`}
-                                >
-                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
-                                </button>
-                                <div className="flex flex-col">
-                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
-                                        Confirmer l'Éditeur
-                                    </span>
-                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="font-black" style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span> est bien l'auteur de ce récap
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Cover Image */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Image de couverture <span className="text-neon-red">*</span></label>
-                            <div className="flex gap-2">
-                                <div className="relative group flex-1">
-                                    <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={coverImage}
-                                        onChange={(e) => setCoverImage(e.target.value)}
-                                        placeholder="https://..."
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
-                                        required
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setUploadTarget({ type: 'main', initialImage: coverImage });
-                                        setShowUploadModal(true);
-                                    }}
-                                    className="px-6 py-4 bg-neon-red/20 border border-neon-red/50 text-neon-red rounded-xl font-bold uppercase tracking-wider hover:bg-neon-red/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
-                                >
-                                    Upload
-                                </button>
-
-                            </div>
-                        </div>
-
-                        {/* Summary */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Résumé court</label>
-                            <div className="relative group">
-                                <textarea
-                                    value={summary}
-                                    onChange={(e) => setSummary(e.target.value)}
-                                    placeholder="Un bref résumé..."
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-4 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all h-24 resize-none"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setSummary(fixEncoding(summary))}
-                                    className="absolute right-3 top-3 p-1.5 bg-white/5 hover:bg-neon-cyan/20 text-gray-500 hover:text-neon-cyan rounded-lg transition-all"
-                                    title="Réparer les caractères"
-                                >
-                                    <Wand2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        </div>
 
 
                         {/* WIDGET EDITOR SECTION */}
@@ -2029,7 +2061,7 @@ export function RecapCreate() {
                                         {locationInput && (
                                             <span className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-white/70 font-bold text-[9px] flex items-center gap-2 uppercase tracking-widest">
                                                 <MapPin className="w-3 h-3 text-neon-purple" />
-                                                {locationInput}
+                                                {locationInput}{country ? `, ${country}` : ''}
                                             </span>
                                         )}
                                     </div>
@@ -2038,11 +2070,7 @@ export function RecapCreate() {
                                         {title || "TITRE DU RÉCAP"}
                                     </h1>
 
-                                    {summary && (
-                                        <div className="text-xl md:text-2xl text-white/60 font-medium leading-relaxed italic border-l-4 border-neon-cyan/30 pl-8 py-2">
-                                            {summary}
-                                        </div>
-                                    )}
+
                                 </div>
                                 {
                                     widgets.map(w => (
