@@ -47,27 +47,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return JSON.parse(localStorage.getItem('chat_promoted_modos') || '[]');
     });
 
-    const [viewersCount, setViewersCount] = useState(1243);
     const [activeUsers, setActiveUsers] = useState<{ pseudo: string, country: string }[]>([]);
 
     useEffect(() => {
-        // some fake names to populate the users list
-        const fakePseudos = ['LUCAS', 'EMMA', 'MARC', 'CHLOÉ', 'TOM', 'SARAH', 'JULIEN', 'MIA', 'LEO', 'ALEX', 'SOPHIE', 'THOMAS', 'CLAIRE', 'MAXIME', 'LAURA', 'NICOLAS', 'JULIE', 'ANTOINE', 'PAULINE', 'MATHIEU', 'CAMILLE', 'ROMAIN', 'MARIE', 'PIERRE', 'CÉLINE', 'QUENTIN', 'ANAÏS', 'GUILLAUME', 'JUSTINE', 'FLORIANT'];
-        const fakeCountries = ['FR', 'BE', 'CH', 'CA', 'ES', 'IT', 'UK'];
-
-        // Pick 15-20 random fake users initially
-        const initialUsers = Array.from({ length: 20 }, () => ({
-            pseudo: fakePseudos[Math.floor(Math.random() * fakePseudos.length)],
-            country: fakeCountries[Math.floor(Math.random() * fakeCountries.length)]
-        })).filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
-
-        setActiveUsers(initialUsers);
-
-        const interval = setInterval(() => {
-            setViewersCount(prev => Math.max(1200, prev + Math.floor(Math.random() * 5) - 2));
-        }, 5000);
-
-        return () => clearInterval(interval);
+        // Here we could fetch real active users from a backend socket if it existed.
+        // For now, it relies on users who join and send messages.
     }, []);
 
     const getFlagEmoji = (c: string) => {
@@ -223,7 +207,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         });
 
     return (
-        <div className="flex flex-col h-[100dvh] bg-black pt-20 overflow-hidden">
+        <div className="flex flex-col flex-1 h-[calc(100dvh-80px)] md:h-[calc(100dvh-112px)] bg-black overflow-hidden relative">
             {/* Live Banner Header */}
             <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
                 <div className="flex items-center gap-4">
@@ -238,7 +222,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
                 <div className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0">
                     <Users className="w-4 h-4 text-neon-red" />
-                    <span className="text-xs font-black text-white uppercase tracking-widest">{viewersCount.toLocaleString('fr-FR')} Spectateurs</span>
+                    <span className="text-xs font-black text-white uppercase tracking-widest">{allActiveUsers.length.toLocaleString('fr-FR')} Spectateurs</span>
                 </div>
             </div>
 
