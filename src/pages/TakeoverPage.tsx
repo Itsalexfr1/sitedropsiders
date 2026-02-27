@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
@@ -182,6 +182,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         if (auth) return 'FR';
         return '';
     });
+    const [customCountry, setCustomCountry] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [latestNews, setLatestNews] = useState<any[]>([]);
@@ -211,6 +212,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [lineupArtist, setLineupArtist] = useState("");
     const [lineupStage, setLineupStage] = useState("");
     const [lineupFestival, setLineupFestival] = useState("");
+    const [lineupInstagram, setLineupInstagram] = useState("");
 
     const [isSlowMode, setIsSlowMode] = useState(false);
     const [activePoll, setActivePoll] = useState<{ question: string, options: string[], id: number } | null>(null);
@@ -308,6 +310,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return () => clearInterval(interval);
     }, [settings.autoMessage, settings.autoMessageInterval, currentVideoId]);
 
+
+
     // Fetch messages from server every 3 seconds
     useEffect(() => {
         const fetchMessages = () => {
@@ -348,7 +352,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         fetchMessages();
         const interval = setInterval(fetchMessages, 3000);
         return () => clearInterval(interval);
-    }, [currentVideoId]);
+    }, [currentVideoId, activePoll, userColor, pseudo, country]); // Added activePoll, userColor, pseudo, country to dependencies for parseLineup to be stable
 
     const getCountryFlag = (c: string) => {
         if (!c) return <Globe className="w-3.5 h-3.5 text-gray-500" />;
@@ -450,7 +454,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
         setIsJoined(true);
         localStorage.setItem('chat_joined', 'true');
+        const countryToSave = country === 'OTHER' ? customCountry : country;
         localStorage.setItem('chat_pseudo', pseudo.toUpperCase());
+        localStorage.setItem('chat_country', countryToSave);
+        localStorage.setItem('chat_email', email);
         localStorage.setItem('chat_color', userColor);
 
         if (subscribeNewsletter) {
@@ -482,9 +489,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const appendLineup = () => {
         if (!lineupTime || !lineupArtist) return;
-        const newEntry = `[${lineupTime}] ${lineupArtist}${lineupStage ? ' - ' + lineupStage : ''}${lineupFestival ? ' - ' + lineupFestival : ''}`;
+        const newEntry = `[${lineupTime}] ${lineupArtist}${lineupStage ? ' - ' + lineupStage : ' - ---'}${lineupFestival ? ' - ' + lineupFestival : ' - ---'}${lineupInstagram ? ' - ' + lineupInstagram : ''}`;
         setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
-        setLineupTime(""); setLineupArtist(""); setLineupStage(""); setLineupFestival("");
+        setLineupTime(""); setLineupArtist(""); setLineupStage(""); setLineupFestival(""); setLineupInstagram("");
     };
 
     const handleSendPoll = () => {
@@ -787,7 +794,46 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return a.pseudo.localeCompare(b.pseudo);
         });
 
-    const handleUpdateSettings = async (updates: Partial<TakeoverProps['settings']>) => {
+    const parseLineup = useCallback((text: string) => {
+        if (!text) return [];
+        const now = new Date();
+        const currentTotal = now.getHours() * 60 + now.getMinutes();
+
+        return text.split('\n').filter(line => line.trim()).map(line => {
+            let time = '', artist = '', stage = '', festival = '', instagram = '';
+
+            const timeMatch = line.match(/\[(.*?)\]/);
+            if (timeMatch) {
+                time = timeMatch[1];
+                const rest = line.replace(timeMatch[0], '').trim();
+                const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
+                artist = parts[0] || '';
+                stage = parts[1] || '';
+                festival = parts[2] || '';
+                instagram = parts[3] || '';
+            } else if (line.includes('|')) {
+                const parts = line.split('|').map(p => p.trim());
+                time = parts[0] || '';
+                artist = parts[1] || '';
+                stage = parts[2] || '';
+                festival = parts[3] || '';
+                instagram = parts[4] || '';
+            } else {
+                artist = line.trim();
+            }
+
+            let isPast = false;
+            if (time.includes(':')) {
+                const [h, m] = time.split(':').map(Number);
+                const itemMinutes = h * 60 + m;
+                if (itemMinutes < currentTotal - 1) isPast = true;
+            }
+
+            return { time, artist, stage, festival, instagram, isPast };
+        });
+    }, []);
+
+    const handleUpdateSettings = useCallback(async (updates: Partial<TakeoverProps['settings']>) => {
         setIsSaving(true);
         try {
             // First get full current settings
@@ -840,9 +886,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                     if (updates.currentArtist !== undefined) {
                         settings.currentArtist = updates.currentArtist;
+                        setEditCurrentArtist(updates.currentArtist); // Update local state for display
                     }
                     if (updates.artistInstagram !== undefined) {
                         settings.artistInstagram = updates.artistInstagram;
+                        setEditArtistInstagram(updates.artistInstagram); // Update local state for display
                     }
                     if (updates.customCommands !== undefined) {
                         settings.customCommands = updates.customCommands;
@@ -870,7 +918,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         } finally {
             setIsSaving(false);
         }
-    };
+    }, [adminUser, editTitle, editLineup, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, pseudo, editCurrentArtist, editArtistInstagram]);
+
+    // Auto-update current artist from planning
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const items = parseLineup(settings.lineup || '');
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+            // Find current playing artist (latest one whose time is <= now)
+            const currentItem = [...items]
+                .filter(i => i.time.includes(':'))
+                .map(i => {
+                    const [h, m] = i.time.split(':').map(Number);
+                    return { ...i, total: h * 60 + m };
+                })
+                .sort((a, b) => b.total - a.total)
+                .find(i => i.total <= currentMinutes);
+
+            if (currentItem && isAdmin) { // Only admin updates the server settings to avoid conflicts
+                if (currentItem.artist !== settings.currentArtist || (currentItem.instagram && currentItem.instagram !== settings.artistInstagram)) {
+                    handleUpdateSettings({
+                        currentArtist: currentItem.artist,
+                        artistInstagram: currentItem.instagram || ''
+                    });
+                }
+            }
+        }, 20000);
+        return () => clearInterval(interval);
+    }, [settings.lineup, settings.currentArtist, isAdmin, settings.artistInstagram, handleUpdateSettings]);
 
     const handleRemoveModerator = async (modPseudo: string) => {
         const currentMods = (settings.moderators || '').split(',').map(m => m.trim()).filter(m => m && m.toLowerCase() !== modPseudo.toLowerCase());
@@ -930,36 +1007,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return allActiveUsers.some(u => u.pseudo.toLowerCase() === pseudo.toLowerCase());
     };
 
-    const parseLineup = (text: string) => {
-        if (!text) return [];
-        return text.split('\n').filter(line => line.trim()).map(line => {
-            // Support formats:
-            // 1. [22:00] Artist - Stage - Event
-            // 2. 22:00 | Artist | Stage | Event
-            let time = '', artist = '', stage = '', festival = '';
-
-            const timeMatch = line.match(/\[(.*?)\]/);
-            if (timeMatch) {
-                time = timeMatch[1];
-                const rest = line.replace(timeMatch[0], '').trim();
-                // Split by dash if it's surrounded by spaces or at least exists
-                const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
-                artist = parts[0] || '';
-                stage = parts[1] || '';
-                festival = parts[2] || '';
-            } else if (line.includes('|')) {
-                const parts = line.split('|').map(p => p.trim());
-                time = parts[0] || '';
-                artist = parts[1] || '';
-                stage = parts[2] || '';
-                festival = parts[3] || '';
-            } else {
-                artist = line.trim();
-            }
-
-            return { time, artist, stage, festival };
-        });
-    };
 
     const handleShare = async (platform: 'x' | 'fb' | 'insta' | 'snap' | 'native') => {
         const url = window.location.href;
@@ -1298,7 +1345,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 </div>
                                                 <div>
                                                     <h2 className="text-3xl lg:text-5xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-md">LINE UP <span className="text-neon-red">LIVE</span></h2>
-                                                    <p className="text-[10px] lg:text-xs text-gray-300 font-bold uppercase tracking-[0.2em] mt-2 drop-shadow-md">Horaires et passages artistes en temps réel</p>
+                                                    <p className="text-[10px] lg:text-xs text-gray-300 font-bold uppercase tracking-[0.2em] mt-1 drop-shadow-md">Horaires et passages artistes en temps réel</p>
                                                 </div>
                                             </div>
                                             <button onClick={() => setShowLineup(false)} className="p-4 bg-white/10 border border-white/20 rounded-full hover:bg-neon-red hover:border-neon-red transition-all shadow-lg active:scale-95 group">
@@ -1308,47 +1355,52 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-20 mt-4">
                                             {/* Header Grid */}
-                                            <div className="grid grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 px-6 mb-4 text-[11px] font-black text-white/50 uppercase tracking-widest hidden lg:grid drop-shadow-md">
+                                            <div className="grid grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 px-6 mb-4 text-[8px] font-black text-white/50 uppercase tracking-widest hidden lg:grid drop-shadow-md">
                                                 <div>HEURE</div>
                                                 <div>ARTISTE</div>
                                                 <div>SCÈNE / STAGE</div>
                                                 <div className="text-right">ÉVÉNEMENT</div>
                                             </div>
 
-                                            {parseLineup(displayLineup || settings.lineup || '').map((item, idx) => (
+                                            {parseLineup(displayLineup || settings.lineup || '').filter(item => !item.isPast).map((item, idx) => (
                                                 <div
                                                     key={idx}
                                                     className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/10 hover:border-neon-red/50 hover:bg-white/10 p-4 lg:p-6 rounded-2xl transition-all duration-300 shadow-lg backdrop-blur-md mb-3"
                                                 >
                                                     {/* Time Column */}
                                                     <div className="flex flex-col lg:block">
-                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">HEURE</span>
-                                                        <span className="text-neon-red font-black text-[20px] lg:text-[24px] tracking-tighter drop-shadow-lg">
+                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">HEURE</span>
+                                                        <span className="text-neon-red font-black text-[14px] lg:text-[17px] tracking-tighter drop-shadow-lg">
                                                             {item.time?.replace(':', 'H') || '--H--'}
                                                         </span>
                                                     </div>
 
                                                     {/* Artist Column */}
                                                     <div className="flex flex-col min-w-0">
-                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">ARTISTE</span>
-                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[20px] lg:text-[28px] leading-tight group-hover:text-neon-red transition-colors drop-shadow-lg">
+                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">ARTISTE</span>
+                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[14px] lg:text-[20px] leading-tight group-hover:text-neon-red transition-colors drop-shadow-lg flex items-center gap-2">
                                                             {item.artist || '---'}
+                                                            {item.instagram && (
+                                                                <a href={item.instagram} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="p-1.5 bg-neon-purple/20 rounded-lg text-neon-purple hover:bg-neon-purple hover:text-white transition-all">
+                                                                    <Instagram className="w-3 h-3" />
+                                                                </a>
+                                                            )}
                                                         </h3>
                                                     </div>
 
                                                     {/* Stage Column */}
                                                     <div className="flex flex-col min-w-0 lg:block">
-                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
-                                                        <span className="text-[14px] font-bold text-gray-200 uppercase tracking-wider leading-none drop-shadow-md">
+                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
+                                                        <span className="text-[10px] font-bold text-gray-200 uppercase tracking-wider leading-none drop-shadow-md">
                                                             {item.stage || '---'}
                                                         </span>
                                                     </div>
 
                                                     {/* Festival Column */}
                                                     <div className="flex flex-col min-w-0 text-right lg:block">
-                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
-                                                        <span className="text-[12px] font-black text-white uppercase tracking-widest italic leading-none bg-neon-red/20 px-5 py-2.5 rounded-xl border border-neon-red/40 inline-block shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                                            {item.festival || 'DROPSIDERS LIVE'}
+                                                        <span className="text-[7px] font-black text-white/50 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
+                                                        <span className="text-[9px] font-black text-white uppercase tracking-widest italic leading-none bg-neon-red/20 px-3 py-1.5 rounded-lg border border-neon-red/40 inline-block shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                                            {item.festival || '---'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -1849,8 +1901,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                                                             <input type="text" placeholder="Heure (ex: 22:00)" value={lineupTime} onChange={e => setLineupTime(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
                                                             <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Scène (Optionnel)" value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Festival (Optionnel)" value={lineupFestival} onChange={e => setLineupFestival(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Scène" value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Événement" value={lineupFestival} onChange={e => setLineupFestival(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Instagram (Lien)" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="col-span-2 lg:col-span-4 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
                                                             <button onClick={appendLineup} className="col-span-2 lg:col-span-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black hover:bg-neon-red text-white transition-all shadow-[0_0_15px_rgba(255,0,51,0.1)] hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] active:scale-95">Ajouter au planning</button>
                                                         </div>
                                                         <textarea
@@ -2413,15 +2466,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <option value="US">🇺🇸 États-Unis</option>
                                                         <option value="OTHER">🌍 Autre</option>
                                                     </select>
-                                                    <input
-                                                        type="text"
-                                                        placeholder={`${captchaA} + ${captchaB} = ?`}
-                                                        required
-                                                        value={captchaAnswer}
-                                                        onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                        className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
-                                                    />
+                                                    {country === 'OTHER' ? (
+                                                        <input
+                                                            type="text"
+                                                            placeholder="NOM DU PAYS"
+                                                            required
+                                                            value={customCountry}
+                                                            onChange={(e) => setCustomCountry(e.target.value.toUpperCase())}
+                                                            className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                        />
+                                                    ) : (
+                                                        <input
+                                                            type="text"
+                                                            placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                            required
+                                                            value={captchaAnswer}
+                                                            onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                            className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                        />
+                                                    )}
                                                 </div>
+                                                {country === 'OTHER' && (
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        <input
+                                                            type="text"
+                                                            placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                            required
+                                                            value={captchaAnswer}
+                                                            onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                            className="bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-xs font-bold text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                        />
+                                                    </div>
+                                                )}
                                                 <label className="flex items-center gap-2 cursor-pointer group">
                                                     <input
                                                         type="checkbox"
