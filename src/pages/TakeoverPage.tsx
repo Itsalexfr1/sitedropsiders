@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Facebook, Power, Smile, Activity, HelpCircle, Lock, Pin, PinOff, Music2, Edit2, Plus, Zap, CheckCircle2 } from 'lucide-react';
-import { getAuthHeaders } from '../utils/auth';
+import { Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Facebook, Power, Smile, Activity, HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2 } from 'lucide-react';
 
 const XIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -144,8 +143,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
     const [isFocusMode, setIsFocusMode] = useState(false);
-    const [email, setEmail] = useState('');
-    const [country, setCountry] = useState(() => {
+    const [email] = useState('');
+    const [country] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return 'FR';
         return '';
@@ -172,10 +171,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
+    const [subscribeNewsletter] = useState(false);
     const [captchaA] = useState(Math.floor(Math.random() * 10) + 1);
     const [captchaB] = useState(Math.floor(Math.random() * 10) + 1);
-    const [captchaAnswer, setCaptchaAnswer] = useState('');
+    const [captchaAnswer] = useState('');
 
     const [lineupTime, setLineupTime] = useState("");
     const [lineupArtist, setLineupArtist] = useState("");
@@ -203,7 +202,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return acc;
     }, []);
     const [isSending, setIsSending] = useState(false);
-    const [userColor, setUserColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
+    const [userColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
 
     const getAuthHeaders = () => {
         const password = localStorage.getItem('admin_password') || '';
@@ -219,7 +218,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [shopProducts, setShopProducts] = useState<any[]>([]);
     const [showShopWidget, setShowShopWidget] = useState(false);
-    const [recentShazams, setRecentShazams] = useState<string[]>([]);
+    const [recentShazams] = useState<string[]>([]);
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
 
     // Dynamic Video List with Titles

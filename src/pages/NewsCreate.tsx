@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef, Fragment, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette, MapPin } from 'lucide-react';
+import {
+    ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload,
+    Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic,
+    Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram,
+    ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2,
+    Copy, AlignLeft, AlignCenter, AlignRight, Palette, MapPin
+} from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
@@ -1378,6 +1384,10 @@ export function NewsCreate() {
         if (field === 'media' && value && activeTab === 'Musique') {
             fetchMusicMetadata(id, value);
         }
+    };
+
+    const removeMusicItem = (id: string) => {
+        setMusicItems(prev => prev.filter(item => item.id !== id));
     };
 
     const renderMediaEmbed = (url: string) => {
