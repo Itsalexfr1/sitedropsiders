@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook } from 'lucide-react';
+import { Menu, X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
@@ -24,6 +24,7 @@ export function Navbar() {
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
     const [socials, setSocials] = useState((settings as any).socials || {});
+    const [takeoverEnabled, setTakeoverEnabled] = useState(settings.takeover?.enabled || false);
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
@@ -44,6 +45,7 @@ export function Navbar() {
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
                     if (data.socials) setSocials(data.socials);
+                    if (data.takeover) setTakeoverEnabled(data.takeover.enabled);
                 }
             } catch (e) {
                 // Keep default
@@ -61,6 +63,7 @@ export function Navbar() {
         { name: t('nav.team'), path: '/team' },
         { name: t('nav.contact'), path: '/contact' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
+        ...(takeoverEnabled ? [{ name: 'LIVE', path: '/live', icon: Video, isLive: true }] : []),
         ...(isAdmin ? [{ name: 'Admin', path: '/admin', icon: Shield }] : []),
     ];
 
@@ -438,7 +441,7 @@ export function Navbar() {
 }
 
 interface NavItemProps {
-    item: { name: string; path: string; icon?: any };
+    item: { name: string; path: string; icon?: any; isLive?: boolean };
     isActive: boolean;
 }
 
@@ -467,11 +470,25 @@ function NavItem({ item, isActive }: NavItemProps) {
                         : "text-gray-400 hover:text-neon-red hover:drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]"
                 )}
             >
-                <span className="relative z-10">
+                <span className="relative z-10 flex items-center gap-2">
                     {item.icon ? (
-                        <item.icon className={twMerge("w-5 h-5 transition-transform duration-300", isHovered ? "scale-110" : "")} />
+                        <div className="relative">
+                            <item.icon className={twMerge(
+                                "w-5 h-5 transition-transform duration-300",
+                                isHovered ? "scale-110" : "",
+                                item.isLive ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,0,0.6)]" : ""
+                            )} />
+                            {item.isLive && (
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
+                            )}
+                        </div>
                     ) : (
                         item.name
+                    )}
+                    {item.isLive && (
+                        <span className="text-[10px] font-black tracking-tighter text-neon-red animate-pulse">
+                            LIVE
+                        </span>
                     )}
                 </span>
 
