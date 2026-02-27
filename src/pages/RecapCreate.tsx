@@ -1462,7 +1462,7 @@ export function RecapCreate() {
                                     <input
                                         type="text"
                                         value={locationInput}
-                                        onChange={(e) => setLocationInput(e.target.value)}
+                                        onChange={(e) => setLocationInput(e.target.value.toUpperCase())}
                                         onFocus={() => locationInput.length >= 1 && setShowSuggestions(true)}
                                         placeholder="Ex: Boom"
                                         required
@@ -1504,7 +1504,7 @@ export function RecapCreate() {
                                     <input
                                         type="text"
                                         value={country}
-                                        onChange={(e) => setCountry(e.target.value)}
+                                        onChange={(e) => setCountry(e.target.value.toUpperCase())}
                                         placeholder="Ex: France"
                                         required
                                         className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
