@@ -35,7 +35,12 @@
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810925/dropsiders/images/l3rchyuzgssmltvawcio.jpg",
     "description": "Le premier festival mondial de musique électro de Miami.",
     "url": "https://ultramusicfestival.com",
-    "genre": "Big Room"
+    "genre": "Big Room",
+    "country": "",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": true
   },
   {
     "id": 4,
