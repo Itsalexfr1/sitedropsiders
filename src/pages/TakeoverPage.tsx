@@ -99,6 +99,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
     const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
     const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
+    const [localCustomCommands, setLocalCustomCommands] = useState(settings.customCommands || '');
+    const [localModerators, setLocalModerators] = useState(settings.moderators || '');
 
     // Sync with props when they change (e.g. from parent polling or settings update)
     useEffect(() => {
@@ -118,7 +120,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setLocalPinnedMessage(settings.pinnedMessage ?? '');
         setEditCurrentArtist(settings.currentArtist || '');
         setEditArtistInstagram(settings.artistInstagram || '');
-    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram]);
+        setLocalCustomCommands(settings.customCommands || '');
+        setLocalModerators(settings.moderators || '');
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist'>('general');
@@ -373,8 +377,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const adminPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
     const hasTakeoverModoPerm = adminPermissions.includes('takeover_modo') || adminPermissions.includes('all');
 
+    const adminAuth = localStorage.getItem('admin_auth') === 'true';
     const adminUser = localStorage.getItem('admin_user')?.toUpperCase() || '';
-    const isAdmin = localStorage.getItem('admin_auth') === 'true' || pseudo === 'DROPSIDERS' || pseudo === adminUser;
+    const isAdmin = adminAuth && (pseudo === 'DROPSIDERS' || pseudo === adminUser || pseudo === 'ADMIN');
     const isModo = settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(pseudo?.toUpperCase() || '') || hasTakeoverModoPerm || promotedModos.includes(pseudo.toUpperCase());
     const hasModPowers = isAdmin || isModo;
 
@@ -838,6 +843,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                     if (updates.artistInstagram !== undefined) {
                         settings.artistInstagram = updates.artistInstagram;
+                    }
+                    if (updates.customCommands !== undefined) {
+                        settings.customCommands = updates.customCommands;
+                    }
+                    if (updates.moderators !== undefined) {
+                        settings.moderators = updates.moderators;
+                    }
+                    if (updates.isSecret !== undefined) {
+                        settings.isSecret = updates.isSecret;
+                    }
+                    if (updates.password !== undefined) {
+                        settings.password = updates.password;
+                    }
+                    if (updates.customCommands !== undefined) {
+                        setLocalCustomCommands(updates.customCommands);
+                    }
+                    if (updates.moderators !== undefined) {
+                        setLocalModerators(updates.moderators);
                     }
                     // Update the settings object reference if possible, though local states are safer here
                 }
@@ -1874,7 +1897,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            {settings.moderators?.split(',').filter(m => m.trim()).map(mod => (
+                                                            {localModerators?.split(',').filter(m => m.trim()).map(mod => (
                                                                 <div key={mod} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 group hover:border-white/20 transition-all">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} title={isUserOnline(mod.trim()) ? "En ligne" : "Hors ligne"} />
@@ -1888,7 +1911,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </button>
                                                                 </div>
                                                             ))}
-                                                            {!settings.moderators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
+                                                            {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -1969,7 +1992,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         </td>
                                                                     </tr>
                                                                     {/* Custom Commands List */}
-                                                                    {(settings.customCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
+                                                                    {(localCustomCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
                                                                         const [trigger, ...rest] = line.split(':').map(s => s.trim());
                                                                         const response = rest.join(':');
                                                                         return (
@@ -2133,58 +2156,60 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {/* Chat Section */}
                 <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                     {/* Glossy Header */}
-                    <div className="p-4 lg:p-7 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                <MessageSquare className="w-5 h-5 text-neon-red" />
-                            </div>
-                            <div className="flex flex-col">
-                                <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
-                                    Chat en direct
-                                    {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">Mode Lent</span>}
-                                </h2>
-                                <p className="text-[12px] lg:text-[14px] text-neon-cyan font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_5px_rgba(0,255,255,0.8)]" />
-                                    {viewersCount > 0 ? `${viewersCount} SPECTATEURS` : `${activeUsers.length || '1'} SPECTATEURS`}
-                                </p>
-                            </div>
-                        </div>
-                        {hasModPowers && (
-                            <div className="flex items-center gap-2">
-                                <button
-                                    onClick={() => setShowShopWidget(!showShopWidget)}
-                                    className={`p-2.5 rounded-xl transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                    title="Shop"
-                                >
-                                    <Globe className="w-4 h-4" />
-                                </button>
-                                <button
-                                    onClick={() => setShowSlowModePopup(!showSlowModePopup)}
-                                    className={`p-2.5 rounded-xl transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                    title="Mode Lent"
-                                >
-                                    <Clock className="w-4 h-4" />
-                                </button>
-                            </div>
-                        )}
-                        {showSlowModePopup && (
-                            <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
-                                <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                </h3>
-                                <input
-                                    type="number"
-                                    value={slowModeDuration}
-                                    onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
-                                    className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
-                                />
-                                <div className="flex gap-2">
-                                    <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
-                                    <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
+                    {!isFocusMode && (
+                        <div className="p-4 lg:p-7 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                    <MessageSquare className="w-5 h-5 text-neon-red" />
+                                </div>
+                                <div className="flex flex-col">
+                                    <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
+                                        Chat en direct
+                                        {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">Mode Lent</span>}
+                                    </h2>
+                                    <p className="text-[12px] lg:text-[14px] text-neon-cyan font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_5px_rgba(0,255,255,0.8)]" />
+                                        {viewersCount > 0 ? `${viewersCount} SPECTATEURS` : `${activeUsers.length || '1'} SPECTATEURS`}
+                                    </p>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                            {hasModPowers && (
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setShowShopWidget(!showShopWidget)}
+                                        className={`p-2.5 rounded-xl transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                        title="Shop"
+                                    >
+                                        <Globe className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                        onClick={() => setShowSlowModePopup(!showSlowModePopup)}
+                                        className={`p-2.5 rounded-xl transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                        title="Mode Lent"
+                                    >
+                                        <Clock className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )}
+                            {showSlowModePopup && (
+                                <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
+                                    <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                        <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                    </h3>
+                                    <input
+                                        type="number"
+                                        value={slowModeDuration}
+                                        onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
+                                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
+                                    />
+                                    <div className="flex gap-2">
+                                        <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
+                                        <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* Shop Widget Overhead */}
                     <AnimatePresence>
@@ -2248,7 +2273,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 {/* Chat Messages - ALWAYS VISIBLE */}
                                 <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                     {/* Pinned Message */}
-                                    {localPinnedMessage && (
+                                    {localPinnedMessage && !isFocusMode && (
                                         <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
                                             <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
                                             <div className="flex items-start gap-2.5">
