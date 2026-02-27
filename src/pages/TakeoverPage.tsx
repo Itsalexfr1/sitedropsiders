@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Video, Maximize2, Minimize2, Share2, Instagram, Music2, Facebook, Twitter } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Video, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
