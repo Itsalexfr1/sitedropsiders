@@ -194,8 +194,8 @@
   {
     "id": 9,
     "title": "Récap : John Summit présente Experts Only au Hï Ibiza !",
-    "date": "2026-02-27T00:43",
-    "summary": "Récap : John Summit présente Experts Only au Hï Ibiza ! ",
+    "date": "2026-02-27T02:57",
+    "summary": "Récap : John Summit présente Experts Only au Hï Ibiza ! Ultime date \"Experts Only\" au Hï Ibiza : John Summit a offert une nuit irréelle Pour la dernière date de son label Experts Only au mythique Hï I...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810481/dropsiders/images/fe8rk93r9kcidtibitpk.png",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810484/dropsiders/images/qip7hqjvgrhivt0wcsoj.png",
@@ -212,8 +212,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Ibiza",
+    "isFeatured": false,
+    "country": "Espagne",
+    "showVideo": false,
+    "year": "2025"
   },
   {
     "id": 10,
