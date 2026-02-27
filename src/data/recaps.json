@@ -75,8 +75,8 @@
   {
     "id": 4,
     "title": "Récap : Tomorrowland 2025",
-    "date": "2026-02-27T00:28",
-    "summary": "Récap : Tomorrowland 2025  Tomorrowland 2025 Week-end 2 : Magie et émotions pour un final inoubliable ! Après un premier week-end marqué par un incident inattend...",
+    "date": "2026-02-27T03:01",
+    "summary": "Tomorrowland 2025 Week-end 2 : Magie et émotions pour un final inoubliable ! Après un premier week-end marqué par un incident inattendu, Tomorrowland a su prouver une nouvelle fois sa force d'organisa...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810447/dropsiders/images/qlm63bxdf9l3klo1m5of.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772148387/dropsiders/vak8l3yajjgwza3merci.avif",
@@ -85,14 +85,17 @@
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772148498/dropsiders/egci28ip8fwal7j6vxaz.avif",
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772148541/dropsiders/ri8pb4ipsvlrdribyeeh.avif"
     ],
-    "youtubeId": "",
+    "youtubeId": "ryIz5jiT6Pc",
     "link": "https://www.dropsiders.fr/recaps/2630431_recap-tomorrowland-2025",
     "category": "Recaps",
     "content": "",
     "author": "Alex",
-    "festival": "",
+    "festival": "Tomorrowland",
     "location": "Boom",
-    "isFeatured": false
+    "isFeatured": false,
+    "country": "Belgique",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 5,
