@@ -894,9 +894,9 @@ export function RecapCreate() {
             return;
         }
 
-        if (!coverImage || !locationInput || !country) {
+        if (!coverImage || !locationInput || !country || !year) {
             setStatus('error');
-            setMessage('Veuillez ajouter une image de couverture, un lieu et un pays.');
+            setMessage('Veuillez ajouter une image de couverture, un lieu, un pays et l\'année.');
             return;
         }
 
@@ -1269,7 +1269,7 @@ export function RecapCreate() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année (Opt)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
@@ -1280,6 +1280,7 @@ export function RecapCreate() {
                                         min="2000"
                                         max="2100"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                        required
                                     />
                                 </div>
                             </div>
