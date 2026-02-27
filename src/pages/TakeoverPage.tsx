@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
     Pencil, List, Maximize2, Minimize2, Instagram, Facebook, Power, Smile, Activity,
-    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2, ArrowRight
+    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2
 } from 'lucide-react';
 
 const XIcon = (props: any) => (
@@ -100,8 +100,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
     });
 
-    // Local copy of pinned message for immediate UI update
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
+    const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
+    const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
 
     // Sync with props when they change (e.g. from parent polling or settings update)
     useEffect(() => {
@@ -119,10 +120,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setShowTopBanner(settings.showTopBanner ?? true);
         setShowTickerBanner(settings.showTickerBanner ?? true);
         setLocalPinnedMessage(settings.pinnedMessage ?? '');
-    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage]);
+        setEditCurrentArtist(settings.currentArtist || '');
+        setEditArtistInstagram(settings.artistInstagram || '');
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation'>('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist'>('general');
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
     const [pollQuestion, setPollQuestion] = useState('');
@@ -1484,6 +1487,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'ticker' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
+                                                onClick={() => setActiveSettingsTab('artist')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'artist' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Artiste
+                                                {activeSettingsTab === 'artist' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
                                                 onClick={() => setActiveSettingsTab('moderation')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
@@ -1584,29 +1594,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     placeholder="ex: https://youtube.com/watch?v=..."
                                                                 />
                                                             </div>
-
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1 flex items-center gap-1.5"><Music2 className="w-2.5 h-2.5" /> ARTISTE EN COURS</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={settings.currentArtist || ''}
-                                                                        onChange={(e) => handleUpdateSettings({ currentArtist: e.target.value })}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="NOM DE L'ARTISTE..."
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1 flex items-center gap-1.5"><Instagram className="w-2.5 h-2.5" /> LIEN INSTAGRAM</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={settings.artistInstagram || ''}
-                                                                        onChange={(e) => handleUpdateSettings({ artistInstagram: e.target.value })}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="https://instagram.com/..."
-                                                                    />
-                                                                </div>
-                                                            </div>
                                                         </div>
                                                         <div className="space-y-1.5">
                                                             <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
@@ -1701,6 +1688,49 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                             </div>
                                                         )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {activeSettingsTab === 'artist' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <div className="p-2 bg-neon-purple/10 rounded-xl">
+                                                                <Music2 className="w-4 h-4 text-neon-purple" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Infos <span className="text-neon-purple">Artiste</span></h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1.5">NOM DE L'ARTISTE</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editCurrentArtist}
+                                                                    onChange={(e) => setEditCurrentArtist(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl p-4 text-xs font-bold text-white outline-none focus:border-neon-purple transition-all"
+                                                                    placeholder="L'artiste qui joue actuellement..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1.5">LIEN INSTAGRAM</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editArtistInstagram}
+                                                                    onChange={(e) => setEditArtistInstagram(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl p-4 text-xs font-bold text-white outline-none focus:border-neon-purple transition-all"
+                                                                    placeholder="https://instagram.com/..."
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-4 bg-neon-purple/5 border border-neon-purple/10 rounded-2xl mt-4">
+                                                            <p className="text-[10px] text-neon-purple font-bold uppercase tracking-widest flex items-center gap-2">
+                                                                <Activity className="w-3.5 h-3.5" /> Note
+                                                            </p>
+                                                            <p className="text-[9px] text-gray-400 mt-1 uppercase leading-relaxed font-medium">
+                                                                Le nom de l'artiste s'affichera dans le bandeau supérieur du live avec un lien direct vers son profil Instagram.
+                                                            </p>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
@@ -2079,6 +2109,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         tickerLink,
                                                         showTopBanner,
                                                         showTickerBanner,
+                                                        currentArtist: editCurrentArtist,
+                                                        artistInstagram: editArtistInstagram,
                                                         chat_enabled: true
                                                     });
                                                 }}
