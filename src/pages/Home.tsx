@@ -8,11 +8,13 @@ import { TikTokWidget } from '../components/widgets/TikTokWidget';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { RecapWidget } from '../components/widgets/RecapWidget';
 import { InterviewWidget } from '../components/widgets/InterviewWidget';
+import { TakeoverPage } from './TakeoverPage';
 import layoutData from '../data/home_layout.json';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
     const [socials, setSocials] = useState<any>(null);
+    const [takeover, setTakeover] = useState<any>(null);
 
     useEffect(() => {
         const fetchLayout = async () => {
@@ -33,6 +35,7 @@ export function Home() {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.socials) setSocials(data.socials);
+                    if (data.takeover) setTakeover(data.takeover);
                 }
             } catch (err) {
                 console.error('Failed to fetch settings', err);
@@ -78,15 +81,14 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : columns.replace('_', ' ')) : '1fr',
-                                height: window.innerWidth > 1024 ? '750px' : 'auto'
+                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : columns.replace('_', ' ')) : '1fr'
                             }}
                         >
-                            <div className="h-full overflow-hidden">
+                            <div className="">
                                 <RecapWidget accentColor={accentColor} resolvedColor={color} />
                             </div>
-                            <div className="h-full overflow-hidden">
-                                <AgendaWidget maxItems={item.maxAgendaItems || 10} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
+                            <div className="">
+                                <AgendaWidget maxItems={item.maxAgendaItems || 5} accentColor={item.accentColor2 || 'red'} resolvedColor={resolveColor(item.accentColor2 || 'red')} />
                             </div>
                         </div>
                     </section>
@@ -136,6 +138,10 @@ export function Home() {
                 return null;
         }
     };
+
+    if (takeover?.enabled) {
+        return <TakeoverPage settings={takeover} />;
+    }
 
     return (
         <div className="space-y-8 pb-12">

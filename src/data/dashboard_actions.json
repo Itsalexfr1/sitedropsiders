@@ -141,5 +141,14 @@
     "baseColor": "#d24b4b",
     "permission": "all",
     "columns": 2
+  },
+  {
+    "title": "LIVE / TAKEOVER",
+    "description": "Prendre le contrôle du site",
+    "icon": "Youtube",
+    "link": "#",
+    "baseColor": "#ff0000",
+    "permission": "superadmin",
+    "columns": 2
   }
 ]

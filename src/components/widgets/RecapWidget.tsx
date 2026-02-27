@@ -16,7 +16,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
         const today = new Date().toISOString().split('T')[0];
         return (recapsData as any[])
             .filter(item => (item.date || '').substring(0, 10) <= today)
-            .slice(0, 12);
+            .slice(0, 8);
     }, []);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});

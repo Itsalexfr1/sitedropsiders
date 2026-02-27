@@ -48,6 +48,14 @@ export function AdminDashboard() {
         link: ''
     });
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
+    const [isTakeoverModalOpen, setIsTakeoverModalOpen] = useState(false);
+    const [takeoverState, setTakeoverState] = useState({
+        enabled: false,
+        youtubeId: '',
+        chat_enabled: true,
+        title: 'LIVE TAKEOVER'
+    });
+    const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const navigate = useNavigate();
 
     // Selection Interviews pour l'accueil
@@ -170,8 +178,45 @@ export function AdminDashboard() {
                     size: data.announcement_banner?.size || 'medium',
                     link: data.announcement_banner?.link || ''
                 });
+                if (data.takeover) {
+                    setTakeoverState({
+                        enabled: data.takeover.enabled || false,
+                        youtubeId: data.takeover.youtubeId || '',
+                        chat_enabled: data.takeover.chat_enabled !== false,
+                        title: data.takeover.title || 'LIVE TAKEOVER'
+                    });
+                }
             }
         } catch (e) { }
+    };
+
+    const saveTakeoverSettings = async () => {
+        setIsUpdatingTakeover(true);
+        try {
+            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
+            const data = res.ok ? await res.json() : {};
+
+            const newSettings = {
+                ...data,
+                takeover: {
+                    ...takeoverState
+                }
+            };
+
+            const saveRes = await apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(newSettings)
+            });
+
+            if (saveRes.ok) {
+                setIsTakeoverModalOpen(false);
+            }
+        } catch (e) {
+            console.error('Failed to save takeover settings', e);
+        } finally {
+            setIsUpdatingTakeover(false);
+        }
     };
 
     const saveBannerSettings = async () => {
@@ -796,6 +841,9 @@ export function AdminDashboard() {
                                         } else if (action.title === 'Mots de passe') {
                                             e.preventDefault();
                                             setIsSettingsModalOpen(true);
+                                        } else if (action.title === 'LIVE / TAKEOVER') {
+                                            e.preventDefault();
+                                            setIsTakeoverModalOpen(true);
                                         }
                                     }}
                                     className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -2042,6 +2090,115 @@ export function AdminDashboard() {
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accès globaux</p>
                                     </div>
                                 </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* Modal Live / Takeover */}
+            <AnimatePresence>
+                {isTakeoverModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
+
+                            <div className="flex justify-between items-start mb-10">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Live <span className="text-neon-red">Takeover</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Prendre le contrôle de la page d'accueil</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsTakeoverModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-8">
+                                <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5 hover:border-white/10 transition-all">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`p-3 rounded-2xl transition-all ${takeoverState.enabled ? 'bg-neon-red/20 text-neon-red' : 'bg-gray-800 text-gray-400'}`}>
+                                            <Activity className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">La page d'accueil sera remplacée</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setTakeoverState({ ...takeoverState, enabled: !takeoverState.enabled })}
+                                        className={`w-14 h-7 rounded-full relative transition-all ${takeoverState.enabled ? 'bg-neon-red' : 'bg-gray-800'}`}
+                                    >
+                                        <div className={`absolute top-1 w-5 h-5 rounded-full bg-white transition-all ${takeoverState.enabled ? 'right-1 shadow-lg' : 'left-1'}`} />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Youtube className="w-4 h-4 text-neon-red" />
+                                        <label className="text-xs font-black text-gray-500 uppercase tracking-widest">ID ou URL Vidéo YouTube</label>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={takeoverState.youtubeId}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            let id = val;
+                                            if (val.includes('v=')) id = val.split('v=')[1].split('&')[0];
+                                            else if (val.includes('youtu.be/')) id = val.split('youtu.be/')[1].split('?')[0];
+                                            setTakeoverState({ ...takeoverState, youtubeId: id });
+                                        }}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:border-neon-red outline-none transition-all placeholder-gray-700"
+                                        placeholder="Ex: dQw4w9WgXcQ ou URL complète"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activer le Chat</span>
+                                        <button
+                                            onClick={() => setTakeoverState({ ...takeoverState, chat_enabled: !takeoverState.chat_enabled })}
+                                            className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.chat_enabled ? 'bg-neon-cyan' : 'bg-gray-800'}`}
+                                        >
+                                            <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${takeoverState.chat_enabled ? 'right-1' : 'left-1'}`} />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Titre de l'événement</label>
+                                        <input
+                                            type="text"
+                                            value={takeoverState.title}
+                                            onChange={(e) => setTakeoverState({ ...takeoverState, title: e.target.value })}
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={saveTakeoverSettings}
+                                    disabled={isUpdatingTakeover}
+                                    className="w-full py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-3xl transition-all shadow-2xl shadow-neon-red/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                                >
+                                    {isUpdatingTakeover ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            Enregistrement...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="w-5 h-5" />
+                                            Déployer le Mode Live
+                                        </>
+                                    )}
+                                </button>
                             </div>
                         </motion.div>
                     </div>

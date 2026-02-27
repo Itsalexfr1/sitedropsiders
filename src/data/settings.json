@@ -20,5 +20,11 @@
     "youtube": "dropsiders",
     "twitter": "dropsidersfr",
     "spotify": "dropsiders"
+  },
+  "takeover": {
+    "enabled": false,
+    "youtubeId": "",
+    "chat_enabled": true,
+    "title": "LIVE TAKEOVER"
   }
 }
