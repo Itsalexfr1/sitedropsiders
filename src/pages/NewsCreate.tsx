@@ -1368,6 +1368,17 @@ export function NewsCreate() {
                 if (data.title) title = data.title;
             }
 
+            // 3. Beatport Title Fetch (using Microlink as proxy to avoid CORS/Parsing)
+            else if (url.includes('beatport.com')) {
+                const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                if (data.status === 'success' && data.data.title) {
+                    // Beatport title format: Artist - Track Name (Version) [Label] | Music & Downloads on Beatport
+                    let bTitle = data.data.title.split('|')[0].trim();
+                    title = bTitle;
+                }
+            }
+
             if (title) {
                 setMusicItems(prev => prev.map(item =>
                     item.id === id ? { ...item, title: title } : item

@@ -57,6 +57,12 @@ export function AdminMessages() {
     const [festivalDates, setFestivalDates] = useState('');
     const [accreditationLang, setAccreditationLang] = useState<'FR' | 'EN'>('FR');
 
+    // Photo Accreditation States
+    const [isPhotoAccreditationMode, setIsPhotoAccreditationMode] = useState(false);
+    const [photoFirstName, setPhotoFirstName] = useState('');
+    const [photoLastName, setPhotoLastName] = useState('');
+    const [photoPortfolio, setPhotoPortfolio] = useState('');
+
     // Interview Request States
     const [isInterviewMode, setIsInterviewMode] = useState(false);
     const [djName, setDjName] = useState('');
@@ -256,6 +262,62 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
+    const getPhotoAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, firstName: string, lastName: string, portfolio: string, name: string) => {
+        if (lang === 'FR') {
+            return `Bonjour,
+
+Dropsiders est un média immersif dédié à la culture électronique et à l'univers des festivals. Dans le cadre de notre couverture éditoriale, nous souhaiterions solliciter une accréditation photo pour l'événement suivant :
+
+ÉVÉNEMENT : ${festival || '[NOM DU FESTIVAL]'}
+DATES : ${dates || '[DATES]'}
+
+Photographe délégué :
+Nom : ${lastName || '[NOM]'}
+Prénom : ${firstName || '[PRÉNOM]'}
+Portfolio : ${portfolio || '[LIEN PORTFOLIO]'}
+
+Dropsiders propose une couverture premium unique :
+- Articles avec lecteur audio IA haute fidélité.
+- Mise en avant dans notre nouvel Agenda Interactif & Boutique.
+- Reportages photos et récaps immersifs.
+- Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
+
+Découvrez nos derniers reportages : https://dropsiders.fr/recaps
+Consultez notre agenda : https://dropsiders.fr/agenda
+
+Nous serions ravis de couvrir votre événement en images et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils.
+
+Dans l'attente de votre retour,
+${name ? name + '\n' : ''}L'équipe Dropsiders.`;
+        } else {
+            return `Hello,
+
+Dropsiders is an immersive media dedicated to electronic culture and festivals. As part of our editorial coverage, we would like to request photo accreditation for the following event:
+
+EVENT: ${festival || '[FESTIVAL NAME]'}
+DATES: ${dates || '[DATES]'}
+
+Delegated Photographer:
+Last Name: ${lastName || '[LAST NAME]'}
+First Name: ${firstName || '[FIRST NAME]'}
+Portfolio: ${portfolio || '[PORTFOLIO LINK]'}
+
+Dropsiders offers a unique premium coverage:
+- Articles with high-fidelity AI audio player.
+- Featured in our new Interactive Agenda & Shop.
+- Immersive photo reports and recaps.
+- Social media promotion (Instagram, TikTok, etc.).
+
+Discover our latest recaps: https://dropsiders.fr/recaps
+Check our agenda: https://dropsiders.fr/agenda
+
+We would be delighted to cover your event in pictures and highlight it to our community using our innovative tools.
+
+Looking forward to hearing from you,
+${name ? name + '\n' : ''}The Dropsiders Team.`;
+        }
+    };
+
     const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, name: string) => {
         if (lang === 'FR') {
             return `Bonjour,
@@ -311,6 +373,14 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
             } else {
                 setMailSubject(`MEDIA ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
+        } else if (isPhotoAccreditationMode) {
+            setReplyBody(getPhotoAccreditationTemplate(accreditationLang, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, currentName));
+            const festivalPart = festivalName ? ` - ${festivalName.toUpperCase()}` : '';
+            if (accreditationLang === 'FR') {
+                setMailSubject(`DEMANDE ACCRÉDITATION PHOTO${festivalPart} - DROPSIDERS`);
+            } else {
+                setMailSubject(`PHOTO ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
+            }
         } else if (isInterviewMode) {
             setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, currentName));
             const djPart = djName ? ` - ${djName.toUpperCase()}` : '';
@@ -329,7 +399,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
             }
         }
-    }, [isAccreditationMode, isInterviewMode, festivalName, festivalDates, djName, interviewType, accreditationLang, isNewMail, signatureName]);
+    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, accreditationLang, isNewMail, signatureName]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -372,9 +442,13 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 setSignatureName('');
                                 setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
                                 setIsAccreditationMode(false);
+                                setIsPhotoAccreditationMode(false);
                                 setIsInterviewMode(false);
                                 setFestivalName('');
                                 setFestivalDates('');
+                                setPhotoFirstName('');
+                                setPhotoLastName('');
+                                setPhotoPortfolio('');
                                 setDjName('');
                                 setReplyBody(getPressReleaseTemplate('FR', ''));
                                 setReplyModal(true);
@@ -713,6 +787,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <button
                                                 onClick={() => {
                                                     setIsAccreditationMode(false);
+                                                    setIsPhotoAccreditationMode(false);
                                                     setIsInterviewMode(false);
                                                     setReplyBody(getPressReleaseTemplate(accreditationLang, signatureName));
                                                     if (accreditationLang === 'FR') {
@@ -721,13 +796,14 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                         setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
                                                     }
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Communiqué Standard
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setIsAccreditationMode(true);
+                                                    setIsPhotoAccreditationMode(false);
                                                     setIsInterviewMode(false);
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isAccreditationMode ? 'bg-neon-purple border-neon-purple text-white shadow-[0_0_15px_rgba(191,0,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
@@ -736,8 +812,19 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             </button>
                                             <button
                                                 onClick={() => {
+                                                    setIsPhotoAccreditationMode(true);
+                                                    setIsAccreditationMode(false);
+                                                    setIsInterviewMode(false);
+                                                }}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isPhotoAccreditationMode ? 'bg-neon-blue border-neon-blue text-white shadow-[0_0_15px_rgba(0,191,255,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                Accréditation Photo
+                                            </button>
+                                            <button
+                                                onClick={() => {
                                                     setIsInterviewMode(true);
                                                     setIsAccreditationMode(false);
+                                                    setIsPhotoAccreditationMode(false);
                                                 }}
                                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isInterviewMode ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
@@ -768,29 +855,62 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                         </div>
                                     )}
 
-                                    {isNewMail && (isAccreditationMode || isInterviewMode) && (
-                                        <div className={`p-4 border rounded-2xl space-y-4 ${isAccreditationMode ? 'bg-neon-purple/5 border-neon-purple/20' : 'bg-neon-red/5 border-neon-red/20'}`}>
-                                            {isAccreditationMode ? (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Festival</label>
-                                                        <input
-                                                            type="text"
-                                                            value={festivalName}
-                                                            onChange={(e) => setFestivalName(e.target.value)}
-                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-purple"
-                                                        />
+                                    {isNewMail && (isAccreditationMode || isPhotoAccreditationMode || isInterviewMode) && (
+                                        <div className={`p-4 border rounded-2xl space-y-4 ${isAccreditationMode ? 'bg-neon-purple/5 border-neon-purple/20' : isPhotoAccreditationMode ? 'bg-neon-blue/5 border-neon-blue/20' : 'bg-neon-red/5 border-neon-red/20'}`}>
+                                            {(isAccreditationMode || isPhotoAccreditationMode) ? (
+                                                <>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Festival</label>
+                                                            <input
+                                                                type="text"
+                                                                value={festivalName}
+                                                                onChange={(e) => setFestivalName(e.target.value)}
+                                                                className={`w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none ${isPhotoAccreditationMode ? 'focus:border-neon-blue' : 'focus:border-neon-purple'}`}
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Dates</label>
+                                                            <input
+                                                                type="text"
+                                                                value={festivalDates}
+                                                                onChange={(e) => setFestivalDates(e.target.value)}
+                                                                className={`w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none ${isPhotoAccreditationMode ? 'focus:border-neon-blue' : 'focus:border-neon-purple'}`}
+                                                            />
+                                                        </div>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Dates</label>
-                                                        <input
-                                                            type="text"
-                                                            value={festivalDates}
-                                                            onChange={(e) => setFestivalDates(e.target.value)}
-                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-purple"
-                                                        />
-                                                    </div>
-                                                </div>
+                                                    {isPhotoAccreditationMode && (
+                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Nom</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={photoLastName}
+                                                                    onChange={(e) => setPhotoLastName(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-blue"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Prénom</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={photoFirstName}
+                                                                    onChange={(e) => setPhotoFirstName(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-blue"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">URL Portfolio</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={photoPortfolio}
+                                                                    onChange={(e) => setPhotoPortfolio(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-blue"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </>
                                             ) : (
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                     <div className="space-y-1">

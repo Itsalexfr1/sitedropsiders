@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Facebook, Power, Smile, Activity, HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2 } from 'lucide-react';
+import {
+    Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
+    Pencil, List, Maximize2, Minimize2, Instagram, Facebook, Power, Smile, Activity,
+    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2, ArrowRight
+} from 'lucide-react';
 
 const XIcon = (props: any) => (
     <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
@@ -89,7 +93,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setEditLineup(settings.lineup || '');
         setNewVideoId(settings.youtubeId);
         setEditChannels(settings.channels || '');
-    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels]);
+        setShowTopBanner(settings.showTopBanner ?? true);
+        setShowTickerBanner(settings.showTickerBanner ?? true);
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation'>('general');
@@ -428,7 +434,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    pseudo: 'Dropsiders Bot',
+                    pseudo: 'DROPSIDERS BOT',
                     message: `👋 Bienvenue dans le chat @${pseudo.toUpperCase()} ! Profite bien du live sur ce flux ! 🔥`,
                     country: 'FR',
                     isBot: true,
@@ -518,30 +524,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
 
         if (!response) {
-            if (cmd === '!help') {
-                response = "🤖 Commandes disponibles : \n!help - Liste des commandes\n!lineup - Voir le programme\n!shop - Accéder à la boutique\n!shazam - Identifier la musique\n!news - Dernières actus\n!id - ID du live\n!vote - Comment voter";
-            } else if (cmd === '!lineup' || cmd === '!planning') {
-                const items = parseLineup(displayLineup || settings.lineup || '');
-                if (items.length > 0) {
-                    response = "📅 PROGRAMME : \n" + items.map(i => `• ${i.time} : ${i.artist}`).join('\n');
-                } else {
-                    response = "📅 Pas de planning disponible pour le moment.";
-                }
-            } else if (cmd === '!shop') {
-                response = "🛒 Retrouvez tout notre merchandising sur la boutique officielle : https://dropsiders.com/shop";
-            } else if (cmd === '!id') {
-                response = `🎥 ID Vidéo actuelle : ${newVideoId}`;
-            } else if (cmd === '!news') {
-                if (latestNews.length > 0) {
-                    response = `🗞️ DERNIÈRE MINUTE : ${latestNews[0].title} - À lire sur le site !`;
-                } else {
-                    response = "🗞️ Pas de nouvelles actus pour l'instant.";
-                }
-            } else if (cmd === '!shazam') {
-                response = "🔍 Laisse moi écouter... Ah ! C'est sûrement un banger de Dropsiders ! Appuie sur le bouton 🎵 pour une identification précise.";
-            } else if (cmd === '!vote') {
-                response = "📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)";
-            } else if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
+            // These commands are handled by the server (worker.ts) to avoid double bots
+            const serverCommands = ['!help', '!lineup', '!planning', '!shop', '!boutique', '!shazam', '!musique', '!news', '!actu', '!id'];
+            if (serverCommands.includes(cmd)) return;
+
+            if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
                 response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
             }
         }
@@ -553,7 +540,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        pseudo: 'Dropsiders Bot',
+                        pseudo: 'DROPSIDERS BOT',
                         message: response,
                         country: 'FR',
                         isBot: true,
@@ -591,7 +578,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        pseudo: 'Dropsiders Bot',
+                        pseudo: 'DROPSIDERS BOT',
                         message: `🚫 @${pseudo.toUpperCase()}, les liens ne sont autorisés que pour les modérateurs et administrateurs.`,
                         country: 'FR',
                         isBot: true,
@@ -740,7 +727,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    pseudo: 'Dropsiders Bot',
+                    pseudo: 'DROPSIDERS BOT',
                     message: `🛡️ @${name.toUpperCase()} a été promu modérateur du chat par un administrateur !`,
                     country: 'FR',
                     isBot: true,
@@ -795,10 +782,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 if (saveRes.ok) {
                     setShowEditModal(false);
+                    setShowEditModal(false);
                     setShowVideoEdit(false);
                     setDisplayTitle(updates.title || editTitle);
                     if (updates.lineup !== undefined) setDisplayLineup(updates.lineup);
                     if (updates.youtubeId) setNewVideoId(updates.youtubeId);
+                    if (updates.showTopBanner !== undefined) setShowTopBanner(updates.showTopBanner);
+                    if (updates.showTickerBanner !== undefined) setShowTickerBanner(updates.showTickerBanner);
                     // Update the settings object reference if possible, though local states are safer here
                 }
             }
@@ -870,7 +860,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const parseLineup = (text: string) => {
         if (!text) return [];
         return text.split('\n').filter(line => line.trim()).map(line => {
-            // Support formats: 
+            // Support formats:
             // 1. [22:00] Artist - Stage - Event
             // 2. 22:00 | Artist | Stage | Event
             let time = '', artist = '', stage = '', festival = '';
@@ -1139,6 +1129,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '1')}
                                 </span>
                             </div>
+
+                            {isAdmin && (
+                                <button
+                                    onClick={() => setShowEditModal(true)}
+                                    className="p-1.5 bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-neon-red transition-all hover:scale-110 active:scale-95 shadow-2xl"
+                                    title="Paramètres du Live"
+                                >
+                                    <Pencil className="w-4 h-4" />
+                                </button>
+                            )}
+
                             <button
                                 onClick={() => window.history.back()}
                                 className="p-1.5 bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-white transition-all hover:scale-110 active:scale-95 shadow-2xl"
@@ -1522,76 +1523,74 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3 mb-2">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <Youtube className="w-4 h-4 text-neon-red" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
+                                                    </div>
+                                                    <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                        <div className="flex items-center gap-3 mb-2">
+                                                            <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                <Youtube className="w-4 h-4 text-neon-red" />
                                                             </div>
-                                                            <div className="space-y-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">TITRE</label>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">TITRE</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editTitle}
+                                                                    onChange={(e) => setEditTitle(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="TITRE DU LIVE..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <input
+                                                                    type="text"
+                                                                    value={newVideoId}
+                                                                    onChange={(e) => setNewVideoId(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="ID YOUTUBE (ex: dQw4w9WgXcQ)"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Ajouter un Flux (Canal)</label>
+                                                                <div className="grid grid-cols-2 gap-2">
                                                                     <input
                                                                         type="text"
-                                                                        value={editTitle}
-                                                                        onChange={(e) => setEditTitle(e.target.value)}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="TITRE DU LIVE..."
+                                                                        value={addChannelId}
+                                                                        onChange={(e) => setAddChannelId(e.target.value)}
+                                                                        className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
+                                                                        placeholder="ID YouTube..."
                                                                     />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">ID DE LA CAM</label>
                                                                     <input
                                                                         type="text"
-                                                                        value={newVideoId}
-                                                                        onChange={(e) => setNewVideoId(e.target.value)}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="ID YOUTUBE (ex: dQw4w9WgXcQ)"
+                                                                        value={addChannelName}
+                                                                        onChange={(e) => setAddChannelName(e.target.value)}
+                                                                        className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
+                                                                        placeholder="Nom (ex: CAM 1)"
                                                                     />
                                                                 </div>
-                                                                <div className="space-y-4">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Ajouter un Flux (Canal)</label>
-                                                                    <div className="grid grid-cols-2 gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={addChannelId}
-                                                                            onChange={(e) => setAddChannelId(e.target.value)}
-                                                                            className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
-                                                                            placeholder="ID YouTube..."
-                                                                        />
-                                                                        <input
-                                                                            type="text"
-                                                                            value={addChannelName}
-                                                                            onChange={(e) => setAddChannelName(e.target.value)}
-                                                                            className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
-                                                                            placeholder="Nom (ex: CAM 1)"
-                                                                        />
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (addChannelId && addChannelName) {
-                                                                                const newEntry = `${addChannelId}:${addChannelName}`;
-                                                                                setEditChannels(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
-                                                                                setAddChannelId('');
-                                                                                setAddChannelName('');
-                                                                            }
-                                                                        }}
-                                                                        className="w-full py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[10px] font-black uppercase hover:bg-neon-red hover:text-white transition-all"
-                                                                    >
-                                                                        Ajouter le flux
-                                                                    </button>
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Configuration Multicanal (ID:Nom)</label>
-                                                                    <textarea
-                                                                        value={editChannels}
-                                                                        onChange={(e) => setEditChannels(e.target.value)}
-                                                                        className="w-full h-24 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all custom-scrollbar"
-                                                                        placeholder="dQw4w9WgXcQ:Caméra 1&#10;abcdefghijk:Caméra 2"
-                                                                    />
-                                                                </div>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        if (addChannelId && addChannelName) {
+                                                                            const newEntry = `${addChannelId}:${addChannelName}`;
+                                                                            setEditChannels(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
+                                                                            setAddChannelId('');
+                                                                            setAddChannelName('');
+                                                                        }
+                                                                    }}
+                                                                    className="w-full py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[10px] font-black uppercase hover:bg-neon-red hover:text-white transition-all"
+                                                                >
+                                                                    Ajouter le flux
+                                                                </button>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Configuration Multicanal (ID:Nom)</label>
+                                                                <textarea
+                                                                    value={editChannels}
+                                                                    onChange={(e) => setEditChannels(e.target.value)}
+                                                                    className="w-full h-24 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all custom-scrollbar"
+                                                                    placeholder="dQw4w9WgXcQ:Caméra 1&#10;abcdefghijk:Caméra 2"
+                                                                />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -2026,22 +2025,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <button
                                     onClick={() => setShowShopWidget(!showShopWidget)}
                                     className={`p-2.5 rounded-xl transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                    title="Shop"
                                 >
                                     <Globe className="w-4 h-4" />
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        if (isSlowMode) setIsSlowMode(false);
-                                        else setShowSlowModePopup(true);
-                                    }}
-                                    className={`p-2.5 rounded-xl transition-all relative ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                    onClick={() => setShowSlowModePopup(!showSlowModePopup)}
+                                    className={`p-2.5 rounded-xl transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                    title="Mode Lent"
                                 >
                                     <Clock className="w-4 h-4" />
                                 </button>
                             </div>
                         )}
                         {showSlowModePopup && (
-                            <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-50">
+                            <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
                                 <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
                                     <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
                                 </h3>
@@ -2068,16 +2066,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 exit={{ height: 0, opacity: 0 }}
                                 className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
                             >
-                                <div className="p-4 flex gap-4 overflow-x-auto no-scrollbar scroll-smooth">
-                                    {shopProducts.map(p => (
-                                        <a key={p.id} href={p.url || '/shop'} target="_blank" className="flex-shrink-0 w-32 bg-white/5 border border-white/10 rounded-xl p-2 group hover:border-neon-red/50 transition-all">
-                                            <div className="aspect-square rounded-lg overflow-hidden mb-2 relative">
-                                                <img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                <span className="absolute bottom-1 right-1 text-[8px] font-black text-white bg-neon-red px-1.5 py-0.5 rounded shadow-lg">{p.price}€</span>
-                                            </div>
-                                            <p className="text-[8px] font-black text-white uppercase tracking-widest truncate">{p.name}</p>
-                                        </a>
-                                    ))}
+                                <div className="relative group px-1">
+                                    <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                    <div className="max-h-[320px] overflow-hidden relative">
+                                        <div className="flex flex-col gap-2 animate-shop-scroll">
+                                            {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts] : []).map((product, i) => (
+                                                <a
+                                                    key={`${product.id}-${i}`}
+                                                    href={product.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-3 p-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95"
+                                                >
+                                                    <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden relative">
+                                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
+                                                        <span className="absolute bottom-0.5 right-0.5 text-[7px] font-black text-white bg-neon-red px-1 py-0.5 rounded shadow-lg">{product.price}€</span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <p className="text-[9px] font-black text-white uppercase tracking-widest leading-tight">{product.name}</p>
+                                                        <p className="text-[8px] text-gray-400 uppercase tracking-widest mt-0.5">{product.description}</p>
+                                                    </div>
+                                                    <div className="p-1.5 bg-neon-cyan/10 rounded-full text-neon-cyan shrink-0">
+                                                        <ArrowRight className="w-3 h-3" />
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             </motion.div>
                         )}
@@ -2106,18 +2121,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                     {/* Pinned Message */}
                                     {settings.pinnedMessage && (
-                                        <div className="sticky top-0 z-30 mb-8 bg-neon-red/10 border border-neon-red/30 backdrop-blur-2xl rounded-2xl p-4 shadow-[0_0_30px_rgba(255,0,51,0.2)] relative overflow-hidden">
-                                            <div className="absolute top-0 left-0 w-1.5 h-full bg-neon-red" />
-                                            <div className="flex items-start gap-3">
-                                                <div className="p-2.5 bg-neon-red/20 rounded-xl">
-                                                    <Pin className="w-5 h-5 text-neon-red" />
+                                        <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
+                                            <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
+                                            <div className="flex items-start gap-2.5">
+                                                <div className="p-1.5 bg-neon-red/20 rounded-lg shrink-0">
+                                                    <Pin className="w-3 h-3 text-neon-red" />
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.2em] mb-1.5 flex items-center gap-2">
-                                                        ANNOUNCE <span className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                                    <p className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                                                        ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
                                                     </p>
-                                                    <p className="text-[13px] font-bold text-white leading-relaxed">{settings.pinnedMessage}</p>
+                                                    <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
+                                                        {settings?.pinnedMessage?.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
+                                                            part.match(/^https?:\/\//) ? (
+                                                                <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
+                                                            ) : part
+                                                        ))}
+                                                    </div>
                                                 </div>
+                                                {hasModPowers && (
+                                                    <button
+                                                        onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                        className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white opacity-0 group-hover/pin:opacity-100 transition-all"
+                                                        title="Supprimer l'annonce"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -2126,7 +2156,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         const role = getRole(msg.pseudo);
                                         const isMsgAdmin = role === 'admin';
                                         const isMsgModo = role === 'modo';
-                                        const isBot = msg.isBot || msg.pseudo === 'Dropsiders Bot';
+                                        const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
 
                                         return (
                                             <motion.div
@@ -2149,7 +2179,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                 </div>
                                                 <div className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? 'bg-neon-cyan/5 border-neon-cyan/15 text-[#00ffcc]' : isMsgAdmin ? 'bg-neon-red/5 border-neon-red/15 text-white' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}>
-                                                    <span className="relative z-10">{msg.message}</span>
+                                                    {/* Message with clickable links */}
+                                                    <span className="relative z-10">
+                                                        {(() => {
+                                                            const text = msg.message;
+                                                            if (!text) return null;
+                                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                            const parts = text.split(urlRegex);
+                                                            return parts.map((part: string, i: number) => {
+                                                                if (part.match(urlRegex)) {
+                                                                    return (
+                                                                        <a
+                                                                            key={i}
+                                                                            href={part}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {part}
+                                                                        </a>
+                                                                    );
+                                                                }
+                                                                return part;
+                                                            });
+                                                        })()}
+                                                    </span>
                                                     {hasModPowers && (isAdmin || !isMsgAdmin) && (
                                                         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
                                                             <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
@@ -2221,16 +2276,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </div>
                 </div>
 
-                {hasModPowers && (
-                    <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                        <button
-                            onClick={() => setShowUsersPanel(!showUsersPanel)}
-                            className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
-                        >
-                            <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                        </button>
-                    </div>
-                )}
+                {
+                    hasModPowers && (
+                        <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                            <button
+                                onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
+                            >
+                                <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                            </button>
+                        </div>
+                    )
+                }
 
                 <AnimatePresence>
                     {hasModPowers && showUsersPanel && (
@@ -2284,77 +2341,69 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </AnimatePresence>
             </div>
 
-            {!isFocusMode && showTickerBanner && (
-                <div
-                    className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
-                    style={{ backgroundColor: tickerBgColor }}
-                    onMouseEnter={() => {
-                        const ticker = document.getElementById('ticker-animate-container');
-                        if (ticker) ticker.style.animationPlayState = 'paused';
-                    }}
-                    onMouseLeave={() => {
-                        const ticker = document.getElementById('ticker-animate-container');
-                        if (ticker) ticker.style.animationPlayState = 'running';
-                    }}
-                >
-                    <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-                    <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+            {/* Ticker Banner */}
+            {
+                !isFocusMode && showTickerBanner && (
+                    <div
+                        className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                        style={{ backgroundColor: tickerBgColor }}
+                        onMouseEnter={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'paused';
+                        }}
+                        onMouseLeave={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'running';
+                        }}
+                    >
+                        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                    <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                        {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
-                            <a
-                                key={`${news.id}-${i}`}
-                                href={`/news/${news.id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
-                                style={{ color: tickerTextColor }}
-                            >
-                                <span className="text-[9px] font-black uppercase tracking-[0.2em] bg-black/20 px-2 py-0.5 rounded mr-3 border border-white/10">{news.category}</span>
-                                <span className="text-[11px] font-black uppercase italic tracking-tighter group-hover:underline decoration-2 underline-offset-4">{news.title}</span>
-                                <div className="w-1.5 h-1.5 rounded-full bg-white/40 ml-8 shadow-[0_0_8px_white]" />
-                            </a>
-                        ))}
-
-                        {tickerType === 'planning' && parseLineup(displayLineup).concat(parseLineup(displayLineup)).map((item, i) => (
-                            <div key={i} className="flex items-center mx-10 shrink-0" style={{ color: tickerTextColor }}>
-                                <span className="text-[10px] font-black uppercase tracking-widest mr-3 opacity-60">[{item.time?.replace(':', 'H')}]</span>
-                                <span className="text-[11px] font-black uppercase italic tracking-widest">{item.artist}</span>
-                                <span className="mx-3 text-[9px] opacity-40">•</span>
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-[#ffffff80]">{item.stage}</span>
-                                <div className="w-1.5 h-1.5 rounded-full bg-white/20 ml-10 shadow-[0_0_5px_white]" />
-                            </div>
-                        ))}
-
-                        {tickerType === 'custom' && [...Array(10)].map((_, i) => (
-                            tickerLink ? (
+                        <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                            {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
                                 <a
-                                    key={i}
-                                    href={tickerLink}
+                                    key={`${news.id}-${i}`}
+                                    href={`/news/${news.id}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform"
+                                    className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
                                     style={{ color: tickerTextColor }}
                                 >
-                                    <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
+                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
                                 </a>
-                            ) : (
-                                <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
-                                    <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                            ))}
+
+                            {tickerType === 'planning' && parseLineup(displayLineup).concat(parseLineup(displayLineup)).map((item, i) => (
+                                <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                    <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
                                     <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
                                 </div>
-                            )
-                        ))}
+                            ))}
 
-                        {tickerType === 'news' && latestNews.length === 0 && (
-                            <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
-                                CHARGEMENT DU FIL D'ACTUALITÉ...
-                            </div>
-                        )}
+                            {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
+                                tickerLink ? (
+                                    <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </a>
+                                ) : (
+                                    <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </div>
+                                )
+                            ))}
+
+                            {tickerType === 'news' && latestNews.length === 0 && (
+                                <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                    CHARGEMENT DU FIL D'ACTUALITÉ...
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Shazam Instructions Modal */}
             <AnimatePresence>
@@ -2457,11 +2506,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 )}
             </AnimatePresence>
 
-
             <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 80s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
+                @keyframes shop-scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
+                .animate-shop-scroll { animation: shop-scroll 25s linear infinite; }
+                .animate-shop-scroll:hover { animation-play-state: paused; }
                 @keyframes glow { 0%, 100% { border-color: rgba(255, 0, 0, 0.3); } 50% { border-color: rgba(255, 0, 0, 0.8); } }
                 .animate-glow { animation: glow 2s ease-in-out infinite; }
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }

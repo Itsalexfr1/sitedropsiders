@@ -656,7 +656,7 @@ export default {
             const botResponse = async (text) => {
                 const botMsg = {
                     id: Date.now() + 1,
-                    pseudo: 'DS-BOT',
+                    pseudo: 'DROPSIDERS BOT',
                     country: 'FR',
                     message: text,
                     color: '#00ffcc', // Cyberpunk Mint
@@ -669,7 +669,9 @@ export default {
             const cmd = message.trim().toLowerCase();
             if (cmd.startsWith('!')) {
                 if (cmd === '!help' || cmd === '!commands') {
-                    await botResponse('🤖 Liste des commandes : !lineup, !shop, !shazam, !news, !id');
+                    await botResponse('🤖 Liste des commandes : !lineup, !shop, !shazam, !news, !id, !vote');
+                } else if (cmd === '!vote') {
+                    await botResponse('📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)');
                 } else if (cmd === '!lineup' || cmd === '!planning') {
                     const settingsFile = await fetchGitHubFile('src/data/settings.json');
                     const lineup = settingsFile?.content?.takeover?.lineup || 'Aucun planning configuré.';
