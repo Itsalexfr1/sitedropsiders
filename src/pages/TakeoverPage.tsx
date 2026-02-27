@@ -121,6 +121,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [lineupFestival, setLineupFestival] = useState("");
 
     const [isSlowMode, setIsSlowMode] = useState(false);
+    const [activePoll, setActivePoll] = useState<{ question: string, options: string[], id: number } | null>(null);
+    const [shazamLoading, setShazamLoading] = useState(false);
+
     const [slowModeDuration, setSlowModeDuration] = useState(10);
     const [lastMessageTime, setLastMessageTime] = useState(0);
 
@@ -152,6 +155,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .then(data => {
                     if (Array.isArray(data)) {
                         setMessages(data);
+
+                        // Detect poll from dropsiders
+                        const latestPollMsg = [...data].reverse().find(m => m.pseudo === 'DROPSIDERS' && m.message.startsWith('📊 SONDAGE :'));
+                        if (latestPollMsg) {
+                            const lines = latestPollMsg.message.split('\n');
+                            const question = lines[0].replace('📊 SONDAGE : ', '').trim();
+                            const options = lines.slice(1).filter((l: string) => /^\d+\./.test(l)).map((l: string) => l.replace(/^\d+\.\s*/, '').trim());
+                            if (activePoll?.id !== latestPollMsg.id) {
+                                setActivePoll({ question, options, id: latestPollMsg.id });
+                            }
+                        } else {
+                            setActivePoll(null);
+                        }
+
                         // Auto-scroll
                         const chatContainer = document.getElementById('chat-messages');
                         if (chatContainer) {
@@ -599,13 +616,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-3 lg:px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto">
-                        <Users className="w-3 h-3 lg:w-4 lg:h-4 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
+                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto">
+                        <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
                         <div className="flex flex-col">
-                            <span className="text-[9px] lg:text-[10px] font-black text-white uppercase tracking-widest leading-none">
+                            <span className="text-[8px] font-black text-white uppercase tracking-widest leading-none">
                                 {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
                             </span>
-                            <span className="text-[6px] lg:text-[7px] font-bold text-gray-500 uppercase tracking-tighter leading-none mt-0.5">Direct</span>
                         </div>
                     </div>
                 </div>
@@ -622,6 +638,44 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         ></iframe>
+
+                        {/* Active Poll Overlay */}
+                        <AnimatePresence>
+                            {activePoll && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -20 }}
+                                    className="absolute bottom-24 lg:bottom-16 left-4 lg:left-8 z-30 w-[250px] lg:w-[320px] bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl"
+                                >
+                                    <h3 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-widest mb-3 flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                        Sondage en cours
+                                    </h3>
+                                    <p className="text-[11px] font-bold text-white mb-4">{activePoll.question}</p>
+                                    <div className="space-y-2">
+                                        {activePoll.options.map((opt, i) => {
+                                            // Calculate generic votes if actual votes aren't tracked
+                                            // Mock real-time results for preview (based on chat message parsing if we had it, using random for mock visual)
+                                            const totalVotes = messages.filter(m => /^[0-9]+$/.test(m.message.trim())).length;
+                                            const optVotes = messages.filter(m => m.message.trim() === String(i + 1)).length;
+                                            const percentage = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+
+                                            return (
+                                                <div key={i} className="relative h-7 bg-white/5 rounded-lg overflow-hidden flex items-center px-3 border border-white/5">
+                                                    <div className="absolute left-0 top-0 bottom-0 bg-neon-red/30 transition-all duration-500" style={{ width: `${percentage}%` }} />
+                                                    <span className="relative z-10 text-[9px] font-bold text-white uppercase tracking-widest flex items-center gap-2">
+                                                        <span className="text-gray-500">{i + 1}.</span> {opt}
+                                                    </span>
+                                                    <span className="relative z-10 text-[9px] font-black text-neon-red ml-auto">{percentage}%</span>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                    <p className="text-[7px] text-gray-400 uppercase tracking-widest mt-3 text-center">Répondez avec le chiffre - Ex: 1</p>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Mini Planning Widget (Bottom Right) */}
                         <AnimatePresence>
@@ -1243,8 +1297,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                 </div>
                                                                 <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
-                                                                    <span className="relative z-10 font-medium">{msg.message}</span>
-                                                                    {hasModPowers && !isMsgAdmin && (
+                                                                    <span className="relative z-10 font-medium whitespace-pre-wrap">{msg.message}</span>
+                                                                    {(isAdmin || (isModo && !isMsgAdmin)) && (
                                                                         <button
                                                                             onClick={() => handleDelete(msg.id)}
                                                                             className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0 self-center"
@@ -1274,20 +1328,35 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </button>
                                                                 <button
                                                                     type="button"
-                                                                    className="p-2 rounded-lg text-gray-500 hover:text-[#0088ff] hover:bg-[#0088ff]/10 transition-all flex items-center justify-center"
+                                                                    className={`p-2 rounded-lg transition-all flex items-center justify-center ${shazamLoading ? 'bg-[#0088ff] text-white animate-pulse' : 'text-gray-500 hover:text-[#0088ff] hover:bg-[#0088ff]/10'}`}
                                                                     title="Reconnaître la musique (Shazam)"
-                                                                    onClick={() => alert("Recherche Shazam en cours...")}
+                                                                    onClick={() => {
+                                                                        if (shazamLoading) return;
+                                                                        setShazamLoading(true);
+                                                                        setTimeout(() => {
+                                                                            setShazamLoading(false);
+                                                                            // Mock finding a track
+                                                                            setNewMessage(prev => prev ? prev + ' 🎵 En train d\'écouter un banger' : '🎵 En train d\'écouter un banger');
+                                                                        }, 3000);
+                                                                    }}
                                                                 >
                                                                     <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor">
                                                                         <path d="M12 0c6.627 0 12 5.373 12 12s-5.373 12-12 12S0 18.627 0 12 5.373 0 12 0zm0 4.42c-4.185 0-7.58 3.394-7.58 7.58 0 4.186 3.395 7.58 7.58 7.58 4.186 0 7.58-3.394 7.58-7.58 0-4.185-3.394-7.58-7.58-7.58zM10.7 6.568c2.41 0 4.718 1.59 5.37 3.888L13.71 11.03c-.24-.875-1.14-1.61-2.043-1.61-.678 0-1.57.386-1.57 1.55 0 1.856 4.57 1.297 4.57 4.53 0 1.244-.724 2.926-2.97 2.926-2.742 0-4.943-1.66-5.65-4.134l2.352-.59c.29 .974 1.22 1.702 2.26 1.702.658 0 1.603-.354 1.603-1.6 0-1.845-4.57-1.275-4.57-4.552 0-1.234.752-2.69 3.015-2.69z" />
                                                                     </svg>
                                                                 </button>
                                                             </div>
+                                                            {shazamLoading && (
+                                                                <div className="absolute left-[80px] top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
+                                                                    <div className="w-1.5 h-1.5 bg-[#0088ff] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                                    <div className="w-1.5 h-1.5 bg-[#0088ff] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                                    <div className="w-1.5 h-1.5 bg-[#0088ff] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                                                </div>
+                                                            )}
                                                             <input
                                                                 type="text"
                                                                 value={newMessage}
                                                                 onChange={(e) => setNewMessage(e.target.value)}
-                                                                placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrivrez votre message..."}
+                                                                placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : (shazamLoading ? "" : "Écrivrez votre message...")}
                                                                 className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
                                                             />
                                                             <button
