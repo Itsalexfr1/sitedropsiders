@@ -158,7 +158,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         // Detect poll from dropsiders
                         const latestPollMsg = [...data].reverse().find(m => m.pseudo === 'DROPSIDERS' && m.message.startsWith('📊 SONDAGE :'));
-                        if (latestPollMsg) {
+                        const latestStopPollMsg = [...data].reverse().find(m => m.pseudo === 'DROPSIDERS' && m.message === '🛑 SONDAGE TERMINÉ');
+
+                        if (latestPollMsg && (!latestStopPollMsg || latestPollMsg.id > latestStopPollMsg.id)) {
                             const lines = latestPollMsg.message.split('\n');
                             const question = lines[0].replace('📊 SONDAGE : ', '').trim();
                             const options = lines.slice(1).filter((l: string) => /^\d+\./.test(l)).map((l: string) => l.replace(/^\d+\.\s*/, '').trim());
@@ -333,6 +335,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         });
         setPollQuestion("");
         setPollOptions(["", ""]);
+        setShowPollEditor(false);
+    };
+
+    const handleStopPoll = async () => {
+        if (!activePoll) return;
+        const password = localStorage.getItem('admin_password') || '';
+        const username = localStorage.getItem('admin_user') || 'alex';
+        const sessionId = localStorage.getItem('admin_session_id') || '';
+
+        // Optional: you can just send a flag message or delete the message
+        await fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Admin-Password': password,
+                'X-Admin-Username': username,
+                'X-Session-ID': sessionId
+            },
+            body: JSON.stringify({
+                pseudo: 'DROPSIDERS',
+                message: '🛑 SONDAGE TERMINÉ',
+                country: 'FR',
+                color: '#ff0033'
+            })
+        });
+        setActivePoll(null);
         setShowPollEditor(false);
     };
 
@@ -963,6 +991,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     ))}
                                                                 </div>
                                                                 <button onClick={handleSendPoll} className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white hover:bg-neon-red transition-all">Lancer le sondage</button>
+                                                                {activePoll && (
+                                                                    <button onClick={handleStopPoll} className="w-full py-2 bg-red-500/10 border border-red-500/20 rounded-xl text-[9px] font-black text-red-500 hover:bg-red-500 hover:text-white transition-all">Supprimer le sondage en cours</button>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
@@ -1336,7 +1367,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         setTimeout(() => {
                                                                             setShazamLoading(false);
                                                                             // Mock finding a track
-                                                                            setNewMessage(prev => prev ? prev + ' 🎵 En train d\'écouter un banger' : '🎵 En train d\'écouter un banger');
+                                                                            setNewMessage(prev => prev ? prev + ' 🎵 Titre trouvé via Shazam : ' : '🎵 Titre trouvé via Shazam : ');
                                                                         }, 3000);
                                                                     }}
                                                                 >
