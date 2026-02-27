@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Video, Maximize2, Minimize2, Share2, Instagram, Music2, Facebook, Twitter } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -8,20 +8,31 @@ interface TakeoverProps {
         chat_enabled: boolean;
         title: string;
         moderators?: string;
+        lineup?: string;
     };
 }
 
 export function TakeoverPage({ settings }: TakeoverProps) {
+    const [viewersCount, setViewersCount] = useState(0);
+    const [showLineup, setShowLineup] = useState(false);
+    const [showVideoEdit, setShowVideoEdit] = useState(false);
+    const [newVideoId, setNewVideoId] = useState(settings.youtubeId);
     const [isJoined, setIsJoined] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return true;
         return localStorage.getItem('chat_joined') === 'true';
     });
+
+    const [editTitle, setEditTitle] = useState(settings.title);
+    const [editLineup, setEditLineup] = useState(settings.lineup || '');
+    const [isSaving, setIsSaving] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [pseudo, setPseudo] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
     });
+    const [isFocusMode, setIsFocusMode] = useState(false);
     const [email, setEmail] = useState('');
     const [country, setCountry] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
@@ -117,6 +128,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         if (promotedModos.includes(name.toUpperCase())) return 'modo';
         return 'user';
     };
+
+    // Ping every 20s to count real viewers
+    useEffect(() => {
+        const pingId = isJoined ? pseudo.toUpperCase() : ('anon-' + Math.random().toString(36).substr(2, 6));
+        const doPing = () => {
+            fetch('/api/chat/ping', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pseudo: pingId })
+            })
+                .then(r => r.ok ? r.json() : null)
+                .then(data => { if (data?.count !== undefined) setViewersCount(data.count); })
+                .catch(() => { });
+        };
+        doPing();
+        const interval = setInterval(doPing, 20000);
+        return () => clearInterval(interval);
+    }, [isJoined, pseudo]);
 
     useEffect(() => {
         // Fetch Latest News
@@ -254,43 +283,291 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return a.pseudo.localeCompare(b.pseudo);
         });
 
-    return (
-        <div className="flex flex-col flex-1 h-[calc(100dvh-80px)] md:h-[calc(100dvh-112px)] bg-black overflow-hidden relative">
-            {/* Live Banner Header */}
-            <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full">
-                        <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                        <span className="text-xs font-black text-red-500 uppercase tracking-widest">EN DIRECT</span>
-                    </div>
-                    <div className="w-px h-5 bg-white/20" />
-                    <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-widest">
-                        {settings.title}
-                    </h1>
-                </div>
-                <div className="hidden md:flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0">
-                    <Users className="w-4 h-4 text-neon-red" />
-                    <span className="text-xs font-black text-white uppercase tracking-widest">{allActiveUsers.length.toLocaleString('fr-FR')} Spectateurs</span>
-                </div>
-            </div>
+    const handleUpdateSettings = async (updates: Partial<TakeoverProps['settings']>) => {
+        setIsSaving(true);
+        try {
+            // First get full current settings
+            const res = await fetch('/api/settings');
+            if (res.ok) {
+                const currentSettings = await res.json();
+                const newSettings = {
+                    ...currentSettings,
+                    takeover: {
+                        ...currentSettings.takeover,
+                        ...updates
+                    }
+                };
 
-            <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black">
+                const saveRes = await fetch('/api/settings/update', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(newSettings)
+                });
+
+                if (saveRes.ok) {
+                    setShowEditModal(false);
+                    setShowVideoEdit(false);
+                    // On pourrait recharger la page ou mettre à jour un contexte global, 
+                    // ici on rafraîchit simplement l'état local pour le feedback immédiat
+                    if (updates.youtubeId) setNewVideoId(updates.youtubeId);
+                }
+            }
+        } catch (err) {
+            console.error('Failed to update settings', err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleShare = (platform: 'x' | 'fb') => {
+        const url = encodeURIComponent(window.location.href);
+        const text = encodeURIComponent(`Je regarde ${editTitle} sur Dropsiders ! 🚀`);
+        if (platform === 'x') window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+        else window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    };
+
+    return (
+        <div className={`fixed ${isFocusMode ? 'top-0' : 'top-20'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
+            {/* Live Banner Header */}
+            {!isFocusMode && (
+                <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
+                            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                            <span className="text-xs font-black text-red-500 uppercase tracking-widest">EN DIRECT</span>
+                        </div>
+                        <div className="w-px h-5 bg-white/20 hidden sm:block" />
+                        <h1 className="text-lg md:text-2xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
+                            {editTitle}
+                        </h1>
+                        {isAdmin && (
+                            <button
+                                onClick={() => setShowEditModal(true)}
+                                className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all shrink-0"
+                                title="Modifier le Live"
+                            >
+                                <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md">
+                        <Users className="w-4 h-4 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
+                        <div className="flex flex-col">
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">
+                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length || '...'}
+                            </span>
+                            <span className="text-[7px] font-bold text-gray-500 uppercase tracking-tighter leading-none mt-0.5">Spectateurs</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
                 {/* Video Section */}
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10">
                     <div className="w-full aspect-video lg:aspect-auto lg:h-full bg-black">
                         <iframe
                             className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1`}
+                            src={`https://www.youtube.com/embed/${newVideoId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1`}
                             title={settings.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                         ></iframe>
+
+                        {/* Line Up overlay */}
+                        <AnimatePresence>
+                            {showLineup && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-black/70 backdrop-blur-sm z-20 flex flex-col justify-center items-center p-8"
+                                    onClick={() => setShowLineup(false)}
+                                >
+                                    <div className="w-full max-w-md bg-black/30 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30">
+                                                    <List className="w-6 h-6 text-neon-red" />
+                                                </div>
+                                                <h2 className="text-2xl font-black text-white uppercase italic tracking-widest">
+                                                    Line Up
+                                                </h2>
+                                            </div>
+                                            <button onClick={() => setShowLineup(false)} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all">
+                                                <X className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                        <div className="space-y-4 text-white font-bold text-base uppercase tracking-widest leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-4 scrollbar-hide">
+                                            {editLineup || settings.lineup || 'Programme à venir...'}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Admin: Change Video popover */}
+                        <AnimatePresence>
+                            {showVideoEdit && isAdmin && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 10 }}
+                                    className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-[#111] border border-white/20 rounded-2xl p-4 shadow-2xl w-80"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">YouTube ID ou URL</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={newVideoId}
+                                            onChange={e => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
+                                            placeholder="dQw4w9WgXcQ"
+                                            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-neon-red outline-none"
+                                            autoFocus
+                                        />
+                                        <button
+                                            onClick={() => handleUpdateSettings({ youtubeId: newVideoId })}
+                                            disabled={isSaving}
+                                            className="px-4 py-2 bg-neon-red text-white rounded-xl text-xs font-black hover:bg-neon-red/80 transition-all disabled:opacity-50"
+                                        >
+                                            {isSaving ? '...' : 'OK'}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Floating action buttons on video */}
+                        <div className="absolute bottom-4 left-4 flex items-center gap-2 z-20">
+                            {settings.lineup && (
+                                <button
+                                    onClick={() => setShowLineup(v => !v)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all shadow-lg backdrop-blur-md ${showLineup
+                                        ? 'bg-neon-red/80 border-neon-red text-white'
+                                        : 'bg-black/60 border-white/20 text-white hover:bg-white/10'
+                                        }`}
+                                >
+                                    <List className="w-3.5 h-3.5" />
+                                    Line Up
+                                </button>
+                            )}
+                            {isAdmin && (
+                                <button
+                                    onClick={() => setShowVideoEdit(v => !v)}
+                                    className="flex items-center gap-2 px-3 py-2 bg-black/60 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-lg"
+                                    title="Changer la vidéo"
+                                >
+                                    <Video className="w-3.5 h-3.5 text-neon-red" />
+                                    Changer
+                                </button>
+                            )}
+                            <div className="flex items-center gap-1 bg-black/60 border border-white/20 rounded-xl p-1 backdrop-blur-md shadow-lg">
+                                <button
+                                    onClick={() => handleShare('x')}
+                                    className="p-1 px-2 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                    title="Partager sur X"
+                                >
+                                    <Twitter className="w-3 h-3" />
+                                    <span className="hidden sm:inline">X</span>
+                                </button>
+                                <div className="w-px h-3 bg-white/20" />
+                                <button
+                                    onClick={() => handleShare('fb')}
+                                    className="p-1 px-2 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                    title="Partager sur Facebook"
+                                >
+                                    <Facebook className="w-3 h-3" />
+                                    <span className="hidden sm:inline">FB</span>
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => setIsFocusMode(!isFocusMode)}
+                                className="flex items-center gap-2 px-3 py-2 bg-black/60 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-lg"
+                                title={isFocusMode ? "Quitter le mode Focus" : "Mode Focus (Plein Écran)"}
+                            >
+                                {isFocusMode ? <Minimize2 className="w-3.5 h-3.5 text-neon-red" /> : <Maximize2 className="w-3.5 h-3.5 text-neon-red" />}
+                                {isFocusMode ? "Quitter" : "Focus"}
+                            </button>
+                        </div>
+
+                        {/* Full Edit Modal Layer */}
+                        <AnimatePresence>
+                            {showEditModal && isAdmin && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-10 flex flex-col items-center justify-center overflow-y-auto"
+                                    onClick={() => setShowEditModal(false)}
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0.9, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className="w-full max-w-xl space-y-8"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">LIVE</span></h2>
+                                            <button onClick={() => setShowEditModal(false)} className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors">
+                                                <X className="w-6 h-6 text-white" />
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Titre de l'émission</label>
+                                                <input
+                                                    type="text"
+                                                    value={editTitle}
+                                                    onChange={e => setEditTitle(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all"
+                                                    placeholder="Titre du Live"
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Line Up / Programme (Verrine séparée)</label>
+                                                <textarea
+                                                    value={editLineup}
+                                                    onChange={e => setEditLineup(e.target.value)}
+                                                    rows={5}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all resize-none"
+                                                    placeholder="20:00 - DJ SET&#10;21:30 - INTERVIEW..."
+                                                />
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ID Vidéo YouTube</label>
+                                                <input
+                                                    type="text"
+                                                    value={newVideoId}
+                                                    onChange={e => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all"
+                                                    placeholder="L'ID après v="
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6">
+                                            <button
+                                                onClick={() => handleUpdateSettings({ title: editTitle, lineup: editLineup, youtubeId: newVideoId })}
+                                                disabled={isSaving}
+                                                className="w-full py-5 bg-neon-red text-white text-xs font-black uppercase tracking-[0.4em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-[0.98] disabled:opacity-50"
+                                            >
+                                                {isSaving ? 'SAUVEGARDE...' : 'Mettre à jour les paramètres'}
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
                 </div>
 
                 {/* Chat Section */}
                 {settings.chat_enabled && (
-                    <div className="flex-1 lg:w-[380px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20">
+                    <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20 border-l border-white/10">
                         {/* Glossy Header */}
                         <div className="p-4 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
                             <div className="flex items-center gap-3">
@@ -579,32 +856,62 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 )}
             </div>
 
-            {/* Scrolling News Ticker */}
-            <div className="w-full bg-neon-red h-10 shrink-0 flex items-center overflow-hidden border-t border-red-500/50 relative z-30">
-                <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-neon-red to-transparent z-10 pointer-events-none" />
-                <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-neon-red to-transparent z-10 pointer-events-none" />
-
-                <div className="flex items-center absolute whitespace-nowrap animate-ticker">
-                    {latestNews.concat(latestNews).map((news, i) => (
-                        <a
-                            key={`${news.id}-${i}`}
-                            href={`/news/${news.id}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center mx-6 text-white shrink-0 hover:text-black transition-colors"
-                        >
-                            <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 mr-2">{news.category}</span>
-                            <span className="text-xs font-black uppercase italic tracking-wide">{news.title}</span>
-                            <div className="w-1.5 h-1.5 rounded-full bg-white/50 ml-6" />
-                        </a>
-                    ))}
-                    {latestNews.length === 0 && (
-                        <div className="text-xs font-black uppercase italic tracking-widest text-white mx-10">
-                            CHARGEMENT DES DERNIÈRES NEWS...
+            {/* Social Connect Tab */}
+            {!isFocusMode && (
+                <div className="absolute right-6 bottom-20 z-40 flex flex-col gap-2">
+                    <a
+                        href="https://www.instagram.com/dropsiders.eu"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-1.5 pr-4 rounded-full text-white shadow-xl hover:scale-105 transition-all duration-300"
+                    >
+                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
+                            <Instagram className="w-4 h-4" />
                         </div>
-                    )}
+                        <span className="text-[10px] font-black uppercase tracking-widest">Suivre</span>
+                    </a>
+                    <a
+                        href="https://www.tiktok.com/@dropsiders.eu"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center gap-3 bg-black border border-white/10 p-1.5 pr-4 rounded-full text-white shadow-xl hover:scale-105 transition-all duration-300"
+                    >
+                        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
+                            <Music2 className="w-4 h-4" />
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-widest">TikTok</span>
+                    </a>
                 </div>
-            </div>
+            )}
+
+            {/* Scrolling News Ticker */}
+            {!isFocusMode && (
+                <div className="w-full bg-neon-red h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(255,0,0,0.2)]">
+                    <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-neon-red via-neon-red/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-neon-red via-neon-red/80 to-transparent z-10 pointer-events-none" />
+
+                    <div className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                        {latestNews.concat(latestNews).map((news, i) => (
+                            <a
+                                key={`${news.id}-${i}`}
+                                href={`/news/${news.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center mx-8 text-white shrink-0 hover:scale-105 transition-transform group"
+                            >
+                                <span className="text-[9px] font-black uppercase tracking-[0.2em] bg-black/20 px-2 py-0.5 rounded mr-3 border border-white/10">{news.category}</span>
+                                <span className="text-[11px] font-black uppercase italic tracking-tighter group-hover:underline decoration-2 underline-offset-4">{news.title}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/40 ml-8 shadow-[0_0_8px_white]" />
+                            </a>
+                        ))}
+                        {latestNews.length === 0 && (
+                            <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                CHARGEMENT DU FIL D'ACTUALITÉ...
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <style>{`
                 @keyframes ticker {

@@ -578,6 +578,39 @@ export default {
         // --- API: CHAT MESSAGES (using KV for real-time sharing) ---
         const CHAT_MSG_KEY = 'chat_messages';
         const CHAT_BAN_KEY = 'chat_banned_ips';
+        const CHAT_VIEWERS_KEY = 'chat_viewers';
+
+        // Ping endpoint: called by every page visitor to register presence
+        if (path === '/api/chat/ping' && request.method === 'POST') {
+            const body = await request.json();
+            const id = (body.pseudo || 'anon-' + Math.random().toString(36).substr(2, 8)).toUpperCase().substring(0, 30);
+            if (env.CHAT_KV) {
+                const rawViewers = await env.CHAT_KV.get(CHAT_VIEWERS_KEY);
+                const viewers = rawViewers ? JSON.parse(rawViewers) : {};
+                viewers[id] = Date.now();
+                // Clean up pings older than 45 seconds
+                const now = Date.now();
+                const cleaned = Object.fromEntries(
+                    Object.entries(viewers).filter(([, ts]) => (now - Number(ts)) < 45000)
+                );
+                await env.CHAT_KV.put(CHAT_VIEWERS_KEY, JSON.stringify(cleaned), { expirationTtl: 60 });
+                return new Response(JSON.stringify({ count: Object.keys(cleaned).length }), { status: 200, headers });
+            }
+            return new Response(JSON.stringify({ count: 0 }), { status: 200, headers });
+        }
+
+        if (path === '/api/chat/viewers' && request.method === 'GET') {
+            if (env.CHAT_KV) {
+                const rawViewers = await env.CHAT_KV.get(CHAT_VIEWERS_KEY);
+                const viewers = rawViewers ? JSON.parse(rawViewers) : {};
+                const now = Date.now();
+                const active = Object.entries(viewers).filter(([, ts]) => (now - Number(ts)) < 45000);
+                return new Response(JSON.stringify({ count: active.length }), { status: 200, headers });
+            }
+            return new Response(JSON.stringify({ count: 0 }), { status: 200, headers });
+        }
+
+
 
         if (path === '/api/chat/messages' && request.method === 'GET') {
             const raw = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_MSG_KEY) : null;
@@ -682,6 +715,13 @@ export default {
             const file = await fetchGitHubFile(SETTINGS_PATH);
             if (!file) return new Response(JSON.stringify({ shop_enabled: false }), { status: 200, headers });
             return new Response(JSON.stringify(file.content), { status: 200, headers });
+        }
+
+        if (path === '/api/settings/takeover' && request.method === 'GET') {
+            const SETTINGS_PATH = 'src/data/settings.json';
+            const file = await fetchGitHubFile(SETTINGS_PATH);
+            if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false }), { status: 200, headers });
+            return new Response(JSON.stringify(file.content.takeover), { status: 200, headers });
         }
 
         if (path === '/api/settings/update' && request.method === 'POST') {

@@ -24,7 +24,7 @@ export function FloatingTakeoverPlayer() {
     }, []);
 
     const isHome = location.pathname === '/';
-    const showFloating = takeover?.active && !isHome && !isClosed && takeover?.youtubeId;
+    const showFloating = takeover?.enabled && !isHome && !isClosed && takeover?.youtubeId;
 
     if (!showFloating) return null;
 
@@ -34,40 +34,51 @@ export function FloatingTakeoverPlayer() {
                 initial={{ opacity: 0, scale: 0.8, y: 50 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.8, y: 50 }}
-                className="fixed bottom-6 right-6 z-[100] w-[300px] sm:w-[350px] aspect-video bg-black rounded-xl shadow-2xl border border-neon-red/30 overflow-hidden group"
+                className="fixed bottom-6 right-6 z-[100] w-[300px] sm:w-[380px] aspect-video bg-black rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 hover:border-neon-red/50 overflow-hidden group transition-all duration-500"
             >
+                {/* Glossy Overlay Grid */}
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none z-[5]" />
+
                 {/* Controls Overlay */}
-                <div className="absolute top-0 inset-x-0 h-10 bg-gradient-to-b from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-between px-3">
-                    <span className="text-[10px] text-white font-black uppercase tracking-widest flex items-center gap-2">
-                        <span className="w-2 h-2 bg-neon-red rounded-full animate-pulse shadow-[0_0_10px_rgba(255,18,65,0.8)]" />
-                        LIVE
-                    </span>
+                <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 flex items-center justify-between px-4">
                     <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded-full">
+                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                            <span className="text-[8px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
+                        </div>
+                        <span className="text-[10px] text-white font-black uppercase tracking-widest truncate max-w-[120px]">
+                            {takeover.title}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
                         <Link
                             to="/"
-                            className="p-1.5 hover:bg-white/20 rounded-md transition-colors text-white"
+                            className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all text-white group/btn"
                             title="Retour au Live"
                         >
-                            <ExternalLink className="w-4 h-4" />
+                            <ExternalLink className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
                         </Link>
                         <button
                             onClick={() => setIsClosed(true)}
-                            className="p-1.5 hover:bg-neon-red/20 rounded-md transition-colors text-gray-300 hover:text-white"
+                            className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg transition-all text-gray-300 hover:text-white group/close"
                             title="Fermer le lecteur"
                         >
-                            <X className="w-4 h-4" />
+                            <X className="w-3.5 h-3.5 group-hover/close:rotate-90 transition-transform" />
                         </button>
                     </div>
                 </div>
 
-                {/* PiP uses mute=1 & controls=1 by default to ensure autoplay on navigation */}
-                <iframe
-                    className="w-full h-full pointer-events-auto"
-                    src={`https://www.youtube.com/embed/${takeover.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
-                    title="Live Takeover"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                ></iframe>
+                {/* Player container with subtle glow */}
+                <div className="w-full h-full relative">
+                    <iframe
+                        className="w-full h-full pointer-events-auto"
+                        src={`https://www.youtube.com/embed/${takeover.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
+                        title="Live Takeover"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                    ></iframe>
+                    <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 rounded-2xl z-20" />
+                </div>
             </motion.div>
         </AnimatePresence>
     );

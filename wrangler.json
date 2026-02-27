@@ -1,38 +1,38 @@
 {
-    "name": "dropsiders",
-    "main": "worker.ts",
-    "compatibility_date": "2024-09-23",
-    "assets": {
-        "directory": "./dist",
-        "binding": "ASSETS",
-        "exclude": [
-            "**/.git/**",
-            "**/node_modules/**",
-            "**/*.map"
-        ]
-    },
-    "observability": {
-        "enabled": true
-    },
-    "routes": [
-        {
-            "pattern": "dropsiders.fr",
-            "custom_domain": true
-        },
-        {
-            "pattern": "www.dropsiders.fr",
-            "custom_domain": true
-        }
-    ],
-    "vars": {
-        "GITHUB_OWNER": "Itsalexfr1",
-        "GITHUB_REPO": "sitedropsiders",
-        "GITHUB_FILE_PATH": "src/data/subscribers.json"
-    },
-    "kv_namespaces": [
-        {
-            "binding": "CHAT_KV",
-            "id": "PLACEHOLDER_KV_ID"
-        }
-    ]
+	"name": "dropsiders",
+	"main": "worker.ts",
+	"compatibility_date": "2024-09-23",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS",
+		"exclude": [
+			"**/.git/**",
+			"**/node_modules/**",
+			"**/*.map"
+		]
+	},
+	"observability": {
+		"enabled": true
+	},
+	"routes": [
+		{
+			"pattern": "dropsiders.fr",
+			"custom_domain": true
+		},
+		{
+			"pattern": "www.dropsiders.fr",
+			"custom_domain": true
+		}
+	],
+	"vars": {
+		"GITHUB_OWNER": "Itsalexfr1",
+		"GITHUB_REPO": "sitedropsiders",
+		"GITHUB_FILE_PATH": "src/data/subscribers.json"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "CHAT_KV",
+			"id": "370cf84c95df4d1dba69b292ca30d813"
+		}
+	]
 }

@@ -54,7 +54,8 @@ export function AdminDashboard() {
         youtubeId: '',
         chat_enabled: true,
         title: 'LIVE TAKEOVER',
-        moderators: ''
+        moderators: '',
+        lineup: ''
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'settings' | 'blocked'>('settings');
@@ -211,7 +212,8 @@ export function AdminDashboard() {
                         youtubeId: data.takeover.youtubeId || '',
                         chat_enabled: data.takeover.chat_enabled !== false,
                         title: data.takeover.title || 'LIVE TAKEOVER',
-                        moderators: data.takeover.moderators || ''
+                        moderators: data.takeover.moderators || '',
+                        lineup: data.takeover.lineup || ''
                     });
                 }
             }
@@ -2245,6 +2247,18 @@ export function AdminDashboard() {
                                             placeholder="Ex: TANGUY, EMMA, MODERATEUR_1"
                                         />
                                         <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Les modérateurs pourront supprimer les messages du chat</p>
+                                    </div>
+
+                                    <div className="space-y-1">
+                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block ml-1">Line Up / Programme (affiché sur la vidéo)</label>
+                                        <textarea
+                                            value={takeoverState.lineup}
+                                            onChange={(e) => setTakeoverState({ ...takeoverState, lineup: e.target.value })}
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none resize-none"
+                                            placeholder={"20:00 - ARTISTE 1\n21:00 - ARTISTE 2\n22:30 - ARTISTE 3"}
+                                            rows={5}
+                                        />
+                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest ml-1 mt-1">Laissez vide pour masquer le bouton Line Up</p>
                                     </div>
 
                                     <button
