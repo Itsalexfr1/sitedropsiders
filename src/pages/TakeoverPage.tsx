@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile, Activity, HelpCircle } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile, Activity, HelpCircle, Lock } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -17,6 +17,9 @@ interface TakeoverProps {
         tickerTextColor?: string;
         showTopBanner?: boolean;
         showTickerBanner?: boolean;
+        customCommands?: string;
+        isSecret?: boolean;
+        password?: string;
     };
 }
 
@@ -25,6 +28,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [showLineup, setShowLineup] = useState(false);
     const [showVideoEdit, setShowVideoEdit] = useState(false);
     const [newVideoId, setNewVideoId] = useState(settings.youtubeId);
+    const [isUnlocked, setIsUnlocked] = useState(() => {
+        if (!settings.isSecret) return true;
+        // Check if already unlocked in this session
+        return sessionStorage.getItem('takeover_unlocked') === 'true';
+    });
+    const [enteredPassword, setEnteredPassword] = useState('');
+    const [passwordError, setPasswordError] = useState(false);
+
+    const handleUnlock = (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (enteredPassword === (settings.password || '2026')) {
+            setIsUnlocked(true);
+            sessionStorage.setItem('takeover_unlocked', 'true');
+            setPasswordError(false);
+        } else {
+            setPasswordError(true);
+            // Shake effect or just error
+        }
+    };
+
     const [isJoined, setIsJoined] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return true;
@@ -437,6 +460,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             response = "📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)";
         } else if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
             response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
+        } else {
+            // Check custom commands
+            const custom = (settings.customCommands || '').split('\n').filter(l => l.includes(':'));
+            for (const line of custom) {
+                const trigger = line.split(':')[0].trim().toLowerCase();
+                if (cmd === trigger) {
+                    const originalRes = line.split(':').slice(1).join(':').trim();
+                    response = originalRes;
+                    break;
+                }
+            }
         }
 
         if (response) {
@@ -787,6 +821,65 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             console.error('Failed to cut live', e);
         }
     };
+
+
+    if (settings.isSecret && !isUnlocked && !isAdmin) {
+        return (
+            <div className="fixed inset-0 bg-[#050505] z-[9999] flex items-center justify-center p-6">
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full max-w-md space-y-8 text-center"
+                >
+                    <div className="relative inline-block">
+                        <div className="absolute inset-0 bg-neon-purple opacity-20 blur-3xl animate-pulse" />
+                        <Lock className="w-16 h-16 text-neon-purple relative z-10 mx-auto drop-shadow-[0_0_15px_#bc13fe]" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Accès <span className="text-neon-purple">Privé</span></h2>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em]">Ce flux est restreint. Veuillez saisir le code d'accès.</p>
+                    </div>
+
+                    <form onSubmit={handleUnlock} className="space-y-4">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={enteredPassword}
+                                onChange={(e) => {
+                                    setEnteredPassword(e.target.value);
+                                    setPasswordError(false);
+                                }}
+                                placeholder="ENTREZ LE CODE..."
+                                className={`w-full bg-black/40 border ${passwordError ? 'border-red-500 shadow-[0_0_15px_#ef444444]' : 'border-white/10'} rounded-2xl p-5 text-center text-xl font-black tracking-[0.5em] text-white outline-none focus:border-neon-purple transition-all`}
+                                autoFocus
+                            />
+                            {passwordError && (
+                                <motion.p
+                                    initial={{ x: -10 }}
+                                    animate={{ x: 0 }}
+                                    className="text-[9px] text-red-500 font-black uppercase mt-2 tracking-widest italic"
+                                >
+                                    Code incorrect. Réessayez.
+                                </motion.p>
+                            )}
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full py-5 bg-neon-purple hover:scale-[1.02] active:scale-95 text-white font-black uppercase tracking-[0.3em] rounded-2xl transition-all shadow-[0_0_30px_#bc13fe33]"
+                        >
+                            Débloquer
+                        </button>
+                    </form>
+
+                    <p className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">
+                        Dropsiders Takeover © 2026 • Système Sécurisé
+                    </p>
+                </motion.div>
+            </div>
+        );
+    }
 
     return (
         <div className={`fixed ${isFocusMode ? 'top-0' : 'top-[70px] lg:top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
@@ -1173,13 +1266,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <motion.div
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="w-full max-w-4xl space-y-4 my-auto py-8"
+                                        className="w-full max-w-5xl h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col"
                                         onClick={e => e.stopPropagation()}
                                     >
-                                        <div className="flex items-center justify-between mb-2">
-                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">LIVE</span></h2>
-                                            <button onClick={() => setShowEditModal(false)} className="p-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors">
-                                                <X className="w-5 h-5 text-white" />
+                                        <div className="flex items-center justify-between p-8 lg:p-10 border-b border-white/10 shrink-0">
+                                            <div>
+                                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Live <span className="text-neon-red">Takeover</span></h2>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Configuration et outils d'administration</p>
+                                            </div>
+                                            <button onClick={() => setShowEditModal(false)} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                                                <X className="w-6 h-6 text-white" />
                                             </button>
                                         </div>
 
@@ -1564,6 +1660,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <td className="px-4 py-3 border-b border-white/5 text-xs">Aide pour participer aux sondages.</td>
                                                                         <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Actif</span></td>
                                                                     </tr>
+                                                                    {/* Custom Commands List */}
+                                                                    {(settings.customCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
+                                                                        const [trigger] = line.split(':').map(s => s.trim());
+                                                                        return (
+                                                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors">
+                                                                                <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">{trigger}</td>
+                                                                                <td className="px-4 py-3 border-b border-white/5 text-xs">Commande personnalisée.</td>
+                                                                                <td className="px-4 py-3 border-b border-white/5 text-right"><span className="px-2 py-0.5 bg-neon-cyan/10 text-neon-cyan rounded-full text-[8px] uppercase border border-neon-cyan/20">Custom</span></td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
                                                                 </tbody>
                                                             </table>
                                                         </div>

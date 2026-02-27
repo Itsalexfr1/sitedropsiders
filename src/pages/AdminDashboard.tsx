@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -49,14 +49,36 @@ export function AdminDashboard() {
     });
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const [isTakeoverModalOpen, setIsTakeoverModalOpen] = useState(false);
-    const [takeoverState, setTakeoverState] = useState({
+    interface TakeoverState {
+        enabled: boolean;
+        youtubeId: string;
+        chat_enabled: boolean;
+        title: string;
+        moderators: string;
+        lineup: string;
+        customCommands: string;
+        tickerType: 'news' | 'planning' | 'custom';
+        tickerText: string;
+        tickerLink: string;
+        tickerBgColor: string;
+        tickerTextColor: string;
+        showTopBanner: boolean;
+        showTickerBanner: boolean;
+        showInNavbar: boolean;
+        forceHomepage: boolean;
+        isSecret: boolean;
+        password?: string;
+    }
+
+    const [takeoverState, setTakeoverState] = useState<TakeoverState>({
         enabled: false,
         youtubeId: '',
         chat_enabled: true,
         title: 'LIVE TAKEOVER',
         moderators: '',
         lineup: '',
-        tickerType: 'news' as 'news' | 'planning' | 'custom',
+        customCommands: '',
+        tickerType: 'news',
         tickerText: '',
         tickerLink: '',
         tickerBgColor: '#000000',
@@ -64,10 +86,12 @@ export function AdminDashboard() {
         showTopBanner: true,
         showTickerBanner: false,
         showInNavbar: true,
-        forceHomepage: true
+        forceHomepage: true,
+        isSecret: false,
+        password: '2026'
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
-    const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked'>('general');
+    const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
 
     useEffect(() => {
@@ -231,7 +255,10 @@ export function AdminDashboard() {
                         showTopBanner: data.takeover.showTopBanner !== false,
                         showTickerBanner: data.takeover.showTickerBanner === true,
                         showInNavbar: data.takeover.showInNavbar !== false,
-                        forceHomepage: data.takeover.forceHomepage !== false
+                        forceHomepage: data.takeover.forceHomepage !== false,
+                        customCommands: data.takeover.customCommands || '',
+                        isSecret: data.takeover.isSecret || false,
+                        password: data.takeover.password || '2026'
                     });
                 }
             }
@@ -2160,20 +2187,20 @@ export function AdminDashboard() {
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                            className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-8 lg:p-12 max-w-5xl w-full h-[90vh] shadow-2xl relative overflow-hidden flex flex-col"
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-white to-neon-red" />
 
-                            <div className="flex justify-between items-start mb-10">
+                            <div className="flex justify-between items-start mb-6 shrink-0">
                                 <div>
-                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
                                         Live <span className="text-neon-red">Takeover</span>
                                     </h2>
-                                    <p className="text-gray-400 font-medium">Prendre le contrôle de la page d'accueil</p>
+                                    <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrôle de la page d'accueil</p>
                                 </div>
                                 <button
                                     onClick={() => setIsTakeoverModalOpen(false)}
-                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
                                 >
                                     <X className="w-6 h-6" />
                                 </button>
@@ -2187,11 +2214,12 @@ export function AdminDashboard() {
                                     <button onClick={() => setTakeoverTab('planning')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'planning' ? 'bg-neon-purple/10 text-neon-purple shadow-lg' : 'text-gray-500 hover:text-white'}`}>PLANNING</button>
                                     <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>ÉQUIPE</button>
                                     <button onClick={() => setTakeoverTab('bot')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'bot' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>BOT</button>
+                                    <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACCÈS</button>
                                     <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÉS</button>
                                 </div>
                             </div>
 
-                            <div className="max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar relative z-30">
+                            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-30 min-h-0">
                                 {takeoverTab === 'general' && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                         <div className="flex items-center justify-between p-6 bg-white/5 rounded-3xl border border-white/5">
@@ -2236,6 +2264,19 @@ export function AdminDashboard() {
                                                     className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.showInNavbar ? 'bg-neon-cyan' : 'bg-gray-800'}`}
                                                 >
                                                     <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.showInNavbar ? 'right-0.5' : 'left-0.5'}`} />
+                                                </button>
+                                            </div>
+
+                                            <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
+                                                <div className="flex flex-col">
+                                                    <p className="text-[11px] font-black text-neon-purple uppercase tracking-widest">Mode Secret</p>
+                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Accès par mot de passe</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => setTakeoverState({ ...takeoverState, isSecret: !takeoverState.isSecret })}
+                                                    className={`w-10 h-5 rounded-full relative transition-all ${takeoverState.isSecret ? 'bg-neon-purple shadow-[0_0_10px_#bc13fe44]' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.isSecret ? 'right-0.5' : 'left-0.5'}`} />
                                                 </button>
                                             </div>
                                         </div>
@@ -2378,16 +2419,134 @@ export function AdminDashboard() {
 
                                 {takeoverTab === 'planning' && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest block ml-1">Programme (Sauts de lignes pour séparer)</label>
-                                            <textarea
-                                                value={takeoverState.lineup}
-                                                onChange={(e) => setTakeoverState({ ...takeoverState, lineup: e.target.value })}
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-5 text-xs text-white focus:border-neon-red outline-none min-h-[250px] font-mono"
-                                                placeholder={"20:00 - ARTISTE 1\n21:00 - INTERVIEW\n22:00 - ARTISTE 2"}
-                                            />
-                                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2 bg-white/5 p-3 rounded-xl italic">
-                                                * Ce texte sera affiché en transparence sur la vidéo et accessible via la commande !lineup.
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Éditeur de <span className="text-neon-red">Planning</span></h3>
+                                            <button
+                                                onClick={() => {
+                                                    const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim()).map(line => {
+                                                        const timeMatch = line.match(/\[(.*?)\]/);
+                                                        const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0].trim() : '');
+                                                        const rest = line.replace(/\[.*?\]/, '').trim();
+                                                        const parts = rest.split('-').map(s => s.trim());
+                                                        return {
+                                                            time: time,
+                                                            artist: parts[0] || '',
+                                                            stage: parts[1] || '',
+                                                            festival: parts[2] || ''
+                                                        };
+                                                    });
+                                                    const newRow = { time: '', artist: 'NOUVEL ARTISTE', stage: '', festival: '' };
+                                                    const newRows = [...rows, newRow];
+                                                    const newText = newRows.map(r => `[${r.time || '00:00'}] ${r.artist}${r.stage ? ` - ${r.stage}` : ''}${r.festival ? ` - ${r.festival}` : ''}`).join('\n');
+                                                    setTakeoverState({ ...takeoverState, lineup: newText });
+                                                }}
+                                                className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
+                                            >
+                                                + Ajouter un passage
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {(takeoverState.lineup || '').split('\n').filter(l => l.trim()).map((line, idx) => {
+                                                const timeMatch = line.match(/\[(.*?)\]/);
+                                                const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0].trim() : '');
+                                                const rest = line.replace(/\[.*?\]/, '').trim();
+                                                const parts = rest.split('-').map(s => s.trim());
+                                                const row = {
+                                                    time: time,
+                                                    artist: parts[0] || '',
+                                                    stage: parts[1] || '',
+                                                    festival: parts[2] || ''
+                                                };
+
+                                                const updateRow = (newData: Partial<typeof row>) => {
+                                                    const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim()).map((l, i) => {
+                                                        if (i === idx) {
+                                                            const updated = { ...row, ...newData };
+                                                            return `[${updated.time || '00:00'}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.festival ? ` - ${updated.festival}` : ''}`;
+                                                        }
+                                                        return l;
+                                                    });
+                                                    setTakeoverState({ ...takeoverState, lineup: rows.join('\n') });
+                                                };
+
+                                                const deleteRow = () => {
+                                                    const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim()).filter((_, i) => i !== idx);
+                                                    setTakeoverState({ ...takeoverState, lineup: rows.join('\n') });
+                                                };
+
+                                                return (
+                                                    <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-3 rounded-2xl hover:border-white/10 transition-all group">
+                                                        <div className="col-span-2">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Heure</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.time}
+                                                                    onChange={e => updateRow({ time: e.target.value })}
+                                                                    placeholder="22:00"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-black uppercase text-center focus:border-neon-red outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.artist}
+                                                                    onChange={e => updateRow({ artist: e.target.value })}
+                                                                    placeholder="Artiste"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-black uppercase focus:border-neon-red outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.stage}
+                                                                    onChange={e => updateRow({ stage: e.target.value })}
+                                                                    placeholder="Scène"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-bold uppercase focus:border-neon-red outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-3">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Festival</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.festival}
+                                                                    onChange={e => updateRow({ festival: e.target.value })}
+                                                                    placeholder="Festival"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-bold uppercase focus:border-neon-red outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-1 flex items-center justify-center">
+                                                            <button
+                                                                onClick={deleteRow}
+                                                                className="p-2 text-gray-600 hover:text-neon-red transition-all"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {(!takeoverState.lineup || takeoverState.lineup.trim() === '') && (
+                                                <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
+                                                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configuré</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl">
+                                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">
+                                                * Le planning sera affiché sur le player et accessible via la commande chat !lineup.
                                             </p>
                                         </div>
                                     </div>
@@ -2421,40 +2580,136 @@ export function AdminDashboard() {
 
                                 {takeoverTab === 'bot' && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                                        <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-4">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                    <MessageSquare className="w-5 h-5 text-neon-cyan" />
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Commandes <span className="text-neon-cyan">Bot</span></h3>
+                                            <button
+                                                onClick={() => {
+                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map(line => {
+                                                        const parts = line.split(':').map(s => s.trim());
+                                                        return { cmd: parts[0] || '', res: parts[1] || '' };
+                                                    });
+                                                    const newRow = { cmd: '!nouveau', res: 'Votre réponse ici' };
+                                                    const newRows = [...rows, newRow];
+                                                    const newText = newRows.map(r => `${r.cmd}:${r.res}`).join('\n');
+                                                    setTakeoverState({ ...takeoverState, customCommands: newText });
+                                                }}
+                                                className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
+                                            >
+                                                + Créer une commande
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {(takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map((line, idx) => {
+                                                const parts = line.split(':').map(s => s.trim());
+                                                const row = { cmd: parts[0] || '', res: parts[1] || '' };
+
+                                                const updateCmd = (newCmd: string) => {
+                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map((l, i) => {
+                                                        if (i === idx) return `${newCmd}:${row.res}`;
+                                                        return l;
+                                                    });
+                                                    setTakeoverState({ ...takeoverState, customCommands: rows.join('\n') });
+                                                };
+
+                                                const updateRes = (newRes: string) => {
+                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).map((l, i) => {
+                                                        if (i === idx) return `${row.cmd}:${newRes}`;
+                                                        return l;
+                                                    });
+                                                    setTakeoverState({ ...takeoverState, customCommands: rows.join('\n') });
+                                                };
+
+                                                const deleteRow = () => {
+                                                    const rows = (takeoverState.customCommands || '').split('\n').filter(l => l.trim()).filter((_, i) => i !== idx);
+                                                    setTakeoverState({ ...takeoverState, customCommands: rows.join('\n') });
+                                                };
+
+                                                return (
+                                                    <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-3 rounded-2xl hover:border-white/10 transition-all group">
+                                                        <div className="col-span-3">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">Commande</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.cmd}
+                                                                    onChange={e => updateCmd(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-neon-cyan font-black uppercase focus:border-neon-cyan outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-8">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">Réponse du bot</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.res}
+                                                                    onChange={e => updateRes(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-bold focus:border-neon-cyan outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-1 flex items-end justify-center pb-2">
+                                                            <button
+                                                                onClick={deleteRow}
+                                                                className="p-2 text-gray-600 hover:text-neon-red transition-all"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {(!takeoverState.customCommands || takeoverState.customCommands.trim() === '') && (
+                                                <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
+                                                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalisée</p>
                                                 </div>
-                                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Commandes <span className="text-neon-cyan">Bot</span></h3>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'access' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="bg-white/5 border border-white/5 p-6 rounded-3xl space-y-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-neon-purple/20 rounded-xl">
+                                                    <Lock className="w-5 h-5 text-neon-purple" />
+                                                </div>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Accès <span className="text-neon-purple">Restreint</span></h3>
                                             </div>
-                                            <div className="overflow-hidden border border-white/10 rounded-2xl">
-                                                <table className="w-full text-left border-collapse">
-                                                    <thead>
-                                                        <tr className="bg-white/5">
-                                                            <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
-                                                            <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Action</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="text-[10px] font-bold text-gray-300">
-                                                        <tr className="hover:bg-white/[0.02] transition-colors">
-                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
-                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Liste les commandes</td>
-                                                        </tr>
-                                                        <tr className="hover:bg-white/[0.02] transition-colors">
-                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!lineup</td>
-                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Affiche le programme</td>
-                                                        </tr>
-                                                        <tr className="hover:bg-white/[0.02] transition-colors">
-                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!shop</td>
-                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Lien boutique</td>
-                                                        </tr>
-                                                        <tr className="hover:bg-white/[0.02] transition-colors">
-                                                            <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!news</td>
-                                                            <td className="px-4 py-3 border-b border-white/5 text-gray-400">Dernière actu</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
+
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                    <div>
+                                                        <p className="text-[11px] font-black text-white uppercase tracking-widest mb-1">Activer la Protection</p>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Demande un code pour voir le live</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setTakeoverState({ ...takeoverState, isSecret: !takeoverState.isSecret })}
+                                                        className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${takeoverState.isSecret ? 'bg-neon-purple shadow-[0_0_15px_#bc13fe44] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                    >
+                                                        <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                    </button>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'accès secret</label>
+                                                    <input
+                                                        type="text"
+                                                        value={takeoverState.password}
+                                                        onChange={(e) => setTakeoverState({ ...takeoverState, password: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white font-black tracking-[0.5em] text-center focus:border-neon-purple outline-none"
+                                                        placeholder="CODE..."
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-widest text-center italic">
+                                                    * UTILE POUR TESTER VOTRE CONFIGURATION AVANT LE LANCEMENT OFFICIEL.
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
