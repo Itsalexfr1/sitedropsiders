@@ -171,6 +171,9 @@ export function RecapCreate() {
     });
     const [artistNameLabel, setArtistNameLabel] = useState('');
 
+    const [showFestivalSocials, setShowFestivalSocials] = useState(false);
+    const [showArtistSocials, setShowArtistSocials] = useState(false);
+
 
 
     // Widget System State
@@ -1208,95 +1211,121 @@ export function RecapCreate() {
 
                         {/* Festival Socials */}
                         <div className="pt-8 border-t border-white/10 mt-4">
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux du Festival (Optionnel)
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center justify-between">
+                                <span className="flex items-center gap-2"><Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux du Festival (Optionnel)</span>
+                                <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-2 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        checked={showFestivalSocials}
+                                        onChange={(e) => setShowFestivalSocials(e.target.checked)}
+                                        className="w-4 h-4 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
+                                    />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Afficher la configuration</span>
+                                </label>
                             </label>
 
-                            <div className="mb-6">
-                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom du Festival (Label de suivi)</label>
-                                <input
-                                    type="text"
-                                    value={festivalNameLabel}
-                                    onChange={(e) => setFestivalNameLabel(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
-                                    placeholder="Ex: Tomorrowland Winter"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[
-                                    { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
-                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                    { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' }
-                                ].map((social) => (
-                                    <div key={social.id}>
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
-                                        <div className="relative group">
-                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                                <social.icon className="w-full h-full" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                value={(festivalSocials as any)[social.id]}
-                                                onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
-                                                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
-                                                placeholder="URL Festival..."
-                                            />
-                                        </div>
+                            {showFestivalSocials && (
+                                <>
+                                    <div className="mb-6">
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom du Festival (Label de suivi)</label>
+                                        <input
+                                            type="text"
+                                            value={festivalNameLabel}
+                                            onChange={(e) => setFestivalNameLabel(e.target.value)}
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                            placeholder="Ex: Tomorrowland Winter"
+                                        />
                                     </div>
-                                ))}
-                            </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {[
+                                            { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
+                                            { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                            { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                            { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                            { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                            { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' }
+                                        ].map((social) => (
+                                            <div key={social.id}>
+                                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                                <div className="relative group">
+                                                    <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                        <social.icon className="w-full h-full" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={(festivalSocials as any)[social.id]}
+                                                        onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
+                                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
+                                                        placeholder="URL Festival..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Artist Socials */}
                         <div className="pt-8 border-t border-white/10 mt-4">
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <User className="w-4 h-4 text-neon-red" /> Réseaux Sociaux de l'Artiste (Optionnel)
+                            <label className="text-xs font-black text-gray-500 uppercase tracking-widest mb-6 flex items-center justify-between">
+                                <span className="flex items-center gap-2"><User className="w-4 h-4 text-neon-red" /> Réseaux Sociaux de l'Artiste (Optionnel)</span>
+                                <label className="flex items-center gap-2 cursor-pointer bg-black/20 px-4 py-2 rounded-xl border border-white/10 shrink-0 hover:bg-white/5 transition-all">
+                                    <input
+                                        type="checkbox"
+                                        checked={showArtistSocials}
+                                        onChange={(e) => setShowArtistSocials(e.target.checked)}
+                                        className="w-4 h-4 rounded bg-black/40 border-white/10 text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 focus:ring-1 cursor-pointer"
+                                    />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-300">Afficher la configuration</span>
+                                </label>
                             </label>
 
-                            <div className="mb-6">
-                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom de l'Artiste (Label de suivi)</label>
-                                <input
-                                    type="text"
-                                    value={artistNameLabel}
-                                    onChange={(e) => setArtistNameLabel(e.target.value)}
-                                    className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
-                                    placeholder="Ex: Martin Garrix"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {[
-                                    { id: 'website', name: 'Site Web Artiste', icon: Globe, color: 'text-white' },
-                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                    { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
-                                    { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
-                                    { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
-                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
-                                ].map((social) => (
-                                    <div key={social.id}>
-                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
-                                        <div className="relative group">
-                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                                <social.icon className="w-full h-full" />
-                                            </div>
-                                            <input
-                                                type="text"
-                                                value={(artistSocials as any)[social.id]}
-                                                onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
-                                                className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
-                                                placeholder="URL Artiste..."
-                                            />
-                                        </div>
+                            {showArtistSocials && (
+                                <>
+                                    <div className="mb-6">
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">Nom de l'Artiste (Label de suivi)</label>
+                                        <input
+                                            type="text"
+                                            value={artistNameLabel}
+                                            onChange={(e) => setArtistNameLabel(e.target.value)}
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 px-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                            placeholder="Ex: Martin Garrix"
+                                        />
                                     </div>
-                                ))}
-                            </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        {[
+                                            { id: 'website', name: 'Site Web Artiste', icon: Globe, color: 'text-white' },
+                                            { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                            { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                            { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                            { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                            { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
+                                            { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
+                                            { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
+                                            { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                                        ].map((social) => (
+                                            <div key={social.id}>
+                                                <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
+                                                <div className="relative group">
+                                                    <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                        <social.icon className="w-full h-full" />
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={(artistSocials as any)[social.id]}
+                                                        onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
+                                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                                        placeholder="URL Artiste..."
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Author Selector */}
