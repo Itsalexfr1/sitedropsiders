@@ -3045,14 +3045,16 @@
     "date": "2026-03-07",
     "startDate": "2026-03-07",
     "endDate": "2026-03-07",
-    "location": "Ziggo Dome Amsterdam, Pays Bas",
+    "location": "ZIGGO DOME AMSTERDAM",
     "type": "Festival",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771950085/dropsiders/ctu4eeexvsdnrxkmytsr.jpg",
     "url": "https://dldk.com/tickets/",
     "genre": "Multi Styles",
     "month": "MARS",
     "isWeekly": false,
-    "isSoldOut": false
+    "isSoldOut": false,
+    "country": "Pays-Bas",
+    "isLiveDropsiders": false
   },
   {
     "id": 266,
