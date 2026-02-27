@@ -88,6 +88,7 @@ export function Agenda() {
 
         const categoryFiltered = agendaData.filter((event: any) => {
             if (activeCategory === 'ALL') return true;
+            if (activeCategory === 'LIVE') return event.isLiveDropsiders;
             const genre = (event.genre || '').toLowerCase();
             const id = activeCategory.toLowerCase();
             if (id === 'progressive house') return genre.includes('progressive');
@@ -126,6 +127,7 @@ export function Agenda() {
 
     const CATEGORIES = [
         { id: 'ALL', label: t('agenda.filter_all') },
+        { id: 'LIVE', label: 'LIVE TAKEOVER' },
         { id: 'MULTI STYLES', label: 'MULTI STYLES' },
         { id: 'HYBRIDE', label: 'HYBRIDE' },
         { id: 'TECHNO', label: 'TECHNO' },
@@ -158,14 +160,18 @@ export function Agenda() {
 
                 // Category filter (First, to show correct months)
                 if (activeCategory !== 'ALL') {
-                    const genre = (event.genre || '').toLowerCase();
-                    const id = activeCategory.toLowerCase();
-                    if (id === 'progressive house') {
-                        if (!genre.includes('progressive')) return false;
-                    } else if (id === 'drum & bass') {
-                        if (!genre.includes('drum') && !genre.includes('bass')) return false;
+                    if (activeCategory === 'LIVE') {
+                        if (!event.isLiveDropsiders) return false;
                     } else {
-                        if (!genre.includes(id)) return false;
+                        const genre = (event.genre || '').toLowerCase();
+                        const id = activeCategory.toLowerCase();
+                        if (id === 'progressive house') {
+                            if (!genre.includes('progressive')) return false;
+                        } else if (id === 'drum & bass') {
+                            if (!genre.includes('drum') && !genre.includes('bass')) return false;
+                        } else {
+                            if (!genre.includes(id)) return false;
+                        }
                     }
                 }
 
