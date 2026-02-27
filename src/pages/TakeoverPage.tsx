@@ -633,7 +633,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <div className="w-full aspect-video lg:aspect-auto lg:h-full bg-black">
                         <iframe
                             className="w-full h-full"
-                            src={`https://www.youtube.com/embed/${newVideoId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1`}
+                            src={`https://www.youtube.com/embed/${newVideoId || settings.youtubeId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
                             title={settings.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -1298,7 +1298,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
                                                                     <span className="relative z-10 font-medium whitespace-pre-wrap">{msg.message}</span>
-                                                                    {(isAdmin || (isModo && !isMsgAdmin)) && (
+                                                                    {hasModPowers && !isMsgAdmin && (
                                                                         <button
                                                                             onClick={() => handleDelete(msg.id)}
                                                                             className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0 self-center"

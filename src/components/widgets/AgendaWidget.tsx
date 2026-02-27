@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { MapPin } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import agendaData from '../../data/agenda.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
@@ -23,6 +25,14 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
         .slice(0, maxItems);
 
     const playHoverSound = useHoverSound();
+
+    const [takeoverEnabled, setTakeoverEnabled] = useState(false);
+    useEffect(() => {
+        fetch('/api/settings/takeover')
+            .then(res => res.json())
+            .then(data => setTakeoverEnabled(!!data?.enabled))
+            .catch(() => { });
+    }, []);
 
     const getEventStyles = (genre: string) => {
         const g = (genre || '').toLowerCase().trim();
@@ -94,6 +104,35 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
             </div>
 
             <div className="flex-1 space-y-3 mb-4">
+                {takeoverEnabled && (
+                    <Link
+                        to="/takeover"
+                        className="block relative group overflow-hidden rounded-xl border border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(255,0,51,0.8)]"
+                        onClick={playHoverSound}
+                        style={{ height: 'auto' }}
+                    >
+                        <div className="absolute inset-0 bg-neon-red/10 group-hover:bg-neon-red/20 transition-all duration-300 pointer-events-none" />
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/20 blur-3xl group-hover:bg-neon-red/30 transition-all duration-500 rounded-full mix-blend-screen pointer-events-none translate-x-1/2 -translate-y-1/2" />
+
+                        <div className="p-3 lg:p-4 flex items-center gap-3 lg:gap-4 relative z-10">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-neon-red blur-md rounded-full animate-pulse opacity-50" />
+                                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-black rounded-full border-2 border-neon-red flex items-center justify-center relative z-10">
+                                    <Camera className="w-4 h-4 text-neon-red" />
+                                    <span className="absolute bottom-[-2px] right-[-2px] w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full bg-neon-red shadow-[0_0_10px_#ff0033] animate-pulse" />
+                                </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 lg:gap-3 mb-0.5 lg:mb-1">
+                                    <span className="text-[10px] lg:text-[11px] font-black text-white bg-neon-red px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-[0_0_10px_rgba(255,0,51,0.5)]">DIRECT</span>
+                                </div>
+                                <h4 className="text-sm lg:text-base font-display font-black text-white uppercase tracking-tighter truncate group-hover:text-neon-red transition-colors duration-300">
+                                    LIVE TAKEOVER
+                                </h4>
+                            </div>
+                        </div>
+                    </Link>
+                )}
                 {upcomingEvents.map((event: any, index: number) => {
                     const styles = getEventStyles(event.genre);
                     return (
