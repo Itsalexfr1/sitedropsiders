@@ -106,7 +106,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
             <div className="flex-1 space-y-3 mb-4">
                 {takeoverEnabled && (
                     <Link
-                        to="/takeover"
+                        to="/live"
                         className="block relative group overflow-hidden rounded-xl border border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(255,0,51,0.8)]"
                         onClick={playHoverSound}
                         style={{ height: 'auto' }}
@@ -127,7 +127,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                     <span className="text-[10px] lg:text-[11px] font-black text-white bg-neon-red px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-[0_0_10px_rgba(255,0,51,0.5)]">DIRECT</span>
                                 </div>
                                 <h4 className="text-sm lg:text-base font-display font-black text-white uppercase tracking-tighter truncate group-hover:text-neon-red transition-colors duration-300">
-                                    LIVE TAKEOVER
+                                    LIVE
                                 </h4>
                             </div>
                         </div>

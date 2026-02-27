@@ -127,7 +127,7 @@ export function Agenda() {
 
     const CATEGORIES = [
         { id: 'ALL', label: t('agenda.filter_all') },
-        { id: 'LIVE', label: 'LIVE TAKEOVER' },
+        { id: 'LIVE', label: 'LIVE' },
         { id: 'MULTI STYLES', label: 'MULTI STYLES' },
         { id: 'HYBRIDE', label: 'HYBRIDE' },
         { id: 'TECHNO', label: 'TECHNO' },
@@ -513,7 +513,7 @@ export function Agenda() {
                                                             </span>
                                                             {event.isLiveDropsiders && (
                                                                 <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-red/20 text-neon-red border border-neon-red/30 animate-pulse">
-                                                                    LIVE TAKEOVER
+                                                                    LIVE
                                                                 </span>
                                                             )}
                                                         </div>
