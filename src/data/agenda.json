@@ -2572,7 +2572,7 @@
     "id": 229,
     "title": "Paradise: Starship Eden (Closing)",
     "date": "2026-10-07",
-    "location": "UNVRS Ibiza, Espagne",
+    "location": "UNVRS IBIZA",
     "type": "Residence",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771811325/dropsiders/Jamie%20Jones%20Paradise.webp",
     "description": "Paradise Closing.",
@@ -2582,7 +2582,9 @@
     "endDate": "2026-10-07",
     "month": "OCTOBRE",
     "isWeekly": false,
-    "isSoldOut": false
+    "isSoldOut": false,
+    "country": "ESPAGNE",
+    "isLiveDropsiders": false
   },
   {
     "id": 230,
