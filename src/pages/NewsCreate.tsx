@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, Fragment } from 'react';
+import { useState, useEffect, useRef, Fragment, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload, Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic, Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram, PartyPopper, ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2, Copy, AlignLeft, AlignCenter, AlignRight, Palette, MapPin } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
@@ -530,15 +530,15 @@ export function NewsCreate() {
         });
 
         return Array.from(locations.entries()).map(([city, country]) => ({
-            city: city.charAt(0).toUpperCase() + city.slice(1),
-            country
+            city: city.toUpperCase(),
+            country: country.toUpperCase()
         }));
     }, []);
 
     useEffect(() => {
         if (locationInput.length >= 1) {
             const filtered = allLocations
-                .filter(loc => loc.city.toLowerCase().startsWith(locationInput.toLowerCase()))
+                .filter((loc: { city: string, country: string }) => loc.city.toLowerCase().startsWith(locationInput.toLowerCase()))
                 .slice(0, 5);
             setCitySuggestions(filtered);
             setShowSuggestions(filtered.length > 0);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, ArrowLeft, Bold, Calendar, CaseUpper, CheckCircle2, Clock, Columns, Edit2, Eye, FileText, Image as ImageIcon, Italic, Link2, List, MapPin, PartyPopper, Plus, Send, Star, Trash2, Underline as UnderlineIcon, Upload, User, Wand2, X, Youtube, Globe, Facebook, Instagram, ChevronUp, ChevronDown, Check, AlignLeft, AlignCenter, AlignRight, Palette } from 'lucide-react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
@@ -216,15 +216,15 @@ export function RecapCreate() {
         });
 
         return Array.from(locations.entries()).map(([city, country]) => ({
-            city: city.charAt(0).toUpperCase() + city.slice(1),
-            country
+            city: city.toUpperCase(),
+            country: (country || '').toUpperCase()
         }));
     }, []);
 
     useEffect(() => {
         if (locationInput.length >= 1) {
             const filtered = allLocations
-                .filter(loc => loc.city.toLowerCase().startsWith(locationInput.toLowerCase()))
+                .filter((loc: { city: string, country: string }) => loc.city.toLowerCase().startsWith(locationInput.toLowerCase()))
                 .slice(0, 5);
             setCitySuggestions(filtered);
             setShowSuggestions(filtered.length > 0);
