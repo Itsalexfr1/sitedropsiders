@@ -43,6 +43,7 @@ interface TakeoverProps {
         currentArtist?: string;
         artistInstagram?: string;
         showShop?: boolean;
+        shopItems?: string;
     };
 }
 
@@ -1372,24 +1373,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
                     <div className="w-full aspect-video lg:aspect-none lg:flex-1 lg:h-full relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
-                        <div className="absolute top-6 left-6 z-20 pointer-events-none">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, x: -20 }}
-                                animate={{ opacity: 1, scale: 1, x: 0 }}
-                                key={`${channelItems[activeVideoIndex]?.title}-${fluxCurrentArtist.artist}`}
-                                className="px-5 py-2.5 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
-                            >
-                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_12px_#00ffff]" />
-                                <div className="flex flex-col">
-                                    <span className="text-[7px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-0.5">
-                                        {channelItems[activeVideoIndex]?.title || 'Flux Principal'}
-                                    </span>
-                                    <span className="text-[11px] font-black text-white uppercase tracking-[0.1em] italic">
-                                        {fluxCurrentArtist.artist || 'DROPSIDERS LIVE'}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        </div>
+                        {!isFocusMode && (
+                            <div className="absolute top-6 left-6 z-20 pointer-events-none">
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, x: -20 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                                    key={`${channelItems[activeVideoIndex]?.title}-${fluxCurrentArtist.artist}`}
+                                    className="px-5 py-2.5 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                                >
+                                    <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_12px_#00ffff]" />
+                                    <div className="flex flex-col">
+                                        <span className="text-[7px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-0.5">
+                                            {channelItems[activeVideoIndex]?.title || 'Flux Principal'}
+                                        </span>
+                                        <span className="text-[11px] font-black text-white uppercase tracking-[0.1em] italic">
+                                            {fluxCurrentArtist.artist || 'DROPSIDERS LIVE'}
+                                        </span>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
                         <div className="absolute inset-0 z-0">
                             <iframe
                                 className="w-full h-full border-none"
@@ -1406,7 +1409,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Active Poll Overlay */}
                         <AnimatePresence>
-                            {activePoll && (
+                            {!isFocusMode && activePoll && (
                                 <motion.div
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -1462,7 +1465,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Mini Planning Widget */}
                         <AnimatePresence>
-                            {showLineup && (
+                            {!isFocusMode && showLineup && (
                                 <motion.div
                                     initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1553,7 +1556,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Admin: Change Video popover */}
                         <AnimatePresence>
-                            {showVideoEdit && hasModPowers && (
+                            {!isFocusMode && showVideoEdit && hasModPowers && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -1604,7 +1607,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Shazam Notification Overlay */}
                         <AnimatePresence>
-                            {showShazamNotify && shazamResult && (
+                            {!isFocusMode && showShazamNotify && shazamResult && (
                                 <motion.div
                                     initial={{ opacity: 0, y: -50, x: '-50%' }}
                                     animate={{ opacity: 1, y: 0, x: '-50%' }}
@@ -2602,7 +2605,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                     {/* Shop Widget Overhead */}
                     <AnimatePresence>
-                        {showShopWidget && (
+                        {!isFocusMode && showShopWidget && (
                             <motion.div
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: 'auto', opacity: 1 }}
@@ -2889,7 +2892,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {
-                    hasModPowers && (
+                    !isFocusMode && hasModPowers && (
                         <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
                             <button
                                 onClick={() => setShowUsersPanel(!showUsersPanel)}
@@ -2902,7 +2905,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 }
 
                 <AnimatePresence>
-                    {hasModPowers && showUsersPanel && (
+                    {!isFocusMode && hasModPowers && showUsersPanel && (
                         <motion.div
                             initial={{ width: 0, opacity: 0 }}
                             animate={{ width: 250, opacity: 1 }}
