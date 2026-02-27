@@ -200,6 +200,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setStage1(lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '');
         setStage2(lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '');
         setStage3(lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '');
+        setStage4(lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '');
 
         setShowTopBanner(settings.showTopBanner ?? true);
         setShowTickerBanner(settings.showTickerBanner ?? true);
@@ -221,6 +222,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
     });
+    const [stage4, setStage4] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '';
+    });
     const [stage1Name, setStage1Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[0] ? (lines[0].split(':').slice(1).join(':').trim() || 'Stage 1') : 'Stage 1';
@@ -232,6 +237,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [stage3Name, setStage3Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[2] ? (lines[2].split(':').slice(1).join(':').trim() || 'Stage 3') : 'Stage 3';
+    });
+    const [stage4Name, setStage4Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[3] ? (lines[3].split(':').slice(1).join(':').trim() || 'Stage 4') : 'Stage 4';
     });
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
@@ -1764,13 +1773,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Flux Principal (Lien YouTube)</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={fluxPrincipal}
-                                                                        onChange={(e) => setFluxPrincipal(e.target.value)}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="ex: https://youtube.com/watch?v=..."
-                                                                    />
+                                                                    <div className="flex gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={fluxPrincipal}
+                                                                            onChange={(e) => setFluxPrincipal(e.target.value)}
+                                                                            className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                            placeholder="ex: https://youtube.com/watch?v=..."
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                alert('Lien Principal Validé !');
+                                                                            }}
+                                                                            className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-red hover:text-white transition-all"
+                                                                        >
+                                                                            VALIDER
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1786,7 +1805,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 1</label>
-                                                                    <input type="text" value={stage1} onChange={e => setStage1(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage1} onChange={e => setStage1(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 1 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1796,21 +1818,49 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">2 + 3</span></h3>
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 2</label>
-                                                                    <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 2</label>
+                                                                        <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 3</label>
+                                                                        <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
+                                                                    </div>
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 2</label>
-                                                                    <input type="text" value={stage2} onChange={e => setStage2(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 3</label>
-                                                                    <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage2} onChange={e => setStage2(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 2 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
                                                                 </div>
                                                                 <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 3</label>
-                                                                    <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 3 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">4</span></h3>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 4</label>
+                                                                    <input type="text" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 4" />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 4</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage4} onChange={e => setStage4(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 4 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2089,8 +2139,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
-                                                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-4 py-[10px] focus-within:border-neon-red transition-all">
-                                                                    <input type="text" placeholder="ex: rgba(255, 0, 51, 0.05)" value={adminBgColor} onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })} className="bg-transparent border-none text-xs font-bold text-white outline-none w-full" />
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-red transition-all">
+                                                                    <div className="relative group/picker">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={adminColor}
+                                                                            onChange={(e) => {
+                                                                                const hex = e.target.value;
+                                                                                handleUpdateSettings({ adminBgColor: `${hex}0d` }); // 0.05 opacity by default
+                                                                            }}
+                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
+                                                                        />
+                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="ex: rgba(255, 0, 51, 0.05)"
+                                                                        value={adminBgColor}
+                                                                        onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })}
+                                                                        className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2118,6 +2186,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
                                                                 {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
                                                                 {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
+                                                                {stage4Name && <option value={stage4Name}>{stage4Name}</option>}
                                                             </select>
                                                             <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="col-span-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
                                                             <button onClick={appendLineup} className="col-span-5 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
@@ -2175,6 +2244,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
                                                                                 else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
                                                                                 else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
+                                                                                else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
                                                                                 else setLineupStage(stage.trim());
 
                                                                                 setLineupInstagram(instagram.trim());
@@ -2249,8 +2319,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
-                                                                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-4 py-[10px] focus-within:border-neon-cyan transition-all">
-                                                                    <input type="text" placeholder="ex: rgba(0, 255, 204, 0.05)" value={botBgColor} onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })} className="bg-transparent border-none text-xs font-bold text-white outline-none w-full" />
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                                    <div className="relative group/picker">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={botColor}
+                                                                            onChange={(e) => {
+                                                                                const hex = e.target.value;
+                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
+                                                                            }}
+                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
+                                                                        />
+                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="ex: rgba(0, 255, 204, 0.05)"
+                                                                        value={botBgColor}
+                                                                        onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
+                                                                        className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                    />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -2504,11 +2592,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     const s1Id = extractYoutubeId(stage1);
                                                     const s2Id = extractYoutubeId(stage2);
                                                     const s3Id = extractYoutubeId(stage3);
+                                                    const s4Id = extractYoutubeId(stage4);
 
                                                     const newChannels = [];
                                                     if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
                                                     if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
                                                     if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
+                                                    if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
 
                                                     handleUpdateSettings({
                                                         title: editTitle,
