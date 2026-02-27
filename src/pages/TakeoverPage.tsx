@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Video, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -319,6 +319,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
+    const handleRemoveModerator = async (modPseudo: string) => {
+        const currentMods = (settings.moderators || '').split(';').filter((m: string) => m.trim() && m.trim() !== modPseudo);
+        const newMods = currentMods.join(';');
+        await handleUpdateSettings({ moderators: newMods });
+    };
+
+    const isUserOnline = (pseudo: string) => {
+        return allActiveUsers.some(u => u.pseudo.toLowerCase() === pseudo.toLowerCase());
+    };
+
     const parseLineup = (text: string) => {
         if (!text) return [];
         return text.split('\n').filter(line => line.trim()).map(line => {
@@ -364,10 +374,29 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                             <button
                                 onClick={() => setShowLineup(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-gray-400 hover:text-neon-red hover:border-neon-red/30 transition-all uppercase tracking-widest"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-gray-400 hover:text-neon-red hover:border-neon-red/30 transition-all uppercase tracking-widest animate-glow shadow-lg"
                             >
                                 <List className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Planning</span>
+                            </button>
+                        </div>
+                        <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-md">
+                            <button
+                                onClick={() => handleShare('x')}
+                                className="p-1.5 px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                title="Partager sur X"
+                            >
+                                <Twitter className="w-3.5 h-3.5" />
+                                <span>X</span>
+                            </button>
+                            <div className="w-px h-3 bg-white/20" />
+                            <button
+                                onClick={() => handleShare('fb')}
+                                className="p-1.5 px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                title="Partager sur Facebook"
+                            >
+                                <Facebook className="w-3.5 h-3.5" />
+                                <span>FB</span>
                             </button>
                         </div>
                     </div>
@@ -420,40 +449,29 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </button>
                                         </div>
 
-                                        <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-black/20">
-                                            <table className="w-full text-left border-collapse">
-                                                <thead>
-                                                    <tr className="bg-white/5 border-b border-white/10">
-                                                        <th className="px-6 py-4 text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">Heure</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">Artistes</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">Stage</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="max-h-[50vh] overflow-y-auto">
-                                                    {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
-                                                        <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
-                                                            <td className="px-6 py-4">
-                                                                <span className="inline-block px-2 py-1 bg-white/5 rounded border border-white/5 text-[11px] font-bold text-white uppercase tracking-tighter">
-                                                                    {item.time}
-                                                                </span>
-                                                            </td>
-                                                            <td className="px-6 py-4 text-xs font-black text-white uppercase italic tracking-widest">
-                                                                {item.artist}
-                                                            </td>
-                                                            <td className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                                                                {item.stage}
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                    {parseLineup(editLineup || settings.lineup || '').length === 0 && (
-                                                        <tr>
-                                                            <td colSpan={3} className="px-6 py-12 text-center text-[10px] font-black text-gray-600 uppercase tracking-widest italic">
-                                                                Le programme sera bientôt disponible
-                                                            </td>
-                                                        </tr>
-                                                    )}
-                                                </tbody>
-                                            </table>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                            {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
+                                                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all hover:border-neon-red/30 group">
+                                                    <div className="flex justify-between items-start mb-3">
+                                                        <span className="px-2 py-1 bg-neon-red/20 text-neon-red text-[10px] font-black rounded border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,0,0.1)]">
+                                                            {item.time}
+                                                        </span>
+                                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
+                                                            {item.stage}
+                                                        </span>
+                                                    </div>
+                                                    <h3 className="text-white font-black uppercase italic tracking-widest text-base group-hover:text-neon-red transition-colors leading-tight">
+                                                        {item.artist}
+                                                    </h3>
+                                                </div>
+                                            ))}
+                                            {parseLineup(editLineup || settings.lineup || '').length === 0 && (
+                                                <div className="col-span-full py-20 text-center">
+                                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] italic animate-pulse">
+                                                        LE PROGRAMME ARRIVE BIENTÔT...
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </motion.div>
@@ -494,53 +512,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Floating action buttons on video */}
                         <div className="absolute bottom-4 left-4 flex items-center gap-2 z-20">
-                            {settings.lineup && (
-                                <button
-                                    onClick={() => setShowLineup(v => !v)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all shadow-lg backdrop-blur-md animate-glow ${showLineup
-                                        ? 'bg-neon-red border-neon-red text-white'
-                                        : 'bg-neon-red/20 border-neon-red/30 text-white hover:bg-neon-red/40'
-                                        }`}
-                                >
-                                    <List className="w-3.5 h-3.5" />
-                                    Planning
-                                </button>
-                            )}
-                            {isAdmin && (
-                                <button
-                                    onClick={() => setShowVideoEdit(v => !v)}
-                                    className="flex items-center gap-2 px-3 py-2 bg-black/60 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-lg"
-                                    title="Changer la vidéo"
-                                >
-                                    <Video className="w-3.5 h-3.5 text-neon-red" />
-                                    Changer
-                                </button>
-                            )}
-                            <div className="flex items-center gap-1 bg-black/60 border border-white/20 rounded-xl p-1 backdrop-blur-md shadow-lg">
-                                <button
-                                    onClick={() => handleShare('x')}
-                                    className="p-1 px-2 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
-                                    title="Partager sur X"
-                                >
-                                    <Twitter className="w-3 h-3" />
-                                    <span className="hidden sm:inline">X</span>
-                                </button>
-                                <div className="w-px h-3 bg-white/20" />
-                                <button
-                                    onClick={() => handleShare('fb')}
-                                    className="p-1 px-2 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
-                                    title="Partager sur Facebook"
-                                >
-                                    <Facebook className="w-3 h-3" />
-                                    <span className="hidden sm:inline">FB</span>
-                                </button>
-                            </div>
                             <button
                                 onClick={() => setIsFocusMode(!isFocusMode)}
-                                className="flex items-center gap-2 px-3 py-2 bg-black/60 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-lg"
+                                className="flex items-center gap-2 px-4 py-2.5 bg-black/80 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-2xl active:scale-95"
                                 title={isFocusMode ? "Quitter le mode Focus" : "Mode Focus (Plein Écran)"}
                             >
-                                {isFocusMode ? <Minimize2 className="w-3.5 h-3.5 text-neon-red" /> : <Maximize2 className="w-3.5 h-3.5 text-neon-red" />}
+                                {isFocusMode ? <Minimize2 className="w-4 h-4 text-neon-red" /> : <Maximize2 className="w-4 h-4 text-neon-red" />}
                                 {isFocusMode ? "Quitter" : "Focus"}
                             </button>
                         </div>
@@ -601,6 +578,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all"
                                                     placeholder="L'ID après v="
                                                 />
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center justify-between">
+                                                    Modérateurs Chat
+                                                    <span className="text-[8px] opacity-40">({(settings.moderators || '').split(';').filter((m: string) => m.trim()).length})</span>
+                                                </label>
+                                                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                                                    {(settings.moderators || '').split(';').filter((m: string) => m.trim()).map((modPseudo: string) => (
+                                                        <div key={modPseudo} className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-2 px-3 group">
+                                                            <div className="flex items-center gap-2 truncate">
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(modPseudo) ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
+                                                                <span className="text-[11px] font-black text-white uppercase tracking-widest truncate">{modPseudo}</span>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => handleRemoveModerator(modPseudo)}
+                                                                className="p-1 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all opacity-0 group-hover:opacity-100"
+                                                                title="Révoquer Modérateur"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    {(settings.moderators || '').split(';').filter((m: string) => m.trim()).length === 0 && (
+                                                        <p className="col-span-full text-center py-4 text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Aucun modérateur ajouté</p>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
 
@@ -914,28 +918,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             {/* Social Connect Tab */}
             {!isFocusMode && (
                 <div className="absolute right-6 bottom-20 z-40 flex flex-col gap-2">
-                    <a
-                        href="https://www.instagram.com/dropsiders.eu"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    <button
+                        onClick={() => window.open("https://www.instagram.com/dropsiders.eu", "InstaPopup", "width=600,height=800,left=300,top=100")}
                         className="group flex items-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-1.5 pr-4 rounded-full text-white shadow-xl hover:scale-105 transition-all duration-300"
                     >
                         <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
                             <Instagram className="w-4 h-4" />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest">Suivre</span>
-                    </a>
-                    <a
-                        href="https://www.tiktok.com/@dropsiders.eu"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                    </button>
+                    <button
+                        onClick={() => window.open("https://www.tiktok.com/@dropsiders.eu", "TikTokPopup", "width=600,height=800,left=300,top=100")}
                         className="group flex items-center gap-3 bg-black border border-white/10 p-1.5 pr-4 rounded-full text-white shadow-xl hover:scale-105 transition-all duration-300"
                     >
                         <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
                             <Music2 className="w-4 h-4" />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-widest">TikTok</span>
-                    </a>
+                    </button>
                 </div>
             )}
 
