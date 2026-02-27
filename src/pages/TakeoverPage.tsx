@@ -79,11 +79,27 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return localStorage.getItem('chat_joined') === 'true';
     });
 
-    const [editTitle, setEditTitle] = useState(settings.title);
+    const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [displayTitle, setDisplayTitle] = useState(settings.title);
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
-    const [editChannels, setEditChannels] = useState(settings.channels || '');
+
+    const [fluxPrincipal, setFluxPrincipal] = useState(settings.youtubeId ? `https://youtube.com/watch?v=${settings.youtubeId}` : '');
+    const [stage1, setStage1] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '';
+    });
+    const [stage2, setStage2] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
+    });
+    const [stage3, setStage3] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
+    });
+
+    // Local copy of pinned message for immediate UI update
+    const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
 
     // Sync with props when they change (e.g. from parent polling or settings update)
     useEffect(() => {
@@ -91,11 +107,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setEditTitle(settings.title);
         setDisplayLineup(settings.lineup || '');
         setEditLineup(settings.lineup || '');
-        setNewVideoId(settings.youtubeId);
-        setEditChannels(settings.channels || '');
+        setFluxPrincipal(settings.youtubeId ? `https://youtube.com/watch?v=${settings.youtubeId}` : '');
+
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        setStage1(lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '');
+        setStage2(lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '');
+        setStage3(lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '');
+
         setShowTopBanner(settings.showTopBanner ?? true);
         setShowTickerBanner(settings.showTickerBanner ?? true);
-    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner]);
+        setLocalPinnedMessage(settings.pinnedMessage ?? '');
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation'>('general');
@@ -169,8 +191,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [tickerTextColor, setTickerTextColor] = useState(settings.tickerTextColor || '#ffffff');
     const [showTopBanner, setShowTopBanner] = useState(settings.showTopBanner ?? true);
     const [showTickerBanner, setShowTickerBanner] = useState(settings.showTickerBanner ?? true);
-    const [addChannelId, setAddChannelId] = useState('');
-    const [addChannelName, setAddChannelName] = useState('');
 
     // Collapsible Chat
     const [showUsersPanel, setShowUsersPanel] = useState(true);
@@ -228,15 +248,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
 
     // Dynamic Video List with Titles
-    const channelItems = settings.channels
-        ? settings.channels.split('\n').filter(l => l.trim()).map(line => {
-            const [id, ...titleParts] = line.split(':');
-            return { id: id.trim(), title: titleParts.join(':').trim() || 'CAM' };
-        })
-        : (settings.youtubeId?.split(',').filter(id => id.trim()).map((id, idx) => ({
-            id: id.trim(),
-            title: `CAM ${idx + 1}`
-        })) || []);
+    const channelItems = (() => {
+        const items = [];
+        if (settings.youtubeId) {
+            items.push({ id: settings.youtubeId.trim(), title: 'Flux Principal' });
+        }
+        if (settings.channels) {
+            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
+                const [id, ...titleParts] = line.split(':');
+                if (id && id.trim()) {
+                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM' });
+                }
+            });
+        }
+        return items;
+    })();
 
     const currentVideoId = channelItems[activeVideoIndex]?.id || channelItems[0]?.id || '';
 
@@ -782,13 +808,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 if (saveRes.ok) {
                     setShowEditModal(false);
-                    setShowEditModal(false);
                     setShowVideoEdit(false);
                     setDisplayTitle(updates.title || editTitle);
                     if (updates.lineup !== undefined) setDisplayLineup(updates.lineup);
-                    if (updates.youtubeId) setNewVideoId(updates.youtubeId);
                     if (updates.showTopBanner !== undefined) setShowTopBanner(updates.showTopBanner);
                     if (updates.showTickerBanner !== undefined) setShowTickerBanner(updates.showTickerBanner);
+
+                    if (updates.pinnedMessage !== undefined) {
+                        settings.pinnedMessage = updates.pinnedMessage;
+                        setLocalPinnedMessage(updates.pinnedMessage);
+                    }
+                    if (updates.youtubeId !== undefined) {
+                        settings.youtubeId = updates.youtubeId;
+                    }
+                    if (updates.channels !== undefined) {
+                        settings.channels = updates.channels;
+                    }
                     // Update the settings object reference if possible, though local states are safer here
                 }
             }
@@ -1121,32 +1156,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             ></iframe>
                         </div>
 
-                        {/* Viewer Count & Close (Overlay on Video) */}
-                        <div className="absolute top-4 right-4 flex items-center gap-2 z-[90]">
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-black/80 backdrop-blur-md border border-white/10 rounded-full shadow-2xl">
-                                <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
-                                <span className="text-[10px] font-black text-white tabular-nums">
-                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '1')}
-                                </span>
-                            </div>
 
-                            {isAdmin && (
-                                <button
-                                    onClick={() => setShowEditModal(true)}
-                                    className="p-1.5 bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-neon-red transition-all hover:scale-110 active:scale-95 shadow-2xl"
-                                    title="Paramètres du Live"
-                                >
-                                    <Pencil className="w-4 h-4" />
-                                </button>
-                            )}
-
-                            <button
-                                onClick={() => window.history.back()}
-                                className="p-1.5 bg-black/80 backdrop-blur-md border border-white/10 rounded-full text-white/60 hover:text-white transition-all hover:scale-110 active:scale-95 shadow-2xl"
-                            >
-                                <X className="w-4 h-4" />
-                            </button>
-                        </div>
 
                         {/* Multi-Channel Switcher */}
                         {channelItems.length > 1 && (
@@ -1543,53 +1553,43 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 />
                                                             </div>
                                                             <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Flux Principal (Lien YouTube)</label>
                                                                 <input
                                                                     type="text"
-                                                                    value={newVideoId}
-                                                                    onChange={(e) => setNewVideoId(e.target.value)}
+                                                                    value={fluxPrincipal}
+                                                                    onChange={(e) => setFluxPrincipal(e.target.value)}
                                                                     className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="ID YOUTUBE (ex: dQw4w9WgXcQ)"
+                                                                    placeholder="ex: https://youtube.com/watch?v=..."
                                                                 />
                                                             </div>
-                                                            <div className="space-y-4">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Ajouter un Flux (Canal)</label>
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={addChannelId}
-                                                                        onChange={(e) => setAddChannelId(e.target.value)}
-                                                                        className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
-                                                                        placeholder="ID YouTube..."
-                                                                    />
-                                                                    <input
-                                                                        type="text"
-                                                                        value={addChannelName}
-                                                                        onChange={(e) => setAddChannelName(e.target.value)}
-                                                                        className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
-                                                                        placeholder="Nom (ex: CAM 1)"
-                                                                    />
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (addChannelId && addChannelName) {
-                                                                            const newEntry = `${addChannelId}:${addChannelName}`;
-                                                                            setEditChannels(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
-                                                                            setAddChannelId('');
-                                                                            setAddChannelName('');
-                                                                        }
-                                                                    }}
-                                                                    className="w-full py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[10px] font-black uppercase hover:bg-neon-red hover:text-white transition-all"
-                                                                >
-                                                                    Ajouter le flux
-                                                                </button>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage1}
+                                                                    onChange={(e) => setStage1(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="Lien YouTube (Optionnel)..."
+                                                                />
                                                             </div>
                                                             <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Configuration Multicanal (ID:Nom)</label>
-                                                                <textarea
-                                                                    value={editChannels}
-                                                                    onChange={(e) => setEditChannels(e.target.value)}
-                                                                    className="w-full h-24 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all custom-scrollbar"
-                                                                    placeholder="dQw4w9WgXcQ:Caméra 1&#10;abcdefghijk:Caméra 2"
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 2 (Lien YouTube)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage2}
+                                                                    onChange={(e) => setStage2(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="Lien YouTube (Optionnel)..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 3 (Lien YouTube)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage3}
+                                                                    onChange={(e) => setStage3(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="Lien YouTube (Optionnel)..."
                                                                 />
                                                             </div>
                                                         </div>
@@ -1967,20 +1967,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
                                             <button
-                                                onClick={() => handleUpdateSettings({
-                                                    title: editTitle,
-                                                    lineup: editLineup,
-                                                    youtubeId: newVideoId,
-                                                    channels: editChannels,
-                                                    tickerType,
-                                                    tickerBgColor,
-                                                    tickerTextColor,
-                                                    tickerText,
-                                                    tickerLink,
-                                                    showTopBanner,
-                                                    showTickerBanner,
-                                                    chat_enabled: true
-                                                })}
+                                                onClick={() => {
+                                                    const extractYoutubeId = (url: string) => {
+                                                        if (!url) return '';
+                                                        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                                        return match ? match[1] : url.trim();
+                                                    };
+
+                                                    const fId = extractYoutubeId(fluxPrincipal);
+                                                    const s1Id = extractYoutubeId(stage1);
+                                                    const s2Id = extractYoutubeId(stage2);
+                                                    const s3Id = extractYoutubeId(stage3);
+
+                                                    const newChannels = [];
+                                                    if (s1Id) newChannels.push(`${s1Id}:Stage 1`);
+                                                    if (s2Id) newChannels.push(`${s2Id}:Stage 2`);
+                                                    if (s3Id) newChannels.push(`${s3Id}:Stage 3`);
+
+                                                    handleUpdateSettings({
+                                                        title: editTitle,
+                                                        lineup: editLineup,
+                                                        youtubeId: fId,
+                                                        channels: newChannels.join('\n'),
+                                                        tickerType,
+                                                        tickerBgColor,
+                                                        tickerTextColor,
+                                                        tickerText,
+                                                        tickerLink,
+                                                        showTopBanner,
+                                                        showTickerBanner,
+                                                        chat_enabled: true
+                                                    });
+                                                }}
                                                 disabled={isSaving}
                                                 className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
                                             >
@@ -2120,7 +2138,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 {/* Chat Messages - ALWAYS VISIBLE */}
                                 <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                     {/* Pinned Message */}
-                                    {settings.pinnedMessage && (
+                                    {localPinnedMessage && (
                                         <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
                                             <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
                                             <div className="flex items-start gap-2.5">
@@ -2132,7 +2150,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
                                                     </p>
                                                     <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
-                                                        {settings?.pinnedMessage?.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
+                                                        {localPinnedMessage.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
                                                             part.match(/^https?:\/\//) ? (
                                                                 <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
                                                             ) : part
