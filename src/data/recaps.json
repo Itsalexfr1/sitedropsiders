@@ -340,8 +340,8 @@
   {
     "id": 15,
     "title": "Récap : Rave Rebels Weekender 2025",
-    "date": "2026-02-27T01:00",
-    "summary": "Ce week-end à l'ING Arena de Bruxelles, c'était la messe de la techno version belge : Rave Rebels XXL Weekender. Une production toujours plus ambitieuse, une scènetout une programmation dantesque qui a retourné la salle pendant 48h.à noter : les visuels et lightshows ultra immersifs signés Sila Sveta, référence mondiale en scénographie digitale. Une vraie claque visuelle qui a transcendé chaque performance.",
+    "date": "2026-02-27T02:23",
+    "summary": "Récap : Rave Rebels Weekender 2025 VENDREDI 11 AVRIL – Une montée progressive vers la folie La première nuit s'est ouverte sur des sets beaucoup plus violents que le samedi, avec un enchaînement pensé...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810520/dropsiders/images/jpw8fkix5jtkq1udfvtc.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810521/dropsiders/images/rmvz6ddavyq8zcfcmvpz.jpg",
@@ -357,8 +357,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "Bruxelles, Belgique",
-    "isFeatured": false
+    "location": "Bruxelles",
+    "isFeatured": false,
+    "country": "Belgique",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 16,
