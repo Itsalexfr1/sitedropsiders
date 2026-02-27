@@ -136,6 +136,7 @@ export function RecapCreate() {
     const [locationInput, setLocationInput] = useState('');
     const [youtubeId, setYoutubeId] = useState('');
     const [showVideo, setShowVideo] = useState(true);
+    const [year, setYear] = useState('');
     const [isFeatured, setIsFeatured] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -231,6 +232,7 @@ export function RecapCreate() {
                             setLocationInput(data.recap.location || '');
                             setYoutubeId(data.recap.youtubeId || '');
                             setShowVideo(data.recap.showVideo !== false);
+                            setYear(data.recap.year || '');
                             setIsFeatured(data.recap.isFeatured || false);
 
                             let c = data.content || data.recap.content || '';
@@ -275,6 +277,7 @@ export function RecapCreate() {
                                 setLocationInput(localItem.location || '');
                                 setYoutubeId(localItem.youtubeId || '');
                                 setShowVideo(localItem.showVideo !== false);
+                                setYear(localItem.year || '');
                                 setIsFeatured(localItem.isFeatured || false);
                                 if (localItem.author) setAuthor(localItem.author);
                             }
@@ -393,6 +396,7 @@ export function RecapCreate() {
             setLocationInput(editingItem.location || '');
             setYoutubeId(editingItem.youtubeId || '');
             setShowVideo(editingItem.showVideo !== false);
+            setYear(editingItem.year || '');
             setIsFeatured(editingItem.isFeatured || false);
 
             // Parse Content into Widgets
@@ -910,6 +914,7 @@ export function RecapCreate() {
                     location: locationInput,
                     youtubeId,
                     showVideo,
+                    year: year || undefined,
                     category: 'Recaps',
                     isFeatured,
                     author: author
@@ -941,6 +946,7 @@ export function RecapCreate() {
                 setLocationInput('');
                 setYoutubeId('');
                 setShowVideo(true);
+                setYear('');
                 setIsFeatured(false);
                 setIsAuthorConfirmed(false);
                 setFestivalSocials({
@@ -1180,7 +1186,7 @@ export function RecapCreate() {
                         </div>
 
                         {/* Festival & Location */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Nom du Festival <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
@@ -1203,6 +1209,21 @@ export function RecapCreate() {
                                         value={locationInput}
                                         onChange={(e) => setLocationInput(e.target.value)}
                                         placeholder="Ex: Boom"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année (Opt)</label>
+                                <div className="relative group">
+                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="number"
+                                        value={year}
+                                        onChange={(e) => setYear(e.target.value)}
+                                        placeholder="Ex: 2025"
+                                        min="2000"
+                                        max="2100"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
                                 </div>

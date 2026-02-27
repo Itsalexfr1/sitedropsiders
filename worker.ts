@@ -818,7 +818,7 @@ export default {
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, category, isFeatured, isFocus, author } = body;
+                const { title, date, summary, content, image, category, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo, year } = body;
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
                 // 1. Update news.json (Metadata only)
@@ -833,7 +833,7 @@ export default {
                 const maxId = currentNews.reduce((max, item) => (item.id > max ? item.id : max), 0);
                 const newId = maxId + 1;
 
-                const { images, youtubeId } = extractMetadata(content);
+                const { images, youtubeId: extractedYoutubeId } = extractMetadata(content);
 
                 const newArticle = {
                     id: newId,
@@ -843,10 +843,12 @@ export default {
                     content: '', // Empty in main file to save space
                     image: image || (images.length > 0 ? images[0] : ''),
                     images: images,
-                    youtubeId: youtubeId,
+                    youtubeId: bodyYoutubeId || extractedYoutubeId || '',
+                    showVideo: showVideo !== false,
                     category: category || 'News',
                     isFeatured: isFeatured || false,
                     isFocus: isFocus || false,
+                    year: year || undefined,
                     link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     author: author || requestUsername || 'Alex'
                 };
@@ -877,7 +879,7 @@ export default {
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, festival, location, youtubeId, category, isFeatured, author, showVideo } = body;
+                const { title, date, summary, content, image, festival, location, youtubeId, category, isFeatured, author, showVideo, year } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 // 1. Update recaps.json
@@ -907,6 +909,7 @@ export default {
                     category: category || 'Recaps',
                     isFeatured: isFeatured || false,
                     showVideo: showVideo !== false,
+                    year: year || undefined,
                     link: `https://dropsiders.eu/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     images: extractedImages,
                     author: author || requestUsername || 'Alex'
@@ -936,7 +939,7 @@ export default {
             const FILE_PATH = 'src/data/news.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, category, date, isFeatured, isFocus, author } = body;
+                const { id, title, summary, content, image, category, date, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -952,7 +955,7 @@ export default {
                 const index = currentData.findIndex(item => String(item.id) === String(id));
                 if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
 
-                const { images, youtubeId } = extractMetadata(content || '');
+                const { images, youtubeId: extractedYoutubeId } = extractMetadata(content || '');
 
                 const existing = currentData[index];
                 currentData[index] = {
@@ -962,11 +965,13 @@ export default {
                     content: '', // Always keep empty in main file
                     image: image || existing.image,
                     images: images.length > 0 ? images : existing.images,
-                    youtubeId: youtubeId || existing.youtubeId,
+                    youtubeId: bodyYoutubeId !== undefined ? bodyYoutubeId : (extractedYoutubeId || existing.youtubeId),
+                    showVideo: bodyShowVideo !== undefined ? bodyShowVideo : existing.showVideo,
                     category: category || existing.category,
                     date: date || existing.date,
                     isFeatured: isFeatured !== undefined ? isFeatured : existing.isFeatured,
                     isFocus: isFocus !== undefined ? isFocus : existing.isFocus,
+                    year: year !== undefined ? (year || undefined) : existing.year,
                     author: author || existing.author || requestUsername || 'Alex'
                 };
 
@@ -1008,7 +1013,7 @@ export default {
             const FILE_PATH = 'src/data/recaps.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, date, festival, location, youtubeId, isFeatured, author, showVideo } = body;
+                const { id, title, summary, content, image, date, festival, location, youtubeId, isFeatured, author, showVideo, year } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -1040,6 +1045,7 @@ export default {
                     showVideo: showVideo !== undefined ? showVideo : (existing.showVideo !== false),
                     images: extractedImages.length > 0 ? extractedImages : (existing.images || []),
                     isFeatured: isFeatured !== undefined ? isFeatured : existing.isFeatured,
+                    year: year !== undefined ? (year || undefined) : existing.year,
                     author: author || existing.author || requestUsername || 'Alex'
                 };
 

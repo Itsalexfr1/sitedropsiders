@@ -465,6 +465,7 @@ export function NewsCreate() {
     console.log('[NewsCreate] Initialization. isEditing:', isEditing, 'id:', id);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
+    const [year, setYear] = useState('');
     const [interviewSubtype, setInterviewSubtype] = useState<'written' | 'video'>((searchParams.get('subtype') as 'written' | 'video') || 'written');
     const [interviewTheme, setInterviewTheme] = useState('');
     const interviewThemes = ["Interview", "Fast Quizz", "La Playlist", "Drop & Talk"];
@@ -595,6 +596,7 @@ export function NewsCreate() {
             setDate(finalDate);
             setCategory(articleData.category || 'News');
             setYoutubeId(articleData.youtubeId || '');
+            setYear(articleData.year || '');
 
             // For Interview Video, showVideo should be true by default
             if (articleData.showVideo !== undefined) {
@@ -1563,6 +1565,7 @@ ${generateFestivalSocialsHtml()}
                 content: fixEncoding(finalContent),
                 youtubeId,
                 showVideo,
+                year: year || undefined,
                 isFocus,
                 isFeatured,
                 author
@@ -1603,6 +1606,7 @@ ${generateFestivalSocialsHtml()}
                     ]);
                     setImageUrl('');
                     setYoutubeId('');
+                    setYear('');
                     setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
                     setArtistNameLabel('');
                     setFestivalNameLabel('');
@@ -1866,6 +1870,21 @@ ${generateFestivalSocialsHtml()}
                                     >
                                         <Wand2 className="w-4 h-4" />
                                     </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Année (Opt)</label>
+                                <div className="relative group">
+                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="number"
+                                        value={year}
+                                        onChange={(e) => setYear(e.target.value)}
+                                        placeholder="Ex: 2025"
+                                        min="2000"
+                                        max="2100"
+                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none"
+                                    />
                                 </div>
                             </div>
                         </div>
