@@ -148,6 +148,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [isJoined, pseudo]);
 
     useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        document.body.style.overscrollBehavior = 'none';
+        return () => {
+            document.body.style.overflow = 'unset';
+            document.body.style.overscrollBehavior = 'auto';
+        };
+    }, []);
+
+    useEffect(() => {
         // Fetch Latest News
         fetch('/api/news')
             .then(res => res.json())
@@ -342,15 +351,34 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         });
     };
 
-    const handleShare = (platform: 'x' | 'fb') => {
-        const url = encodeURIComponent(window.location.href);
-        const text = encodeURIComponent(`Je regarde ${editTitle} sur Dropsiders ! 🚀`);
-        if (platform === 'x') window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
-        else window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    const handleShare = async (platform: 'x' | 'fb' | 'insta' | 'snap' | 'native') => {
+        const url = window.location.href;
+        const text = `Je regarde ${editTitle} sur Dropsiders ! 🚀`;
+
+        if (platform === 'native' || navigator.share && (platform === 'insta' || platform === 'snap')) {
+            try {
+                await navigator.share({
+                    title: 'Dropsiders Live',
+                    text: text,
+                    url: url
+                });
+                return;
+            } catch (err) {
+                console.log('Share failed or cancelled');
+            }
+        }
+
+        const encodedUrl = encodeURIComponent(url);
+        const encodedText = encodeURIComponent(text);
+
+        if (platform === 'x') window.open(`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`, '_blank');
+        else if (platform === 'fb') window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`, '_blank');
+        else if (platform === 'insta') window.open(`https://www.instagram.com/`, '_blank'); // Instagram doesn't have a direct share link for web stories, but we open the app
+        else if (platform === 'snap') window.open(`https://www.snapchat.com/`, '_blank');
     };
 
     return (
-        <div className={`fixed ${isFocusMode ? 'top-0' : 'top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
+        <div className={`fixed ${isFocusMode ? 'top-0' : 'top-[70px] lg:top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
             {/* Live Banner Header */}
             {!isFocusMode && (
                 <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
@@ -381,33 +409,51 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <span className="hidden sm:inline">Planning</span>
                             </button>
                         </div>
-                        <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-md">
+                        <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-md">
                             <button
                                 onClick={() => handleShare('x')}
-                                className="p-1.5 px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
                                 title="Partager sur X"
                             >
                                 <Twitter className="w-3.5 h-3.5" />
-                                <span>X</span>
+                                <span className="hidden lg:inline">X</span>
                             </button>
                             <div className="w-px h-3 bg-white/20" />
                             <button
                                 onClick={() => handleShare('fb')}
-                                className="p-1.5 px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
                                 title="Partager sur Facebook"
                             >
                                 <Facebook className="w-3.5 h-3.5" />
-                                <span>FB</span>
+                                <span className="hidden lg:inline">FB</span>
+                            </button>
+                            <div className="w-px h-3 bg-white/20" />
+                            <button
+                                onClick={() => handleShare('insta')}
+                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                title="Partager sur Instagram"
+                            >
+                                <Instagram className="w-3.5 h-3.5" />
+                                <span className="hidden lg:inline">Insta</span>
+                            </button>
+                            <div className="w-px h-3 bg-white/20" />
+                            <button
+                                onClick={() => handleShare('snap')}
+                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                title="Partager sur Snapchat"
+                            >
+                                <Music2 className="w-3.5 h-3.5" />
+                                <span className="hidden lg:inline">Snap</span>
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md">
-                        <Users className="w-4 h-4 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
+                    <div className="flex items-center gap-2 px-3 lg:px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto">
+                        <Users className="w-3 h-3 lg:w-4 lg:h-4 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
                         <div className="flex flex-col">
-                            <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">
-                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length || '...'}
+                            <span className="text-[9px] lg:text-[10px] font-black text-white uppercase tracking-widest leading-none">
+                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
                             </span>
-                            <span className="text-[7px] font-bold text-gray-500 uppercase tracking-tighter leading-none mt-0.5">Spectateurs</span>
+                            <span className="text-[6px] lg:text-[7px] font-bold text-gray-500 uppercase tracking-tighter leading-none mt-0.5">Direct</span>
                         </div>
                     </div>
                 </div>
