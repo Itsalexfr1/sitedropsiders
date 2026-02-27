@@ -139,7 +139,11 @@ export function Home() {
         }
     };
 
-    if (takeover?.enabled) {
+    const [hasExitedLive, setHasExitedLive] = useState(() => {
+        return sessionStorage.getItem('exited_live') === 'true';
+    });
+
+    if (takeover?.enabled && !hasExitedLive) {
         return <TakeoverPage settings={takeover} />;
     }
 

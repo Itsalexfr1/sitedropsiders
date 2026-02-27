@@ -63,7 +63,16 @@ export function Navbar() {
         { name: t('nav.team'), path: '/team' },
         { name: t('nav.contact'), path: '/contact' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
-        ...(takeoverEnabled ? [{ name: 'LIVE', path: '/live', icon: Video, isLive: true }] : []),
+        ...(takeoverEnabled ? [{
+            name: 'LIVE',
+            path: '/',
+            icon: Video,
+            isLive: true,
+            onClick: () => {
+                sessionStorage.removeItem('exited_live');
+                window.location.reload(); // Force refresh to trigger Takeover view
+            }
+        }] : []),
         ...(isAdmin ? [{ name: 'Admin', path: '/admin', icon: Shield }] : []),
     ];
 
@@ -138,7 +147,14 @@ export function Navbar() {
                 <div className="flex items-center justify-between h-20">
                     <div className="flex items-center gap-4 shrink-0">
                         {/* Logo */}
-                        <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center group py-2">
+                        <Link
+                            to="/"
+                            onClick={() => {
+                                sessionStorage.setItem('exited_live', 'true');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }}
+                            className="flex items-center group py-2"
+                        >
                             <img
                                 src="/Logo.png"
                                 alt="DROPSIDERS"
@@ -462,7 +478,10 @@ function NavItem({ item, isActive }: NavItemProps) {
         >
             <Link
                 to={item.path}
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => {
+                    if ((item as any).onClick) (item as any).onClick();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
                 className={twMerge(
                     "relative block px-4 py-2 text-sm font-bold tracking-wider transition-all duration-300",
                     isActive
