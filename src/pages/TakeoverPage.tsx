@@ -326,7 +326,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [captchaB] = useState(Math.floor(Math.random() * 10) + 1);
     const [captchaAnswer, setCaptchaAnswer] = useState('');
 
-    const [lineupTime, setLineupTime] = useState("");
+    const [lineupHour, setLineupHour] = useState("");
+    const [lineupMinute, setLineupMinute] = useState("");
     const [lineupArtist, setLineupArtist] = useState("");
     const [lineupStage, setLineupStage] = useState("");
     const [lineupInstagram, setLineupInstagram] = useState("");
@@ -624,10 +625,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     const appendLineup = () => {
-        if (!lineupTime || !lineupArtist) return;
-        const newEntry = `[${lineupTime}] ${lineupArtist}${lineupStage ? ' - ' + lineupStage : ' - ---'}${lineupInstagram ? ' - ' + lineupInstagram : ''}`;
+        if (!lineupHour || !lineupMinute || !lineupArtist || !lineupStage || !lineupInstagram) {
+            alert("Veuillez remplir tous les champs (Heure, Minutes, Artiste, Stage et Lien Instagram) pour ajouter au planning.");
+            return;
+        }
+        const timeStr = `${lineupHour.padStart(2, '0')}:${lineupMinute.padStart(2, '0')}`;
+        const newEntry = `[${timeStr}] ${lineupArtist} - ${lineupStage} - ${lineupInstagram}`;
         setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
-        setLineupTime(""); setLineupArtist(""); setLineupStage(""); setLineupInstagram("");
+        setLineupHour(""); setLineupMinute(""); setLineupArtist(""); setLineupStage(""); setLineupInstagram("");
     };
 
     const handleSendPoll = () => {
@@ -2185,18 +2190,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <Pencil className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Éditeur de Planning
                                                             </label>
                                                         </div>
-                                                        <div className="grid grid-cols-4 gap-2">
-                                                            <input type="text" placeholder="Heure (22:00)" value={lineupTime} onChange={e => setLineupTime(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
+                                                        <div className="grid grid-cols-5 gap-2">
+                                                            <div className="flex gap-1">
+                                                                <input type="number" min="0" max="23" placeholder="HH" value={lineupHour} onChange={e => setLineupHour(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
+                                                                <span className="text-white font-bold flex flex-col justify-center">:</span>
+                                                                <input type="number" min="0" max="59" placeholder="MM" value={lineupMinute} onChange={e => setLineupMinute(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
+                                                            </div>
+                                                            <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="col-span-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="col-span-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
                                                                 <option value="" disabled>Sélectionner un Stage</option>
                                                                 <option value="Flux Principal">Flux Principal</option>
                                                                 {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
                                                                 {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
                                                                 {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
                                                             </select>
-                                                            <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
-                                                            <button onClick={appendLineup} className="col-span-4 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
+                                                            <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="col-span-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
+                                                            <button onClick={appendLineup} className="col-span-5 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
                                                         </div>
 
                                                         {/* Planning visual table */}
@@ -2214,15 +2223,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </thead>
                                                                     <tbody>
                                                                         {editLineup.split('\n').filter(l => l.trim()).map((line, idx) => {
-                                                                            const m = line.match(/^\[(\d{1,2}:\d{2})\]\s*(.+?)\s*-\s*(.+?)\s*-\s*(https?:\/\/[^\s]*)$/);
-
                                                                             const deleteLine = () => {
                                                                                 const lines = editLineup.split('\n').filter(l => l.trim());
                                                                                 lines.splice(idx, 1);
                                                                                 setEditLineup(lines.join('\n'));
                                                                             };
 
-                                                                            if (!m) return (
+                                                                            const timeMatch = line.match(/^\[(.*?)\]/);
+                                                                            if (!timeMatch) return (
                                                                                 <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
                                                                                     <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
                                                                                     <td className="px-4 py-2 border-b border-white/5 text-right">
@@ -2233,10 +2241,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 </tr>
                                                                             );
 
-                                                                            const [, time, artist, stage, instagram] = m;
+                                                                            const time = timeMatch[1].trim();
+                                                                            const rest = line.replace(timeMatch[0], '').trim();
+                                                                            const parts = rest.split(/\s*-\s*/);
+                                                                            const artist = parts[0] || '';
+                                                                            const stage = parts[1] || '';
+                                                                            const instagram = parts.slice(2).join(' - ') || '';
 
                                                                             const editOption = () => {
-                                                                                setLineupTime(time);
+                                                                                const [h, m] = time.replace('h', ':').split(':');
+                                                                                setLineupHour(h || '');
+                                                                                setLineupMinute(m || '');
                                                                                 setLineupArtist(artist.trim());
 
                                                                                 // On essaye de matcher le stage avec les options existantes
@@ -2251,13 +2266,28 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 deleteLine();
                                                                             };
 
+                                                                            const getStageColor = (stageName: string) => {
+                                                                                const s = stageName.toLowerCase();
+                                                                                if (s.includes('principal') || s.includes('main')) return 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10';
+                                                                                if (s.includes('1')) return 'text-neon-purple border-neon-purple/30 bg-neon-purple/10';
+                                                                                if (s.includes('2')) return 'text-neon-red border-neon-red/30 bg-neon-red/10';
+                                                                                if (s.includes('3')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+                                                                                return 'text-gray-400 border-white/20 bg-white/5';
+                                                                            };
+
                                                                             return (
                                                                                 <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
                                                                                     <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase">{artist}</td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-gray-400 font-bold text-[10px] uppercase">{stage}</td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase truncate max-w-[150px]">{artist}</td>
                                                                                     <td className="px-4 py-2.5 border-b border-white/5">
-                                                                                        <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace('https://', '')}</a>
+                                                                                        {stage && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${getStageColor(stage)}`}>{stage}</span>}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5">
+                                                                                        {instagram && (
+                                                                                            (instagram.includes('.') || (!instagram.includes(' ') && instagram.length > 0))
+                                                                                                ? <a href={instagram.startsWith('http') ? instagram : `https://${instagram}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace(/^https?:\/\//, '')}</a>
+                                                                                                : <span className="text-[9px] text-gray-400 font-bold uppercase truncate block max-w-[120px]">{instagram}</span>
+                                                                                        )}
                                                                                     </td>
                                                                                     <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
                                                                                         <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all" title="Éditer">
@@ -2275,12 +2305,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         )}
 
-                                                        <textarea
-                                                            value={editLineup}
-                                                            onChange={(e) => setEditLineup(e.target.value)}
-                                                            className="w-full h-[150px] bg-black/60 border border-white/10 rounded-2xl p-5 text-[11px] font-bold text-gray-200 outline-none focus:border-neon-red transition-all leading-relaxed custom-scrollbar font-mono"
-                                                            placeholder={`Format: [HEURE] ARTISTE - SCÈNE - LIEN INSTAGRAM\nEx: [22:00] THE ROCKSTAR - MAIN STAGE - https://instagram.com/therockstar`}
-                                                        />
                                                         <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM] Nom - Scène - Lien Instagram</p>
                                                     </div>
                                                 </div>
