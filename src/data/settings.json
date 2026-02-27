@@ -31,7 +31,7 @@
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
-    "tickerBgColor": "#ff0033",
+    "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff"
   }
 }
