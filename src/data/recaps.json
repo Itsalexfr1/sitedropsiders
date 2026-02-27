@@ -682,8 +682,8 @@
   {
     "id": 32,
     "title": "Récap : Ushuaia & Hi Ibiza (Juin 2024)",
-    "date": "2026-02-27T01:37",
-    "summary": "Dimitri Vegas &amp; Like Mike et Patrick Topping : Un marathon électronique à Ibiza La soirée de mercredi dernier à l' Ushuaïa Ibiza a été marquée par une performance électrisante de Dimitri Vegas &am...",
+    "date": "2026-02-27T01:59",
+    "summary": "Dimitri Vegas &amp; Like Mike et Patrick Topping : Un marathon électronique à Ibiza La soirée de mercredi dernier à l'Ushuaïa Ibiza a été marquée par une performance électrisante de Dimitri Vegas &am...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810715/dropsiders/images/enraisywcvkchokenvq8.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810716/dropsiders/images/zs0dczez5ydwbibr8dri.jpg",
@@ -698,8 +698,10 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Ibiza, Espagne ",
+    "isFeatured": false,
+    "showVideo": true,
+    "year": "2024"
   },
   {
     "id": 35,
