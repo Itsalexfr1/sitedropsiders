@@ -40,6 +40,8 @@ interface TakeoverProps {
         autoMessageInterval?: number;
         isSecret?: boolean;
         pinnedMessage?: string;
+        currentArtist?: string;
+        artistInstagram?: string;
     };
 }
 
@@ -832,6 +834,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     if (updates.channels !== undefined) {
                         settings.channels = updates.channels;
                     }
+                    if (updates.currentArtist !== undefined) {
+                        settings.currentArtist = updates.currentArtist;
+                    }
+                    if (updates.artistInstagram !== undefined) {
+                        settings.artistInstagram = updates.artistInstagram;
+                    }
                     // Update the settings object reference if possible, though local states are safer here
                 }
             }
@@ -1042,10 +1050,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
                             <span className="text-xs font-black text-red-500 uppercase tracking-widest">EN DIRECT</span>
                         </div>
-                        <div className="w-px h-5 bg-white/20 hidden sm:block" />
-                        <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
-                            {displayTitle}
-                        </h1>
+                        <div className="flex flex-col min-w-0">
+                            <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
+                                {displayTitle}
+                            </h1>
+                            {settings.currentArtist && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black/40 border border-white/10 rounded-lg backdrop-blur-md">
+                                        <Music2 className="w-2.5 h-2.5 text-neon-cyan shadow-[0_0_8px_#00ffff66]" />
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest whitespace-nowrap">
+                                            NOW: <span className="text-white">{settings.currentArtist}</span>
+                                        </span>
+                                        {settings.artistInstagram && (
+                                            <a
+                                                href={settings.artistInstagram}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="ml-1 p-0.5 hover:bg-neon-purple/20 rounded text-neon-purple transition-all"
+                                                title="Instagram de l'artiste"
+                                            >
+                                                <Instagram className="w-3 h-3" />
+                                            </a>
+                                        )}
+                                    </div>
+                                </motion.div>
+                            )}
+                        </div>
 
 
                         {/* Multi-Video Switcher */}
@@ -1550,36 +1584,59 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     placeholder="ex: https://youtube.com/watch?v=..."
                                                                 />
                                                             </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage1}
-                                                                    onChange={(e) => setStage1(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="Lien YouTube (Optionnel)..."
-                                                                />
+
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1 flex items-center gap-1.5"><Music2 className="w-2.5 h-2.5" /> ARTISTE EN COURS</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={settings.currentArtist || ''}
+                                                                        onChange={(e) => handleUpdateSettings({ currentArtist: e.target.value })}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="NOM DE L'ARTISTE..."
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1 flex items-center gap-1.5"><Instagram className="w-2.5 h-2.5" /> LIEN INSTAGRAM</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={settings.artistInstagram || ''}
+                                                                        onChange={(e) => handleUpdateSettings({ artistInstagram: e.target.value })}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="https://instagram.com/..."
+                                                                    />
+                                                                </div>
                                                             </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 2 (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage2}
-                                                                    onChange={(e) => setStage2(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="Lien YouTube (Optionnel)..."
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 3 (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage3}
-                                                                    onChange={(e) => setStage3(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="Lien YouTube (Optionnel)..."
-                                                                />
-                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={stage1}
+                                                                onChange={(e) => setStage1(e.target.value)}
+                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                placeholder="Lien YouTube (Optionnel)..."
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 2 (Lien YouTube)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={stage2}
+                                                                onChange={(e) => setStage2(e.target.value)}
+                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                placeholder="Lien YouTube (Optionnel)..."
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 3 (Lien YouTube)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={stage3}
+                                                                onChange={(e) => setStage3(e.target.value)}
+                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                placeholder="Lien YouTube (Optionnel)..."
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2610,7 +2667,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
-        </div>
+        </div >
     );
 }
 
