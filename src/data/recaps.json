@@ -93,23 +93,26 @@
   },
   {
     "id": 5,
-    "title": "Récap : Sea You Festival",
-    "date": "2026-02-27T00:53",
-    "summary": "Récap : Sea You Festival  Récap : Sea You Festival Du 18 au 20 juillet 2025, le Sea You Festival a une nouvelle fois réuni les amoureux de musique électronique au bord...",
+    "title": "Récap : Sea You Festival 2025",
+    "date": "2026-02-27T02:53",
+    "summary": "Récap : Sea You Festival Récap : Sea You Festival 2025 – La \"Beach Republic\" en apothéose Du 18 au 20 juillet 2025, le Sea You Festival a une nouvelle fois réuni les amoureux de musique électronique a...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810458/dropsiders/images/qupamfvf4sl24gmktvkt.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810460/dropsiders/images/papvvodzk53ylbuwyk4z.jpg",
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810460/dropsiders/images/ifltfmzrzmvehhrmebbh.jpg",
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810461/dropsiders/images/fvmioqbjp6n1ucge0d3l.jpg"
     ],
-    "youtubeId": "",
+    "youtubeId": "EIp2XDrHILw",
     "link": "https://www.dropsiders.fr/recaps/2625149_recap-sea-you-festival",
     "category": "Recaps",
     "content": "",
     "author": "Alex",
-    "festival": "",
-    "location": "",
-    "isFeatured": false
+    "festival": "Sea You Festival 2025",
+    "location": "Fribourg",
+    "isFeatured": false,
+    "country": "Allemagne",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 6,
