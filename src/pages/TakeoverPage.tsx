@@ -146,6 +146,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [tickerTextColor, setTickerTextColor] = useState(settings.tickerTextColor || '#ffffff');
     const [showTopBanner, setShowTopBanner] = useState(settings.showTopBanner ?? true);
     const [showTickerBanner, setShowTickerBanner] = useState(settings.showTickerBanner ?? true);
+    const [addChannelId, setAddChannelId] = useState('');
+    const [addChannelName, setAddChannelName] = useState('');
 
     // Collapsible Chat
     const [showUsersPanel, setShowUsersPanel] = useState(true);
@@ -1438,15 +1440,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.isSecret ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                     </button>
                                                                 </div>
-                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Chat Actif</label>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ chat_enabled: !settings.chat_enabled })}
-                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.chat_enabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
-                                                                    >
-                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.chat_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                    </button>
-                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -1478,8 +1471,40 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         placeholder="dQw4w9WgXcQ"
                                                                     />
                                                                 </div>
+                                                                <div className="space-y-4">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Ajouter un Flux (Canal)</label>
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={addChannelId}
+                                                                            onChange={(e) => setAddChannelId(e.target.value)}
+                                                                            className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
+                                                                            placeholder="ID YouTube..."
+                                                                        />
+                                                                        <input
+                                                                            type="text"
+                                                                            value={addChannelName}
+                                                                            onChange={(e) => setAddChannelName(e.target.value)}
+                                                                            className="bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red"
+                                                                            placeholder="Nom (ex: CAM 1)"
+                                                                        />
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (addChannelId && addChannelName) {
+                                                                                const newEntry = `${addChannelId}:${addChannelName}`;
+                                                                                setEditChannels(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
+                                                                                setAddChannelId('');
+                                                                                setAddChannelName('');
+                                                                            }
+                                                                        }}
+                                                                        className="w-full py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl text-[10px] font-black uppercase hover:bg-neon-red hover:text-white transition-all"
+                                                                    >
+                                                                        Ajouter le flux
+                                                                    </button>
+                                                                </div>
                                                                 <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Multicanal (1 par ligne : ID:Nom)</label>
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Configuration Multicanal (ID:Nom)</label>
                                                                     <textarea
                                                                         value={editChannels}
                                                                         onChange={(e) => setEditChannels(e.target.value)}
@@ -1816,7 +1841,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     tickerText,
                                                     tickerLink,
                                                     showTopBanner,
-                                                    showTickerBanner
+                                                    showTickerBanner,
+                                                    chat_enabled: true
                                                 })}
                                                 disabled={isSaving}
                                                 className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
@@ -1839,7 +1865,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20 border-t lg:border-t-0 lg:border-l border-white/10">
+                <div className="flex-1 lg:w-[420px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-[60] border-t lg:border-t-0 lg:border-l border-white/10 pointer-events-auto">
                     {/* Glossy Header */}
                     <div className="p-3 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
                         <div className="flex items-center gap-3">
@@ -2341,11 +2367,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 <div
                     className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
                     style={{ backgroundColor: tickerBgColor }}
+                    onMouseEnter={() => {
+                        const ticker = document.getElementById('ticker-animate-container');
+                        if (ticker) ticker.style.animationPlayState = 'paused';
+                    }}
+                    onMouseLeave={() => {
+                        const ticker = document.getElementById('ticker-animate-container');
+                        if (ticker) ticker.style.animationPlayState = 'running';
+                    }}
                 >
                     <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
                     <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                    <div className="flex items-center absolute whitespace-nowrap animate-ticker hover:[animation-play-state:paused] py-2">
+                    <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
                         {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
                             <a
                                 key={`${news.id}-${i}`}
