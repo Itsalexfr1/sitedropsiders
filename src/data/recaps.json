@@ -268,8 +268,8 @@
   {
     "id": 12,
     "title": "Récap : EDC Las Vegas 2025",
-    "date": "2026-02-27T00:49",
-    "summary": "Récap : EDC Las Vegas 2025  EDC Las Vegas 2025 : Une édition hors du temps Du 16 au 18 mai 2025, plus de 500 000 festivaliers venus du monde entier se sont retrouvés au cœ...",
+    "date": "2026-02-27T02:54",
+    "summary": "EDC Las Vegas 2025 : Une édition hors du temps Du 16 au 18 mai 2025, plus de 500 000 festivaliers venus du monde entier se sont retrouvés au Las Vegas Motor Speedway pour vivre une nouvelle édition de...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810499/dropsiders/images/ypixevtolln8euxwqlkx.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810500/dropsiders/images/bywpp5mgaoae0vac5ivi.jpg",
@@ -288,14 +288,17 @@
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810510/dropsiders/images/amzjtdn6q4addafm4xuh.jpg",
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810510/dropsiders/images/oxnfhx7jusmvlqixd0hn.jpg"
     ],
-    "youtubeId": "",
+    "youtubeId": "ewkMArBtG7E",
     "link": "https://www.dropsiders.fr/recaps/2526932_recap-edc-las-vegas-2025",
     "category": "Recaps",
     "content": "",
     "author": "Alex",
     "festival": "",
     "location": "Las Vegas, USA",
-    "isFeatured": false
+    "isFeatured": false,
+    "country": "États-Unis d'Amérique",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 13,
