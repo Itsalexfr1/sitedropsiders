@@ -45,6 +45,7 @@
     "pinnedMessage": "",
     "chat_enabled": true,
     "currentArtist": "Armin van buuren",
-    "artistInstagram": "https://www.instagram.com/arminvanbuuren/"
+    "artistInstagram": "https://www.instagram.com/arminvanbuuren/",
+    "showShop": true
   }
 }
