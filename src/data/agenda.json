@@ -3053,5 +3053,22 @@
     "month": "MARS",
     "isWeekly": false,
     "isSoldOut": false
+  },
+  {
+    "id": 266,
+    "title": "RÜFÜS DU SOL",
+    "date": "2026-05-09",
+    "startDate": "2026-05-09",
+    "endDate": "2026-02-27",
+    "location": "ADIDAS ARENA PARIS",
+    "country": "France",
+    "type": "Events",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772223337/dropsiders/or3byxvrxlidxxptggi2.webp",
+    "url": "https://www.adidasarena.com/programmation/rufus-du-sol--1143",
+    "genre": "Melodic Techno",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
