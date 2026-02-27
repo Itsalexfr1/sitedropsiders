@@ -176,19 +176,22 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                         </h4>
                                     </div>
                                     <div className="text-center bg-white/5 rounded-lg p-1.5 min-w-[3.2rem] border border-white/5 flex flex-col justify-center min-h-[3.2rem]">
-                                        <span className={`block text-[6.5px] ${styles.text} font-bold uppercase leading-none mb-1 tracking-tighter`}>
+                                        <span className={`block text-[7px] ${styles.text} font-bold uppercase leading-none mb-1 tracking-tighter`}>
                                             {event.startDate && event.endDate && event.startDate !== event.endDate ? (
-                                                <>
-                                                    {new Date(event.startDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}
-                                                    {"-"}
-                                                    {new Date(event.endDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}
-                                                </>
+                                                new Date(event.startDate).getMonth() === new Date(event.endDate).getMonth() ?
+                                                    new Date(event.startDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 4)
+                                                    :
+                                                    `${new Date(event.startDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 3)}-${new Date(event.endDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 3)}`
                                             ) : (
-                                                new Date(event.startDate || event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')
+                                                new Date(event.startDate || event.date).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 4)
                                             )}
                                         </span>
-                                        <span className="block text-xs font-bold text-white leading-none">
-                                            {new Date(event.date || event.startDate).getDate()}
+                                        <span className={`block ${event.startDate && event.endDate && event.startDate !== event.endDate ? 'text-[10px]' : 'text-xs'} font-bold text-white leading-none tracking-tighter`}>
+                                            {event.startDate && event.endDate && event.startDate !== event.endDate ? (
+                                                `${new Date(event.startDate).getDate()}-${new Date(event.endDate).getDate()}`
+                                            ) : (
+                                                new Date(event.date || event.startDate).getDate()
+                                            )}
                                         </span>
                                     </div>
                                 </div>
