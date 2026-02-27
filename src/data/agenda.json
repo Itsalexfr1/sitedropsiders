@@ -2601,13 +2601,19 @@
     "id": 231,
     "title": "Anyma presents AEden",
     "date": "2026-12-12",
-    "location": "Defense Arena Paris, France",
+    "location": "DEFENSE ARENA PARIS",
     "type": "Events",
     "image": "https://i.ibb.co/SDGsSQjK/IMG-3841.webp",
     "description": "Anyma présente ÆDEN - Defense Arena Paris ",
     "url": "https://www.anyma.com/paris",
     "genre": "Melodic Techno",
-    "month": "Dà à â€šâÆ’à â€šââ€°cembre"
+    "month": "DÉCEMBRE",
+    "startDate": "2026-12-12",
+    "endDate": "2026-12-12",
+    "country": "FRANCE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   },
   {
     "id": 232,
