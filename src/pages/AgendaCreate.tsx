@@ -4,6 +4,10 @@ import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, ArrowLeft,
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import recapsData from '../data/recaps.json';
+import agendaData from '../data/agenda.json';
 
 export function AgendaCreate() {
     const navigate = useNavigate();
@@ -26,6 +30,67 @@ export function AgendaCreate() {
     const [isWeekly, setIsWeekly] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
+
+    // Autocomplete State
+    const [citySuggestions, setCitySuggestions] = useState<{ city: string, country: string }[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const suggestionRef = useRef<HTMLDivElement>(null);
+
+    // Extract unique locations from data
+    const allLocations = useMemo(() => {
+        const locations = new Map<string, string>();
+
+        // From recaps
+        (recapsData as any[]).forEach(item => {
+            if (item.location) {
+                const city = item.location.split(',')[0].trim();
+                if (city && !locations.has(city.toLowerCase())) {
+                    locations.set(city.toLowerCase(), item.country || '');
+                }
+            }
+        });
+
+        // From agenda
+        (agendaData as any[]).forEach(item => {
+            if (item.location) {
+                const parts = item.location.split(',');
+                const city = parts[0].trim();
+                const countryPart = parts.length > 1 ? parts[1].trim() : '';
+                if (city && !locations.has(city.toLowerCase())) {
+                    locations.set(city.toLowerCase(), countryPart);
+                }
+            }
+        });
+
+        return Array.from(locations.entries()).map(([city, country]) => ({
+            city: city.charAt(0).toUpperCase() + city.slice(1),
+            country
+        }));
+    }, []);
+
+    useEffect(() => {
+        if (locationInput.length >= 1) {
+            const filtered = allLocations
+                .filter(loc => loc.city.toLowerCase().startsWith(locationInput.toLowerCase()))
+                .slice(0, 5);
+            setCitySuggestions(filtered);
+            setShowSuggestions(filtered.length > 0);
+        } else {
+            setCitySuggestions([]);
+            setShowSuggestions(false);
+        }
+    }, [locationInput, allLocations]);
+
+    // Close suggestions on click outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (suggestionRef.current && !suggestionRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
 
     // Fetch item if missing from state but ID is present
@@ -343,10 +408,40 @@ export function AgendaCreate() {
                                             type="text"
                                             value={locationInput}
                                             onChange={(e) => setLocationInput(e.target.value)}
+                                            onFocus={() => locationInput.length >= 1 && setShowSuggestions(true)}
                                             placeholder="Ex: Ibiza"
                                             className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
                                             required
                                         />
+                                        <AnimatePresence>
+                                            {showSuggestions && (
+                                                <motion.div
+                                                    ref={suggestionRef}
+                                                    initial={{ opacity: 0, y: -10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -10 }}
+                                                    className="absolute z-[100] left-0 right-0 top-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl"
+                                                >
+                                                    {citySuggestions.map((suggestion, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                e.stopPropagation();
+                                                                setLocationInput(suggestion.city);
+                                                                if (suggestion.country) setCountry(suggestion.country);
+                                                                setShowSuggestions(false);
+                                                            }}
+                                                            className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group"
+                                                        >
+                                                            <span className="text-white font-medium group-hover:text-neon-yellow transition-colors">{suggestion.city}</span>
+                                                            {suggestion.country && <span className="text-xs text-gray-500 uppercase italic">{suggestion.country}</span>}
+                                                        </button>
+                                                    ))}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
