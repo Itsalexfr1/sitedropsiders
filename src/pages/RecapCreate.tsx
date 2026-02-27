@@ -1201,7 +1201,7 @@ export function RecapCreate() {
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu (Opt)</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
@@ -1209,6 +1209,7 @@ export function RecapCreate() {
                                         value={locationInput}
                                         onChange={(e) => setLocationInput(e.target.value)}
                                         placeholder="Ex: Boom"
+                                        required
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
                                 </div>
