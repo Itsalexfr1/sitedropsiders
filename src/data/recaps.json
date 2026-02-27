@@ -599,7 +599,7 @@
   {
     "id": 29,
     "title": "Récap : Les Ardentes 2024",
-    "date": "2026-02-27T01:25",
+    "date": "2026-02-27T02:17",
     "summary": "Le dernier jour du festival Les Ardentes 2024, qui s'est déroulé le dimanche 14 juillet, a offert aux festivaliers une pour e spectaculaire avec une programmation riche en têtes d'affiche et en moments mémorables.",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810686/dropsiders/images/qyvuccmefg6vpidbnl01.webp",
     "images": [
@@ -617,8 +617,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Liége",
+    "isFeatured": false,
+    "country": "Belgique",
+    "showVideo": true,
+    "year": "2024"
   },
   {
     "id": 30,
