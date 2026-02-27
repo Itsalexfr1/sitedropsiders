@@ -74,9 +74,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     const [isJoined, setIsJoined] = useState(() => {
+        // Only admins bypass the join form automatically
         const auth = localStorage.getItem('admin_auth') === 'true';
-        if (auth) return true;
-        return localStorage.getItem('chat_joined') === 'true';
+        return auth;
     });
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
@@ -431,44 +431,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Security check
-        if (!isAdmin && parseInt(captchaAnswer) !== captchaA + captchaB) {
-            alert("Erreur de sécurité : addition incorrecte. Veuillez prouver que vous êtes un humain.");
-            return;
-        }
+        if (!pseudo.trim()) return;
 
-        if (pseudo && email && country) {
-            setIsJoined(true);
-            localStorage.setItem('chat_joined', 'true');
-            localStorage.setItem('chat_pseudo', pseudo.toUpperCase());
-            localStorage.setItem('chat_color', userColor);
+        setIsJoined(true);
+        localStorage.setItem('chat_joined', 'true');
+        localStorage.setItem('chat_pseudo', pseudo.toUpperCase());
+        localStorage.setItem('chat_color', userColor);
 
-            if (subscribeNewsletter) {
-                try {
-                    await fetch('/api/newsletter/subscribe', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ email, name: pseudo })
-                    });
-                } catch (err) {
-                    console.error('Failed to subscribe:', err);
-                }
+        if (subscribeNewsletter) {
+            try {
+                await fetch('/api/newsletter/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, name: pseudo })
+                });
+            } catch (err) {
+                console.error('Failed to subscribe:', err);
             }
-
-            // --- BOT WELCOME ---
-            fetch('/api/chat/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    pseudo: 'DROPSIDERS BOT',
-                    message: `👋 Bienvenue dans le chat @${pseudo.toUpperCase()} ! Profite bien du live sur ce flux ! 🔥`,
-                    country: 'FR',
-                    isBot: true,
-                    color: '#00ffcc',
-                    channel: currentVideoId
-                })
-            });
         }
+
+        // --- BOT WELCOME ---
+        fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                pseudo: 'DROPSIDERS BOT',
+                message: `👋 Bienvenue dans le chat @${pseudo.toUpperCase()} ! Profite bien du live sur ce flux ! 🔥`,
+                country: 'FR',
+                isBot: true,
+                color: '#00ffcc',
+                channel: currentVideoId
+            })
+        });
     };
 
     const appendLineup = () => {
