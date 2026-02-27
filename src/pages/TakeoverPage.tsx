@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
@@ -59,10 +59,45 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [enteredPassword, setEnteredPassword] = useState('');
     const [passwordError, setPasswordError] = useState(false);
 
-    // Command Management States
-    const [cmdTrigger, setCmdTrigger] = useState('');
-    const [cmdResponse, setCmdResponse] = useState('');
-    const [isEditingCmd, setIsEditingCmd] = useState<string | null>(null);
+    const parseLineup = useCallback((text: string) => {
+        if (!text) return [];
+        const now = new Date();
+        const currentTotal = now.getHours() * 60 + now.getMinutes();
+
+        return text.split('\n').filter(line => line.trim()).map(line => {
+            let time = '', artist = '', stage = '', festival = '', instagram = '';
+
+            const timeMatch = line.match(/\[(.*?)\]/);
+            if (timeMatch) {
+                time = timeMatch[1];
+                const rest = line.replace(timeMatch[0], '').trim();
+                const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
+                artist = parts[0] || '';
+                stage = parts[1] || '';
+                festival = parts[2] || '';
+                instagram = parts[3] || '';
+            } else if (line.includes('|')) {
+                const parts = line.split('|').map(p => p.trim());
+                time = parts[0] || '';
+                artist = parts[1] || '';
+                stage = parts[2] || '';
+                festival = parts[3] || '';
+                instagram = parts[4] || '';
+            } else {
+                artist = line.trim();
+            }
+
+            let isPast = false;
+            if (time.includes(':')) {
+                const [h, m] = time.split(':').map(Number);
+                const itemMinutes = h * 60 + m;
+                if (itemMinutes < currentTotal - 1) isPast = true;
+            }
+
+            return { time, artist, stage, festival, instagram, isPast };
+        });
+    }, []);
+
 
     const handleUnlock = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -77,10 +112,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
 
-    const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
-    const [displayTitle, setDisplayTitle] = useState(settings.title);
+    const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
-    const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
 
     const [fluxPrincipal, setFluxPrincipal] = useState(settings.youtubeId ? `https://youtube.com/watch?v=${settings.youtubeId}` : '');
     const [stage1, setStage1] = useState(() => {
@@ -258,25 +291,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [shopProducts, setShopProducts] = useState<any[]>([]);
     const [showShopWidget, setShowShopWidget] = useState(false);
     const [recentShazams] = useState<string[]>([]);
-    const [activeVideoIndex, setActiveVideoIndex] = useState(0);
-
-    // Dynamic Video List with Titles
-    const channelItems = (() => {
-        const items = [];
-        if (settings.youtubeId) {
-            items.push({ id: settings.youtubeId.trim(), title: 'Flux Principal' });
-        }
-        if (settings.channels) {
-            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
-                const [id, ...titleParts] = line.split(':');
-                if (id && id.trim()) {
-                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM' });
-                }
-            });
-        }
-        return items;
-    })();
-
     const currentVideoId = channelItems[activeVideoIndex]?.id || channelItems[0]?.id || '';
 
     useEffect(() => {
@@ -359,6 +373,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const interval = setInterval(fetchMessages, 3000);
         return () => clearInterval(interval);
     }, [currentVideoId, activePoll, userColor, pseudo, country]); // Added activePoll, userColor, pseudo, country to dependencies for parseLineup to be stable
+
+    // Polling Settings periodically to sync Shop, Pinned Message, etc globally
+    useEffect(() => {
+        const pollSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data?.takeover) {
+                        // We only update the global settings if they differ significantly 
+                        // to avoid resetting local edit states
+                        const newSettings = data.takeover;
+                        setShowShopWidget(newSettings.showShop ?? false);
+                        setLocalPinnedMessage(newSettings.pinnedMessage ?? '');
+                        // Sync other critical live settings if needed
+                        settings.showShop = newSettings.showShop;
+                        settings.pinnedMessage = newSettings.pinnedMessage;
+                        settings.currentArtist = newSettings.currentArtist;
+                        settings.artistInstagram = newSettings.artistInstagram;
+                    }
+                }
+            } catch (err) { }
+        };
+
+        const interval = setInterval(pollSettings, 5000); // Sync every 5s
+        return () => clearInterval(interval);
+    }, [settings]);
 
     const getCountryFlag = (c: string) => {
         if (!c) return <Globe className="w-3.5 h-3.5 text-gray-500" />;
@@ -573,7 +614,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
         if (!response) {
             // These commands are handled by the server (worker.ts) to avoid double bots
-            const serverCommands = ['!help', '!lineup', '!planning', '!shop', '!boutique', '!shazam', '!musique', '!news', '!actu', '!id'];
+            const serverCommands = ['!help', '!lineup', '!planning', '!shazam', '!musique', '!news', '!actu', '!id'];
             if (serverCommands.includes(cmd)) return;
 
             if (cmd === '!artiste') {
@@ -586,6 +627,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 const currentLineup = [...lineup].filter(i => i.isPast).pop();
                 const festivalName = currentLineup?.festival || settings.title || "DROPSIDERS LIVE";
                 response = `🎪 Festival actuel : ${festivalName.toUpperCase()} ! 🎉`;
+            } else if (cmd === '!shop' || cmd === '!boutique') {
+                response = "🛒 Retrouvez toute notre collection sur la boutique officielle : https://dropsiders.com/shop ! ✨";
             }
 
             if (hasModPowers) {
@@ -822,49 +865,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return a.pseudo.localeCompare(b.pseudo);
         });
 
-    const parseLineup = useCallback((text: string) => {
-        if (!text) return [];
-        const now = new Date();
-        const currentTotal = now.getHours() * 60 + now.getMinutes();
+    const isServerAdmin = adminAuth === 'true';
 
-        return text.split('\n').filter(line => line.trim()).map(line => {
-            let time = '', artist = '', stage = '', festival = '', instagram = '';
-
-            const timeMatch = line.match(/\[(.*?)\]/);
-            if (timeMatch) {
-                time = timeMatch[1];
-                const rest = line.replace(timeMatch[0], '').trim();
-                const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
-                artist = parts[0] || '';
-                stage = parts[1] || '';
-                festival = parts[2] || '';
-                instagram = parts[3] || '';
-            } else if (line.includes('|')) {
-                const parts = line.split('|').map(p => p.trim());
-                time = parts[0] || '';
-                artist = parts[1] || '';
-                stage = parts[2] || '';
-                festival = parts[3] || '';
-                instagram = parts[4] || '';
-            } else {
-                artist = line.trim();
-            }
-
-            let isPast = false;
-            if (time.includes(':')) {
-                const [h, m] = time.split(':').map(Number);
-                const itemMinutes = h * 60 + m;
-                if (itemMinutes < currentTotal - 1) isPast = true;
-            }
-
-            return { time, artist, stage, festival, instagram, isPast };
-        });
-    }, []);
+    // State for command edition
+    const [cmdTrigger, setCmdTrigger] = useState('');
+    const [cmdResponse, setCmdResponse] = useState('');
+    const [isEditingCmd, setIsEditingCmd] = useState<string | null>(null);
 
     const handleUpdateSettings = useCallback(async (updates: Partial<TakeoverProps['settings']>) => {
         setIsSaving(true);
         try {
-            // First get full current settings
             const res = await fetch('/api/settings');
             if (res.ok) {
                 const currentSettings = await res.json();
@@ -914,23 +924,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                     if (updates.currentArtist !== undefined) {
                         settings.currentArtist = updates.currentArtist;
-                        setEditCurrentArtist(updates.currentArtist); // Update local state for display
+                        setEditCurrentArtist(updates.currentArtist);
                     }
                     if (updates.artistInstagram !== undefined) {
                         settings.artistInstagram = updates.artistInstagram;
-                        setEditArtistInstagram(updates.artistInstagram); // Update local state for display
-                    }
-                    if (updates.customCommands !== undefined) {
-                        settings.customCommands = updates.customCommands;
-                    }
-                    if (updates.moderators !== undefined) {
-                        settings.moderators = updates.moderators;
-                    }
-                    if (updates.isSecret !== undefined) {
-                        settings.isSecret = updates.isSecret;
-                    }
-                    if (updates.password !== undefined) {
-                        settings.password = updates.password;
+                        setEditArtistInstagram(updates.artistInstagram);
                     }
                     if (updates.customCommands !== undefined) {
                         setLocalCustomCommands(updates.customCommands);
@@ -942,7 +940,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         settings.showShop = updates.showShop;
                         setShowShopWidget(updates.showShop);
                     }
-                    // Update the settings object reference if possible, though local states are safer here
                 }
             }
         } catch (err) {
@@ -950,9 +947,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         } finally {
             setIsSaving(false);
         }
-    }, [adminUser, editTitle, editLineup, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, pseudo, editCurrentArtist, editArtistInstagram]);
+    }, [getAuthHeaders, editTitle, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, settings]);
 
-    // Auto-update current artist from planning
     useEffect(() => {
         const interval = setInterval(() => {
             const items = parseLineup(settings.lineup || '');
@@ -969,7 +965,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .sort((a, b) => b.total - a.total)
                 .find(i => i.total <= currentMinutes);
 
-            if (currentItem && isAdmin) { // Only admin updates the server settings to avoid conflicts
+            if (currentItem && isServerAdmin) { // Only admin updates the server settings to avoid conflicts
                 if (currentItem.artist !== settings.currentArtist || (currentItem.instagram && currentItem.instagram !== settings.artistInstagram)) {
                     handleUpdateSettings({
                         currentArtist: currentItem.artist,
@@ -979,7 +975,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             }
         }, 20000);
         return () => clearInterval(interval);
-    }, [settings.lineup, settings.currentArtist, isAdmin, settings.artistInstagram, handleUpdateSettings]);
+    }, [settings.lineup, settings.currentArtist, isServerAdmin, settings.artistInstagram, handleUpdateSettings, parseLineup]);
 
     const handleRemoveModerator = async (modPseudo: string) => {
         const currentMods = (settings.moderators || '').split(',').map(m => m.trim()).filter(m => m && m.toLowerCase() !== modPseudo.toLowerCase());
@@ -1155,7 +1151,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
                                 {displayTitle}
                             </h1>
-                            {settings.currentArtist && (
+                            {fluxCurrentArtist.artist && (
                                 <motion.div
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -1164,11 +1160,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black/40 border border-white/10 rounded-lg backdrop-blur-md">
                                         <Music2 className="w-2.5 h-2.5 text-neon-cyan shadow-[0_0_8px_#00ffff66]" />
                                         <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest whitespace-nowrap">
-                                            NOW: <span className="text-white">{settings.currentArtist}</span>
+                                            NOW: <span className="text-white">{fluxCurrentArtist.artist}</span>
                                         </span>
-                                        {settings.artistInstagram && (
+                                        {fluxCurrentArtist.instagram && (
                                             <a
-                                                href={settings.artistInstagram}
+                                                href={fluxCurrentArtist.instagram}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 className="ml-1 p-0.5 hover:bg-neon-purple/20 rounded text-neon-purple transition-all"
@@ -1289,6 +1285,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {/* Video Section */}
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
                     <div className="w-full aspect-video lg:aspect-none lg:flex-1 lg:h-full relative bg-black group overflow-hidden">
+                        {/* Stream Name Badge */}
+                        <div className="absolute top-6 left-6 z-20 pointer-events-none">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, x: -20 }}
+                                animate={{ opacity: 1, scale: 1, x: 0 }}
+                                key={channelItems[activeVideoIndex]?.title || 'Principal'}
+                                className="px-5 py-2.5 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center gap-3 shadow-[0_10px_30px_rgba(0,0,0,0.5)]"
+                            >
+                                <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_12px_#00ffff]" />
+                                <span className="text-[11px] font-black text-white uppercase tracking-[0.25em] italic">
+                                    {channelItems[activeVideoIndex]?.title || 'Flux Principal'}
+                                </span>
+                            </motion.div>
+                        </div>
                         <div className="absolute inset-0 z-0">
                             <iframe
                                 className="w-full h-full border-none"
@@ -1394,7 +1404,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <div className="text-right">ÉVÉNEMENT</div>
                                             </div>
 
-                                            {parseLineup(displayLineup || settings.lineup || '').filter(item => !item.isPast).map((item, idx) => (
+                                            {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
                                                 <div
                                                     key={idx}
                                                     className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/10 hover:border-neon-red/50 hover:bg-white/10 p-4 lg:p-6 rounded-2xl transition-all duration-300 shadow-lg backdrop-blur-md mb-3"
@@ -1992,7 +2002,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                         <div className="space-y-2">
                                                             {localModerators?.split(',').filter(m => m.trim()).map(mod => (
-                                                                <div key={mod} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 group hover:border-white/20 transition-all">
+                                                                <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
                                                                     <div className="flex items-center gap-2">
                                                                         <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} title={isUserOnline(mod.trim()) ? "En ligne" : "Hors ligne"} />
                                                                         <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
@@ -2270,11 +2280,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             {hasModPowers && (
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => setShowShopWidget(!showShopWidget)}
+                                        onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
                                         className={`p-2.5 rounded-xl transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                        title="Shop"
+                                        title="Shop (Global)"
                                     >
-                                        <Globe className="w-4 h-4" />
+                                        <Zap className="w-4 h-4" />
                                     </button>
                                     <button
                                         onClick={() => setShowSlowModePopup(!showSlowModePopup)}
@@ -2691,7 +2701,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </a>
                             ))}
 
-                            {tickerType === 'planning' && parseLineup(displayLineup).concat(parseLineup(displayLineup)).map((item, i) => (
+                            {tickerType === 'planning' && currentFluxLineup.concat(currentFluxLineup).map((item, i) => (
                                 <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
                                     <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
                                     <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
