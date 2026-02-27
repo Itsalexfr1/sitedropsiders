@@ -424,51 +424,52 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             allowFullScreen
                         ></iframe>
 
-                        {/* Line Up overlay */}
+                        {/* Mini Planning Widget (Bottom Right) */}
                         <AnimatePresence>
                             {showLineup && (
                                 <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-black/70 backdrop-blur-sm z-20 flex flex-col justify-center items-center p-8"
-                                    onClick={() => setShowLineup(false)}
+                                    initial={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
+                                    className="absolute bottom-20 right-4 w-72 max-w-[calc(100%-2rem)] z-30 pointer-events-auto"
+                                    onClick={e => e.stopPropagation()}
                                 >
-                                    <div className="w-full max-w-2xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
-                                        <div className="flex items-center justify-between mb-8">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30 shadow-[0_0_15px_rgba(255,0,0,0.3)]">
-                                                    <List className="w-6 h-6 text-neon-red animate-pulse" />
-                                                </div>
-                                                <h2 className="text-2xl font-black text-white uppercase italic tracking-widest">
+                                    <div className="bg-black/95 backdrop-blur-2xl border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(255,0,51,0.1)]">
+                                        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
+                                            <div className="flex items-center gap-2">
+                                                <List className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
+                                                <h2 className="text-[10px] font-black text-white uppercase italic tracking-[0.2em]">
                                                     LINE UP <span className="text-neon-red">LIVE</span>
                                                 </h2>
                                             </div>
-                                            <button onClick={() => setShowLineup(false)} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all">
-                                                <X className="w-6 h-6" />
+                                            <button
+                                                onClick={() => setShowLineup(false)}
+                                                className="p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all"
+                                            >
+                                                <X className="w-3 h-3" />
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                                        <div className="p-3 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
                                             {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
-                                                <div key={i} className="bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-all hover:border-neon-red/30 group">
-                                                    <div className="flex justify-between items-start mb-3">
-                                                        <span className="px-2 py-1 bg-neon-red/20 text-neon-red text-[10px] font-black rounded border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,0,0.1)]">
+                                                <div key={i} className="bg-white/5 border border-white/5 rounded-xl p-2.5 hover:bg-white/10 transition-all group">
+                                                    <div className="flex justify-between items-center mb-1.5">
+                                                        <span className="px-1.5 py-0.5 bg-neon-red/20 text-neon-red text-[8px] font-black rounded border border-neon-red/20">
                                                             {item.time}
                                                         </span>
-                                                        <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-2 py-1 rounded">
+                                                        <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-[100px]">
                                                             {item.stage}
                                                         </span>
                                                     </div>
-                                                    <h3 className="text-white font-black uppercase italic tracking-widest text-base group-hover:text-neon-red transition-colors leading-tight">
+                                                    <h3 className="text-white font-black uppercase italic tracking-wider text-[11px] group-hover:text-neon-red transition-colors leading-tight truncate">
                                                         {item.artist}
                                                     </h3>
                                                 </div>
                                             ))}
                                             {parseLineup(editLineup || settings.lineup || '').length === 0 && (
-                                                <div className="col-span-full py-20 text-center">
-                                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em] italic animate-pulse">
-                                                        LE PROGRAMME ARRIVE BIENTÔT...
+                                                <div className="py-8 text-center">
+                                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em] italic">
+                                                        PROGRAMME À VENIR
                                                     </p>
                                                 </div>
                                             )}
