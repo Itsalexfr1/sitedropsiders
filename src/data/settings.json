@@ -50,7 +50,7 @@
     "shopItems": "1,4,3,2,10,11,13,12,25,22,24,23",
     "mainFluxName": "AREA 1",
     "botColor": "#ff0000",
-    "botBgColor": "rgba(0, 255, 2, 0.05)",
+    "botBgColor": "rgba(0, 255, 20, 0.05",
     "adminColor": "#ff0033",
     "adminBgColor": "rgba(255, 0, 51, 0.05)"
   }
