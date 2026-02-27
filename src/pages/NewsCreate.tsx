@@ -46,6 +46,12 @@ const XIcon = (props: any) => (
     </svg>
 );
 
+const SnapchatIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12,2.5c-3.7,0-5.7,2.8-5.7,6.1c0,0.8,0.2,1.5,0.6,2.1c-2.3,0.3-4.1,2.5-4.1,5c0,1,0.5,1.9,1.1,2.5 c-0.1,0.2-0.1,0.5-0.1,0.7c0,1.2,1,2.2,2.2,2.2h0.1c0.7,0.7,1.7,1.2,2.8,1.2c0.8,0,1.5-0.2,2.1-0.6c0.6,0.4,1.3,0.6,2.1,0.6 c1.1,0,2.1-0.5,2.8-1.2h0.1c1.2,0,2.2-1,2.2-2.2c0-0.2,0-0.5-0.1-0.7c0.7-0.6,1.1-1.5,1.1-2.5c0-2.5-1.8-4.7-4.1-5 c0.4-0.6,0.6-1.3,0.6-2.1C17.7,5.3,15.7,2.5,12,2.5z M12,4.5c2.1,0,3.7,1.6,3.7,4.1c0,0.7-0.2,1.3-0.5,1.9c-0.1,0.3-0.2,0.6-0.2,0.9 c0,0.3,0.1,0.6,0.3,0.8c3,0.4,3.8,2.6,3.8,4.9c0,1-0.8,1.8-1.8,1.8h-0.1c-0.2,0-0.5,0.1-0.8,0.3c-0.2,0.2-0.4,0.5-0.4,0.8 c0.1,0.3,0.1,0.6,0.1,0.9c0,0.4-0.1,0.8-0.3,1.2c-0.7,0.9-1.9,1.4-3.2,1.4s-2.5-0.5-3.2-1.4c-0.2-0.3-0.3-0.7-0.3-1.2 c0-0.3,0-0.6,0.1-0.9c0-0.3-0.1-0.6-0.4-0.8C8.5,19.3,8.3,19.2,8.1,19.2H8c-1,0-1.8-0.8-1.8-1.8c0-2.3,0.8-4.5,3.8-4.9 c0.2-0.2,0.3-0.5,0.3-0.8c0-0.3-0.1-0.6-0.2-0.9c-0.3-0.6-0.5-1.2-0.5-1.9C9.3,6.1,10.9,4.5,12,4.5z" />
+    </svg>
+);
+
 const EDITOR_COLORS = [
     '#FF1241', // neon-red
     '#00FFFF', // neon-cyan
@@ -1338,13 +1344,39 @@ export function NewsCreate() {
         setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
     };
 
-    const updateMusicItem = (id: string, field: 'title' | 'media', value: string) => {
-        setMusicItems(musicItems.map(item => item.id === id ? { ...item, [field]: value } : item));
+    const fetchMusicMetadata = async (id: string, url: string) => {
+        if (!url) return;
+
+        try {
+            let title = '';
+            // 1. YouTube Title Fetch
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                const response = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                if (data.title) title = data.title;
+            }
+            // 2. Spotify Title Fetch (OEmbed)
+            else if (url.includes('spotify.com')) {
+                const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(url)}`);
+                const data = await response.json();
+                if (data.title) title = data.title;
+            }
+
+            if (title) {
+                setMusicItems(prev => prev.map(item =>
+                    item.id === id ? { ...item, title: title } : item
+                ));
+            }
+        } catch (error) {
+            console.error('Error fetching music metadata:', error);
+        }
     };
 
-    const removeMusicItem = (id: string) => {
-        if (musicItems.length > 1) {
-            setMusicItems(musicItems.filter(item => item.id !== id));
+    const updateMusicItem = (id: string, field: 'title' | 'media', value: string) => {
+        setMusicItems(musicItems.map(item => item.id === id ? { ...item, [field]: value } : item));
+
+        if (field === 'media' && value && activeTab === 'Musique') {
+            fetchMusicMetadata(id, value);
         }
     };
 
@@ -2069,67 +2101,71 @@ ${generateFestivalSocialsHtml()}
 
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Ville</label>
-                                <div className="relative group">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={locationInput}
-                                        onChange={(e) => setLocationInput(e.target.value.toUpperCase())}
-                                        onFocus={() => locationInput.length >= 1 && setShowSuggestions(true)}
-                                        placeholder="Ex: Boom"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
-                                    />
-                                    <AnimatePresence>
-                                        {showSuggestions && (
-                                            <motion.div
-                                                ref={suggestionRef}
-                                                initial={{ opacity: 0, y: -10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: -10 }}
-                                                className="absolute z-[100] left-0 right-0 top-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl"
-                                            >
-                                                {citySuggestions.map((suggestion, idx) => (
-                                                    <button
-                                                        key={idx}
-                                                        type="button"
-                                                        onClick={(e) => {
-                                                            e.preventDefault();
-                                                            e.stopPropagation();
-                                                            setLocationInput(suggestion.city);
-                                                            if (suggestion.country) setCountry(suggestion.country);
-                                                            setShowSuggestions(false);
-                                                        }}
-                                                        className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group"
+                            {activeTab !== 'Musique' && (
+                                <>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Ville</label>
+                                        <div className="relative group">
+                                            <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                            <input
+                                                type="text"
+                                                value={locationInput}
+                                                onChange={(e) => setLocationInput(e.target.value.toUpperCase())}
+                                                onFocus={() => locationInput.length >= 1 && setShowSuggestions(true)}
+                                                placeholder="Ex: Boom"
+                                                className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                            />
+                                            <AnimatePresence>
+                                                {showSuggestions && (
+                                                    <motion.div
+                                                        ref={suggestionRef}
+                                                        initial={{ opacity: 0, y: -10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        className="absolute z-[100] left-0 right-0 top-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl"
                                                     >
-                                                        <span className="text-white font-medium group-hover:text-neon-cyan transition-colors">{suggestion.city}</span>
-                                                        {suggestion.country && <span className="text-xs text-gray-500 uppercase italic">{suggestion.country}</span>}
-                                                    </button>
-                                                ))}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays</label>
-                                <div className="relative group">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={country}
-                                        onChange={(e) => setCountry(e.target.value.toUpperCase())}
-                                        placeholder="Ex: France"
-                                        className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
-                                    />
-                                    {isAutoLocating && (
-                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                            <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+                                                        {citySuggestions.map((suggestion, idx) => (
+                                                            <button
+                                                                key={idx}
+                                                                type="button"
+                                                                onClick={(e) => {
+                                                                    e.preventDefault();
+                                                                    e.stopPropagation();
+                                                                    setLocationInput(suggestion.city);
+                                                                    if (suggestion.country) setCountry(suggestion.country);
+                                                                    setShowSuggestions(false);
+                                                                }}
+                                                                className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group"
+                                                            >
+                                                                <span className="text-white font-medium group-hover:text-neon-cyan transition-colors">{suggestion.city}</span>
+                                                                {suggestion.country && <span className="text-xs text-gray-500 uppercase italic">{suggestion.country}</span>}
+                                                            </button>
+                                                        ))}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
-                                    )}
-                                </div>
-                            </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays</label>
+                                        <div className="relative group">
+                                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                            <input
+                                                type="text"
+                                                value={country}
+                                                onChange={(e) => setCountry(e.target.value.toUpperCase())}
+                                                placeholder="Ex: France"
+                                                className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
+                                            />
+                                            {isAutoLocating && (
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                    <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Année</label>
                                 <div className="relative group">
@@ -2185,163 +2221,123 @@ ${generateFestivalSocialsHtml()}
 
                                 </div>
                             </div>
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                        <Youtube className="w-4 h-4" /> {type === 'Interview' && interviewSubtype === 'video' ? 'Lien Vidéo (ID ou URL)' : 'Vidéo de l\'article'}
-                                        {type === 'Interview' && interviewSubtype === 'video' && <span className="text-neon-red">*</span>}
-                                    </label>
-                                    <div className="flex items-center gap-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Activer :</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowVideo(!showVideo)}
-                                                className={`w-10 h-5 rounded-full relative transition-colors ${showVideo ? 'bg-neon-red' : 'bg-gray-800'}`}
-                                            >
-                                                <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${showVideo ? 'right-1' : 'left-1'}`} />
-                                            </button>
+                            {activeTab !== 'Musique' && (
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                            <Youtube className="w-4 h-4" /> {type === 'Interview' && interviewSubtype === 'video' ? 'Lien Vidéo (ID ou URL)' : 'Vidéo de l\'article'}
+                                            {type === 'Interview' && interviewSubtype === 'video' && <span className="text-neon-red">*</span>}
+                                        </label>
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Activer :</span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowVideo(!showVideo)}
+                                                    className={`w-10 h-5 rounded-full relative transition-colors ${showVideo ? 'bg-neon-red' : 'bg-gray-800'}`}
+                                                >
+                                                    <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${showVideo ? 'right-1' : 'left-1'}`} />
+                                                </button>
+                                            </div>
+                                            {youtubeId && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setYoutubeId('')}
+                                                    className="p-1 text-gray-500 hover:text-red-500 transition-colors"
+                                                    title="Supprimer la vidéo"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            )}
                                         </div>
-                                        {youtubeId && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setYoutubeId('')}
-                                                className="p-1 text-gray-500 hover:text-red-500 transition-colors"
-                                                title="Supprimer la vidéo"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        )}
                                     </div>
+                                    {showVideo && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="space-y-4"
+                                        >
+                                            <input
+                                                type="text"
+                                                value={youtubeId}
+                                                onChange={(e) => {
+                                                    let val = e.target.value;
+                                                    if (val.includes('youtube.com/watch?v=')) {
+                                                        val = val.split('v=')[1].split('&')[0];
+                                                    } else if (val.includes('youtu.be/')) {
+                                                        val = val.split('youtu.be/')[1].split('?')[0];
+                                                    } else if (val.includes('youtube.com/embed/')) {
+                                                        val = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                    }
+                                                    setYoutubeId(val);
+                                                }}
+                                                className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                                placeholder="ID ou URL YouTube"
+                                            />
+                                            {!(type === 'Interview' && interviewSubtype === 'video') && (
+                                                <p className="text-[10px] text-gray-500 italic">S'affichera tout en bas de l'article</p>
+                                            )}
+                                        </motion.div>
+                                    )}
                                 </div>
-                                {showVideo && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="space-y-4"
-                                    >
-                                        <input
-                                            type="text"
-                                            value={youtubeId}
-                                            onChange={(e) => {
-                                                let val = e.target.value;
-                                                if (val.includes('youtube.com/watch?v=')) {
-                                                    val = val.split('v=')[1].split('&')[0];
-                                                } else if (val.includes('youtu.be/')) {
-                                                    val = val.split('youtu.be/')[1].split('?')[0];
-                                                } else if (val.includes('youtube.com/embed/')) {
-                                                    val = val.split('youtube.com/embed/')[1].split('?')[0];
-                                                }
-                                                setYoutubeId(val);
-                                            }}
-                                            className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                            placeholder="ID ou URL YouTube"
-                                        />
-                                        {!(type === 'Interview' && interviewSubtype === 'video') && (
-                                            <p className="text-[10px] text-gray-500 italic">S'affichera tout en bas de l'article</p>
-                                        )}
-                                    </motion.div>
-                                )}
-                            </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* ARTIST SOCIALS (Everywhere) */}
-                    <div className="pt-8 border-t border-white/10 mt-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black text-gray-500 uppercase">Suivre : {Object.values(artistSocials).some(v => v.trim()) && <span className="text-neon-red">*</span>}</span>
-                                <input
-                                    type="text"
-                                    value={artistNameLabel}
-                                    onChange={(e) => setArtistNameLabel(e.target.value)}
-                                    className={`bg-black/40 border ${Object.values(artistSocials).some(v => v.trim()) && !artistNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest transition-all`}
-                                    placeholder="NOM DE L'ARTISTE"
-                                />
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {[
-                                { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
-                                { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
-                                { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
-                                { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
-                                { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
-                            ].map((social) => (
-                                <div key={social.id}>
-                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
-                                        {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
-                                    </label>
-                                    <div className="relative group">
-                                        <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                            <social.icon className="w-full h-full" />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={(artistSocials as any)[social.id]}
-                                            onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
-                                            className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
-                                            placeholder="URL Artiste..."
-                                        />
-                                    </div>
+                    {/* ARTIST SOCIALS (Everywhere except Musique) */}
+                    {activeTab !== 'Musique' && (
+                        <div className="pt-8 border-t border-white/10 mt-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <Link2 className="w-4 h-4 text-neon-cyan" /> Réseaux Sociaux de l'Artiste
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-black text-gray-500 uppercase">Suivre : {Object.values(artistSocials).some(v => v.trim()) && <span className="text-neon-red">*</span>}</span>
+                                    <input
+                                        type="text"
+                                        value={artistNameLabel}
+                                        onChange={(e) => setArtistNameLabel(e.target.value)}
+                                        className={`bg-black/40 border ${Object.values(artistSocials).some(v => v.trim()) && !artistNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-cyan w-40 font-bold uppercase tracking-widest transition-all`}
+                                        placeholder="NOM DE L'ARTISTE"
+                                    />
                                 </div>
-                            ))}
-                        </div>
-
-                    </div>
-
-                    {/* FESTIVAL SOCIALS (For all News/Interviews) */}
-                    <div className="pt-8 border-t border-white/10 mt-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <label className="block text-xs font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                <PartyPopper className="w-4 h-4 text-neon-red" /> Réseaux Sociaux du Festival (Optionnel)
-                            </label>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Suivre : {Object.values(festivalSocials).some(v => v.trim()) && <span className="text-neon-red">*</span>}</span>
-                                <input
-                                    type="text"
-                                    value={festivalNameLabel}
-                                    onChange={(e) => setFestivalNameLabel(e.target.value)}
-                                    className={`bg-black/40 border ${Object.values(festivalSocials).some(v => v.trim()) && !festivalNameLabel.trim() ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,81,0.1)]' : 'border-white/10'} rounded-lg px-3 py-1.5 text-white text-[10px] outline-none focus:border-neon-red w-48 font-bold uppercase tracking-widest transition-all`}
-                                    placeholder="NOM DU FESTIVAL / EVENT"
-                                />
                             </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {[
-                                { id: 'website', name: 'Site Web Festival', icon: Globe, color: 'text-white' },
-                                { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-                                { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
-                                { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
-                                { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
-                                { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' }
-                            ].map((social) => (
-                                <div key={social.id}>
-                                    <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">{social.name}</label>
-                                    <div className="relative group">
-                                        <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
-                                            <social.icon className="w-full h-full" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {[
+                                    { id: 'website', name: 'Site Web', icon: Globe, color: 'text-white' },
+                                    { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500' },
+                                    { id: 'tiktok', name: 'TikTok', icon: TikTokIcon, color: 'text-white' },
+                                    { id: 'snapchat', name: 'Snapchat', icon: SnapchatIcon, color: 'text-yellow-400' },
+                                    { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500' },
+                                    { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600' },
+                                    { id: 'x', name: 'X / Twitter', icon: XIcon, color: 'text-white' },
+                                    { id: 'spotify', name: 'Spotify', icon: SpotifyIcon, color: 'text-green-500' },
+                                    { id: 'soundcloud', name: 'SoundCloud', icon: SoundCloudIcon, color: 'text-orange-500' },
+                                    { id: 'beatport', name: 'Beatport', icon: BeatportIcon, color: 'text-green-400' }
+                                ].map((social) => (
+                                    <div key={social.id}>
+                                        <label className="block text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-2 ml-1">
+                                            {social.name} {type === 'Interview' && social.id === 'instagram' && <span className="text-neon-red">*</span>}
+                                        </label>
+                                        <div className="relative group">
+                                            <div className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${social.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                                <social.icon className="w-full h-full" />
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={(artistSocials as any)[social.id]}
+                                                onChange={(e) => setArtistSocials({ ...artistSocials, [social.id]: e.target.value })}
+                                                className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-red outline-none transition-all"
+                                                placeholder="URL Artiste..."
+                                            />
                                         </div>
-                                        <input
-                                            type="text"
-                                            value={(festivalSocials as any)[social.id]}
-                                            onChange={(e) => setFestivalSocials({ ...festivalSocials, [social.id]: e.target.value })}
-                                            className="w-full bg-black/20 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white text-[11px] focus:border-neon-cyan outline-none transition-all"
-                                            placeholder="URL Festival..."
-                                        />
                                     </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
+
                         </div>
-                    </div>
+                    )}
 
 
 
