@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile, Activity, HelpCircle, Lock } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile, Activity, HelpCircle, Lock, Pin, PinOff } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -18,9 +18,12 @@ interface TakeoverProps {
         showTopBanner?: boolean;
         showTickerBanner?: boolean;
         customCommands?: string;
-        isSecret?: boolean;
         password?: string;
         channels?: string;
+        autoMessage?: string;
+        autoMessageInterval?: number;
+        isSecret?: boolean;
+        pinnedMessage?: string;
     };
 }
 
@@ -209,6 +212,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             .then(data => setShopProducts(data.slice(0, 10)))
             .catch(() => { });
     }, []);
+
+    const handleSendBotMessage = async (text: string) => {
+        if (!text) return;
+        try {
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: 'DROPSIDERS BOT',
+                    country: 'FR',
+                    message: text,
+                    color: '#00ffcc',
+                    isBot: true,
+                    channel: currentVideoId
+                })
+            });
+        } catch (e) {
+            console.error('Failed to send bot message', e);
+        }
+    };
+
+    useEffect(() => {
+        if (!settings.autoMessage || !settings.autoMessageInterval) return;
+
+        const interval = setInterval(() => {
+            handleSendBotMessage(settings.autoMessage!);
+        }, settings.autoMessageInterval * 1000);
+
+        return () => clearInterval(interval);
+    }, [settings.autoMessage, settings.autoMessageInterval, currentVideoId]);
 
     // Fetch messages from server every 3 seconds
     useEffect(() => {
@@ -979,13 +1012,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </button>
                         </div>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto">
-                        <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-black text-white uppercase tracking-widest leading-none">
-                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
-                            </span>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto">
+                            <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-black text-white uppercase tracking-widest leading-none">
+                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
+                                </span>
+                            </div>
                         </div>
+
+                        <button
+                            onClick={() => {
+                                sessionStorage.setItem('exited_live', 'true');
+                                window.location.href = '/';
+                            }}
+                            className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-full text-gray-400 hover:text-neon-red transition-all"
+                            title="Quitter le Live"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             )}
@@ -1960,6 +2006,44 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 className="flex-1 flex flex-col min-h-0 relative z-10"
                                             >
                                                 <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:y-6 scroll-smooth">
+                                                    {/* Pinned Message */}
+                                                    <AnimatePresence>
+                                                        {settings.pinnedMessage && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: -20 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                exit={{ opacity: 0, y: -20 }}
+                                                                className="sticky top-0 z-30 mb-6"
+                                                            >
+                                                                <div className="bg-neon-red/10 border border-neon-red/30 backdrop-blur-xl rounded-2xl p-4 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group">
+                                                                    <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
+                                                                    <div className="flex items-start gap-3">
+                                                                        <div className="p-2 bg-neon-red/20 rounded-xl">
+                                                                            <Pin className="w-4 h-4 text-neon-red" />
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-1 flex items-center gap-2">
+                                                                                Message Épinglé
+                                                                                <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse" />
+                                                                            </p>
+                                                                            <p className="text-xs font-bold text-white leading-relaxed break-words">
+                                                                                {settings.pinnedMessage}
+                                                                            </p>
+                                                                        </div>
+                                                                        {hasModPowers && (
+                                                                            <button
+                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                                                className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all"
+                                                                                title="Désépingler"
+                                                                            >
+                                                                                <PinOff className="w-4 h-4" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                     {messages.map((msg, idx) => {
                                                         const role = getRole(msg.pseudo);
                                                         const isMsgAdmin = role === 'admin';
@@ -1991,14 +2075,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isBot ? 'bg-neon-cyan/10 border border-neon-cyan/20 text-[#00ffcc] shadow-[0_0_20px_rgba(0,255,150,0.05)]' : isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
                                                                     <span className="relative z-10 font-medium whitespace-pre-wrap">{msg.message}</span>
-                                                                    {hasModPowers && !isMsgAdmin && (
-                                                                        <button
-                                                                            onClick={() => handleDelete(msg.id)}
-                                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0 self-center"
-                                                                        >
-                                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    )}
+                                                                    <div className="flex items-center gap-1">
+                                                                        {hasModPowers && (
+                                                                            <button
+                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })}
+                                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-neon-red transition-all shrink-0"
+                                                                                title="Épingler le message"
+                                                                            >
+                                                                                <Pin className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        )}
+                                                                        {hasModPowers && !isMsgAdmin && (
+                                                                            <button
+                                                                                onClick={() => handleDelete(msg.id)}
+                                                                                className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0"
+                                                                                title="Supprimer"
+                                                                            >
+                                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </motion.div>
                                                         );

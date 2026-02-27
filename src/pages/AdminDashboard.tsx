@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -70,6 +70,9 @@ export function AdminDashboard() {
         isSecret: boolean;
         password?: string;
         channels: string;
+        autoMessage: string;
+        autoMessageInterval: number;
+        pinnedMessage?: string;
     }
 
     const [takeoverState, setTakeoverState] = useState<TakeoverState>({
@@ -91,7 +94,10 @@ export function AdminDashboard() {
         forceHomepage: true,
         isSecret: false,
         password: '2026',
-        channels: ''
+        channels: '',
+        autoMessage: '',
+        autoMessageInterval: 60,
+        pinnedMessage: ''
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
@@ -262,7 +268,10 @@ export function AdminDashboard() {
                         customCommands: data.takeover.customCommands || '',
                         isSecret: data.takeover.isSecret || false,
                         password: data.takeover.password || '2026',
-                        channels: data.takeover.channels || ''
+                        channels: data.takeover.channels || '',
+                        autoMessage: data.takeover.autoMessage || '',
+                        autoMessageInterval: data.takeover.autoMessageInterval || 60,
+                        pinnedMessage: data.takeover.pinnedMessage || ''
                     });
                 }
             }
@@ -2528,6 +2537,37 @@ export function AdminDashboard() {
                                             </div>
                                             <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les modérateurs peuvent partager des liens.</p>
                                         </div>
+
+                                        <div className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                    <Pin className="w-5 h-5 text-neon-red" />
+                                                </div>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">Épinglé</span></h3>
+                                            </div>
+
+                                            <div className="space-y-3">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Contenu du message</label>
+                                                    <textarea
+                                                        value={takeoverState.pinnedMessage || ''}
+                                                        onChange={(e) => setTakeoverState({ ...takeoverState, pinnedMessage: e.target.value })}
+                                                        placeholder="Ex: ⚠️ Début du set dans 5 minutes ! ⚠️"
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white font-bold focus:border-neon-red outline-none min-h-[80px] resize-none"
+                                                    />
+                                                </div>
+                                                {takeoverState.pinnedMessage && (
+                                                    <button
+                                                        onClick={() => setTakeoverState({ ...takeoverState, pinnedMessage: '' })}
+                                                        className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-[9px] font-black text-gray-400 hover:text-red-500 transition-all uppercase"
+                                                    >
+                                                        <PinOff className="w-3.5 h-3.5" />
+                                                        Retirer l'épingle
+                                                    </button>
+                                                )}
+                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message apparaîtra en haut du chat pour tous les utilisateurs.</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
@@ -2695,6 +2735,44 @@ export function AdminDashboard() {
 
                                 {takeoverTab === 'bot' && (
                                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="bg-white/[0.02] border border-white/5 p-6 rounded-3xl space-y-6">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 bg-neon-cyan/20 rounded-xl">
+                                                    <MessageSquare className="w-5 h-5 text-neon-cyan" />
+                                                </div>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Auto-Message <span className="text-neon-cyan">Bot</span></h3>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                                <div className="md:col-span-8 space-y-2">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Message du Bot</label>
+                                                    <input
+                                                        type="text"
+                                                        value={takeoverState.autoMessage}
+                                                        onChange={e => setTakeoverState({ ...takeoverState, autoMessage: e.target.value })}
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white focus:border-neon-cyan outline-none"
+                                                        placeholder="Ex: N'oubliez pas de nous suivre sur Instagram ! @dropsiders"
+                                                    />
+                                                </div>
+                                                <div className="md:col-span-4 space-y-2">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Intervalle (Seconds)</label>
+                                                    <div className="relative">
+                                                        <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                        <input
+                                                            type="number"
+                                                            value={takeoverState.autoMessageInterval}
+                                                            onChange={e => setTakeoverState({ ...takeoverState, autoMessageInterval: parseInt(e.target.value) || 0 })}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-xs text-white font-black focus:border-neon-cyan outline-none"
+                                                            placeholder="60"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic text-center">
+                                                * LAISSEZ LE MESSAGE VIDE POUR DÉSACTIVER L'AUTO-MESSAGE.
+                                            </p>
+                                        </div>
+
                                         <div className="flex items-center justify-between mb-2">
                                             <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Commandes <span className="text-neon-cyan">Bot</span></h3>
                                             <button

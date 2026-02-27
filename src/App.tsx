@@ -12,6 +12,7 @@ import { Galerie } from './pages/Galerie';
 import { AlbumDetail } from './pages/AlbumDetail';
 import { ArticleDetail } from './pages/ArticleDetail';
 import { RecapDetail } from './pages/RecapDetail';
+import { LivePage } from './pages/LivePage';
 import { PrivacyPolicy } from './pages/PrivacyPolicy';
 import { TermsOfService } from './pages/TermsOfService';
 import { CookiesPolicy } from './pages/CookiesPolicy';
@@ -64,6 +65,7 @@ const router = createBrowserRouter([
     element: <Root />,
     children: [
       { index: true, element: <Home /> },
+      { path: "live", element: <LivePage /> },
       { path: "news", element: <News /> },
       { path: "agenda", element: <Agenda /> },
       { path: "recaps", element: <Recap /> },

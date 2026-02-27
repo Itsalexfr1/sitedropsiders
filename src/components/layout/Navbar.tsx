@@ -69,12 +69,11 @@ export function Navbar() {
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
         ...(takeoverEnabled && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
             name: 'LIVE',
-            path: '/',
+            path: '/live',
             icon: Video,
             isLive: true,
             onClick: () => {
                 sessionStorage.removeItem('exited_live');
-                window.location.reload(); // Force refresh to trigger Takeover view
             }
         }] : []),
         ...(isAdmin ? [{ name: 'Admin', path: '/admin', icon: Shield }] : []),

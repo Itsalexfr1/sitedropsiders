@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { Hero } from '../components/ui/Hero';
 import { FeaturedNews } from '../components/widgets/FeaturedNews';
 import { RecentNews } from '../components/widgets/RecentNews';
@@ -8,7 +9,6 @@ import { TikTokWidget } from '../components/widgets/TikTokWidget';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { RecapWidget } from '../components/widgets/RecapWidget';
 import { InterviewWidget } from '../components/widgets/InterviewWidget';
-import { TakeoverPage } from './TakeoverPage';
 import layoutData from '../data/home_layout.json';
 
 export function Home() {
@@ -151,7 +151,7 @@ export function Home() {
     }, []);
 
     if (takeover?.enabled && (takeover.forceHomepage !== false) && !hasExitedLive) {
-        return <TakeoverPage settings={takeover} />;
+        return <Navigate to="/live" replace />;
     }
 
     return (

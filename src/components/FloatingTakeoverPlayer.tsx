@@ -23,8 +23,8 @@ export function FloatingTakeoverPlayer() {
         fetchSettings();
     }, []);
 
-    const isHome = location.pathname === '/';
-    const showFloating = takeover?.enabled && !isHome && !isClosed && takeover?.youtubeId;
+    const isLivePage = location.pathname === '/live';
+    const showFloating = takeover?.enabled && !isLivePage && !isClosed && (takeover?.youtubeId || takeover?.channels);
 
     if (!showFloating) return null;
 
@@ -52,7 +52,7 @@ export function FloatingTakeoverPlayer() {
                     </div>
                     <div className="flex items-center gap-1.5">
                         <Link
-                            to="/"
+                            to="/live"
                             className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all text-white group/btn"
                             title="Retour au Live"
                         >
@@ -70,13 +70,23 @@ export function FloatingTakeoverPlayer() {
 
                 {/* Player container with subtle glow */}
                 <div className="w-full h-full relative">
-                    <iframe
-                        className="w-full h-full pointer-events-auto"
-                        src={`https://www.youtube.com/embed/${takeover.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
-                        title="Live Takeover"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                    ></iframe>
+                    {(() => {
+                        let videoId = takeover.youtubeId;
+                        if (!videoId && takeover.channels) {
+                            const firstChannel = takeover.channels.split('\n')[0];
+                            videoId = firstChannel?.split(':')[0]?.trim();
+                        }
+
+                        return (
+                            <iframe
+                                className="w-full h-full pointer-events-auto"
+                                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
+                                title="Live Takeover"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
+                        );
+                    })()}
                     <div className="absolute inset-0 pointer-events-none border-[1px] border-white/5 rounded-2xl z-20" />
                 </div>
             </motion.div>
