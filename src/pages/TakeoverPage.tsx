@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
-    Pencil, List, Maximize2, Minimize2, Instagram, Facebook, Power, Smile, Activity,
+    Pencil, List, Instagram, Facebook, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2
 } from 'lucide-react';
 
@@ -44,6 +44,7 @@ interface TakeoverProps {
         artistInstagram?: string;
         showShop?: boolean;
         shopItems?: string;
+        mainFluxName?: string;
     };
 }
 
@@ -101,6 +102,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
+    const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName || 'MAIN STAGE');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -182,26 +184,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '';
     });
-    const [stage1Name, setStage1Name] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[0] ? lines[0].split(':')[1] || 'Stage 1' : 'Stage 1';
-    });
-    const [stage2, setStage2] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
-    });
-    const [stage2Name, setStage2Name] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[1] ? lines[1].split(':')[1] || 'Stage 2' : 'Stage 2';
-    });
-    const [stage3, setStage3] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
-    });
-    const [stage3Name, setStage3Name] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[2] ? lines[2].split(':')[1] || 'Stage 3' : 'Stage 3';
-    });
+
 
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
     const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
@@ -235,7 +218,27 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist' | 'shop' | 'stages'>('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'shop'>('general');
+    const [stage2, setStage2] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
+    });
+    const [stage3, setStage3] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
+    });
+    const [stage1Name, setStage1Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[0] ? (lines[0].split(':').slice(1).join(':').trim() || 'Stage 1') : 'Stage 1';
+    });
+    const [stage2Name, setStage2Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? (lines[1].split(':').slice(1).join(':').trim() || 'Stage 2') : 'Stage 2';
+    });
+    const [stage3Name, setStage3Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? (lines[2].split(':').slice(1).join(':').trim() || 'Stage 3') : 'Stage 3';
+    });
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
     const [pollQuestion, setPollQuestion] = useState('');
@@ -326,7 +329,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [lineupTime, setLineupTime] = useState("");
     const [lineupArtist, setLineupArtist] = useState("");
     const [lineupStage, setLineupStage] = useState("");
-    const [lineupFestival, setLineupFestival] = useState("");
     const [lineupInstagram, setLineupInstagram] = useState("");
 
     const [isSlowMode, setIsSlowMode] = useState(false);
@@ -623,9 +625,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const appendLineup = () => {
         if (!lineupTime || !lineupArtist) return;
-        const newEntry = `[${lineupTime}] ${lineupArtist}${lineupStage ? ' - ' + lineupStage : ' - ---'}${lineupFestival ? ' - ' + lineupFestival : ' - ---'}${lineupInstagram ? ' - ' + lineupInstagram : ''}`;
+        const newEntry = `[${lineupTime}] ${lineupArtist}${lineupStage ? ' - ' + lineupStage : ' - ---'}${lineupInstagram ? ' - ' + lineupInstagram : ''}`;
         setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
-        setLineupTime(""); setLineupArtist(""); setLineupStage(""); setLineupFestival(""); setLineupInstagram("");
+        setLineupTime(""); setLineupArtist(""); setLineupStage(""); setLineupInstagram("");
     };
 
     const handleSendPoll = () => {
@@ -1595,14 +1597,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <Music2 className={`w-4 h-4 text-neon-cyan group-hover:text-white ${shazamLoading ? 'animate-spin' : ''}`} />
                                 {shazamLoading ? "Écoute en cours..." : "Shazam"}
                             </button>
-                            <button
-                                onClick={() => setIsFocusMode(!isFocusMode)}
-                                className="flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-neon-red transition-all backdrop-blur-md shadow-2xl active:scale-95 group"
-                                title={isFocusMode ? "Quitter le mode Focus" : "Mode Focus (Plein Écran)"}
-                            >
-                                {isFocusMode ? <Minimize2 className="w-4 h-4 text-neon-red group-hover:text-white" /> : <Maximize2 className="w-4 h-4 text-neon-red group-hover:text-white" />}
-                                {isFocusMode ? "Quitter" : "Focus"}
-                            </button>
                         </div>
 
                         {/* Shazam Notification Overlay */}
@@ -1694,13 +1688,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'ticker' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
-                                                onClick={() => setActiveSettingsTab('artist')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'artist' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                Artiste
-                                                {activeSettingsTab === 'artist' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
-                                            </button>
-                                            <button
                                                 onClick={() => setActiveSettingsTab('moderation')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
@@ -1713,13 +1700,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             >
                                                 Planning
                                                 {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveSettingsTab('stages')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'stages' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                Stages
-                                                {activeSettingsTab === 'stages' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveSettingsTab('shop')}
@@ -1751,15 +1731,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                             <div className="space-y-3">
                                                                 <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Haut de Page (Logo/Menu)</label>
-                                                                    <button
-                                                                        onClick={() => setShowTopBanner(!showTopBanner)}
-                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
-                                                                    >
-                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${showTopBanner ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                    </button>
-                                                                </div>
-                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
                                                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Page En Ligne</label>
                                                                     <button
                                                                         onClick={() => handleUpdateSettings({ enabled: !settings.enabled })}
@@ -1788,100 +1759,84 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
-                                                        <div className="flex items-center gap-3 mb-2">
-                                                            <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                <Youtube className="w-4 h-4 text-neon-red" />
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Youtube className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
                                                             </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
-                                                        </div>
-                                                        <div className="space-y-3">
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">TITRE</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editTitle}
-                                                                    onChange={(e) => setEditTitle(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="TITRE DU LIVE..."
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Flux Principal (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={fluxPrincipal}
-                                                                    onChange={(e) => setFluxPrincipal(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="ex: https://youtube.com/watch?v=..."
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-                                                            <div className="space-y-1.5 flex-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage1}
-                                                                    onChange={(e) => setStage1(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="Lien YouTube..."
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX 1</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage1Name}
-                                                                    onChange={(e) => setStage1Name(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="ex: Stage 1"
-                                                                />
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FESTIVAL</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editTitle}
+                                                                        onChange={(e) => setEditTitle(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="TITRE DU LIVE..."
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX PRINCIPAL</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editMainFluxName}
+                                                                        onChange={(e) => setEditMainFluxName(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="ex: MAIN STAGE..."
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Flux Principal (Lien YouTube)</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={fluxPrincipal}
+                                                                        onChange={(e) => setFluxPrincipal(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="ex: https://youtube.com/watch?v=..."
+                                                                    />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-                                                            <div className="space-y-1.5 flex-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 2 (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage2}
-                                                                    onChange={(e) => setStage2(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="Lien YouTube..."
-                                                                />
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">1</span></h3>
                                                             </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX 2</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage2Name}
-                                                                    onChange={(e) => setStage2Name(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="ex: Stage 2"
-                                                                />
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 1</label>
+                                                                    <input type="text" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 1" />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 1</label>
+                                                                    <input type="text" value={stage1} onChange={e => setStage1(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
-                                                            <div className="space-y-1.5 flex-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 3 (Lien YouTube)</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage3}
-                                                                    onChange={(e) => setStage3(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="Lien YouTube..."
-                                                                />
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">2 + 3</span></h3>
                                                             </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX 3</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={stage3Name}
-                                                                    onChange={(e) => setStage3Name(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                    placeholder="ex: Stage 3"
-                                                                />
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 2</label>
+                                                                    <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 2</label>
+                                                                    <input type="text" value={stage2} onChange={e => setStage2(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU STAGE 3</label>
+                                                                    <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 3</label>
+                                                                    <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -1890,114 +1845,99 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                             {activeSettingsTab === 'ticker' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <Activity className="w-4 h-4 text-neon-red" />
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                        {/* Top Banner Control */}
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                        <Activity className="w-4 h-4 text-neon-red" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-red">Supérieur</span></h3>
                                                                 </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-red">Défilant</span></h3>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => setShowTickerBanner(!showTickerBanner)}
-                                                                className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
-                                                            >
-                                                                <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                                            <div className="col-span-2 space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Type de contenu</label>
-                                                                <select
-                                                                    value={tickerType}
-                                                                    onChange={(e) => setTickerType(e.target.value as any)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red cursor-pointer"
+                                                                <button
+                                                                    onClick={() => setShowTopBanner(!showTopBanner)}
+                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
                                                                 >
-                                                                    <option value="news">📢 Actualités automatiques</option>
-                                                                    <option value="planning">📅 Programme en cours</option>
-                                                                    <option value="custom">✍️ Texte personnalisé</option>
-                                                                </select>
+                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                </button>
                                                             </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
-                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                    <input type="color" value={tickerBgColor} onChange={(e) => setTickerBgColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
-                                                                    <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerBgColor}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
-                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                    <input type="color" value={tickerTextColor} onChange={(e) => setTickerTextColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
-                                                                    <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerTextColor}</span>
-                                                                </div>
-                                                            </div>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                                                                Affiche le logo du festival et le menu de navigation en haut de la page.
+                                                            </p>
                                                         </div>
 
-                                                        {tickerType === 'custom' && (
-                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Votre message</label>
-                                                                    <input type="text" value={tickerText} onChange={(e) => setTickerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                        {/* Ticker Banner Control */}
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                        <Activity className="w-4 h-4 text-neon-red" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-red">Défilant</span></h3>
                                                                 </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien au clic (Optionnel)</label>
-                                                                    <input type="text" value={tickerLink} onChange={(e) => setTickerLink(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="https://..." />
-                                                                </div>
+                                                                <button
+                                                                    onClick={() => setShowTickerBanner(!showTickerBanner)}
+                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                >
+                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                </button>
                                                             </div>
-                                                        )}
+
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Type de contenu</label>
+                                                                    <select
+                                                                        value={tickerType}
+                                                                        onChange={(e) => setTickerType(e.target.value as any)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red cursor-pointer"
+                                                                    >
+                                                                        <option value="news">📢 Actualités automatiques</option>
+                                                                        <option value="planning">📅 Programme en cours</option>
+                                                                        <option value="custom">✍️ Texte personnalisé</option>
+                                                                    </select>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
+                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
+                                                                            <input type="color" value={tickerBgColor} onChange={(e) => setTickerBgColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerBgColor}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
+                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
+                                                                            <input type="color" value={tickerTextColor} onChange={(e) => setTickerTextColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerTextColor}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {tickerType === 'custom' && (
+                                                                    <div className="space-y-4 pt-2">
+                                                                        <div className="space-y-1.5">
+                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Votre message</label>
+                                                                            <input type="text" value={tickerText} onChange={(e) => setTickerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien au clic (Optionnel)</label>
+                                                                            <input type="text" value={tickerLink} onChange={(e) => setTickerLink(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="https://..." />
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             )}
 
-                                            {activeSettingsTab === 'artist' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                        <div className="flex items-center gap-3 mb-2">
-                                                            <div className="p-2 bg-neon-purple/10 rounded-xl">
-                                                                <Music2 className="w-4 h-4 text-neon-purple" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Infos <span className="text-neon-purple">Artiste</span></h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1.5">NOM DE L'ARTISTE</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editCurrentArtist}
-                                                                    onChange={(e) => setEditCurrentArtist(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl p-4 text-xs font-bold text-white outline-none focus:border-neon-purple transition-all"
-                                                                    placeholder="L'artiste qui joue actuellement..."
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center gap-1.5">LIEN INSTAGRAM</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editArtistInstagram}
-                                                                    onChange={(e) => setEditArtistInstagram(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl p-4 text-xs font-bold text-white outline-none focus:border-neon-purple transition-all"
-                                                                    placeholder="https://instagram.com/..."
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="p-4 bg-neon-purple/5 border border-neon-purple/10 rounded-2xl mt-4">
-                                                            <p className="text-[10px] text-neon-purple font-bold uppercase tracking-widest flex items-center gap-2">
-                                                                <Activity className="w-3.5 h-3.5" /> Note
-                                                            </p>
-                                                            <p className="text-[9px] text-gray-400 mt-1 uppercase leading-relaxed font-medium">
-                                                                Le nom de l'artiste s'affichera dans le bandeau supérieur du live avec un lien direct vers son profil Instagram.
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
 
                                             {activeSettingsTab === 'moderation' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                        {/* Section Équipe fusionnée */}
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                        {/* Section Équipe de modération */}
                                                         <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="p-2 bg-neon-red/10 rounded-xl">
@@ -2036,7 +1976,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     {localModerators?.split(',').filter(m => m.trim()).map(mod => (
                                                                         <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
                                                                             <div className="flex items-center gap-2">
-                                                                                <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} />
+                                                                                <div className={`w-1.5 h-1.5 rounded-full bg-gray-600`} />
                                                                                 <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
                                                                             </div>
                                                                             <button
@@ -2049,6 +1989,29 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     ))}
                                                                     {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
                                                                 </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Modos Connectés */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-green-500/10 rounded-xl">
+                                                                    <Activity className="w-4 h-4 text-green-500" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Modos <span className="text-green-500">Connectés</span></h3>
+                                                            </div>
+                                                            <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                {localModerators?.split(',').filter(m => m.trim() && isUserOnline(m.trim())).map(mod => (
+                                                                    <div key={mod} className="flex items-center justify-between group rounded-xl p-3 bg-black/40 border border-white/5 transition-colors">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
+                                                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{mod.trim()}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                                {localModerators?.split(',').filter(m => m.trim() && isUserOnline(m.trim())).length === 0 && (
+                                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modo connecté</p>
+                                                                )}
                                                             </div>
                                                         </div>
 
@@ -2090,7 +2053,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
 
                                                         {/* Gestion Sondage */}
-                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem] lg:col-span-2">
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="p-2 bg-neon-red/10 rounded-xl">
                                                                     <HelpCircle className="w-4 h-4 text-neon-red" />
@@ -2098,36 +2061,35 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
                                                             </div>
 
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                                <div className="space-y-4">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
-                                                                        <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
-                                                                    </div>
-                                                                    <div className="space-y-2">
-                                                                        <div className="grid grid-cols-2 gap-2">
-                                                                            {pollOptions.map((opt, i) => (
-                                                                                <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
-                                                                                    const newOpts = [...pollOptions];
-                                                                                    newOpts[i] = e.target.value;
-                                                                                    setPollOptions(newOpts);
-                                                                                }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
-                                                                            ))}
-                                                                        </div>
-                                                                        {pollOptions.length < 6 && (
-                                                                            <button
-                                                                                onClick={() => setPollOptions([...pollOptions, ''])}
-                                                                                className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                                                                            >
-                                                                                <Plus className="w-3 h-3" /> Ajouter une option
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
+                                                                    <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
                                                                 </div>
-                                                                <div className="flex flex-col justify-end gap-3">
-                                                                    <button onClick={handleSendPoll} className="py-4 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer le Sondage</button>
+                                                                <div className="space-y-2">
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        {pollOptions.map((opt, i) => (
+                                                                            <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
+                                                                                const newOpts = [...pollOptions];
+                                                                                newOpts[i] = e.target.value;
+                                                                                setPollOptions(newOpts);
+                                                                            }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
+                                                                        ))}
+                                                                    </div>
+                                                                    {pollOptions.length < 6 && (
+                                                                        <button
+                                                                            onClick={() => setPollOptions([...pollOptions, ''])}
+                                                                            className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <Plus className="w-3 h-3" /> Ajouter une option
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="flex flex-col gap-2 pt-2">
+                                                                    <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer le Sondage</button>
                                                                     {activePoll && (
-                                                                        <button onClick={handleStopPoll} className="py-4 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer le Sondage</button>
+                                                                        <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer le Sondage</button>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -2137,118 +2099,83 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             )}
 
                                             {activeSettingsTab === 'planning' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
                                                         <div className="flex items-center justify-between">
                                                             <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
                                                                 <Pencil className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Éditeur de Planning
                                                             </label>
                                                         </div>
-                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                                                            <input type="text" placeholder="Heure (ex: 22:00)" value={lineupTime} onChange={e => setLineupTime(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                        <div className="grid grid-cols-4 gap-2">
+                                                            <input type="text" placeholder="Heure (22:00)" value={lineupTime} onChange={e => setLineupTime(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
                                                             <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Scène" value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Événement" value={lineupFestival} onChange={e => setLineupFestival(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            <input type="text" placeholder="Instagram (Lien)" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="col-span-2 lg:col-span-4 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
-                                                            <button onClick={appendLineup} className="col-span-2 lg:col-span-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black hover:bg-neon-red text-white transition-all shadow-[0_0_15px_rgba(255,0,51,0.1)] hover:shadow-[0_0_20px_rgba(255,0,51,0.3)] active:scale-95">Ajouter au planning</button>
+                                                            <input type="text" placeholder="Stage / Scène" value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                            <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
+                                                            <button onClick={appendLineup} className="col-span-4 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
                                                         </div>
+
+                                                        {/* Planning visual table */}
+                                                        {editLineup.trim() && (
+                                                            <div className="overflow-hidden border border-white/10 rounded-2xl">
+                                                                <table className="w-full text-left border-collapse">
+                                                                    <thead>
+                                                                        <tr className="bg-white/5">
+                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Heure</th>
+                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Artiste</th>
+                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Stage</th>
+                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Instagram</th>
+                                                                            <th className="px-4 py-2.5 border-b border-white/10"></th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        {editLineup.split('\n').filter(l => l.trim()).map((line, idx) => {
+                                                                            const m = line.match(/^\[(\d{1,2}:\d{2})\]\s*(.+?)\s*-\s*(.+?)\s*-\s*(https?:\/\/[^\s]*)$/);
+                                                                            if (!m) return (
+                                                                                <tr key={idx} className="hover:bg-white/[0.02]">
+                                                                                    <td colSpan={5} className="px-4 py-2 border-b border-white/5 text-[9px] text-gray-600 italic font-bold">{line}</td>
+                                                                                </tr>
+                                                                            );
+                                                                            const [, time, artist, stage, instagram] = m;
+                                                                            return (
+                                                                                <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase">{artist}</td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-gray-400 font-bold text-[10px] uppercase">{stage}</td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5">
+                                                                                        <a href={instagram} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace('https://', '')}</a>
+                                                                                    </td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-right">
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                const lines = editLineup.split('\n').filter(l => l.trim());
+                                                                                                lines.splice(idx, 1);
+                                                                                                setEditLineup(lines.join('\n'));
+                                                                                            }}
+                                                                                            className="p-1 opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all"
+                                                                                        >
+                                                                                            <X className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })}
+                                                                    </tbody>
+                                                                </table>
+                                                            </div>
+                                                        )}
+
                                                         <textarea
                                                             value={editLineup}
                                                             onChange={(e) => setEditLineup(e.target.value)}
-                                                            className="w-full h-[300px] bg-black/60 border border-white/10 rounded-2xl p-5 text-[11px] font-bold text-gray-200 outline-none focus:border-neon-red transition-all leading-relaxed custom-scrollbar font-mono"
-                                                            placeholder="Format: [HEURE] ARTISTE - SCÈNE - ÉVÉNEMENT&#10;Exemple: [22:00] THE ROCKSTAR - MAIN STAGE - TOMORROWLAND"
+                                                            className="w-full h-[150px] bg-black/60 border border-white/10 rounded-2xl p-5 text-[11px] font-bold text-gray-200 outline-none focus:border-neon-red transition-all leading-relaxed custom-scrollbar font-mono"
+                                                            placeholder={`Format: [HEURE] ARTISTE - SCÈNE - LIEN INSTAGRAM\nEx: [22:00] THE ROCKSTAR - MAIN STAGE - https://instagram.com/therockstar`}
                                                         />
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM] Nom de l'artiste - Nom de la scène - Nom du festival</p>
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM] Nom - Scène - Lien Instagram</p>
                                                     </div>
                                                 </div>
                                             )}
 
-                                            {activeSettingsTab === 'stages' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        {[
-                                                            { id: 'principal', name: 'Flux Principal', color: 'text-neon-red', bg: 'bg-neon-red' },
-                                                            { id: 's1', name: stage1Name, color: 'text-neon-cyan', bg: 'bg-neon-cyan' },
-                                                            { id: 's2', name: stage2Name, color: 'text-yellow-500', bg: 'bg-yellow-500' },
-                                                            { id: 's3', name: stage3Name, color: 'text-neon-purple', bg: 'bg-neon-purple' }
-                                                        ].map(stage => {
-                                                            const stageLineup = parseLineup(editLineup).filter(item => {
-                                                                const s = (item.stage || '').toLowerCase();
-                                                                const f = stage.name.toLowerCase();
-                                                                return s.includes(f) || f.includes(s) || (stage.id === 'principal' && (s === '' || s.includes('principal') || s.includes('main')));
-                                                            });
 
-                                                            return (
-                                                                <div key={stage.id} className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                                    <div className="flex items-center justify-between">
-                                                                        <h3 className={`text-[10px] font-black uppercase italic tracking-widest ${stage.color} flex items-center gap-2`}>
-                                                                            <Activity className="w-3.5 h-3.5" /> {stage.name}
-                                                                        </h3>
-                                                                        <span className="text-[9px] bg-white/10 px-2 py-0.5 rounded-full text-white/50 font-bold">{stageLineup.length} Artistes</span>
-                                                                    </div>
-
-                                                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                        {stageLineup.length === 0 ? (
-                                                                            <p className="text-[9px] text-gray-600 italic py-4 text-center">Aucun artiste programmé sur cette scène.</p>
-                                                                        ) : (
-                                                                            stageLineup.map((item, idx) => (
-                                                                                <div key={idx} className="flex items-center justify-between p-2.5 bg-black/40 border border-white/5 rounded-xl group/item">
-                                                                                    <div className="flex flex-col min-w-0">
-                                                                                        <p className="text-[10px] font-black text-white truncate">{item.artist}</p>
-                                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{item.time} {item.festival ? `• ${item.festival}` : ''}</p>
-                                                                                    </div>
-                                                                                    <button
-                                                                                        onClick={() => {
-                                                                                            const lines = editLineup.split('\n').filter(l => l.trim());
-                                                                                            const lineToMatch = `[${item.time}] ${item.artist}`;
-                                                                                            const newLines = lines.filter(l => !l.includes(lineToMatch));
-                                                                                            setEditLineup(newLines.join('\n'));
-                                                                                        }}
-                                                                                        className="p-1.5 text-gray-600 hover:text-neon-red opacity-0 group-hover/item:opacity-100 transition-all"
-                                                                                    >
-                                                                                        <Trash2 className="w-3.5 h-3.5" />
-                                                                                    </button>
-                                                                                </div>
-                                                                            ))
-                                                                        )}
-                                                                    </div>
-
-                                                                    <div className="pt-2 border-t border-white/5 space-y-2">
-                                                                        <div className="grid grid-cols-2 gap-2">
-                                                                            <input
-                                                                                type="text"
-                                                                                id={`time-${stage.id}`}
-                                                                                placeholder="Heure (22:00)"
-                                                                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-[9px] text-white outline-none focus:border-white/20 font-bold"
-                                                                            />
-                                                                            <input
-                                                                                type="text"
-                                                                                id={`artist-${stage.id}`}
-                                                                                placeholder="Nom Artiste"
-                                                                                className="bg-black/60 border border-white/10 rounded-lg px-3 py-2 text-[9px] text-white outline-none focus:border-white/20 font-bold"
-                                                                            />
-                                                                        </div>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const t = (document.getElementById(`time-${stage.id}`) as HTMLInputElement).value;
-                                                                                const a = (document.getElementById(`artist-${stage.id}`) as HTMLInputElement).value;
-                                                                                if (!t || !a) return;
-                                                                                const newEntry = `[${t}] ${a} - ${stage.name} - ---`;
-                                                                                setEditLineup(prev => prev ? prev.trim() + '\n' + newEntry : newEntry);
-                                                                                (document.getElementById(`time-${stage.id}`) as HTMLInputElement).value = '';
-                                                                                (document.getElementById(`artist-${stage.id}`) as HTMLInputElement).value = '';
-                                                                            }}
-                                                                            className={`w-full py-2 ${stage.bg} text-black text-[9px] font-black uppercase rounded-lg hover:opacity-80 transition-all shadow-lg shadow-black/20`}
-                                                                        >
-                                                                            Ajouter
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
 
 
                                             {activeSettingsTab === 'bot' && (
