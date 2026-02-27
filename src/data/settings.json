@@ -43,6 +43,8 @@
     "autoMessage": "",
     "autoMessageInterval": 60,
     "pinnedMessage": "",
-    "chat_enabled": true
+    "chat_enabled": true,
+    "currentArtist": "RUBEN DE RONDE",
+    "artistInstagram": "https://www.instagram.com/rubenderonde/"
   }
 }
