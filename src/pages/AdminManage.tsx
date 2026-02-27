@@ -117,7 +117,7 @@ export function AdminManage() {
 
     // Pagination & Sorting
     const [currentPage, setCurrentPage] = useState(1);
-    const [sortBy, setSortBy] = useState<'title' | 'date' | 'pubDate' | 'event' | 'location' | 'country' | 'manual'>('date');
+    const [sortBy, setSortBy] = useState<'title' | 'date' | 'pubDate' | 'event' | 'location' | 'country' | 'year' | 'manual'>('date');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [isOrderDirty, setIsOrderDirty] = useState(false);
     const [isSavingOrder, setIsSavingOrder] = useState(false);
@@ -426,6 +426,10 @@ export function AdminManage() {
                         valA = a.location?.split(',').pop()?.trim().toLowerCase() || '';
                         valB = b.location?.split(',').pop()?.trim().toLowerCase() || '';
                         break;
+                    case 'year':
+                        valA = Number(a.year) || 0;
+                        valB = Number(b.year) || 0;
+                        break;
                     default:
                         valA = a.date || '';
                         valB = b.date || '';
@@ -548,6 +552,7 @@ export function AdminManage() {
                                 <option className="bg-dark-bg" value="pubDate">Date de publication</option>
                                 <option className="bg-dark-bg" value="location">Lieu</option>
                                 <option className="bg-dark-bg" value="country">Pays</option>
+                                <option className="bg-dark-bg" value="year">Année</option>
                             </select>
                             <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-[10px] font-black text-neon-red uppercase tracking-widest hover:underline">{sortOrder === 'asc' ? 'Croissant' : 'Récent first'}</button>
                         </div>
@@ -684,6 +689,7 @@ export function AdminManage() {
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Image</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Titre</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Auteur</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Année</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date Event' : 'Date'}</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
                                     </tr>
@@ -787,6 +793,9 @@ export function AdminManage() {
                                                             Alex
                                                         </span>
                                                     )}
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <span className="text-xs font-bold text-gray-400">{item.year || '-'}</span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
                                                 <td className="px-6 py-4 text-right flex items-center justify-end gap-1">
