@@ -37,7 +37,7 @@
     "showInNavbar": false,
     "forceHomepage": false,
     "customCommands": "",
-    "isSecret": true,
+    "isSecret": false,
     "password": "2026",
     "channels": "",
     "autoMessage": "",
