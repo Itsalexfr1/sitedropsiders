@@ -336,7 +336,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return {
                 time: parts[0] || '',
                 artist: parts[1] || '',
-                stage: parts[2] || ''
+                stage: parts[2] || '',
+                festival: parts[3] || ''
             };
         });
     };
@@ -450,25 +451,45 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </button>
                                         </div>
 
-                                        <div className="p-3 space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                        <div className="p-3 space-y-3 max-h-72 overflow-y-auto custom-scrollbar bg-white">
                                             {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
-                                                <div key={i} className="bg-white/5 border border-white/5 rounded-xl p-2.5 hover:bg-white/10 transition-all group">
-                                                    <div className="flex justify-between items-center mb-1.5">
-                                                        <span className="px-1.5 py-0.5 bg-neon-red/20 text-neon-red text-[8px] font-black rounded border border-neon-red/20">
-                                                            {item.time}
-                                                        </span>
-                                                        <span className="text-[7px] font-bold text-gray-500 uppercase tracking-widest truncate max-w-[100px]">
-                                                            {item.stage}
-                                                        </span>
+                                                <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm hover:border-neon-red/50 transition-all group">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Heure</span>
+                                                            <span className="text-[11px] font-black text-black uppercase tracking-tighter">
+                                                                {item.time}
+                                                            </span>
+                                                        </div>
+                                                        {item.festival && (
+                                                            <div className="flex flex-col items-end text-right">
+                                                                <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Festival</span>
+                                                                <span className="text-[9px] font-black text-neon-red uppercase tracking-widest italic leading-none">
+                                                                    {item.festival}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                    <h3 className="text-white font-black uppercase italic tracking-wider text-[11px] group-hover:text-neon-red transition-colors leading-tight truncate">
-                                                        {item.artist}
-                                                    </h3>
+
+                                                    <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Artiste</span>
+                                                            <h3 className="text-black font-black uppercase italic tracking-widest text-sm leading-tight group-hover:text-neon-red transition-colors">
+                                                                {item.artist}
+                                                            </h3>
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Scène / Stage</span>
+                                                            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
+                                                                {item.stage}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             ))}
                                             {parseLineup(editLineup || settings.lineup || '').length === 0 && (
-                                                <div className="py-8 text-center">
-                                                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em] italic">
+                                                <div className="py-12 text-center">
+                                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic">
                                                         PROGRAMME À VENIR
                                                     </p>
                                                 </div>
@@ -565,9 +586,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     onChange={e => setEditLineup(e.target.value)}
                                                     rows={5}
                                                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all resize-none font-mono text-xs"
-                                                    placeholder={`20:00 | DJ SET | MAIN STAGE&#10;21:30 | ARTISTE | CLUB ROOM`}
+                                                    placeholder={`20:00 | DJ SET | MAIN STAGE | TOMORROWLAND&#10;21:30 | ARTISTE | CLUB ROOM | ULTRA`}
                                                 />
-                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-1 italic">Format : Heure | Artiste | Stage (un par ligne)</p>
+                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-1 italic">Format : Heure | Artiste | Stage | Festival (un par ligne)</p>
                                             </div>
 
                                             <div className="space-y-2">
