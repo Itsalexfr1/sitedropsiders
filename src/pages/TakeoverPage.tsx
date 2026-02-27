@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
@@ -34,6 +34,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [banTarget, setBanTarget] = useState<string | null>(null);
     const [banDuration, setBanDuration] = useState('10');
+
+    const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
+    const [captchaA] = useState(Math.floor(Math.random() * 10) + 1);
+    const [captchaB] = useState(Math.floor(Math.random() * 10) + 1);
+    const [captchaAnswer, setCaptchaAnswer] = useState('');
+
+    const [isSlowMode, setIsSlowMode] = useState(false);
+    const [lastMessageTime, setLastMessageTime] = useState(0);
 
     const getFlagEmoji = (c: string) => {
         if (!c) return '🌍';
@@ -74,48 +82,48 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 }
             })
             .catch(console.error);
-
-        // Mock some initial messages
-        const initialMessages = [
-            { id: 1, pseudo: 'LUCAS', country: 'FR', message: 'Trop hâte que ça commence ! 🔥', time: '20:00' },
-            { id: 2, pseudo: 'EMMA', country: 'CA', message: 'Le son est incroyable déjà.', time: '20:01' },
-            { id: 3, pseudo: 'DROPSIDERS', country: 'FR', message: 'Bienvenue sur le live ! N\'hésitez pas à interagir ici.', time: '20:02' },
-            { id: 4, pseudo: 'MARC', country: 'BE', message: 'Quel festival de fou', time: '20:03' }
-        ];
-        setMessages(initialMessages);
-
-        // Simulate some live messages
-        const interval = setInterval(() => {
-            if (Math.random() > 0.7) {
-                const randomPseudos = ['TOM', 'CHLOÉ', 'ANTOINE', 'SARAH', 'JULIEN', 'MIA', 'LEO'];
-                const randomCountries = ['FR', 'BE', 'CH', 'CA', 'ES', 'IT', 'UK'];
-                const randomMsgs = ['WAOW !!', 'C\'est le feu', '❤️❤️❤️', 'Incroyable', 'On est là !!', 'Let\'s goooo'];
-                const newMsg = {
-                    id: Date.now(),
-                    pseudo: randomPseudos[Math.floor(Math.random() * randomPseudos.length)],
-                    country: randomCountries[Math.floor(Math.random() * randomCountries.length)],
-                    message: randomMsgs[Math.floor(Math.random() * randomMsgs.length)],
-                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                };
-                setMessages(prev => [...prev.slice(-40), newMsg]);
-            }
-        }, 5000);
-
-        return () => clearInterval(interval);
     }, []);
 
-    const handleJoin = (e: React.FormEvent) => {
+    const handleJoin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Security check
+        if (!isAdmin && parseInt(captchaAnswer) !== captchaA + captchaB) {
+            alert("Erreur de sécurité : addition incorrecte. Veuillez prouver que vous êtes un humain.");
+            return;
+        }
+
         if (pseudo && email && country) {
             setIsJoined(true);
             localStorage.setItem('chat_joined', 'true');
             localStorage.setItem('chat_pseudo', pseudo.toUpperCase());
+
+            if (subscribeNewsletter) {
+                try {
+                    await fetch('/api/newsletter/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, name: pseudo })
+                    });
+                } catch (err) {
+                    console.error('Failed to subscribe:', err);
+                }
+            }
         }
     };
 
     const handleSendMessage = (e: React.FormEvent) => {
         e.preventDefault();
         if (newMessage.trim()) {
+            if (isSlowMode && !hasModPowers) {
+                const now = Date.now();
+                if (now - lastMessageTime < 10000) { // 10 seconds
+                    alert('Le mode lent est activé. Veuillez patienter 10 secondes entre chaque message.');
+                    return;
+                }
+                setLastMessageTime(now);
+            }
+
             const msg = {
                 id: Date.now(),
                 pseudo: pseudo.toUpperCase(),
@@ -198,10 +206,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <MessageSquare className="w-5 h-5 text-neon-red" />
                                 </div>
                                 <div>
-                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest">Chat en direct</h2>
-                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">3.4k spectateurs</p>
+                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                        Chat en direct
+                                        {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30"><Clock className="w-2.5 h-2.5" /> Mode Lent</span>}
+                                    </h2>
+                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Spectateurs en direct</p>
                                 </div>
                             </div>
+                            {hasModPowers && (
+                                <button
+                                    onClick={() => setIsSlowMode(!isSlowMode)}
+                                    className={`p-2 rounded-lg transition-all ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                    title={isSlowMode ? "Désactiver le mode lent" : "Activer le mode lent (10s)"}
+                                >
+                                    <Clock className="w-4 h-4" />
+                                </button>
+                            )}
                         </div>
 
                         <AnimatePresence mode="wait">
@@ -257,6 +277,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
                                             />
                                         </div>
+
+                                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                                            <div className="flex-1">
+                                                <label className="text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={subscribeNewsletter}
+                                                        onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+                                                        className="w-4 h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
+                                                    />
+                                                    S'inscrire à la newsletter
+                                                </label>
+                                                <p className="text-[9px] text-gray-500 mt-1 uppercase tracking-widest">Recevez nos dernières actualités (Optionnel)</p>
+                                            </div>
+                                        </div>
+
+                                        {!isAdmin && (
+                                            <div className="group relative">
+                                                <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                <input
+                                                    type="number"
+                                                    placeholder={`Sécurité : Combien font ${captchaA} + ${captchaB} ?`}
+                                                    required
+                                                    value={captchaAnswer}
+                                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                />
+                                            </div>
+                                        )}
+
                                         <button className="w-full py-5 bg-neon-red text-white text-xs font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
                                             Accéder au chat
                                         </button>
