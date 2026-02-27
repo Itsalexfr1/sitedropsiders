@@ -78,7 +78,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             .then(res => res.json())
             .then(data => {
                 if (Array.isArray(data)) {
-                    setLatestNews(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 20));
+                    // Filter out interviews, keep only regular news
+                    const filteredData = data.filter(item =>
+                        !item.category.toLowerCase().includes('interview') &&
+                        !item.title.toLowerCase().includes('interview')
+                    );
+                    setLatestNews(filteredData.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 20));
                 }
             })
             .catch(console.error);
@@ -167,9 +172,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     return (
-        <div className="flex flex-col h-screen min-h-screen bg-black pt-20 overflow-hidden">
+        <div className="flex flex-col h-[100dvh] bg-black pt-20 overflow-hidden">
             {/* Live Banner Header */}
-            <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl">
+            <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full">
                         <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
@@ -184,8 +189,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black">
                 {/* Video Section */}
-                <div className="flex-1 relative bg-black flex flex-col lg:justify-center overflow-hidden">
-                    <div className="w-full h-full lg:max-h-[calc(100vh-160px)] aspect-video lg:aspect-auto bg-black border-r border-white/5">
+                <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10">
+                    <div className="w-full aspect-video lg:aspect-auto lg:h-full bg-black">
                         <iframe
                             className="w-full h-full"
                             src={`https://www.youtube.com/embed/${settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1`}
@@ -198,9 +203,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Chat Section */}
                 {settings.chat_enabled && (
-                    <div className="w-full lg:w-[380px] border-l border-white/10 bg-[#080808] flex flex-col h-[400px] lg:h-auto min-h-0 relative z-20">
+                    <div className="flex-1 lg:w-[380px] lg:flex-none bg-[#080808] flex flex-col min-h-0 relative z-20">
                         {/* Glossy Header */}
-                        <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10">
+                        <div className="p-4 lg:p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-md relative z-10 shrink-0">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-neon-red/10 rounded-lg">
                                     <MessageSquare className="w-5 h-5 text-neon-red" />
@@ -447,17 +452,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             </div>
 
             {/* Scrolling News Ticker */}
-            <div className="w-full bg-neon-red h-10 flex items-center overflow-hidden border-t border-red-500/50 relative z-30">
-                <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-neon-red to-transparent z-10" />
-                <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-neon-red to-transparent z-10" />
+            <div className="w-full bg-neon-red h-10 shrink-0 flex items-center overflow-hidden border-t border-red-500/50 relative z-30">
+                <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-neon-red to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-neon-red to-transparent z-10 pointer-events-none" />
 
                 <div className="flex items-center absolute whitespace-nowrap animate-ticker">
                     {latestNews.concat(latestNews).map((news, i) => (
-                        <div key={`${news.id}-${i}`} className="flex items-center mx-6 text-white shrink-0">
+                        <a
+                            key={`${news.id}-${i}`}
+                            href={`/news/${news.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center mx-6 text-white shrink-0 hover:text-black transition-colors"
+                        >
                             <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 mr-2">{news.category}</span>
                             <span className="text-xs font-black uppercase italic tracking-wide">{news.title}</span>
-                            <div className="w-1.5 h-1.5 rounded-full bg-white ml-6 opacity-50" />
-                        </div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/50 ml-6" />
+                        </a>
                     ))}
                     {latestNews.length === 0 && (
                         <div className="text-xs font-black uppercase italic tracking-widest text-white mx-10">
@@ -477,7 +488,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                 }
                 .animate-ticker {
-                    animation: ticker 40s linear infinite;
+                    animation: ticker 90s linear infinite;
                     width: max-content;
                 }
             `}</style>
