@@ -319,6 +319,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
+    const parseLineup = (text: string) => {
+        if (!text) return [];
+        return text.split('\n').filter(line => line.trim()).map(line => {
+            const parts = line.split('|').map(p => p.trim());
+            return {
+                time: parts[0] || '',
+                artist: parts[1] || '',
+                stage: parts[2] || ''
+            };
+        });
+    };
+
     const handleShare = (platform: 'x' | 'fb') => {
         const url = encodeURIComponent(window.location.href);
         const text = encodeURIComponent(`Je regarde ${editTitle} sur Dropsiders ! 🚀`);
@@ -340,15 +352,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         <h1 className="text-lg md:text-2xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
                             {editTitle}
                         </h1>
-                        {isAdmin && (
+                        <div className="flex items-center gap-2">
+                            {isAdmin && (
+                                <button
+                                    onClick={() => setShowEditModal(true)}
+                                    className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all shrink-0"
+                                    title="Modifier le Live"
+                                >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                </button>
+                            )}
                             <button
-                                onClick={() => setShowEditModal(true)}
-                                className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all shrink-0"
-                                title="Modifier le Live"
+                                onClick={() => setShowLineup(true)}
+                                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-gray-400 hover:text-neon-red hover:border-neon-red/30 transition-all uppercase tracking-widest"
                             >
-                                <Pencil className="w-3.5 h-3.5" />
+                                <List className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Planning</span>
                             </button>
-                        )}
+                        </div>
                     </div>
                     <div className="flex items-center gap-2 px-4 py-1.5 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md">
                         <Users className="w-4 h-4 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
@@ -384,22 +405,55 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     className="absolute inset-0 bg-black/70 backdrop-blur-sm z-20 flex flex-col justify-center items-center p-8"
                                     onClick={() => setShowLineup(false)}
                                 >
-                                    <div className="w-full max-w-md bg-black/30 backdrop-blur-md border border-white/10 rounded-3xl p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
+                                    <div className="w-full max-w-2xl bg-black/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl" onClick={e => e.stopPropagation()}>
                                         <div className="flex items-center justify-between mb-8">
                                             <div className="flex items-center gap-4">
-                                                <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30">
-                                                    <List className="w-6 h-6 text-neon-red" />
+                                                <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30 shadow-[0_0_15px_rgba(255,0,0,0.3)]">
+                                                    <List className="w-6 h-6 text-neon-red animate-pulse" />
                                                 </div>
                                                 <h2 className="text-2xl font-black text-white uppercase italic tracking-widest">
-                                                    Line Up
+                                                    LINE UP <span className="text-neon-red">LIVE</span>
                                                 </h2>
                                             </div>
                                             <button onClick={() => setShowLineup(false)} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all">
                                                 <X className="w-6 h-6" />
                                             </button>
                                         </div>
-                                        <div className="space-y-4 text-white font-bold text-base uppercase tracking-widest leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-4 scrollbar-hide">
-                                            {editLineup || settings.lineup || 'Programme à venir...'}
+
+                                        <div className="w-full overflow-hidden rounded-2xl border border-white/10 bg-black/20">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="bg-white/5 border-b border-white/10">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">Heure</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">Artistes</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">Stage</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="max-h-[50vh] overflow-y-auto">
+                                                    {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
+                                                        <tr key={i} className="border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <span className="inline-block px-2 py-1 bg-white/5 rounded border border-white/5 text-[11px] font-bold text-white uppercase tracking-tighter">
+                                                                    {item.time}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-xs font-black text-white uppercase italic tracking-widest">
+                                                                {item.artist}
+                                                            </td>
+                                                            <td className="px-6 py-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                                                {item.stage}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {parseLineup(editLineup || settings.lineup || '').length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={3} className="px-6 py-12 text-center text-[10px] font-black text-gray-600 uppercase tracking-widest italic">
+                                                                Le programme sera bientôt disponible
+                                                            </td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 </motion.div>
@@ -443,13 +497,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             {settings.lineup && (
                                 <button
                                     onClick={() => setShowLineup(v => !v)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all shadow-lg backdrop-blur-md ${showLineup
-                                        ? 'bg-neon-red/80 border-neon-red text-white'
-                                        : 'bg-black/60 border-white/20 text-white hover:bg-white/10'
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest border transition-all shadow-lg backdrop-blur-md animate-glow ${showLineup
+                                        ? 'bg-neon-red border-neon-red text-white'
+                                        : 'bg-neon-red/20 border-neon-red/30 text-white hover:bg-neon-red/40'
                                         }`}
                                 >
                                     <List className="w-3.5 h-3.5" />
-                                    Line Up
+                                    Planning
                                 </button>
                             )}
                             {isAdmin && (
@@ -532,9 +586,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     value={editLineup}
                                                     onChange={e => setEditLineup(e.target.value)}
                                                     rows={5}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all resize-none"
-                                                    placeholder="20:00 - DJ SET&#10;21:30 - INTERVIEW..."
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all resize-none font-mono text-xs"
+                                                    placeholder={`20:00 | DJ SET | MAIN STAGE&#10;21:30 | ARTISTE | CLUB ROOM`}
                                                 />
+                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-1 italic">Format : Heure | Artiste | Stage (un par ligne)</p>
                                             </div>
 
                                             <div className="space-y-2">
@@ -925,6 +980,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .animate-ticker {
                     animation: ticker 90s linear infinite;
                     width: max-content;
+                }
+                @keyframes glow {
+                    0%, 100% { border-color: rgba(255, 0, 0, 0.3); box-shadow: 0 0 5px rgba(255, 0, 0, 0.1); }
+                    50% { border-color: rgba(255, 0, 0, 0.8); box-shadow: 0 0 20px rgba(255, 0, 0, 0.4); }
+                }
+                .animate-glow {
+                    animation: glow 2s ease-in-out infinite;
                 }
             `}</style>
         </div>
