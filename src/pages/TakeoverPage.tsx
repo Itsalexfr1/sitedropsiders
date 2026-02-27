@@ -2169,26 +2169,25 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             >
                                 <div className="relative group px-1">
                                     <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                    <div className="max-h-[320px] overflow-hidden relative">
-                                        <div className="flex flex-col gap-2 animate-shop-scroll">
-                                            {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts] : []).map((product, i) => (
+                                    <div className="w-full overflow-hidden relative py-2 mb-1">
+                                        <div className="flex flex-row gap-3 animate-shop-scroll">
+                                            {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
                                                 <a
                                                     key={`${product.id}-${i}`}
                                                     href={product.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-3 p-2 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95"
+                                                    className="flex items-center gap-3 p-1.5 pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95 shrink-0"
                                                 >
-                                                    <div className="w-10 h-10 shrink-0 rounded-lg overflow-hidden relative">
+                                                    <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative shadow-lg">
                                                         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
-                                                        <span className="absolute bottom-0.5 right-0.5 text-[7px] font-black text-white bg-neon-red px-1 py-0.5 rounded shadow-lg">{product.price}€</span>
+                                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
+                                                            <span className="text-[7.5px] font-black text-white">{product.price}€</span>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-1">
-                                                        <p className="text-[9px] font-black text-white uppercase tracking-widest leading-tight">{product.name}</p>
-                                                        <p className="text-[8px] text-gray-400 uppercase tracking-widest mt-0.5">{product.description}</p>
-                                                    </div>
-                                                    <div className="p-1.5 bg-neon-cyan/10 rounded-full text-neon-cyan shrink-0">
-                                                        <ArrowRight className="w-3 h-3" />
+                                                    <div className="flex flex-col justify-center max-w-[120px]">
+                                                        <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
+                                                        <p className="text-[7.5px] text-gray-500 uppercase tracking-widest mt-1 truncate opacity-60 font-bold">{product.description}</p>
                                                     </div>
                                                 </a>
                                             ))}
@@ -2656,10 +2655,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-                .animate-ticker { animation: ticker 80s linear infinite; width: max-content; }
+                .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
-                @keyframes shop-scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-50%); } }
-                .animate-shop-scroll { animation: shop-scroll 25s linear infinite; }
+                @keyframes shop-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+                .animate-shop-scroll { animation: shop-scroll 40s linear infinite; width: max-content; }
                 .animate-shop-scroll:hover { animation-play-state: paused; }
                 @keyframes glow { 0%, 100% { border-color: rgba(255, 0, 0, 0.3); } 50% { border-color: rgba(255, 0, 0, 0.8); } }
                 .animate-glow { animation: glow 2s ease-in-out infinite; }
