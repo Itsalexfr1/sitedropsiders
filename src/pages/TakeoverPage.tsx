@@ -1002,7 +1002,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     return (
         <div className={`fixed ${isFocusMode ? 'top-0' : 'top-[70px] lg:top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
             {/* Live Banner Header */}
-            {!isFocusMode && (
+            {!isFocusMode && showTopBanner && (
                 <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
@@ -2103,7 +2103,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         ) : (
                             <div className="flex-1 flex flex-col min-h-0">
                                 {/* Chat Messages - ALWAYS VISIBLE */}
-                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-3 scroll-smooth custom-scrollbar pointer-events-auto">
+                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                     {/* Pinned Message */}
                                     {settings.pinnedMessage && (
                                         <div className="sticky top-0 z-30 mb-8 bg-neon-red/10 border border-neon-red/30 backdrop-blur-2xl rounded-2xl p-4 shadow-[0_0_30px_rgba(255,0,51,0.2)] relative overflow-hidden">
@@ -2148,12 +2148,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     {isMsgAdmin && <span className="px-2 py-0.5 rounded bg-neon-red text-white text-[8px] font-black uppercase tracking-[0.1em]">ADMIN</span>}
                                                     <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                 </div>
-                                                <div className={`p-2.5 px-3.5 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? 'bg-neon-cyan/5 border-neon-cyan/15 text-[#00ffcc]' : isMsgAdmin ? 'bg-neon-red/5 border-neon-red/15 text-white' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}>
+                                                <div className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? 'bg-neon-cyan/5 border-neon-cyan/15 text-[#00ffcc]' : isMsgAdmin ? 'bg-neon-red/5 border-neon-red/15 text-white' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}>
                                                     <span className="relative z-10">{msg.message}</span>
-                                                    {hasModPowers && !isMsgAdmin && (
-                                                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all"><Pin className="w-3.5 h-3.5" /></button>
-                                                            <button onClick={() => handleDelete(msg.id)} className="p-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                    {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
+                                                            <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
                                                         </div>
                                                     )}
                                                 </div>
@@ -2284,7 +2284,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </AnimatePresence>
             </div>
 
-            {!isFocusMode && (
+            {!isFocusMode && showTickerBanner && (
                 <div
                     className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
                     style={{ backgroundColor: tickerBgColor }}
@@ -2363,47 +2363,100 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm"
+                        className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
                         onClick={() => setShowShazamInfo(false)}
                     >
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
                             animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,255,255,0.1)]"
+                            exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                            className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
                             onClick={e => e.stopPropagation()}
                         >
-                            <div className="relative p-8 lg:p-12 text-center space-y-8">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-neon-cyan/10 blur-[100px] rounded-full pointer-events-none" />
-                                <div className="relative">
-                                    <div className="w-24 h-24 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_0_50px_rgba(0,255,255,0.1)]">
-                                        <Music2 className="w-10 h-10 text-neon-cyan animate-pulse" />
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+
+                            <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
+
+                                <div className="relative flex flex-col items-center">
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                        <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                            <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                        </div>
+                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                        </div>
                                     </div>
-                                    <h3 className="text-2xl lg:text-3xl font-black text-white uppercase italic tracking-tighter">Identifier le <span className="text-neon-cyan">Son</span></h3>
+
+                                    <div className="mt-8">
+                                        <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                            Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
+                                        </h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
+                                    </div>
                                 </div>
-                                <div className="space-y-4 text-left">
-                                    <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                                        <div className="w-6 h-6 rounded-full bg-neon-cyan text-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">1</div>
-                                        <p className="text-[11px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">Cliquez sur <span className="text-neon-cyan">"DÉMARRER L'ÉCOUTE"</span>.</p>
-                                    </div>
-                                    <div className="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
-                                        <div className="w-6 h-6 rounded-full bg-neon-cyan text-black text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">2</div>
-                                        <p className="text-[11px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">Sélectionnez <span className="text-white">"ONGLET CHROME"</span> et <span className="text-white">"DROPSIDERS LIVE"</span>.</p>
-                                    </div>
-                                    <div className="flex items-start gap-4 p-4 bg-neon-red/10 rounded-2xl border border-neon-red/20 text-white">
-                                        <div className="w-6 h-6 rounded-full bg-neon-red text-[10px] font-black flex items-center justify-center shrink-0 mt-0.5">!</div>
-                                        <p className="text-[11px] font-black uppercase leading-relaxed tracking-wider">Activez <span className="underline">"PARTAGER L'AUDIO"</span>.</p>
-                                    </div>
+
+                                <div className="space-y-3 text-left relative z-10">
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.3 }}
+                                        className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                        <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                            Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                        </p>
+                                    </motion.div>
                                 </div>
-                                <div className="flex gap-3 pt-4">
-                                    <button onClick={() => { setShowShazamInfo(false); handleShazam(); }} className="flex-1 py-5 bg-neon-cyan text-black text-xs font-black uppercase rounded-2xl hover:scale-[1.02] shadow-xl shadow-neon-cyan/20">Démarrer</button>
-                                    <button onClick={() => setShowShazamInfo(false)} className="px-8 py-5 bg-white/5 border border-white/10 text-gray-500 text-xs font-black uppercase rounded-2xl">Annuler</button>
+
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                    <button
+                                        onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                        className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                    >
+                                        Démarrer
+                                    </button>
+                                    <button
+                                        onClick={() => setShowShazamInfo(false)}
+                                        className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>
                     </motion.div>
                 )}
             </AnimatePresence>
+
 
             <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
