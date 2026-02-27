@@ -75,11 +75,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
-    const [isJoined, setIsJoined] = useState(() => {
-        // Only admins bypass the join form automatically
-        const auth = localStorage.getItem('admin_auth') === 'true';
-        return auth;
-    });
+    const [isJoined, setIsJoined] = useState(false);
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [displayTitle, setDisplayTitle] = useState(settings.title);
@@ -437,7 +433,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         e.preventDefault();
 
         // Security check - captcha
-        if (!isAdmin && parseInt(captchaAnswer) !== captchaA + captchaB) {
+        if (!hasModPowers && parseInt(captchaAnswer) !== captchaA + captchaB) {
             alert("Erreur de sécurité : addition incorrecte. Veuillez prouver que vous êtes un humain.");
             return;
         }
@@ -985,7 +981,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
 
-    if (settings.isSecret && !isUnlocked && !isAdmin) {
+    if (settings.isSecret && !isUnlocked && !hasModPowers) {
         return (
             <div className="fixed inset-0 bg-[#050505] z-[9999] flex items-center justify-center p-6">
                 <motion.div
@@ -1101,7 +1097,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </div>
                         )}
                         <div className="flex items-center gap-2">
-                            {isAdmin && (
+                            {hasModPowers && (
                                 <button
                                     id="admin-edit-btn"
                                     onClick={() => setShowEditModal(true)}
@@ -1349,7 +1345,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Admin: Change Video popover */}
                         <AnimatePresence>
-                            {showVideoEdit && isAdmin && (
+                            {showVideoEdit && hasModPowers && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -1446,7 +1442,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Full Edit Modal Layer */}
                         <AnimatePresence>
-                            {showEditModal && isAdmin && (
+                            {showEditModal && hasModPowers && (
                                 <motion.div
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
