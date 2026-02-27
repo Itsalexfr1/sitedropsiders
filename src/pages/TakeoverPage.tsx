@@ -570,7 +570,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             const serverCommands = ['!help', '!lineup', '!planning', '!shop', '!boutique', '!shazam', '!musique', '!news', '!actu', '!id'];
             if (serverCommands.includes(cmd)) return;
 
-            if (cmd.includes('merci bot') || cmd.includes('cool bot')) {
+            if (cmd === '!artiste') {
+                const lineup = parseLineup(settings.lineup || '');
+                const current = [...lineup].filter(i => i.isPast).pop();
+                const artistName = settings.currentArtist || current?.artist || "Aucun artiste annoncé";
+                response = `🎤 L'artiste en live actuellement : ${artistName.toUpperCase()} ! 🔥`;
+            } else if (cmd === '!festival') {
+                const lineup = parseLineup(settings.lineup || '');
+                const currentLineup = [...lineup].filter(i => i.isPast).pop();
+                const festivalName = currentLineup?.festival || settings.title || "DROPSIDERS LIVE";
+                response = `🎪 Festival actuel : ${festivalName.toUpperCase()} ! 🎉`;
+            }
+
+            if (!response && (cmd.includes('merci bot') || cmd.includes('cool bot'))) {
                 response = "🥰 Je t'en prie ! Toujours là pour vous servir !";
             }
         }
