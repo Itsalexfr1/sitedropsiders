@@ -526,38 +526,34 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 backdrop-blur-md">
                             <button
                                 onClick={() => handleShare('x')}
-                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
                                 title="Partager sur X"
                             >
-                                <Twitter className="w-3.5 h-3.5" />
-                                <span className="hidden lg:inline">X</span>
+                                <Twitter className="w-4 h-4" />
                             </button>
                             <div className="w-px h-3 bg-white/20" />
                             <button
                                 onClick={() => handleShare('fb')}
-                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
                                 title="Partager sur Facebook"
                             >
-                                <Facebook className="w-3.5 h-3.5" />
-                                <span className="hidden lg:inline">FB</span>
+                                <Facebook className="w-4 h-4" />
                             </button>
                             <div className="w-px h-3 bg-white/20" />
                             <button
                                 onClick={() => handleShare('insta')}
-                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
                                 title="Partager sur Instagram"
                             >
-                                <Instagram className="w-3.5 h-3.5" />
-                                <span className="hidden lg:inline">Insta</span>
+                                <Instagram className="w-4 h-4" />
                             </button>
                             <div className="w-px h-3 bg-white/20" />
                             <button
                                 onClick={() => handleShare('snap')}
-                                className="p-1.5 px-2 lg:px-3 hover:bg-white/10 rounded-lg text-white transition-all text-[10px] font-black flex items-center gap-1.5"
+                                className="p-1.5 px-2 hover:bg-white/10 rounded-lg text-white transition-all flex items-center gap-1.5"
                                 title="Partager sur Snapchat"
                             >
-                                <Music2 className="w-3.5 h-3.5" />
-                                <span className="hidden lg:inline">Snap</span>
+                                <Music2 className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
@@ -575,7 +571,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
                 {/* Video Section */}
-                <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10">
+                <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col lg:justify-center relative border-b lg:border-b-0 lg:border-r border-white/10 group">
                     <div className="w-full aspect-video lg:aspect-auto lg:h-full bg-black">
                         <iframe
                             className="w-full h-full"
@@ -703,7 +699,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </AnimatePresence>
 
-                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                             <button
                                 onClick={() => setIsFocusMode(!isFocusMode)}
                                 className="flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-neon-red transition-all backdrop-blur-md shadow-2xl active:scale-95 group"
@@ -727,7 +723,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <motion.div
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="w-full max-w-lg space-y-4 my-auto py-8"
+                                        className="w-full max-w-4xl space-y-4 my-auto py-8"
                                         onClick={e => e.stopPropagation()}
                                     >
                                         <div className="flex items-center justify-between mb-2">
@@ -889,9 +885,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             value={editLineup}
                                                             onChange={(e) => setEditLineup(e.target.value)}
                                                             className="w-full h-[300px] bg-black/60 border border-white/10 rounded-2xl p-5 text-[11px] font-bold text-gray-200 outline-none focus:border-neon-red transition-all leading-relaxed custom-scrollbar font-mono"
-                                                            placeholder="Format: [HEURE] ARTISTE - SCÈNE&#10;Exemple: [22:00] THE ROCKSTAR - MAIN STAGE"
+                                                            placeholder="Format: [HEURE] ARTISTE - SCÈNE - ÉVÉNEMENT&#10;Exemple: [22:00] THE ROCKSTAR - MAIN STAGE - TOMORROWLAND"
                                                         />
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM] Nom - Scène</p>
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM] Nom de l'artiste - Nom de la scène - Nom du festival</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -1015,324 +1011,328 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </div>
 
-                        {isLocalBanned ? (
-                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-black/40">
-                                <div className="w-20 h-20 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.1)]">
-                                    <ShieldAlert className="w-10 h-10 text-neon-red" />
-                                </div>
-                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mb-2">Accès restreint</h3>
-                                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
-                                    Vous avez été banni du chat. Vous ne pouvez plus voir ou envoyer de messages.
-                                </p>
-                                <button
-                                    onClick={handleUnbanRequest}
-                                    className="px-8 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
-                                >
-                                    Demande de débannissement
-                                </button>
-                                <p className="mt-4 text-[9px] text-gray-600 font-bold uppercase">Disponible après 10 minutes</p>
-                            </div>
-                        ) : (
-                            <AnimatePresence mode="wait">
-                                {!isJoined ? (
-                                    <motion.div
-                                        key="join-form"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="flex-1 p-8 flex flex-col justify-center relative z-10"
-                                    >
-                                        <div className="text-center mb-6 lg:mb-10">
-                                            <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
-                                                <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
-                                            </div>
-                                            <h3 className="text-lg lg:text-xl font-black text-white uppercase italic tracking-tighter">
-                                                Rejoindre le <span className="text-neon-red">Chat</span>
-                                            </h3>
-                                            <p className="text-[10px] lg:text-xs text-gray-500 font-bold uppercase tracking-widest mt-2 px-4 italic">Identifiez-vous pour participer en direct</p>
+                        <div className="flex-1 flex flex-row min-h-0">
+                            <div className="flex-1 flex flex-col min-h-0 relative z-10 w-full lg:w-[420px]">
+                                {isLocalBanned ? (
+                                    <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-black/40">
+                                        <div className="w-20 h-20 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.1)]">
+                                            <ShieldAlert className="w-10 h-10 text-neon-red" />
                                         </div>
-
-                                        <form onSubmit={handleJoin} className="space-y-4 max-w-sm mx-auto w-full">
-                                            <div className="group relative">
-                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="PSEUDO"
-                                                    required
-                                                    value={pseudo}
-                                                    onChange={(e) => setPseudo(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                />
-                                            </div>
-
-                                            <div className="group relative">
-                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
-                                                <input
-                                                    type="email"
-                                                    placeholder="EMAIL"
-                                                    required
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                />
-                                            </div>
-
-                                            <div className="group relative">
-                                                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
-                                                <input
-                                                    type="text"
-                                                    placeholder="PAYS"
-                                                    required
-                                                    value={country}
-                                                    onChange={(e) => setCountry(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                />
-                                            </div>
-
-                                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
-                                                <div className="flex-1">
-                                                    <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={subscribeNewsletter}
-                                                            onChange={(e) => setSubscribeNewsletter(e.target.checked)}
-                                                            className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
-                                                        />
-                                                        Newsletter
-                                                    </label>
-                                                </div>
-                                            </div>
-
-                                            {!isAdmin && (
-                                                <div className="group relative">
-                                                    <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
-                                                    <input
-                                                        type="number"
-                                                        placeholder={`${captchaA} + ${captchaB} ?`}
-                                                        required
-                                                        value={captchaAnswer}
-                                                        onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                                    />
-                                                </div>
-                                            )}
-
-                                            <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Couleur de votre pseudo</label>
-                                                <div className="flex flex-wrap gap-2">
-                                                    {['#ffffff', '#00ffcc', '#00ccff', '#ff00ff', '#ccff00', '#ff9900', '#9933ff', '#33ff33', '#ffffff', '#ff66aa'].filter(c => {
-                                                        const r = parseInt(c.slice(1, 3), 16);
-                                                        const g = parseInt(c.slice(3, 5), 16);
-                                                        const b = parseInt(c.slice(5, 7), 16);
-                                                        const isRed = r > 200 && g < 100 && b < 100;
-                                                        const isYellow = r > 200 && g > 200 && b < 100;
-                                                        return !isRed && !isYellow;
-                                                    }).map(color => (
-                                                        <button
-                                                            key={color}
-                                                            type="button"
-                                                            onClick={() => setUserColor(color)}
-                                                            className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${userColor === color ? 'border-white scale-110 shadow-[0_0_10px_white]' : 'border-transparent'}`}
-                                                            style={{ backgroundColor: color }}
-                                                        />
-                                                    ))}
-                                                    <input
-                                                        type="color"
-                                                        value={userColor}
-                                                        onChange={(e) => {
-                                                            const c = e.target.value;
-                                                            const r = parseInt(c.slice(1, 3), 16);
-                                                            const g = parseInt(c.slice(3, 5), 16);
-                                                            const b = parseInt(c.slice(5, 7), 16);
-                                                            const isRed = r > 200 && g < 100 && b < 100;
-                                                            const isYellow = r > 200 && g > 200 && b < 100;
-                                                            if (!isRed && !isYellow) setUserColor(c);
-                                                            else alert("Les couleurs rouge et jaune sont réservées à l'administration.");
-                                                        }}
-                                                        className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer p-0 overflow-hidden"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
-                                                Rejoindre
-                                            </button>
-                                        </form>
-                                    </motion.div>
+                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mb-2">Accès restreint</h3>
+                                        <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                            Vous avez été banni du chat. Vous ne pouvez plus voir ou envoyer de messages.
+                                        </p>
+                                        <button
+                                            onClick={handleUnbanRequest}
+                                            className="px-8 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                        >
+                                            Demande de débannissement
+                                        </button>
+                                        <p className="mt-4 text-[9px] text-gray-600 font-bold uppercase">Disponible après 10 minutes</p>
+                                    </div>
                                 ) : (
-                                    <motion.div
-                                        key="chat-active"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        exit={{ opacity: 0 }}
-                                        className="flex-1 flex flex-col min-h-0 relative z-10"
-                                    >
-                                        <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:y-6 scroll-smooth">
-                                            {messages.map((msg, idx) => {
-                                                const role = getRole(msg.pseudo);
-                                                const isMsgAdmin = role === 'admin';
-                                                const isMsgModo = role === 'modo';
+                                    <AnimatePresence mode="wait">
+                                        {!isJoined ? (
+                                            <motion.div
+                                                key="join-form"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="flex-1 p-8 flex flex-col justify-center relative z-10"
+                                            >
+                                                <div className="text-center mb-6 lg:mb-10">
+                                                    <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
+                                                        <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
+                                                    </div>
+                                                    <h3 className="text-lg lg:text-xl font-black text-white uppercase italic tracking-tighter">
+                                                        Rejoindre le <span className="text-neon-red">Chat</span>
+                                                    </h3>
+                                                    <p className="text-[10px] lg:text-xs text-gray-500 font-bold uppercase tracking-widest mt-2 px-4 italic">Identifiez-vous pour participer en direct</p>
+                                                </div>
+
+                                                <form onSubmit={handleJoin} className="space-y-4 max-w-sm mx-auto w-full">
+                                                    <div className="group relative">
+                                                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="PSEUDO"
+                                                            required
+                                                            value={pseudo}
+                                                            onChange={(e) => setPseudo(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                        />
+                                                    </div>
+
+                                                    <div className="group relative">
+                                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                        <input
+                                                            type="email"
+                                                            placeholder="EMAIL"
+                                                            required
+                                                            value={email}
+                                                            onChange={(e) => setEmail(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                        />
+                                                    </div>
+
+                                                    <div className="group relative">
+                                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="PAYS"
+                                                            required
+                                                            value={country}
+                                                            onChange={(e) => setCountry(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
+                                                        <div className="flex-1">
+                                                            <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={subscribeNewsletter}
+                                                                    onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+                                                                    className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
+                                                                />
+                                                                Newsletter
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    {!isAdmin && (
+                                                        <div className="group relative">
+                                                            <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                            <input
+                                                                type="number"
+                                                                placeholder={`${captchaA} + ${captchaB} ?`}
+                                                                required
+                                                                value={captchaAnswer}
+                                                                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                            />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Couleur de votre pseudo</label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {['#ffffff', '#00ffcc', '#00ccff', '#ff00ff', '#ccff00', '#ff9900', '#9933ff', '#33ff33', '#ffffff', '#ff66aa'].filter(c => {
+                                                                const r = parseInt(c.slice(1, 3), 16);
+                                                                const g = parseInt(c.slice(3, 5), 16);
+                                                                const b = parseInt(c.slice(5, 7), 16);
+                                                                const isRed = r > 200 && g < 100 && b < 100;
+                                                                const isYellow = r > 200 && g > 200 && b < 100;
+                                                                return !isRed && !isYellow;
+                                                            }).map(color => (
+                                                                <button
+                                                                    key={color}
+                                                                    type="button"
+                                                                    onClick={() => setUserColor(color)}
+                                                                    className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${userColor === color ? 'border-white scale-110 shadow-[0_0_10px_white]' : 'border-transparent'}`}
+                                                                    style={{ backgroundColor: color }}
+                                                                />
+                                                            ))}
+                                                            <input
+                                                                type="color"
+                                                                value={userColor}
+                                                                onChange={(e) => {
+                                                                    const c = e.target.value;
+                                                                    const r = parseInt(c.slice(1, 3), 16);
+                                                                    const g = parseInt(c.slice(3, 5), 16);
+                                                                    const b = parseInt(c.slice(5, 7), 16);
+                                                                    const isRed = r > 200 && g < 100 && b < 100;
+                                                                    const isYellow = r > 200 && g > 200 && b < 100;
+                                                                    if (!isRed && !isYellow) setUserColor(c);
+                                                                    else alert("Les couleurs rouge et jaune sont réservées à l'administration.");
+                                                                }}
+                                                                className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer p-0 overflow-hidden"
+                                                            />
+                                                        </div>
+                                                    </div>
+
+                                                    <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
+                                                        Rejoindre
+                                                    </button>
+                                                </form>
+                                            </motion.div>
+                                        ) : (
+                                            <motion.div
+                                                key="chat-active"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="flex-1 flex flex-col min-h-0 relative z-10"
+                                            >
+                                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:y-6 scroll-smooth">
+                                                    {messages.map((msg, idx) => {
+                                                        const role = getRole(msg.pseudo);
+                                                        const isMsgAdmin = role === 'admin';
+                                                        const isMsgModo = role === 'modo';
+
+                                                        return (
+                                                            <motion.div
+                                                                key={msg.id || idx}
+                                                                initial={{ opacity: 0, x: 10 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                transition={{ delay: Math.min(idx * 0.05, 1) }}
+                                                                className="group relative"
+                                                            >
+                                                                <div className="flex items-center gap-2 mb-1 px-1 truncate">
+                                                                    <div className="w-4 flex items-center justify-center">
+                                                                        {getCountryFlag(msg.country || 'FR')}
+                                                                    </div>
+                                                                    <span
+                                                                        className="text-[10px] font-black uppercase tracking-widest"
+                                                                        style={{ color: isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                                    >
+                                                                        {msg.pseudo}
+                                                                    </span>
+                                                                    {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
+                                                                    {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
+                                                                    <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                </div>
+                                                                <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
+                                                                    <span className="relative z-10 font-medium">{msg.message}</span>
+                                                                    {hasModPowers && !isMsgAdmin && (
+                                                                        <button
+                                                                            onClick={() => handleDelete(msg.id)}
+                                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0 self-center"
+                                                                        >
+                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                {/* Chat Input Bar */}
+                                                <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
+                                                    <form onSubmit={handleSendMessage} className="relative group">
+                                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within:opacity-40 blur-sm rounded-xl transition-opacity pointer-events-none" />
+                                                        <div className="relative flex items-center bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
+                                                            <div className="flex items-center px-1.5 border-r border-white/10 gap-0.5">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                                    className={`p-2 rounded-lg transition-all ${showEmojiPicker ? 'bg-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                                    title="Emojis"
+                                                                >
+                                                                    <Smile className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    className="p-2 rounded-lg text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 transition-all"
+                                                                    title="Reconnaître la musique (Shazam)"
+                                                                    onClick={() => alert("Recherche Shazam en cours...")}
+                                                                >
+                                                                    <Music2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={newMessage}
+                                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                                placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrivrez votre message..."}
+                                                                className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
+                                                            />
+                                                            <button
+                                                                type="submit"
+                                                                disabled={!newMessage.trim() || isSending}
+                                                                className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
+                                                            >
+                                                                <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                            </button>
+                                                        </div>
+                                                    </form>
+
+                                                    {/* Emoji Picker Placeholder / Quick Emojis */}
+                                                    {showEmojiPicker && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 5 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            className="mt-2 p-2 bg-black border border-white/10 rounded-xl grid grid-cols-8 lg:grid-cols-10 gap-1 shadow-2xl h-40 overflow-y-auto custom-scrollbar"
+                                                        >
+                                                            {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳', '👑', '💎', '🖤', '👽', '👾', '🌍'].map(emoji => (
+                                                                <button
+                                                                    key={emoji}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setNewMessage(prev => prev + emoji);
+                                                                        setShowEmojiPicker(false);
+                                                                    }}
+                                                                    className="p-2 hover:bg-white/10 rounded-lg text-lg transition-transform active:scale-90"
+                                                                >
+                                                                    {emoji}
+                                                                </button>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                )}
+                            </div>
+
+                            {hasModPowers && (
+                                <div className="hidden xl:flex flex-col w-[250px] bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0">
+                                    <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                        <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                            <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                        </h2>
+                                        <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto w-full">
+                                        <div className="p-3 space-y-2">
+                                            {allActiveUsers.map(u => {
+                                                const role = getRole(u.pseudo);
+                                                const isUserAdmin = role === 'admin';
+                                                const isUserModo = role === 'modo';
 
                                                 return (
-                                                    <motion.div
-                                                        key={msg.id || idx}
-                                                        initial={{ opacity: 0, x: 10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        transition={{ delay: Math.min(idx * 0.05, 1) }}
-                                                        className="group relative"
-                                                    >
-                                                        <div className="flex items-center gap-2 mb-1 px-1 truncate">
+                                                    <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                        <div className="flex items-center gap-2 truncate">
                                                             <div className="w-4 flex items-center justify-center">
-                                                                {getCountryFlag(msg.country || 'FR')}
+                                                                {getCountryFlag(u.country)}
                                                             </div>
-                                                            <span
-                                                                className="text-[10px] font-black uppercase tracking-widest"
-                                                                style={{ color: isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                            >
-                                                                {msg.pseudo}
+                                                            <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                {u.pseudo}
                                                             </span>
-                                                            {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
-                                                            {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
-                                                            <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                         </div>
-                                                        <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
-                                                            <span className="relative z-10 font-medium">{msg.message}</span>
-                                                            {hasModPowers && !isMsgAdmin && (
-                                                                <button
-                                                                    onClick={() => handleDelete(msg.id)}
-                                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0 self-center"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </motion.div>
+                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                            <button
+                                                                onClick={() => handlePromote(u.pseudo)}
+                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                title="Promouvoir Modérateur Chat"
+                                                            >
+                                                                <Shield className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 );
                                             })}
                                         </div>
-
-                                        {/* Chat Input Bar */}
-                                        <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
-                                            <form onSubmit={handleSendMessage} className="relative group">
-                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within:opacity-40 blur-sm rounded-xl transition-opacity pointer-events-none" />
-                                                <div className="relative flex items-center bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
-                                                    <div className="flex items-center px-1.5 border-r border-white/10 gap-0.5">
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                                                            className={`p-2 rounded-lg transition-all ${showEmojiPicker ? 'bg-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                                            title="Emojis"
-                                                        >
-                                                            <Smile className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            className="p-2 rounded-lg text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 transition-all"
-                                                            title="Reconnaître la musique (Shazam)"
-                                                            onClick={() => alert("Recherche Shazam en cours...")}
-                                                        >
-                                                            <Music2 className="w-4 h-4" />
-                                                        </button>
-                                                    </div>
-                                                    <input
-                                                        type="text"
-                                                        value={newMessage}
-                                                        onChange={(e) => setNewMessage(e.target.value)}
-                                                        placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrivrez votre message..."}
-                                                        className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
-                                                    />
-                                                    <button
-                                                        type="submit"
-                                                        disabled={!newMessage.trim() || isSending}
-                                                        className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
-                                                    >
-                                                        <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                    </button>
-                                                </div>
-                                            </form>
-
-                                            {/* Emoji Picker Placeholder / Quick Emojis */}
-                                            {showEmojiPicker && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: 5 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    className="mt-2 p-2 bg-black border border-white/10 rounded-xl grid grid-cols-8 gap-1 shadow-2xl"
-                                                >
-                                                    {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊'].map(emoji => (
-                                                        <button
-                                                            key={emoji}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setNewMessage(prev => prev + emoji);
-                                                                setShowEmojiPicker(false);
-                                                            }}
-                                                            className="p-2 hover:bg-white/10 rounded-lg text-lg transition-transform active:scale-90"
-                                                        >
-                                                            {emoji}
-                                                        </button>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        )}
-
-                        {hasModPowers && (
-                            <div className="hidden xl:flex flex-col w-[250px] bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0">
-                                <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                        <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                    </h2>
-                                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                </div>
-                                <div className="flex-1 overflow-y-auto w-full">
-                                    <div className="p-3 space-y-2">
-                                        {allActiveUsers.map(u => {
-                                            const role = getRole(u.pseudo);
-                                            const isUserAdmin = role === 'admin';
-                                            const isUserModo = role === 'modo';
-
-                                            return (
-                                                <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                    <div className="flex items-center gap-2 truncate">
-                                                        <div className="w-4 flex items-center justify-center">
-                                                            {getCountryFlag(u.country)}
-                                                        </div>
-                                                        <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                            {u.pseudo}
-                                                        </span>
-                                                    </div>
-                                                    {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                        <button
-                                                            onClick={() => handlePromote(u.pseudo)}
-                                                            className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                            title="Promouvoir Modérateur Chat"
-                                                        >
-                                                            <Shield className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
 
             {!isFocusMode && (
                 <div
-                    className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]"
+                    className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
                     style={{ backgroundColor: tickerBgColor }}
                 >
                     <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
                     <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                    <div className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                    <div className="flex items-center absolute whitespace-nowrap animate-ticker group-hover/ticker:[animation-play-state:paused] py-2">
                         {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
                             <a
                                 key={`${news.id}-${i}`}
@@ -1394,7 +1394,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     100% { transform: translateX(-50%); }
                 }
                 .animate-ticker {
-                    animation: ticker 40s linear infinite;
+                    animation: ticker 100s linear infinite;
                     width: max-content;
                 }
                 @keyframes glow {
