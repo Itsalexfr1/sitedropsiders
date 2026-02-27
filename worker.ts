@@ -879,7 +879,7 @@ export default {
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, festival, location, youtubeId, category, isFeatured, author, showVideo, year } = body;
+                const { title, date, summary, content, image, festival, location, country, youtubeId, category, isFeatured, author, showVideo, year } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 // 1. Update recaps.json
@@ -906,6 +906,7 @@ export default {
                     youtubeId: youtubeId || extractedYoutubeId || '',
                     festival: festival || '',
                     location: location || '',
+                    country: country || '',
                     category: category || 'Recaps',
                     isFeatured: isFeatured || false,
                     showVideo: showVideo !== false,
@@ -1013,7 +1014,7 @@ export default {
             const FILE_PATH = 'src/data/recaps.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, date, festival, location, youtubeId, isFeatured, author, showVideo, year } = body;
+                const { id, title, summary, content, image, date, festival, location, country, youtubeId, isFeatured, author, showVideo, year } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -1041,6 +1042,7 @@ export default {
                     date: date || existing.date,
                     festival: festival !== undefined ? festival : existing.festival,
                     location: location !== undefined ? location : existing.location,
+                    country: country !== undefined ? country : existing.country,
                     youtubeId: youtubeId !== undefined ? youtubeId : (extractedYoutubeId || existing.youtubeId),
                     showVideo: showVideo !== undefined ? showVideo : (existing.showVideo !== false),
                     images: extractedImages.length > 0 ? extractedImages : (existing.images || []),
@@ -1085,7 +1087,7 @@ export default {
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { id, title, date, startDate, endDate, location, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut } = body;
+                const { id, title, date, startDate, endDate, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH);
@@ -1123,6 +1125,7 @@ export default {
                             startDate: startDate,
                             endDate: endDate,
                             location: location || existing.location,
+                            country: country || existing.country || '',
                             type: type || existing.type,
                             image: image || existing.image,
                             description: description || existing.description,
@@ -1144,6 +1147,7 @@ export default {
                         startDate: startDate || existing.startDate,
                         endDate: endDate || existing.endDate,
                         location: location || existing.location,
+                        country: country || existing.country || '',
                         type: type || existing.type,
                         image: image || existing.image,
                         description: description || existing.description,
@@ -1194,6 +1198,7 @@ export default {
                             startDate: startDate,
                             endDate: endDate,
                             location,
+                            country: country || '',
                             type,
                             image,
                             description,
@@ -1215,6 +1220,7 @@ export default {
                         startDate: startDate,
                         endDate: endDate,
                         location,
+                        country: country || '',
                         type,
                         image,
                         description,

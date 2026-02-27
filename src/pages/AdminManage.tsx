@@ -542,14 +542,14 @@ export function AdminManage() {
                         <div className="flex flex-wrap items-center gap-4">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trier par :</span>
                             <select value={sortBy} onChange={(e) => setSortBy(e.target.value as any)} className="bg-transparent border-none text-xs font-bold text-white focus:ring-0 cursor-pointer uppercase tracking-widest">
-                                <option className="bg-dark-bg" value="date">Plus récents</option>
+                                <option className="bg-dark-bg" value="date">{activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date de l\'event' : 'Plus récents'}</option>
                                 <option className="bg-dark-bg" value="manual">Ordre Manuel</option>
                                 <option className="bg-dark-bg" value="title">Nom</option>
                                 <option className="bg-dark-bg" value="pubDate">Date de publication</option>
                                 <option className="bg-dark-bg" value="location">Lieu</option>
                                 <option className="bg-dark-bg" value="country">Pays</option>
                             </select>
-                            <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-[10px] font-black text-neon-red uppercase tracking-widest hover:underline">{sortOrder === 'asc' ? 'Croissant' : 'Décroissant'}</button>
+                            <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-[10px] font-black text-neon-red uppercase tracking-widest hover:underline">{sortOrder === 'asc' ? 'Croissant' : 'Récent first'}</button>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -684,7 +684,7 @@ export function AdminManage() {
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Image</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Titre</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Auteur</th>
-                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">Date</th>
+                                        <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest">{activeTab === 'Recaps' || activeTab === 'Agenda' ? 'Date Event' : 'Date'}</th>
                                         <th className="px-6 py-4 text-xs font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
                                     </tr>
                                 </thead>

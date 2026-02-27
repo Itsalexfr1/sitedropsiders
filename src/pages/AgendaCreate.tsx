@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
-import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Send, AlertCircle, Music, FileText } from 'lucide-react';
+import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Send, AlertCircle, Music, FileText, Globe } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -17,6 +17,8 @@ export function AgendaCreate() {
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
     const [locationInput, setLocationInput] = useState('');
+    const [country, setCountry] = useState('');
+    const [isAutoLocating, setIsAutoLocating] = useState(false);
     const [type, setType] = useState('Festival'); // Default
     const [imageUrl, setImageUrl] = useState('');
     const [url, setUrl] = useState('');
@@ -70,6 +72,7 @@ export function AgendaCreate() {
             setStartDate(editingItem.startDate || editingItem.date);
             setEndDate(editingItem.endDate || editingItem.date);
             setLocationInput(editingItem.location);
+            setCountry(editingItem.country || '');
             setType(editingItem.type || 'Festival');
             setImageUrl(editingItem.image);
             setUrl(editingItem.url);
@@ -102,7 +105,36 @@ export function AgendaCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, startDate, endDate, locationInput, type, imageUrl, url, genre, isWeekly, isSoldOut]);
+    }, [title, startDate, endDate, locationInput, country, type, imageUrl, url, genre, isWeekly, isSoldOut]);
+
+    // Autolocation Logic
+    useEffect(() => {
+        if (!locationInput || locationInput.length < 3) return;
+
+        const timer = setTimeout(async () => {
+            setIsAutoLocating(true);
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationInput)}&format=json&limit=1&accept-language=fr`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        const displayName = data[0].display_name;
+                        const parts = displayName.split(',');
+                        const detectedCountry = parts[parts.length - 1].trim();
+                        if (detectedCountry) {
+                            setCountry(detectedCountry);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Autolocation error:", error);
+            } finally {
+                setIsAutoLocating(false);
+            }
+        }, 1200);
+
+        return () => clearTimeout(timer);
+    }, [locationInput]);
 
 
 
@@ -144,6 +176,7 @@ export function AgendaCreate() {
                     startDate,
                     endDate: endDate || startDate,
                     location: locationInput,
+                    country,
                     type,
                     image: imageUrl,
                     url,
@@ -178,6 +211,7 @@ export function AgendaCreate() {
                 setStartDate(now);
                 setEndDate(now);
                 setLocationInput('');
+                setCountry('');
                 setImageUrl('');
                 setUrl('');
                 setIsWeekly(false);
@@ -299,19 +333,40 @@ export function AgendaCreate() {
                                 </div>
                             </div>
 
-                            {/* Location */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red">*</span></label>
-                                <div className="relative group">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
-                                    <input
-                                        type="text"
-                                        value={locationInput}
-                                        onChange={(e) => setLocationInput(e.target.value)}
-                                        placeholder="Ex: Ibiza, Espagne"
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
-                                        required
-                                    />
+                            {/* Location & Country */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red">*</span></label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={locationInput}
+                                            onChange={(e) => setLocationInput(e.target.value)}
+                                            placeholder="Ex: Ibiza"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays <span className="text-neon-red">*</span></label>
+                                    <div className="relative group">
+                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={country}
+                                            onChange={(e) => setCountry(e.target.value)}
+                                            placeholder="Ex: Espagne"
+                                            required
+                                            className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
+                                        />
+                                        {isAutoLocating && (
+                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </div>

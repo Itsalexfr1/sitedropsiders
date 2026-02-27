@@ -134,6 +134,8 @@ export function RecapCreate() {
     });
     const [festival, setFestival] = useState('');
     const [locationInput, setLocationInput] = useState('');
+    const [country, setCountry] = useState('');
+    const [isAutoLocating, setIsAutoLocating] = useState(false);
     const [youtubeId, setYoutubeId] = useState('');
     const [showVideo, setShowVideo] = useState(true);
     const [year, setYear] = useState('');
@@ -362,7 +364,38 @@ export function RecapCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, summary, coverImage, widgets, date, festival, locationInput, youtubeId, isFeatured, festivalSocials, artistSocials]);
+    }, [title, summary, coverImage, widgets, date, festival, locationInput, country, youtubeId, isFeatured, festivalSocials, artistSocials]);
+
+    // Autolocation Logic
+    useEffect(() => {
+        // Don't auto-locate if we already have a country and just loaded the item
+        if (isEditing && initialDataLoaded.current && country) return;
+        if (!locationInput || locationInput.length < 3) return;
+
+        const timer = setTimeout(async () => {
+            setIsAutoLocating(true);
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationInput)}&format=json&limit=1&accept-language=fr`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.length > 0) {
+                        const displayName = data[0].display_name;
+                        const parts = displayName.split(',');
+                        const detectedCountry = parts[parts.length - 1].trim();
+                        if (detectedCountry) {
+                            setCountry(detectedCountry);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error("Autolocation error:", error);
+            } finally {
+                setIsAutoLocating(false);
+            }
+        }, 1200);
+
+        return () => clearTimeout(timer);
+    }, [locationInput]);
 
 
 
@@ -394,6 +427,7 @@ export function RecapCreate() {
             setDate(editingItem.date);
             setFestival(editingItem.festival || '');
             setLocationInput(editingItem.location || '');
+            setCountry(editingItem.country || '');
             setYoutubeId(editingItem.youtubeId || '');
             setShowVideo(editingItem.showVideo !== false);
             setYear(editingItem.year || '');
@@ -860,9 +894,9 @@ export function RecapCreate() {
             return;
         }
 
-        if (!coverImage) {
+        if (!coverImage || !locationInput || !country) {
             setStatus('error');
-            setMessage('Veuillez ajouter une image de couverture.');
+            setMessage('Veuillez ajouter une image de couverture, un lieu et un pays.');
             return;
         }
 
@@ -912,6 +946,7 @@ export function RecapCreate() {
                     date: finalDate,
                     festival,
                     location: locationInput,
+                    country,
                     youtubeId,
                     showVideo,
                     year: year || undefined,
@@ -1185,8 +1220,8 @@ export function RecapCreate() {
                             </div>
                         </div>
 
-                        {/* Festival & Location */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Festival, Location, Country & Year */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Nom du Festival <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
@@ -1212,6 +1247,25 @@ export function RecapCreate() {
                                         required
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays <span className="text-neon-red">*</span></label>
+                                <div className="relative group">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={country}
+                                        onChange={(e) => setCountry(e.target.value)}
+                                        placeholder="Ex: France"
+                                        required
+                                        className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
+                                    />
+                                    {isAutoLocating && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                            <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="space-y-2">
