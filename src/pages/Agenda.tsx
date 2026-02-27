@@ -505,6 +505,11 @@ export function Agenda() {
                                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-gray-300 border border-white/10`}>
                                                                 {event.genre}
                                                             </span>
+                                                            {event.isLiveDropsiders && (
+                                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-red/20 text-neon-red border border-neon-red/30 animate-pulse">
+                                                                    LIVE TAKEOVER
+                                                                </span>
+                                                            )}
                                                         </div>
                                                         <h3 className="text-xl font-bold text-white group-hover:text-neon-red transition-colors">
                                                             {event.title}

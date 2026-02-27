@@ -29,6 +29,7 @@ export function AgendaCreate() {
     const [genre, setGenre] = useState('Big Room'); // Default
     const [isWeekly, setIsWeekly] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
+    const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Autocomplete State
@@ -115,6 +116,7 @@ export function AgendaCreate() {
                             setGenre(item.genre || 'Big Room');
                             setIsWeekly(item.isWeekly || false);
                             setIsSoldOut(item.isSoldOut || false);
+                            setIsLiveDropsiders(item.isLiveDropsiders || false);
                         }
                     }
                 } catch (e) {
@@ -144,6 +146,7 @@ export function AgendaCreate() {
             setGenre(editingItem.genre || 'Big Room');
             setIsWeekly(editingItem.isWeekly || false);
             setIsSoldOut(editingItem.isSoldOut || false);
+            setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
         }
     }, [isEditing, editingItem]);
 
@@ -170,7 +173,7 @@ export function AgendaCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, startDate, endDate, locationInput, country, type, imageUrl, url, genre, isWeekly, isSoldOut]);
+    }, [title, startDate, endDate, locationInput, country, type, imageUrl, url, genre, isWeekly, isSoldOut, isLiveDropsiders]);
 
     // Autolocation Logic
     useEffect(() => {
@@ -248,6 +251,7 @@ export function AgendaCreate() {
                     genre,
                     isWeekly,
                     isSoldOut,
+                    isLiveDropsiders,
                     month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
                 }),
             });
@@ -281,6 +285,7 @@ export function AgendaCreate() {
                 setUrl('');
                 setIsWeekly(false);
                 setIsSoldOut(false);
+                setIsLiveDropsiders(false);
                 setTimeout(() => setStatus('idle'), 3000);
             } else {
                 setTimeout(() => navigate('/admin/manage'), 2000);
@@ -482,6 +487,7 @@ export function AgendaCreate() {
                                         <option value="Résidence">Résidence</option>
                                         <option value="Opening">Opening</option>
                                         <option value="Events">Events</option>
+                                        <option value="Live Take Over">LIVE TAKE OVER SUR DROPSIDERS</option>
                                     </select>
                                 </div>
                             </div>
@@ -533,6 +539,18 @@ export function AgendaCreate() {
                                     />
                                     <span className="text-sm font-bold text-neon-red uppercase tracking-wider">
                                         Événement SOLD OUT
+                                    </span>
+                                </label>
+
+                                <label className="flex items-center gap-3 cursor-pointer p-4 bg-black/20 border border-white/10 rounded-xl hover:bg-black/40 transition-colors">
+                                    <input
+                                        type="checkbox"
+                                        checked={isLiveDropsiders}
+                                        onChange={(e) => setIsLiveDropsiders(e.target.checked)}
+                                        className="w-5 h-5 rounded border-white/10 bg-dark-bg text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 transition-all cursor-pointer"
+                                    />
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider">
+                                        Diffusé sur <span className="text-neon-cyan font-black">DROPSIDERS</span> dans le <span className="text-neon-red italic font-black">LIVE TAKEOVER</span>
                                     </span>
                                 </label>
                             </div>

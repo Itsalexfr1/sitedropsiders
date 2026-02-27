@@ -24,6 +24,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
     const [genre, setGenre] = useState('Big Room');
     const [isWeekly, setIsWeekly] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
+    const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
@@ -40,6 +41,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
             setGenre(editingItem.genre || 'Big Room');
             setIsWeekly(editingItem.isWeekly || false);
             setIsSoldOut(editingItem.isSoldOut || false);
+            setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
         } else {
             setTitle('');
             setStartDate(new Date().toISOString().split('T')[0]);
@@ -51,6 +53,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
             setGenre('Big Room');
             setIsWeekly(false);
             setIsSoldOut(false);
+            setIsLiveDropsiders(false);
         }
         setStatus('idle');
         setMessage('');
@@ -79,6 +82,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                     genre,
                     isWeekly,
                     isSoldOut,
+                    isLiveDropsiders,
                     month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
                 }),
             });
@@ -243,6 +247,10 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                                 <label className="flex items-center gap-3 cursor-pointer p-4 bg-black/20 border border-white/10 rounded-xl flex-1 text-neon-red">
                                     <input type="checkbox" checked={isSoldOut} onChange={(e) => setIsSoldOut(e.target.checked)} className="w-5 h-5 rounded border-white/10 bg-dark-bg text-neon-red" />
                                     <span className="text-xs font-bold uppercase tracking-wider">SOLD OUT</span>
+                                </label>
+                                <label className="flex items-center gap-3 cursor-pointer p-4 bg-black/20 border border-white/10 rounded-xl flex-1 text-neon-cyan">
+                                    <input type="checkbox" checked={isLiveDropsiders} onChange={(e) => setIsLiveDropsiders(e.target.checked)} className="w-5 h-5 rounded border-white/10 bg-dark-bg text-neon-cyan" />
+                                    <span className="text-xs font-bold uppercase tracking-wider">LIVE TAKEOVER</span>
                                 </label>
                             </div>
 

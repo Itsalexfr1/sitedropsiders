@@ -1229,7 +1229,7 @@ export default {
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { id, title, date, startDate, endDate, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut } = body;
+                const { id, title, date, startDate, endDate, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH);
@@ -1275,7 +1275,8 @@ export default {
                             genre: genre || existing.genre,
                             month: currentDate.toLocaleString('fr-FR', { month: 'long' }).toUpperCase(),
                             isWeekly: true,
-                            isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut
+                            isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
+                            isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders
                         });
                         currentDate.setDate(currentDate.getDate() + 7);
                     }
@@ -1297,7 +1298,8 @@ export default {
                         genre: genre || existing.genre,
                         month: month || existing.month,
                         isWeekly: isWeekly !== undefined ? isWeekly : existing.isWeekly,
-                        isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut
+                        isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
+                        isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders
                     };
                 }
 
@@ -1316,7 +1318,7 @@ export default {
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { title, date, startDate, endDate, location, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut } = body;
+                const { title, date, startDate, endDate, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH) || { content: [], sha: null };
@@ -1348,7 +1350,8 @@ export default {
                             genre,
                             month: currentDate.toLocaleString('fr-FR', { month: 'long' }).toUpperCase(),
                             isWeekly: true,
-                            isSoldOut: isSoldOut || false
+                            isSoldOut: isSoldOut || false,
+                            isLiveDropsiders: isLiveDropsiders || false
                         });
                         currentDate.setDate(currentDate.getDate() + 7);
                     }
@@ -1370,7 +1373,8 @@ export default {
                         genre,
                         month: month || new Date(date || startDate || new Date()).toLocaleString('fr-FR', { month: 'long' }).toUpperCase(),
                         isWeekly: isWeekly || false,
-                        isSoldOut: isSoldOut || false
+                        isSoldOut: isSoldOut || false,
+                        isLiveDropsiders: isLiveDropsiders || false
                     };
                     currentData = [...currentData, newItem];
                 }

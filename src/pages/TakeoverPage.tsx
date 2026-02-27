@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter } from 'lucide-react';
+import { Send, User, Globe, Mail, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield, Pencil, List, Maximize2, Minimize2, Instagram, Music2, Facebook, Twitter, Power, Smile } from 'lucide-react';
 
 interface TakeoverProps {
     settings: {
         youtubeId: string;
         chat_enabled: boolean;
+        enabled: boolean;
         title: string;
         moderators?: string;
         lineup?: string;
@@ -27,13 +28,67 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [displayTitle, setDisplayTitle] = useState(settings.title);
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
+
+    // Sync with props when they change (e.g. from parent polling or settings update)
+    useEffect(() => {
+        setDisplayTitle(settings.title);
+        setEditTitle(settings.title);
+        setDisplayLineup(settings.lineup || '');
+        setEditLineup(settings.lineup || '');
+        setNewVideoId(settings.youtubeId);
+    }, [settings.title, settings.lineup, settings.youtubeId]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods'>('general');
+    const [isLocalBanned, setIsLocalBanned] = useState(false);
+    const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
+    const [showPollEditor, setShowPollEditor] = useState(false);
+    const [pollQuestion, setPollQuestion] = useState('');
+    const [pollOptions, setPollOptions] = useState(['', '']);
     const [pseudo, setPseudo] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
     });
+
+    useEffect(() => {
+        const banned = localStorage.getItem('chat_banned') === 'true';
+        const timestamp = localStorage.getItem('chat_ban_timestamp');
+        if (banned) {
+            setIsLocalBanned(true);
+            if (timestamp) setBanTimestamp(parseInt(timestamp));
+        }
+    }, []);
+
+    const handleUnbanRequest = async () => {
+        if (!banTimestamp) return;
+        const now = Date.now();
+        const tenMinutes = 10 * 60 * 1000;
+        if (now - banTimestamp < tenMinutes) {
+            const remaining = Math.ceil((tenMinutes - (now - banTimestamp)) / 60000);
+            alert(`Vous devez attendre encore ${remaining} minutes avant de pouvoir faire une demande.`);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/chat/unban-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    pseudo: pseudo.toUpperCase(),
+                    email,
+                    timestamp: banTimestamp
+                })
+            });
+            if (response.ok) {
+                alert("Votre demande a été envoyée avec succès.");
+            } else {
+                alert("Erreur lors de l'envoi de la demande.");
+            }
+        } catch (err) {
+            alert("Erreur de connexion.");
+        }
+    };
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [email, setEmail] = useState('');
     const [country, setCountry] = useState(() => {
@@ -45,8 +100,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [newMessage, setNewMessage] = useState('');
     const [latestNews, setLatestNews] = useState<any[]>([]);
 
-    const [banTarget, setBanTarget] = useState<string | null>(null);
-    const [banDuration, setBanDuration] = useState('10');
+
+
+    // Ticker Settings
+    const [tickerType, setTickerType] = useState<'news' | 'planning' | 'custom'>('news');
+    const [tickerText, setTickerText] = useState('');
+    const [tickerLink, setTickerLink] = useState('');
+    const [tickerBgColor, setTickerBgColor] = useState('#ff0033');
+    const [tickerTextColor, setTickerTextColor] = useState('#ffffff');
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
     const [captchaA] = useState(Math.floor(Math.random() * 10) + 1);
@@ -54,6 +116,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [captchaAnswer, setCaptchaAnswer] = useState('');
 
     const [isSlowMode, setIsSlowMode] = useState(false);
+    const [slowModeDuration, setSlowModeDuration] = useState(10);
     const [lastMessageTime, setLastMessageTime] = useState(0);
 
     const [promotedModos, setPromotedModos] = useState<string[]>(() => {
@@ -62,6 +125,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [activeUsers] = useState<{ pseudo: string, country: string }[]>([]);
     const [isSending, setIsSending] = useState(false);
+    const [userColor, setUserColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
 
     const getAuthHeaders = () => {
         const password = localStorage.getItem('admin_password') || '';
@@ -101,19 +165,28 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return () => clearInterval(interval);
     }, []);
 
-    const getFlagEmoji = (c: string) => {
-        if (!c) return '🌍';
+    const getCountryFlag = (c: string) => {
+        if (!c) return <Globe className="w-3.5 h-3.5 text-gray-500" />;
         const code = c.toUpperCase().trim();
-        if (code === 'FRANCE' || code === 'FR') return '🇫🇷';
-        if (code === 'BELGIQUE' || code === 'BE') return '🇧🇪';
-        if (code === 'SUISSE' || code === 'CH') return '🇨🇭';
-        if (code === 'CANADA' || code === 'CA') return '🇨🇦';
-        if (code === 'USA' || code === 'US' || code === 'ÉTATS-UNIS') return '🇺🇸';
-        if (code === 'UK' || code === 'ANGLETERRE') return '🇬🇧';
-        if (code === 'ESPAGNE' || code === 'ES') return '🇪🇸';
-        if (code === 'ITALIE' || code === 'IT') return '🇮🇹';
-        if (code === 'ALLEMAGNE' || code === 'DE') return '🇩🇪';
-        return '🌍';
+        let isoId = 'fr';
+        if (code === 'FRANCE' || code === 'FR') isoId = 'fr';
+        else if (code === 'BELGIQUE' || code === 'BE') isoId = 'be';
+        else if (code === 'SUISSE' || code === 'CH') isoId = 'ch';
+        else if (code === 'CANADA' || code === 'CA') isoId = 'ca';
+        else if (code === 'USA' || code === 'US' || code === 'ÉTATS-UNIS') isoId = 'us';
+        else if (code === 'UK' || code === 'ANGLETERRE') isoId = 'gb';
+        else if (code === 'ESPAGNE' || code === 'ES') isoId = 'es';
+        else if (code === 'ITALIE' || code === 'IT') isoId = 'it';
+        else if (code === 'ALLEMAGNE' || code === 'DE') isoId = 'de';
+        else return <Globe className="w-3.5 h-3.5 text-gray-500" />;
+
+        return (
+            <img
+                src={`https://flagcdn.com/w40/${isoId}.png`}
+                alt={code}
+                className="w-4 h-auto rounded-[2px] shadow-sm border border-white/10"
+            />
+        );
     };
 
     const adminPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
@@ -121,7 +194,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const adminUser = localStorage.getItem('admin_user')?.toUpperCase() || '';
     const isAdmin = localStorage.getItem('admin_auth') === 'true' || pseudo === 'DROPSIDERS' || pseudo === adminUser;
-    const isModo = settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(pseudo?.toUpperCase() || '') || hasTakeoverModoPerm;
+    const isModo = settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(pseudo?.toUpperCase() || '') || hasTakeoverModoPerm || promotedModos.includes(pseudo.toUpperCase());
     const hasModPowers = isAdmin || isModo;
 
     const getRole = (name: string) => {
@@ -188,6 +261,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             setIsJoined(true);
             localStorage.setItem('chat_joined', 'true');
             localStorage.setItem('chat_pseudo', pseudo.toUpperCase());
+            localStorage.setItem('chat_color', userColor);
 
             if (subscribeNewsletter) {
                 try {
@@ -209,8 +283,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
         if (isSlowMode && !hasModPowers) {
             const now = Date.now();
-            if (now - lastMessageTime < 10000) {
-                alert('Le mode lent est activé. Veuillez patienter 10 secondes entre chaque message.');
+            if (now - lastMessageTime < (slowModeDuration * 1000)) {
+                alert(`Le mode lent est activé. Veuillez patienter ${slowModeDuration} secondes entre chaque message.`);
                 return;
             }
             setLastMessageTime(now);
@@ -227,7 +301,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 body: JSON.stringify({
                     pseudo: pseudo.toUpperCase(),
                     country: country || 'FR',
-                    message: msgText
+                    message: msgText,
+                    color: userColor
                 })
             });
         } catch (e) {
@@ -251,25 +326,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
-    const handleBanClick = (name: string) => {
-        if (hasModPowers) setBanTarget(name);
-    };
 
-    const confirmBan = async () => {
-        if (!banTarget || !hasModPowers) return;
-        setMessages(prev => prev.filter(m => m.pseudo !== banTarget)); // optimistic
-        setBanTarget(null);
-        setBanDuration('10');
-        try {
-            await fetch('/api/chat/ban', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ pseudo: banTarget })
-            });
-        } catch (e) {
-            console.error('Failed to ban user', e);
-        }
-    };
 
     const handlePromote = (name: string) => {
         if (!promotedModos.includes(name.toUpperCase())) {
@@ -305,7 +362,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     ...currentSettings,
                     takeover: {
                         ...currentSettings.takeover,
-                        ...updates
+                        ...updates,
+                        tickerType,
+                        tickerText,
+                        tickerLink,
+                        tickerBgColor,
+                        tickerTextColor
                     }
                 };
 
@@ -332,8 +394,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     const handleRemoveModerator = async (modPseudo: string) => {
-        const currentMods = (settings.moderators || '').split(';').filter((m: string) => m.trim() && m.trim() !== modPseudo);
-        const newMods = currentMods.join(';');
+        const currentMods = (settings.moderators || '').split(',').map(m => m.trim()).filter(m => m && m.toLowerCase() !== modPseudo.toLowerCase());
+        const newMods = currentMods.join(',');
+        await handleUpdateSettings({ moderators: newMods });
+    };
+
+    const handleAddModerator = async (modPseudo: string) => {
+        if (!modPseudo.trim()) return;
+        const currentMods = (settings.moderators || '').split(',').map(m => m.trim()).filter(m => m);
+        if (currentMods.map(m => m.toLowerCase()).includes(modPseudo.trim().toLowerCase())) return;
+        const newMods = [...currentMods, modPseudo.trim()].join(',');
         await handleUpdateSettings({ moderators: newMods });
     };
 
@@ -344,13 +414,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const parseLineup = (text: string) => {
         if (!text) return [];
         return text.split('\n').filter(line => line.trim()).map(line => {
-            const parts = line.split('|').map(p => p.trim());
-            return {
-                time: parts[0] || '',
-                artist: parts[1] || '',
-                stage: parts[2] || '',
-                festival: parts[3] || ''
-            };
+            // Support formats: 
+            // 1. [22:00] Artist - Stage - Event
+            // 2. 22:00 | Artist | Stage | Event
+            let time = '', artist = '', stage = '', festival = '';
+
+            const timeMatch = line.match(/\[(.*?)\]/);
+            if (timeMatch) {
+                time = timeMatch[1];
+                const rest = line.replace(timeMatch[0], '').trim();
+                // Split by dash if it's surrounded by spaces or at least exists
+                const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
+                artist = parts[0] || '';
+                stage = parts[1] || '';
+                festival = parts[2] || '';
+            } else if (line.includes('|')) {
+                const parts = line.split('|').map(p => p.trim());
+                time = parts[0] || '';
+                artist = parts[1] || '';
+                stage = parts[2] || '';
+                festival = parts[3] || '';
+            } else {
+                artist = line.trim();
+            }
+
+            return { time, artist, stage, festival };
         });
     };
 
@@ -380,6 +468,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         else if (platform === 'snap') window.open(`https://www.snapchat.com/`, '_blank');
     };
 
+    const handleCutLive = async () => {
+        if (!window.confirm('Voulez-vous vraiment désactiver le LIVE ?')) return;
+        try {
+            const response = await fetch('/api/settings/takeover', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ enabled: false })
+            });
+            if (response.ok) {
+                window.location.reload();
+            }
+        } catch (e) {
+            console.error('Failed to cut live', e);
+        }
+    };
+
     return (
         <div className={`fixed ${isFocusMode ? 'top-0' : 'top-[70px] lg:top-32'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
             {/* Live Banner Header */}
@@ -405,8 +509,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </button>
                             )}
                             <button
-                                onClick={() => setShowLineup(true)}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black text-gray-400 hover:text-neon-red hover:border-neon-red/30 transition-all uppercase tracking-widest animate-glow shadow-lg"
+                                onClick={() => {
+                                    if (showLineup) {
+                                        setShowLineup(false);
+                                    } else {
+                                        setShowVideoEdit(false);
+                                        setShowLineup(true);
+                                    }
+                                }}
+                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showLineup ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-red hover:border-neon-red/30 animate-glow'}`}
                             >
                                 <List className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Planning</span>
@@ -478,67 +589,73 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         <AnimatePresence>
                             {showLineup && (
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, x: 20, y: 20 }}
-                                    className="absolute bottom-20 right-4 w-96 max-w-[calc(100%-2rem)] z-30 pointer-events-auto"
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    className="absolute top-4 left-1/2 -translate-x-1/2 z-30 w-[95%] lg:w-[1000px] bg-black/95 backdrop-blur-2xl border border-white/20 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden pointer-events-auto"
                                     onClick={e => e.stopPropagation()}
                                 >
-                                    <div className="bg-black/95 backdrop-blur-2xl border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5),0_0_20px_rgba(255,0,51,0.1)]">
-                                        <div className="flex items-center justify-between p-3 border-b border-white/10 bg-white/5">
-                                            <div className="flex items-center gap-2">
-                                                <List className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
-                                                <h2 className="text-[10px] font-black text-white uppercase italic tracking-[0.2em]">
-                                                    LINE UP <span className="text-neon-red">LIVE</span>
-                                                </h2>
+                                    <div className="w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl relative">
+                                        <div className="p-6 lg:p-10 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                                    <List className="w-6 h-6 text-neon-red" />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter leading-none">LINE UP <span className="text-neon-red">LIVE</span></h2>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Horaires et passages artistes en temps réel</p>
+                                                </div>
                                             </div>
-                                            <button
-                                                onClick={() => setShowLineup(false)}
-                                                className="p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all"
-                                            >
-                                                <X className="w-3 h-3" />
+                                            <button onClick={() => setShowLineup(false)} className="p-3 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors">
+                                                <X className="w-6 h-6 text-gray-400" />
                                             </button>
                                         </div>
 
-                                        <div className="p-3 space-y-3 max-h-72 overflow-y-auto custom-scrollbar bg-black/40 backdrop-blur-xl">
-                                            {parseLineup(displayLineup).map((item, i) => (
-                                                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-sm hover:border-neon-red/50 transition-all group flex items-center gap-3">
-                                                    <div className="flex flex-col shrink-0 min-w-[35px]">
-                                                        <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter">H</span>
-                                                        <span className="text-[10px] font-black text-white uppercase tracking-tighter leading-none">
-                                                            {item.time}
+                                        <div className="p-6 lg:p-10 space-y-3 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                            {/* Header Grid */}
+                                            <div className="grid grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 px-6 mb-4 text-[11px] font-black text-gray-600 uppercase tracking-widest hidden lg:grid">
+                                                <div>HEURE</div>
+                                                <div>ARTISTE</div>
+                                                <div>SCÈNE / STAGE</div>
+                                                <div className="text-right">ÉVÉNEMENT</div>
+                                            </div>
+
+                                            {parseLineup(displayLineup || settings.lineup || '').map((item, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    className="group grid grid-cols-[100px_2fr] lg:grid-cols-[100px_2fr_1.5fr_1.5fr] gap-6 items-center bg-white/[0.03] border border-white/[0.03] hover:border-neon-red/40 hover:bg-white/5 p-4 lg:p-6 rounded-2xl transition-all duration-300"
+                                                >
+                                                    {/* Time Column */}
+                                                    <div className="flex flex-col lg:block">
+                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">HEURE</span>
+                                                        <span className="text-neon-red font-black text-[16px] lg:text-[18px] tracking-tighter">
+                                                            {item.time?.replace(':', 'H') || '--H--'}
                                                         </span>
                                                     </div>
 
-                                                    <div className="w-px h-6 bg-white/10 shrink-0" />
-
-                                                    <div className="flex-1 min-w-0">
-                                                        <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter block">Artiste</span>
-                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[11px] leading-tight truncate group-hover:text-neon-red transition-colors">
-                                                            {item.artist}
+                                                    {/* Artist Column */}
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">ARTISTE</span>
+                                                        <h3 className="text-white font-black uppercase italic tracking-widest text-[16px] lg:text-[20px] leading-tight group-hover:text-neon-red transition-colors">
+                                                            {item.artist || '---'}
                                                         </h3>
                                                     </div>
 
-                                                    <div className="w-px h-6 bg-white/10 shrink-0" />
-
-                                                    <div className="shrink-0 text-right min-w-[50px]">
-                                                        <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter block">Stage</span>
-                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider leading-none truncate">
-                                                            {item.stage}
+                                                    {/* Stage Column */}
+                                                    <div className="flex flex-col min-w-0 lg:block">
+                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">STAGE</span>
+                                                        <span className="text-[12px] font-bold text-gray-400 uppercase tracking-wider leading-none">
+                                                            {item.stage || '---'}
                                                         </span>
                                                     </div>
 
-                                                    {item.festival && (
-                                                        <>
-                                                            <div className="w-px h-6 bg-white/10 shrink-0" />
-                                                            <div className="shrink-0 text-right min-w-[50px]">
-                                                                <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter block">Fest</span>
-                                                                <span className="text-[8px] font-black text-neon-red uppercase tracking-widest italic leading-none truncate">
-                                                                    {item.festival}
-                                                                </span>
-                                                            </div>
-                                                        </>
-                                                    )}
+                                                    {/* Festival Column */}
+                                                    <div className="flex flex-col min-w-0 text-right lg:block">
+                                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-tighter block mb-1 lg:hidden">EVENT</span>
+                                                        <span className="text-[11px] font-black text-white uppercase tracking-widest italic leading-none bg-neon-red/10 px-4 py-2 rounded-xl border border-neon-red/20 inline-block shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                                            {item.festival || 'DROPSIDERS LIVE'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             ))}
                                             {parseLineup(editLineup || settings.lineup || '').length === 0 && (
@@ -586,15 +703,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </AnimatePresence>
 
-                        {/* Floating action buttons on video */}
-                        <div className="absolute bottom-4 left-4 flex items-center gap-2 z-20">
+                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
                             <button
                                 onClick={() => setIsFocusMode(!isFocusMode)}
-                                className="flex items-center gap-2 px-4 py-2.5 bg-black/80 border border-white/20 rounded-xl text-xs font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all backdrop-blur-md shadow-2xl active:scale-95"
+                                className="flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-neon-red transition-all backdrop-blur-md shadow-2xl active:scale-95 group"
                                 title={isFocusMode ? "Quitter le mode Focus" : "Mode Focus (Plein Écran)"}
                             >
-                                {isFocusMode ? <Minimize2 className="w-4 h-4 text-neon-red" /> : <Maximize2 className="w-4 h-4 text-neon-red" />}
-                                {isFocusMode ? "Quitter" : "Focus"}
+                                {isFocusMode ? <Minimize2 className="w-4 h-4 text-neon-red group-hover:text-white" /> : <Maximize2 className="w-4 h-4 text-neon-red group-hover:text-white" />}
+                                {isFocusMode ? "Quitter le plein écran" : "Mode Focus"}
                             </button>
                         </div>
 
@@ -605,179 +721,249 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-10 flex flex-col items-center justify-center overflow-y-auto"
+                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-4 lg:p-10 flex flex-col items-center overflow-y-auto custom-scrollbar"
                                     onClick={() => setShowEditModal(false)}
                                 >
                                     <motion.div
-                                        initial={{ scale: 0.9, opacity: 0 }}
+                                        initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="w-full max-w-xl space-y-8"
+                                        className="w-full max-w-lg space-y-4 my-auto py-8"
                                         onClick={e => e.stopPropagation()}
                                     >
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">LIVE</span></h2>
-                                            <button onClick={() => setShowEditModal(false)} className="p-2 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors">
-                                                <X className="w-6 h-6 text-white" />
+                                        <div className="flex items-center justify-between mb-2">
+                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">LIVE</span></h2>
+                                            <button onClick={() => setShowEditModal(false)} className="p-1.5 bg-white/5 border border-white/10 rounded-full hover:bg-white/10 transition-colors">
+                                                <X className="w-5 h-5 text-white" />
                                             </button>
                                         </div>
 
-                                        <div className="space-y-6">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Titre de l'émission</label>
-                                                <input
-                                                    type="text"
-                                                    value={editTitle}
-                                                    onChange={e => setEditTitle(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all"
-                                                    placeholder="Titre du Live"
-                                                />
-                                            </div>
-
-                                            <div className="space-y-4 bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-4 italic">
-                                                    Éditeur de <span className="text-neon-red">Line Up</span>
-                                                </label>
-
-                                                <div className="space-y-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">
-                                                    {parseLineup(editLineup).map((item, i) => (
-                                                        <div key={i} className="grid grid-cols-2 gap-3 bg-white/5 border border-white/5 p-4 rounded-2xl relative group">
-                                                            <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Heure</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={item.time}
-                                                                    onChange={(e) => {
-                                                                        const lines = editLineup.split('\n');
-                                                                        const parts = lines[i].split('|');
-                                                                        parts[0] = e.target.value;
-                                                                        lines[i] = parts.join('|');
-                                                                        setEditLineup(lines.join('\n'));
-                                                                    }}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-white focus:border-neon-red outline-none"
-                                                                    placeholder="ex: 20:00"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Festival</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={item.festival}
-                                                                    onChange={(e) => {
-                                                                        const lines = editLineup.split('\n');
-                                                                        const parts = lines[i].split('|');
-                                                                        while (parts.length < 4) parts.push('');
-                                                                        parts[3] = e.target.value;
-                                                                        lines[i] = parts.join('|');
-                                                                        setEditLineup(lines.join('\n'));
-                                                                    }}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-neon-red focus:border-neon-red outline-none"
-                                                                    placeholder="Festival"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Artiste</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={item.artist}
-                                                                    onKeyDown={(e) => {
-                                                                        if (e.key === ' ') e.stopPropagation();
-                                                                    }}
-                                                                    onChange={(e) => {
-                                                                        const lines = editLineup.split('\n');
-                                                                        const parts = lines[i].split('|');
-                                                                        while (parts.length < 2) parts.push('');
-                                                                        parts[1] = e.target.value;
-                                                                        lines[i] = parts.join('|');
-                                                                        setEditLineup(lines.join('\n'));
-                                                                    }}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-white focus:border-neon-red outline-none"
-                                                                    placeholder="Nom Artiste"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Scène / Stage</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={item.stage}
-                                                                    onChange={(e) => {
-                                                                        const lines = editLineup.split('\n');
-                                                                        const parts = lines[i].split('|');
-                                                                        while (parts.length < 3) parts.push('');
-                                                                        parts[2] = e.target.value;
-                                                                        lines[i] = parts.join('|');
-                                                                        setEditLineup(lines.join('\n'));
-                                                                    }}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-gray-400 focus:border-neon-red outline-none"
-                                                                    placeholder="Stage"
-                                                                />
-                                                            </div>
-                                                            <button
-                                                                onClick={() => {
-                                                                    const lines = editLineup.split('\n');
-                                                                    lines.splice(i, 1);
-                                                                    setEditLineup(lines.join('\n'));
-                                                                }}
-                                                                className="absolute -top-2 -right-2 w-6 h-6 bg-neon-red text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                                                            >
-                                                                <Trash2 className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    <button
-                                                        onClick={() => setEditLineup(editLineup + (editLineup ? '\n' : '') + ' |  |  | ')}
-                                                        className="w-full py-3 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[9px] font-black text-gray-500 uppercase tracking-widest hover:bg-white/10 transition-all active:scale-[0.98]"
-                                                    >
-                                                        + Ajouter un artiste
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">ID Vidéo YouTube</label>
-                                                <input
-                                                    type="text"
-                                                    value={newVideoId}
-                                                    onChange={e => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all"
-                                                    placeholder="L'ID après v="
-                                                />
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 flex items-center justify-between">
-                                                    Modérateurs Chat
-                                                    <span className="text-[8px] opacity-40">({(settings.moderators || '').split(';').filter((m: string) => m.trim()).length})</span>
-                                                </label>
-                                                <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                                                    {(settings.moderators || '').split(';').filter((m: string) => m.trim()).map((modPseudo: string) => (
-                                                        <div key={modPseudo} className="flex items-center justify-between bg-white/5 border border-white/5 rounded-xl p-2 px-3 group">
-                                                            <div className="flex items-center gap-2 truncate">
-                                                                <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(modPseudo) ? 'bg-green-500 animate-pulse' : 'bg-gray-600'}`} />
-                                                                <span className="text-[11px] font-black text-white uppercase tracking-widest truncate">{modPseudo}</span>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => handleRemoveModerator(modPseudo)}
-                                                                className="p-1 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all opacity-0 group-hover:opacity-100"
-                                                                title="Révoquer Modérateur"
-                                                            >
-                                                                <Trash2 className="w-3 h-3" />
-                                                            </button>
-                                                        </div>
-                                                    ))}
-                                                    {(settings.moderators || '').split(';').filter((m: string) => m.trim()).length === 0 && (
-                                                        <p className="col-span-full text-center py-4 text-[9px] font-bold text-gray-600 uppercase tracking-widest italic">Aucun modérateur ajouté</p>
-                                                    )}
-                                                </div>
-                                            </div>
+                                        {/* Tabs Navigation */}
+                                        <div className="flex border-b border-white/10 px-6 shrink-0 bg-white/[0.02] overflow-x-auto no-scrollbar">
+                                            <button
+                                                onClick={() => setActiveSettingsTab('general')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'general' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Live / Bandeau / Sondage
+                                                {activeSettingsTab === 'general' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('planning')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'planning' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Éditeur Planning
+                                                {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('mods')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'mods' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Modérateurs
+                                                {activeSettingsTab === 'mods' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
                                         </div>
 
-                                        <div className="pt-6">
+                                        {/* Tab Content */}
+                                        <div className="flex-1 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
+                                            {activeSettingsTab === 'general' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 rounded-3xl">
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activation Live</label>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ enabled: !settings.enabled })}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.enabled ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                >
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                </button>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Activation Chat</label>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ chat_enabled: !settings.chat_enabled })}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.chat_enabled ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                >
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.chat_enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 rounded-3xl">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Titre du Live</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editTitle}
+                                                                    onChange={(e) => setEditTitle(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">ID YouTube</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={newVideoId}
+                                                                    onChange={(e) => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4 bg-white/[0.02] border border-white/5 p-5 rounded-3xl">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 italic">Réglage du <span className="text-neon-red">Bandeau</span></label>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                                            <div className="space-y-1.5 lg:col-span-2">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Type</label>
+                                                                <select
+                                                                    value={tickerType}
+                                                                    onChange={(e) => setTickerType(e.target.value as any)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red cursor-pointer"
+                                                                >
+                                                                    <option value="news">Actualités</option>
+                                                                    <option value="planning">Programme</option>
+                                                                    <option value="custom">Texte Perso</option>
+                                                                </select>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Fond</label>
+                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-1.5">
+                                                                    <input type="color" value={tickerBgColor} onChange={(e) => setTickerBgColor(e.target.value)} className="w-8 h-6 bg-transparent border-none cursor-pointer" />
+                                                                    <span className="text-[9px] text-gray-500 font-bold uppercase truncate">{tickerBgColor}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Texte</label>
+                                                                <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-1.5">
+                                                                    <input type="color" value={tickerTextColor} onChange={(e) => setTickerTextColor(e.target.value)} className="w-8 h-6 bg-transparent border-none cursor-pointer" />
+                                                                    <span className="text-[9px] text-gray-500 font-bold uppercase truncate">{tickerTextColor}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {tickerType === 'custom' && (
+                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
+                                                                <input type="text" value={tickerText} onChange={(e) => setTickerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red" placeholder="Votre message..." />
+                                                                <input type="text" value={tickerLink} onChange={(e) => setTickerLink(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-2.5 text-[10px] font-bold text-white outline-none focus:border-neon-red" placeholder="Lien (ex: https://...)" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="space-y-4 bg-white/[0.02] border border-white/5 p-5 rounded-3xl">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 italic">Système de <span className="text-neon-red">Sondage</span></label>
+                                                            <button onClick={() => setShowPollEditor(!showPollEditor)} className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${showPollEditor ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-500'}`}>
+                                                                {showPollEditor ? 'Masquer' : 'Gérer'}
+                                                            </button>
+                                                        </div>
+                                                        {showPollEditor && (
+                                                            <div className="space-y-4 animate-in fade-in duration-300">
+                                                                <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-[10px] text-white font-bold outline-none focus:border-neon-red" />
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {pollOptions.map((opt, i) => (
+                                                                        <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
+                                                                            const newOpts = [...pollOptions];
+                                                                            newOpts[i] = e.target.value;
+                                                                            setPollOptions(newOpts);
+                                                                        }} className="w-full bg-black/20 border border-white/5 rounded-lg p-2 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
+                                                                    ))}
+                                                                </div>
+                                                                <button className="w-full py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white hover:bg-neon-red transition-all">Lancer le sondage</button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {activeSettingsTab === 'planning' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                <Pencil className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Éditeur de Planning
+                                                            </label>
+                                                        </div>
+                                                        <textarea
+                                                            value={editLineup}
+                                                            onChange={(e) => setEditLineup(e.target.value)}
+                                                            className="w-full h-[300px] bg-black/60 border border-white/10 rounded-2xl p-5 text-[11px] font-bold text-gray-200 outline-none focus:border-neon-red transition-all leading-relaxed custom-scrollbar font-mono"
+                                                            placeholder="Format: [HEURE] ARTISTE - SCÈNE&#10;Exemple: [22:00] THE ROCKSTAR - MAIN STAGE"
+                                                        />
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM] Nom - Scène</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {activeSettingsTab === 'mods' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                            <Shield className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Modérateurs Actuels
+                                                        </label>
+                                                        <div className="flex gap-2 mb-4">
+                                                            <input
+                                                                type="text"
+                                                                id="add-mod-input"
+                                                                placeholder="Pseudo du modérateur..."
+                                                                className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-red transition-all"
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        const input = e.currentTarget;
+                                                                        handleAddModerator(input.value);
+                                                                        input.value = '';
+                                                                    }
+                                                                }}
+                                                            />
+                                                            <button
+                                                                onClick={() => {
+                                                                    const input = document.getElementById('add-mod-input') as HTMLInputElement;
+                                                                    handleAddModerator(input.value);
+                                                                    if (input) input.value = '';
+                                                                }}
+                                                                className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all"
+                                                            >
+                                                                Ajouter
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            {settings.moderators?.split(',').filter(m => m.trim()).map(mod => (
+                                                                <div key={mod} className="flex items-center justify-between bg-black/40 border border-white/5 rounded-xl p-3 group hover:border-white/20 transition-all">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} title={isUserOnline(mod.trim()) ? "En ligne" : "Hors ligne"} />
+                                                                        <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleRemoveModerator(mod.trim())}
+                                                                        className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                            {!settings.moderators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
                                             <button
                                                 onClick={() => handleUpdateSettings({ title: editTitle, lineup: editLineup, youtubeId: newVideoId })}
                                                 disabled={isSaving}
-                                                className="w-full py-5 bg-neon-red text-white text-xs font-black uppercase tracking-[0.4em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-[0.98] disabled:opacity-50"
+                                                className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
                                             >
-                                                {isSaving ? 'SAUVEGARDE...' : 'Mettre à jour les paramètres'}
+                                                {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
+                                            </button>
+                                            <button
+                                                onClick={handleCutLive}
+                                                className="py-4 bg-black border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-white/10 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                            >
+                                                <Power className="w-4 h-4 text-neon-red" />
+                                                Couper Live
                                             </button>
                                         </div>
                                     </motion.div>
@@ -805,320 +991,395 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </div>
                             </div>
                             {hasModPowers && (
-                                <button
-                                    onClick={() => setIsSlowMode(!isSlowMode)}
-                                    className={`p-2 rounded-lg transition-all ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                    title={isSlowMode ? "Désactiver le mode lent" : "Activer le mode lent (10s)"}
-                                >
-                                    <Clock className="w-4 h-4" />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    {isSlowMode && (
+                                        <select
+                                            value={slowModeDuration}
+                                            onChange={(e) => setSlowModeDuration(Number(e.target.value))}
+                                            className="bg-white/5 border border-white/10 rounded-lg py-1 px-2 text-[10px] font-black text-neon-yellow outline-none"
+                                        >
+                                            <option value="5">5s</option>
+                                            <option value="10">10s</option>
+                                            <option value="30">30s</option>
+                                            <option value="60">60s</option>
+                                        </select>
+                                    )}
+                                    <button
+                                        onClick={() => setIsSlowMode(!isSlowMode)}
+                                        className={`p-2 rounded-lg transition-all ${isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                        title={isSlowMode ? "Désactiver le mode lent" : "Activer le mode lent"}
+                                    >
+                                        <Clock className="w-4 h-4" />
+                                    </button>
+                                </div>
                             )}
                         </div>
 
-                        <AnimatePresence mode="wait">
-                            {!isJoined ? (
-                                <motion.div
-                                    key="join-form"
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                    className="flex-1 p-8 flex flex-col justify-center relative z-10"
+                        {isLocalBanned ? (
+                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-black/40">
+                                <div className="w-20 h-20 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.1)]">
+                                    <ShieldAlert className="w-10 h-10 text-neon-red" />
+                                </div>
+                                <h3 className="text-lg font-black text-white uppercase italic tracking-tighter mb-2">Accès restreint</h3>
+                                <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                    Vous avez été banni du chat. Vous ne pouvez plus voir ou envoyer de messages.
+                                </p>
+                                <button
+                                    onClick={handleUnbanRequest}
+                                    className="px-8 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
                                 >
-                                    <div className="text-center mb-6 lg:mb-10">
-                                        <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
-                                            <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
-                                        </div>
-                                        <h3 className="text-xl lg:text-3xl font-display font-black text-white uppercase italic tracking-tighter">
-                                            Rejoindre le <span className="text-neon-red">LIVE</span>
-                                        </h3>
-                                        <p className="text-gray-500 text-[8px] lg:text-[10px] font-bold uppercase tracking-[0.2em] mt-2 lg:mt-3">Identifiez-vous pour discuter</p>
-                                    </div>
-
-                                    <form onSubmit={handleJoin} className="space-y-4">
-                                        <div className="group relative">
-                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                            <input
-                                                type="text"
-                                                placeholder="PSEUDO"
-                                                required
-                                                value={pseudo}
-                                                onChange={(e) => setPseudo(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                            />
-                                        </div>
-                                        <div className="group relative">
-                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                            <input
-                                                type="email"
-                                                placeholder="EMAIL"
-                                                required
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                            />
-                                        </div>
-                                        <div className="group relative">
-                                            <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                            <input
-                                                type="text"
-                                                placeholder="PAYS"
-                                                required
-                                                value={country}
-                                                onChange={(e) => setCountry(e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
-                                            />
-                                        </div>
-
-                                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
-                                            <div className="flex-1">
-                                                <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={subscribeNewsletter}
-                                                        onChange={(e) => setSubscribeNewsletter(e.target.checked)}
-                                                        className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
-                                                    />
-                                                    Newsletter
-                                                </label>
+                                    Demande de débannissement
+                                </button>
+                                <p className="mt-4 text-[9px] text-gray-600 font-bold uppercase">Disponible après 10 minutes</p>
+                            </div>
+                        ) : (
+                            <AnimatePresence mode="wait">
+                                {!isJoined ? (
+                                    <motion.div
+                                        key="join-form"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="flex-1 p-8 flex flex-col justify-center relative z-10"
+                                    >
+                                        <div className="text-center mb-6 lg:mb-10">
+                                            <div className="w-12 h-12 lg:w-16 lg:h-16 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-4 lg:mb-6 border border-neon-red/20 shadow-2xl shadow-neon-red/5">
+                                                <Youtube className="w-6 h-6 lg:w-8 lg:h-8 text-neon-red" />
                                             </div>
+                                            <h3 className="text-lg lg:text-xl font-black text-white uppercase italic tracking-tighter">
+                                                Rejoindre le <span className="text-neon-red">Chat</span>
+                                            </h3>
+                                            <p className="text-[10px] lg:text-xs text-gray-500 font-bold uppercase tracking-widest mt-2 px-4 italic">Identifiez-vous pour participer en direct</p>
                                         </div>
 
-                                        {!isAdmin && (
+                                        <form onSubmit={handleJoin} className="space-y-4 max-w-sm mx-auto w-full">
                                             <div className="group relative">
-                                                <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
                                                 <input
-                                                    type="number"
-                                                    placeholder={`${captchaA} + ${captchaB} ?`}
+                                                    type="text"
+                                                    placeholder="PSEUDO"
                                                     required
-                                                    value={captchaAnswer}
-                                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                    value={pseudo}
+                                                    onChange={(e) => setPseudo(e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
                                                 />
                                             </div>
-                                        )}
 
-                                        <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
-                                            Rejoindre
-                                        </button>
-                                    </form>
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="chat-active"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    className="flex-1 flex flex-col min-h-0 relative z-10"
-                                >
-                                    <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:space-y-6 scroll-smooth">
-                                        {messages.map((msg, idx) => {
-                                            const role = getRole(msg.pseudo);
-                                            const isMsgAdmin = role === 'admin';
-                                            const isMsgModo = role === 'modo';
+                                            <div className="group relative">
+                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                <input
+                                                    type="email"
+                                                    placeholder="EMAIL"
+                                                    required
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                />
+                                            </div>
 
-                                            return (
-                                                <motion.div
-                                                    key={msg.id}
-                                                    initial={{ opacity: 0, x: 10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    transition={{ delay: idx * 0.05 }}
-                                                    className="group relative"
-                                                >
-                                                    <div className="flex items-center gap-2 mb-1.5 px-1 truncate">
-                                                        <span className="text-sm">{getFlagEmoji(msg.country || 'FR')}</span>
-                                                        <span className={`text-[10px] font-black uppercase tracking-widest ${isMsgAdmin ? 'text-neon-red' : isMsgModo ? 'text-yellow-500' : 'text-gray-400'}`}>
-                                                            {msg.pseudo}
-                                                        </span>
-                                                        {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
-                                                        {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
-                                                        <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
-                                                    </div>
-                                                    <div className={`px-4 py-3 rounded-2xl text-xs font-medium leading-relaxed tracking-wide ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/5 text-gray-300'}`}>
-                                                        {msg.message}
-                                                    </div>
+                                            <div className="group relative">
+                                                <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50 transition-colors group-focus-within:text-neon-red" />
+                                                <input
+                                                    type="text"
+                                                    placeholder="PAYS"
+                                                    required
+                                                    value={country}
+                                                    onChange={(e) => setCountry(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                />
+                                            </div>
 
-                                                    {/* Moderation Actions */}
-                                                    {hasModPowers && (
-                                                        <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md rounded-lg p-1 border border-white/10">
-                                                            <button
-                                                                onClick={() => handleDelete(msg.id)}
-                                                                className="p-1.5 hover:bg-white/10 rounded-md text-gray-400 hover:text-white transition-colors"
-                                                                title="Supprimer le message"
+                                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl p-3 lg:p-4">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] lg:text-xs font-bold text-gray-300 uppercase tracking-widest flex items-center gap-2 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={subscribeNewsletter}
+                                                            onChange={(e) => setSubscribeNewsletter(e.target.checked)}
+                                                            className="w-3.5 h-3.5 lg:w-4 lg:h-4 bg-black border border-white/20 rounded accent-neon-red cursor-pointer"
+                                                        />
+                                                        Newsletter
+                                                    </label>
+                                                </div>
+                                            </div>
+
+                                            {!isAdmin && (
+                                                <div className="group relative">
+                                                    <ShieldAlert className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-neon-red/50" />
+                                                    <input
+                                                        type="number"
+                                                        placeholder={`${captchaA} + ${captchaB} ?`}
+                                                        required
+                                                        value={captchaAnswer}
+                                                        onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 pl-12 text-[10px] lg:text-xs font-bold uppercase tracking-widest text-white focus:border-neon-red outline-none transition-all placeholder-gray-600 shadow-inner"
+                                                    />
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-3 bg-white/5 border border-white/10 rounded-2xl p-4">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Couleur de votre pseudo</label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {['#ffffff', '#00ffcc', '#00ccff', '#ff00ff', '#ccff00', '#ff9900', '#9933ff', '#33ff33', '#ffffff', '#ff66aa'].filter(c => {
+                                                        const r = parseInt(c.slice(1, 3), 16);
+                                                        const g = parseInt(c.slice(3, 5), 16);
+                                                        const b = parseInt(c.slice(5, 7), 16);
+                                                        const isRed = r > 200 && g < 100 && b < 100;
+                                                        const isYellow = r > 200 && g > 200 && b < 100;
+                                                        return !isRed && !isYellow;
+                                                    }).map(color => (
+                                                        <button
+                                                            key={color}
+                                                            type="button"
+                                                            onClick={() => setUserColor(color)}
+                                                            className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${userColor === color ? 'border-white scale-110 shadow-[0_0_10px_white]' : 'border-transparent'}`}
+                                                            style={{ backgroundColor: color }}
+                                                        />
+                                                    ))}
+                                                    <input
+                                                        type="color"
+                                                        value={userColor}
+                                                        onChange={(e) => {
+                                                            const c = e.target.value;
+                                                            const r = parseInt(c.slice(1, 3), 16);
+                                                            const g = parseInt(c.slice(3, 5), 16);
+                                                            const b = parseInt(c.slice(5, 7), 16);
+                                                            const isRed = r > 200 && g < 100 && b < 100;
+                                                            const isYellow = r > 200 && g > 200 && b < 100;
+                                                            if (!isRed && !isYellow) setUserColor(c);
+                                                            else alert("Les couleurs rouge et jaune sont réservées à l'administration.");
+                                                        }}
+                                                        className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer p-0 overflow-hidden"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <button className="w-full py-4 lg:py-5 bg-neon-red text-white text-[10px] lg:text-xs font-black uppercase tracking-[0.3em] rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-2xl shadow-neon-red/20 active:scale-95 group">
+                                                Rejoindre
+                                            </button>
+                                        </form>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="chat-active"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="flex-1 flex flex-col min-h-0 relative z-10"
+                                    >
+                                        <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 lg:y-6 scroll-smooth">
+                                            {messages.map((msg, idx) => {
+                                                const role = getRole(msg.pseudo);
+                                                const isMsgAdmin = role === 'admin';
+                                                const isMsgModo = role === 'modo';
+
+                                                return (
+                                                    <motion.div
+                                                        key={msg.id || idx}
+                                                        initial={{ opacity: 0, x: 10 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: Math.min(idx * 0.05, 1) }}
+                                                        className="group relative"
+                                                    >
+                                                        <div className="flex items-center gap-2 mb-1 px-1 truncate">
+                                                            <div className="w-4 flex items-center justify-center">
+                                                                {getCountryFlag(msg.country || 'FR')}
+                                                            </div>
+                                                            <span
+                                                                className="text-[10px] font-black uppercase tracking-widest"
+                                                                style={{ color: isMsgAdmin ? '#ff0033' : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                             >
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
+                                                                {msg.pseudo}
+                                                            </span>
+                                                            {isMsgAdmin && <span className="px-1.5 py-0.5 rounded bg-neon-red text-white text-[7px] font-black uppercase tracking-widest flex-shrink-0">Admin</span>}
+                                                            {isMsgModo && <span className="px-1.5 py-0.5 rounded bg-yellow-500 text-black text-[7px] font-black uppercase tracking-widest flex-shrink-0">Modo</span>}
+                                                            <span className="text-[7px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                        </div>
+                                                        <div className={`p-3 rounded-xl text-xs leading-relaxed break-words relative overflow-hidden flex items-start justify-between gap-4 ${isMsgAdmin ? 'bg-neon-red/10 border border-neon-red/20 text-white' : isMsgModo ? 'bg-yellow-500/10 border border-yellow-500/20 text-white' : 'bg-white/5 border border-white/10 text-gray-300'}`}>
+                                                            <span className="relative z-10 font-medium">{msg.message}</span>
                                                             {hasModPowers && !isMsgAdmin && (
                                                                 <button
-                                                                    onClick={() => handleBanClick(msg.pseudo)}
-                                                                    className="p-1.5 hover:bg-neon-red/20 rounded-md text-gray-400 hover:text-neon-red transition-colors"
-                                                                    title="Bannir l'IP"
+                                                                    onClick={() => handleDelete(msg.id)}
+                                                                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all shrink-0 self-center"
                                                                 >
-                                                                    <ShieldAlert className="w-3.5 h-3.5" />
+                                                                    <Trash2 className="w-3.5 h-3.5" />
                                                                 </button>
                                                             )}
                                                         </div>
-                                                    )}
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </div>
+
+                                        {/* Chat Input Bar */}
+                                        <div className="p-4 bg-[#0a0a0a] border-t border-white/10">
+                                            <form onSubmit={handleSendMessage} className="relative group">
+                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within:opacity-40 blur-sm rounded-xl transition-opacity pointer-events-none" />
+                                                <div className="relative flex items-center bg-black border border-white/10 rounded-xl overflow-hidden focus-within:border-neon-red/50 transition-all">
+                                                    <div className="flex items-center px-1.5 border-r border-white/10 gap-0.5">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                            className={`p-2 rounded-lg transition-all ${showEmojiPicker ? 'bg-neon-red/20 text-neon-red' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                            title="Emojis"
+                                                        >
+                                                            <Smile className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            className="p-2 rounded-lg text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 transition-all"
+                                                            title="Reconnaître la musique (Shazam)"
+                                                            onClick={() => alert("Recherche Shazam en cours...")}
+                                                        >
+                                                            <Music2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        value={newMessage}
+                                                        onChange={(e) => setNewMessage(e.target.value)}
+                                                        placeholder={isSlowMode && !hasModPowers ? "Mode Lent Activé..." : "Écrivrez votre message..."}
+                                                        className="flex-1 bg-transparent px-4 py-3.5 text-xs text-white placeholder:text-gray-600 focus:outline-none"
+                                                    />
+                                                    <button
+                                                        type="submit"
+                                                        disabled={!newMessage.trim() || isSending}
+                                                        className="p-3.5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 disabled:grayscale transition-all"
+                                                    >
+                                                        <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                    </button>
+                                                </div>
+                                            </form>
+
+                                            {/* Emoji Picker Placeholder / Quick Emojis */}
+                                            {showEmojiPicker && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 5 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className="mt-2 p-2 bg-black border border-white/10 rounded-xl grid grid-cols-8 gap-1 shadow-2xl"
+                                                >
+                                                    {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊'].map(emoji => (
+                                                        <button
+                                                            key={emoji}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setNewMessage(prev => prev + emoji);
+                                                                setShowEmojiPicker(false);
+                                                            }}
+                                                            className="p-2 hover:bg-white/10 rounded-lg text-lg transition-transform active:scale-90"
+                                                        >
+                                                            {emoji}
+                                                        </button>
+                                                    ))}
                                                 </motion.div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        )}
+
+                        {hasModPowers && (
+                            <div className="hidden xl:flex flex-col w-[250px] bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0">
+                                <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                    </h2>
+                                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                </div>
+                                <div className="flex-1 overflow-y-auto w-full">
+                                    <div className="p-3 space-y-2">
+                                        {allActiveUsers.map(u => {
+                                            const role = getRole(u.pseudo);
+                                            const isUserAdmin = role === 'admin';
+                                            const isUserModo = role === 'modo';
+
+                                            return (
+                                                <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                    <div className="flex items-center gap-2 truncate">
+                                                        <div className="w-4 flex items-center justify-center">
+                                                            {getCountryFlag(u.country)}
+                                                        </div>
+                                                        <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                            {u.pseudo}
+                                                        </span>
+                                                    </div>
+                                                    {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                        <button
+                                                            onClick={() => handlePromote(u.pseudo)}
+                                                            className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                            title="Promouvoir Modérateur Chat"
+                                                        >
+                                                            <Shield className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             );
                                         })}
                                     </div>
-
-                                    <form onSubmit={handleSendMessage} className="p-3 lg:p-6 bg-black/80 backdrop-blur-xl border-t border-white/10">
-                                        <div className="relative flex items-center gap-2 lg:gap-3">
-                                            <div className="flex-1 relative group">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Message..."
-                                                    value={newMessage}
-                                                    onChange={(e) => setNewMessage(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl lg:rounded-2xl py-3 lg:py-4 px-4 lg:px-5 text-gray-200 focus:border-neon-red outline-none text-[11px] lg:text-xs font-medium placeholder-gray-600 transition-all"
-                                                />
-                                            </div>
-                                            <button className="p-3 lg:p-4 bg-neon-red text-white rounded-xl lg:rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20 active:scale-90">
-                                                <Send className="w-4 h-4 lg:w-5 lg:h-5" />
-                                            </button>
-                                        </div>
-                                    </form>
-
-                                    {/* Ban Modal Overlay */}
-                                    <AnimatePresence>
-                                        {banTarget && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 20 }}
-                                                className="absolute inset-x-4 bottom-24 p-5 bg-[#111] border border-neon-red/30 rounded-2xl shadow-2xl z-50 backdrop-blur-xl"
-                                            >
-                                                <div className="flex justify-between items-start mb-4">
-                                                    <div>
-                                                        <h3 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <ShieldAlert className="w-4 h-4 text-neon-red" />
-                                                            Bannir {banTarget}
-                                                        </h3>
-                                                        <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">L'utilisateur ne pourra plus envoyer de messages.</p>
-                                                    </div>
-                                                    <button onClick={() => setBanTarget(null)} className="text-gray-500 hover:text-white transition-colors">
-                                                        <X className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-
-                                                <div className="mb-4">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-2">Durée (minutes)</label>
-                                                    <input
-                                                        type="number"
-                                                        value={banDuration}
-                                                        onChange={(e) => setBanDuration(e.target.value)}
-                                                        className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-2.5 text-white text-xs focus:border-neon-red outline-none"
-                                                        min="1"
-                                                    />
-                                                </div>
-
-                                                <button
-                                                    onClick={confirmBan}
-                                                    className="w-full py-3 bg-neon-red text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
-                                                >
-                                                    Confirmer le Ban
-                                                </button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Gradient Background Effect */}
-                        <div className="absolute inset-0 pointer-events-none">
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-neon-red/5 blur-[100px] rounded-full" />
-                        </div>
-                    </div>
-                )}
-
-                {/* User List Panel (Moderators only) */}
-                {hasModPowers && (
-                    <div className="hidden xl:flex flex-col w-[250px] bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0">
-                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                            </h2>
-                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                        </div>
-                        <div className="flex-1 overflow-y-auto w-full">
-                            <div className="p-3 space-y-2">
-                                {allActiveUsers.map(u => {
-                                    const role = getRole(u.pseudo);
-                                    const isUserAdmin = role === 'admin';
-                                    const isUserModo = role === 'modo';
-
-                                    return (
-                                        <div key={u.pseudo} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                            <div className="flex items-center gap-2 truncate">
-                                                <span className="text-xs">{getFlagEmoji(u.country)}</span>
-                                                <span className={`text-xs font-bold uppercase truncate max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                    {u.pseudo}
-                                                </span>
-                                            </div>
-                                            {hasModPowers && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                <button
-                                                    onClick={() => handlePromote(u.pseudo)}
-                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                    title="Promouvoir Modérateur Chat"
-                                                >
-                                                    <Shield className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>
 
-            {/* Social Connect Tab */}
             {!isFocusMode && (
-                <div className="absolute right-6 bottom-20 z-40 flex flex-col gap-2">
-                    <button
-                        onClick={() => window.open("https://www.instagram.com/dropsiders.eu", "InstaPopup", "width=600,height=800,left=300,top=100")}
-                        className="group flex items-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] p-1.5 pr-4 rounded-full text-white shadow-xl hover:scale-105 transition-all duration-300"
-                    >
-                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
-                            <Instagram className="w-4 h-4" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest">Suivre</span>
-                    </button>
-                    <button
-                        onClick={() => window.open("https://www.tiktok.com/@dropsiders.eu", "TikTokPopup", "width=600,height=800,left=300,top=100")}
-                        className="group flex items-center gap-3 bg-black border border-white/10 p-1.5 pr-4 rounded-full text-white shadow-xl hover:scale-105 transition-all duration-300"
-                    >
-                        <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
-                            <Music2 className="w-4 h-4" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest">TikTok</span>
-                    </button>
-                </div>
-            )}
-
-            {/* Scrolling News Ticker */}
-            {!isFocusMode && (
-                <div className="w-full bg-neon-red h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(255,0,0,0.2)]">
-                    <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-neon-red via-neon-red/80 to-transparent z-10 pointer-events-none" />
-                    <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-neon-red via-neon-red/80 to-transparent z-10 pointer-events-none" />
+                <div
+                    className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)]"
+                    style={{ backgroundColor: tickerBgColor }}
+                >
+                    <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                    <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
                     <div className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                        {latestNews.concat(latestNews).map((news, i) => (
+                        {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
                             <a
                                 key={`${news.id}-${i}`}
                                 href={`/news/${news.id}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="flex items-center mx-8 text-white shrink-0 hover:scale-105 transition-transform group"
+                                className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
+                                style={{ color: tickerTextColor }}
                             >
                                 <span className="text-[9px] font-black uppercase tracking-[0.2em] bg-black/20 px-2 py-0.5 rounded mr-3 border border-white/10">{news.category}</span>
                                 <span className="text-[11px] font-black uppercase italic tracking-tighter group-hover:underline decoration-2 underline-offset-4">{news.title}</span>
                                 <div className="w-1.5 h-1.5 rounded-full bg-white/40 ml-8 shadow-[0_0_8px_white]" />
                             </a>
                         ))}
-                        {latestNews.length === 0 && (
+
+                        {tickerType === 'planning' && parseLineup(displayLineup).concat(parseLineup(displayLineup)).map((item, i) => (
+                            <div key={i} className="flex items-center mx-10 shrink-0" style={{ color: tickerTextColor }}>
+                                <span className="text-[10px] font-black uppercase tracking-widest mr-3 opacity-60">[{item.time?.replace(':', 'H')}]</span>
+                                <span className="text-[11px] font-black uppercase italic tracking-widest">{item.artist}</span>
+                                <span className="mx-3 text-[9px] opacity-40">•</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-[#ffffff80]">{item.stage}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-white/20 ml-10 shadow-[0_0_5px_white]" />
+                            </div>
+                        ))}
+
+                        {tickerType === 'custom' && [...Array(10)].map((_, i) => (
+                            tickerLink ? (
+                                <a
+                                    key={i}
+                                    href={tickerLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform"
+                                    style={{ color: tickerTextColor }}
+                                >
+                                    <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                </a>
+                            ) : (
+                                <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                    <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                </div>
+                            )
+                        ))}
+
+                        {tickerType === 'news' && latestNews.length === 0 && (
                             <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
                                 CHARGEMENT DU FIL D'ACTUALITÉ...
                             </div>
@@ -1129,15 +1390,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             <style>{`
                 @keyframes ticker {
-                    0% {
-                        transform: translateX(0);
-                    }
-                    100% {
-                        transform: translateX(-50%);
-                    }
+                    0% { transform: translateX(0); }
+                    100% { transform: translateX(-50%); }
                 }
                 .animate-ticker {
-                    animation: ticker 90s linear infinite;
+                    animation: ticker 40s linear infinite;
                     width: max-content;
                 }
                 @keyframes glow {
@@ -1151,3 +1408,5 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         </div>
     );
 }
+
+export default TakeoverPage;

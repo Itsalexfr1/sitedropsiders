@@ -143,6 +143,13 @@ export function Home() {
         return sessionStorage.getItem('exited_live') === 'true';
     });
 
+    // Sync state with session storage if changed elsewhere
+    useEffect(() => {
+        const checkExit = () => setHasExitedLive(sessionStorage.getItem('exited_live') === 'true');
+        window.addEventListener('storage', checkExit);
+        return () => window.removeEventListener('storage', checkExit);
+    }, []);
+
     if (takeover?.enabled && !hasExitedLive) {
         return <TakeoverPage settings={takeover} />;
     }
