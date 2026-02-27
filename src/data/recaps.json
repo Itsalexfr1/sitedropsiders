@@ -417,7 +417,7 @@
   {
     "id": 19,
     "title": "Récap : Tomorrowland Winter 2025",
-    "date": "2026-02-27T01:12",
+    "date": "2026-02-27T02:21",
     "summary": "Du 15 au 22 mars 2025, l'Alpe d'Huez a vibré au rythme des meilleurs sons électro du monde. Tomorrowland Winter a célébré sa cinquième édition avec 22 000 festivaliers venus de plus de 90 pays. Au cœur de l'immense domaine skiable, l'événement a offert une fusion unique entre musique, montagne et scénographie à couper le souffle.",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810598/dropsiders/images/fupfzjtyltnrckhbxbfa.jpg",
     "images": [
@@ -450,8 +450,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "",
-    "isFeatured": false
+    "location": "Alpe D'huez",
+    "isFeatured": false,
+    "country": "France",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 20,
