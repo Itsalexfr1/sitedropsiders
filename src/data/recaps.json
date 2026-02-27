@@ -245,8 +245,8 @@
   {
     "id": 11,
     "title": "Récap : Afterlife Festival Barcelone 2025",
-    "date": "2026-02-27T00:46",
-    "summary": "Ce week-end-là, Afterlife, le célèbre label fondé par Tale Of Us, a une fois de plus transformé l'univers de la musique électronique en une odyssée sensorielle. Deux jours, deux programmations distinpour atées par Anyma et MRAK, les deux moitiés de Tale Of Us. Un line-up d'expé deux scènes, des performances live immersives et une direction artistique ultra-soignée, fidèle à l'esthétique cosmique et émotionnelle de la marque Afterlife.",
+    "date": "2026-02-27T02:55",
+    "summary": "Récap : Afterlife Festival Barcelone 2025 Afterlife Barcelona 2025 : Une odyssée sensorielle entre introspection et démesure Ce week-end-là, Afterlife , le célèbre label fondé par Tale Of Us , a une f...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810495/dropsiders/images/irnrczh9oxynehfrjpgk.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810496/dropsiders/images/k9gbrcoa4nqnk662itap.jpg",
@@ -262,8 +262,11 @@
     "content": "",
     "author": "Alex",
     "festival": "",
-    "location": "Barcelone, Espagne",
-    "isFeatured": false
+    "location": "Barcelone",
+    "isFeatured": false,
+    "country": "Espagne",
+    "showVideo": false,
+    "year": "2025"
   },
   {
     "id": 12,
