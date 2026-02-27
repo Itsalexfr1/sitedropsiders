@@ -181,13 +181,25 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '';
     });
+    const [stage1Name, setStage1Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[0] ? lines[0].split(':')[1] || 'Stage 1' : 'Stage 1';
+    });
     const [stage2, setStage2] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
     });
+    const [stage2Name, setStage2Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? lines[1].split(':')[1] || 'Stage 2' : 'Stage 2';
+    });
     const [stage3, setStage3] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
+    });
+    const [stage3Name, setStage3Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? lines[2].split(':')[1] || 'Stage 3' : 'Stage 3';
     });
 
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
@@ -195,6 +207,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
     const [localCustomCommands, setLocalCustomCommands] = useState(settings.customCommands || '');
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
+    const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
+    const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
 
     // Sync with props when they change (e.g. from parent polling or settings update)
     useEffect(() => {
@@ -220,7 +234,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist'>('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'artist' | 'shop'>('general');
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
     const [pollQuestion, setPollQuestion] = useState('');
@@ -350,16 +364,27 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     const [shopProducts, setShopProducts] = useState<any[]>([]);
-    const [showShopWidget, setShowShopWidget] = useState(false);
-    const [recentShazams] = useState<string[]>([]);
-    const currentVideoId = channelItems[activeVideoIndex]?.id || channelItems[0]?.id || '';
 
     useEffect(() => {
         fetch('/api/shop')
             .then(res => res.json())
-            .then(data => setShopProducts(data.slice(0, 10)))
+            .then(data => {
+                setAllShopProducts(data);
+                if (settings.shopItems) {
+                    const ids = settings.shopItems.split(',');
+                    setSelectedShopIds(ids);
+                    setShopProducts(data.filter((p: any) => ids.includes(String(p.id))));
+                } else {
+                    setShopProducts(data.slice(0, 10));
+                }
+            })
             .catch(() => { });
-    }, []);
+    }, [settings.shopItems]);
+
+    const [showShopWidget, setShowShopWidget] = useState(false);
+    const [recentShazams] = useState<string[]>([]);
+    const currentVideoId = channelItems[activeVideoIndex]?.id || channelItems[0]?.id || '';
+
 
     const handleSendBotMessage = async (text: string) => {
         if (!text) return;
@@ -1694,6 +1719,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'mods' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
+                                                onClick={() => setActiveSettingsTab('shop')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'shop' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Shop
+                                                {activeSettingsTab === 'shop' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
+                                            </button>
+                                            <button
                                                 onClick={() => setActiveSettingsTab('bot')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'bot' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
@@ -1783,35 +1815,71 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 />
                                                             </div>
                                                         </div>
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
-                                                            <input
-                                                                type="text"
-                                                                value={stage1}
-                                                                onChange={(e) => setStage1(e.target.value)}
-                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                placeholder="Lien YouTube (Optionnel)..."
-                                                            />
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                                                            <div className="space-y-1.5 flex-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 1 (Lien YouTube)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage1}
+                                                                    onChange={(e) => setStage1(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="Lien YouTube..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX 1</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage1Name}
+                                                                    onChange={(e) => setStage1Name(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="ex: Stage 1"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 2 (Lien YouTube)</label>
-                                                            <input
-                                                                type="text"
-                                                                value={stage2}
-                                                                onChange={(e) => setStage2(e.target.value)}
-                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                placeholder="Lien YouTube (Optionnel)..."
-                                                            />
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                                                            <div className="space-y-1.5 flex-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 2 (Lien YouTube)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage2}
+                                                                    onChange={(e) => setStage2(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="Lien YouTube..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX 2</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage2Name}
+                                                                    onChange={(e) => setStage2Name(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="ex: Stage 2"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                        <div className="space-y-1.5">
-                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 3 (Lien YouTube)</label>
-                                                            <input
-                                                                type="text"
-                                                                value={stage3}
-                                                                onChange={(e) => setStage3(e.target.value)}
-                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                placeholder="Lien YouTube (Optionnel)..."
-                                                            />
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 items-end">
+                                                            <div className="space-y-1.5 flex-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Stage 3 (Lien YouTube)</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage3}
+                                                                    onChange={(e) => setStage3(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="Lien YouTube..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX 3</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={stage3Name}
+                                                                    onChange={(e) => setStage3Name(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                    placeholder="ex: Stage 3"
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2265,6 +2333,63 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                 </div>
                                             )}
+
+                                            {activeSettingsTab === 'shop' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                <Zap className="w-4 h-4 text-neon-cyan" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Sélection <span className="text-neon-cyan">Shop</span></h3>
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Choisissez 10 à 15 objets à mettre en avant :</p>
+
+                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                {allShopProducts.map(product => {
+                                                                    const isSelected = selectedShopIds.includes(String(product.id));
+                                                                    return (
+                                                                        <button
+                                                                            key={product.id}
+                                                                            onClick={() => {
+                                                                                if (isSelected) {
+                                                                                    setSelectedShopIds(selectedShopIds.filter(id => id !== String(product.id)));
+                                                                                } else {
+                                                                                    if (selectedShopIds.length >= 15) return alert("Maximum 15 objets.");
+                                                                                    setSelectedShopIds([...selectedShopIds, String(product.id)]);
+                                                                                }
+                                                                            }}
+                                                                            className={`p-3 rounded-xl border text-[9px] font-black uppercase text-left transition-all flex flex-col gap-1 ${isSelected ? 'bg-neon-cyan/20 border-neon-cyan text-white' : 'bg-black/40 border-white/10 text-gray-500 hover:border-white/20'}`}
+                                                                        >
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className="w-8 h-8 rounded-lg bg-white/10 shrink-0 overflow-hidden">
+                                                                                    {product.image && <img src={product.image} className="w-full h-full object-cover" />}
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <p className="truncate">{product.name}</p>
+                                                                                    <p className={`${isSelected ? 'text-neon-cyan' : 'text-gray-600'}`}>{product.price}€</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+
+                                                            <div className="flex justify-between items-center p-4 bg-black/60 rounded-2xl border border-white/5">
+                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Objets sélectionnés : {selectedShopIds.length} / 15</span>
+                                                                <button
+                                                                    onClick={() => setSelectedShopIds([])}
+                                                                    className="text-[9px] font-black text-neon-red uppercase hover:underline"
+                                                                >
+                                                                    Tout vider
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
@@ -2282,15 +2407,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     const s3Id = extractYoutubeId(stage3);
 
                                                     const newChannels = [];
-                                                    if (s1Id) newChannels.push(`${s1Id}:Stage 1`);
-                                                    if (s2Id) newChannels.push(`${s2Id}:Stage 2`);
-                                                    if (s3Id) newChannels.push(`${s3Id}:Stage 3`);
+                                                    if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
+                                                    if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
+                                                    if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
 
                                                     handleUpdateSettings({
                                                         title: editTitle,
                                                         lineup: editLineup,
                                                         youtubeId: fId,
                                                         channels: newChannels.join('\n'),
+                                                        shopItems: selectedShopIds.join(','),
                                                         tickerType,
                                                         tickerBgColor,
                                                         tickerTextColor,
