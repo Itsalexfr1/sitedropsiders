@@ -451,19 +451,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </button>
                                         </div>
 
-                                        <div className="p-3 space-y-3 max-h-72 overflow-y-auto custom-scrollbar bg-white">
+                                        <div className="p-3 space-y-3 max-h-72 overflow-y-auto custom-scrollbar bg-black/40 backdrop-blur-xl">
                                             {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
-                                                <div key={i} className="bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm hover:border-neon-red/50 transition-all group">
+                                                <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-3 shadow-sm hover:border-neon-red/50 transition-all group">
                                                     <div className="flex items-center justify-between mb-2">
                                                         <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Heure</span>
-                                                            <span className="text-[11px] font-black text-black uppercase tracking-tighter">
+                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Heure</span>
+                                                            <span className="text-[11px] font-black text-white uppercase tracking-tighter">
                                                                 {item.time}
                                                             </span>
                                                         </div>
                                                         {item.festival && (
                                                             <div className="flex flex-col items-end text-right">
-                                                                <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Festival</span>
+                                                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Festival</span>
                                                                 <span className="text-[9px] font-black text-neon-red uppercase tracking-widest italic leading-none">
                                                                     {item.festival}
                                                                 </span>
@@ -471,16 +471,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         )}
                                                     </div>
 
-                                                    <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                                                    <div className="space-y-1.5 pt-2 border-t border-white/5">
                                                         <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Artiste</span>
-                                                            <h3 className="text-black font-black uppercase italic tracking-widest text-sm leading-tight group-hover:text-neon-red transition-colors">
+                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Artiste</span>
+                                                            <h3 className="text-white font-black uppercase italic tracking-widest text-sm leading-tight group-hover:text-neon-red transition-colors">
                                                                 {item.artist}
                                                             </h3>
                                                         </div>
                                                         <div className="flex flex-col">
-                                                            <span className="text-[7px] font-black text-gray-400 uppercase tracking-tighter">Scène / Stage</span>
-                                                            <span className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">
+                                                            <span className="text-[7px] font-black text-gray-500 uppercase tracking-tighter">Scène / Stage</span>
+                                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                                                 {item.stage}
                                                             </span>
                                                         </div>
@@ -489,7 +489,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             ))}
                                             {parseLineup(editLineup || settings.lineup || '').length === 0 && (
                                                 <div className="py-12 text-center">
-                                                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] italic">
+                                                    <p className="text-[9px] font-black text-gray-600 uppercase tracking-[0.2em] italic">
                                                         PROGRAMME À VENIR
                                                     </p>
                                                 </div>
@@ -579,16 +579,100 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 />
                                             </div>
 
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Line Up / Programme (Verrine séparée)</label>
-                                                <textarea
-                                                    value={editLineup}
-                                                    onChange={e => setEditLineup(e.target.value)}
-                                                    rows={5}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold focus:border-neon-red outline-none transition-all resize-none font-mono text-xs"
-                                                    placeholder={`20:00 | DJ SET | MAIN STAGE | TOMORROWLAND&#10;21:30 | ARTISTE | CLUB ROOM | ULTRA`}
-                                                />
-                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-1 italic">Format : Heure | Artiste | Stage | Festival (un par ligne)</p>
+                                            <div className="space-y-4 bg-white/[0.02] border border-white/5 p-6 rounded-3xl">
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1 block mb-4 italic">
+                                                    Éditeur de <span className="text-neon-red">Line Up</span>
+                                                </label>
+
+                                                <div className="space-y-4 max-h-[40vh] overflow-y-auto px-1 custom-scrollbar">
+                                                    {parseLineup(editLineup).map((item, i) => (
+                                                        <div key={i} className="grid grid-cols-2 gap-3 bg-white/5 border border-white/5 p-4 rounded-2xl relative group">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Heure</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.time}
+                                                                    onChange={(e) => {
+                                                                        const lines = editLineup.split('\n');
+                                                                        const parts = lines[i].split('|');
+                                                                        parts[0] = e.target.value;
+                                                                        lines[i] = parts.join('|');
+                                                                        setEditLineup(lines.join('\n'));
+                                                                    }}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-white focus:border-neon-red outline-none"
+                                                                    placeholder="ex: 20:00"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Festival</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.festival}
+                                                                    onChange={(e) => {
+                                                                        const lines = editLineup.split('\n');
+                                                                        const parts = lines[i].split('|');
+                                                                        while (parts.length < 4) parts.push('');
+                                                                        parts[3] = e.target.value;
+                                                                        lines[i] = parts.join('|');
+                                                                        setEditLineup(lines.join('\n'));
+                                                                    }}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-neon-red focus:border-neon-red outline-none"
+                                                                    placeholder="Festival"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Artiste</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.artist}
+                                                                    onChange={(e) => {
+                                                                        const lines = editLineup.split('\n');
+                                                                        const parts = lines[i].split('|');
+                                                                        while (parts.length < 2) parts.push('');
+                                                                        parts[1] = e.target.value;
+                                                                        lines[i] = parts.join('|');
+                                                                        setEditLineup(lines.join('\n'));
+                                                                    }}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-white focus:border-neon-red outline-none"
+                                                                    placeholder="Nom Artiste"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-tighter">Scène / Stage</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={item.stage}
+                                                                    onChange={(e) => {
+                                                                        const lines = editLineup.split('\n');
+                                                                        const parts = lines[i].split('|');
+                                                                        while (parts.length < 3) parts.push('');
+                                                                        parts[2] = e.target.value;
+                                                                        lines[i] = parts.join('|');
+                                                                        setEditLineup(lines.join('\n'));
+                                                                    }}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] font-bold text-gray-400 focus:border-neon-red outline-none"
+                                                                    placeholder="Stage"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const lines = editLineup.split('\n');
+                                                                    lines.splice(i, 1);
+                                                                    setEditLineup(lines.join('\n'));
+                                                                }}
+                                                                className="absolute -top-2 -right-2 w-6 h-6 bg-neon-red text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                                            >
+                                                                <Trash2 className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        onClick={() => setEditLineup(editLineup + (editLineup ? '\n' : '') + ' |  |  | ')}
+                                                        className="w-full py-3 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[9px] font-black text-gray-500 uppercase tracking-widest hover:bg-white/10 transition-all active:scale-[0.98]"
+                                                    >
+                                                        + Ajouter un artiste
+                                                    </button>
+                                                </div>
                                             </div>
 
                                             <div className="space-y-2">

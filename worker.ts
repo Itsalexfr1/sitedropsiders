@@ -226,9 +226,10 @@ export default {
             path.startsWith('/api/contacts')
         );
 
+        let authenticated = false;
+        let userPermissions = [];
+
         if (isAuthRoute) {
-            let authenticated = false;
-            let userPermissions: string[] = [];
             const requestSessionId = request.headers.get('X-Session-ID');
 
             if (requestPassword === adminPassword && (requestUsername === 'alex' || !requestUsername)) {
@@ -651,7 +652,7 @@ export default {
         }
 
         if (path === '/api/chat/delete' && request.method === 'POST') {
-            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const { id } = await request.json();
             if (env.CHAT_KV) {
                 const raw = await env.CHAT_KV.get(CHAT_MSG_KEY);
@@ -663,7 +664,7 @@ export default {
         }
 
         if (path === '/api/chat/ban' && request.method === 'POST') {
-            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const { pseudo } = await request.json();
             if (env.CHAT_KV) {
                 const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
@@ -682,7 +683,7 @@ export default {
         }
 
         if (path === '/api/chat/unban' && request.method === 'POST') {
-            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const { pseudo } = await request.json();
             if (env.CHAT_KV) {
                 const rawBans = await env.CHAT_KV.get(CHAT_BAN_KEY);
@@ -694,14 +695,14 @@ export default {
         }
 
         if (path === '/api/chat/banned' && request.method === 'GET') {
-            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             const rawBans = env.CHAT_KV ? await env.CHAT_KV.get(CHAT_BAN_KEY) : null;
             const banned = rawBans ? JSON.parse(rawBans) : [];
             return new Response(JSON.stringify(banned), { status: 200, headers });
         }
 
         if (path === '/api/chat/clear' && request.method === 'POST') {
-            if (!isAuthenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             if (env.CHAT_KV) {
                 await env.CHAT_KV.put(CHAT_MSG_KEY, JSON.stringify([]), { expirationTtl: 86400 });
             }
