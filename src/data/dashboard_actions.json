@@ -96,15 +96,6 @@
     "columns": 2
   },
   {
-    "title": "Abonnés",
-    "description": "Gérer la liste mail",
-    "icon": "Users",
-    "link": "/newsletter/admin",
-    "baseColor": "#af2c97",
-    "permission": "all",
-    "columns": 1
-  },
-  {
     "title": "Newsletter",
     "description": "Studio de création",
     "icon": "Mail",
@@ -120,35 +111,6 @@
     "link": "/admin/team",
     "baseColor": "#474d6b",
     "permission": "all",
-    "columns": 1
-  },
-  {
-    "title": "Mots de passe",
-    "description": "Accès & Sécurité",
-    "icon": "Lock",
-    "link": "/admin/settings",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "all",
-    "baseColor": "#ff0000",
-    "columns": 2
-  },
-  {
-    "title": "Éditeurs",
-    "description": "Gérer l'équipe",
-    "icon": "Lock",
-    "link": "/admin/editors",
-    "baseColor": "#d24b4b",
-    "permission": "all",
-    "columns": 2
-  },
-  {
-    "title": "LIVE / TAKEOVER",
-    "description": "Prendre le contrôle du site",
-    "icon": "Youtube",
-    "link": "#",
-    "baseColor": "#ff0000",
-    "permission": "superadmin",
     "columns": 2
   }
 ]
