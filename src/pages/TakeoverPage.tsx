@@ -101,7 +101,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 30000);
+        const timer = setInterval(() => setCurrentTime(new Date()), 5000); // Mise à jour toutes les 5 secondes
         return () => clearInterval(timer);
     }, []);
 
@@ -1490,6 +1490,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <h3 className="text-white font-black uppercase italic tracking-wider text-[16px] lg:text-[22px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500">
                                                             {item.artist || '---'}
                                                         </h3>
+                                                        {fluxCurrentArtist.artist === item.artist && activeVideoIndex === 0 && (
+                                                            <div className="px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded text-[7px] font-black text-red-500 uppercase tracking-widest animate-pulse flex items-center gap-1">
+                                                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                                                                EN DIRECT
+                                                            </div>
+                                                        )}
                                                         {item.instagram && (
                                                             <motion.a
                                                                 whileHover={{ scale: 1.2, rotate: 5 }}
