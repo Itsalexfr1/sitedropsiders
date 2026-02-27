@@ -24,7 +24,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     });
 
     const [editTitle, setEditTitle] = useState(settings.title);
+    const [displayTitle, setDisplayTitle] = useState(settings.title);
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
+    const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [pseudo, setPseudo] = useState(() => {
@@ -316,9 +318,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 if (saveRes.ok) {
                     setShowEditModal(false);
                     setShowVideoEdit(false);
-                    // On pourrait recharger la page ou mettre à jour un contexte global, 
-                    // ici on rafraîchit simplement l'état local pour le feedback immédiat
+                    setDisplayTitle(updates.title || editTitle);
+                    if (updates.lineup !== undefined) setDisplayLineup(updates.lineup);
                     if (updates.youtubeId) setNewVideoId(updates.youtubeId);
+                    // Update the settings object reference if possible, though local states are safer here
                 }
             }
         } catch (err) {
@@ -389,7 +392,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </div>
                         <div className="w-px h-5 bg-white/20 hidden sm:block" />
                         <h1 className="text-lg md:text-2xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[200px] md:max-w-none">
-                            {editTitle}
+                            {displayTitle}
                         </h1>
                         <div className="flex items-center gap-2">
                             {isAdmin && (
@@ -498,7 +501,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
 
                                         <div className="p-3 space-y-3 max-h-72 overflow-y-auto custom-scrollbar bg-black/40 backdrop-blur-xl">
-                                            {parseLineup(editLineup || settings.lineup || '').map((item, i) => (
+                                            {parseLineup(displayLineup).map((item, i) => (
                                                 <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-2 shadow-sm hover:border-neon-red/50 transition-all group flex items-center gap-3">
                                                     <div className="flex flex-col shrink-0 min-w-[35px]">
                                                         <span className="text-[6px] font-black text-gray-500 uppercase tracking-tighter">H</span>
