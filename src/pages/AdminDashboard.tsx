@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -41,6 +41,8 @@ export function AdminDashboard() {
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+    const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -136,6 +138,15 @@ export function AdminDashboard() {
     const [selectedInterviews, setSelectedInterviews] = useState<string[]>([]);
     const [isSavingInterviews, setIsSavingInterviews] = useState(false);
     const [interviewSearch, setInterviewSearch] = useState('');
+
+    useEffect(() => {
+        if (isNotificationModalOpen) {
+            fetch('/api/push/subscribers-count')
+                .then(res => res.json())
+                .then(data => setPushSubscribersCount(data.count))
+                .catch(() => setPushSubscribersCount(0));
+        }
+    }, [isNotificationModalOpen]);
 
     const fetchInterviewsForSelection = async () => {
         try {
@@ -409,6 +420,7 @@ export function AdminDashboard() {
         { title: "Spotify", description: "Playlists accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
         { title: "Shop", description: "Gérer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
+        { title: "Notifications", description: "Gérer les pushs", icon: "Bell", link: "push-notifications", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-red-500/5", permission: "superadmin", baseColor: "red", columns: 1 },
         { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "superadmin", baseColor: "blue", columns: 2 },
         { title: "MESSAGERIE & CONTACT", description: "Accès Messagerie & Contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
     ];
@@ -966,6 +978,9 @@ export function AdminDashboard() {
                                         } else if (action.title === 'LIVE / TAKEOVER') {
                                             e.preventDefault();
                                             setIsTakeoverModalOpen(true);
+                                        } else if (action.title === 'Notifications') {
+                                            e.preventDefault();
+                                            setIsNotificationModalOpen(true);
                                         } else if (action.title === 'Social Studio') {
                                             e.preventDefault();
                                             const fetchSocialContent = async () => {
@@ -3074,6 +3089,90 @@ export function AdminDashboard() {
                     </div>
                 )
                 }
+            </AnimatePresence>
+
+            {/* Modal Notifications */}
+            <AnimatePresence>
+                {isNotificationModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue" />
+
+                            <div className="flex justify-between items-start mb-12">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Push <span className="text-neon-red">Notifications</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Gérer les alertes en direct</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsNotificationModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="p-6 bg-white/5 border border-white/5 rounded-3xl text-center relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-neon-red/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="w-16 h-16 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500">
+                                        <Bell className="w-8 h-8 text-neon-red" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white uppercase italic mb-1">Système Actif</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est opérationnel</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-neon-blue uppercase tracking-widest mb-1">Push</span>
+                                            <span className="text-xl font-black text-white">{pushSubscribersCount ?? 0}</span>
+                                        </div>
+                                        <div className="w-8 h-8 bg-neon-blue/10 rounded-lg flex items-center justify-center border border-neon-blue/20">
+                                            <Users className="w-4 h-4 text-neon-blue" />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 bg-white/5 border border-white/5 rounded-2xl">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-black text-neon-purple uppercase tracking-widest mb-1">News</span>
+                                            <span className="text-xl font-black text-white italic">Auto</span>
+                                        </div>
+                                        <div className="w-8 h-8 bg-neon-purple/10 rounded-lg flex items-center justify-center border border-neon-purple/20">
+                                            <Mail className="w-4 h-4 text-neon-purple" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl flex gap-4 items-start">
+                                    <Zap className="w-5 h-5 text-neon-purple shrink-0 mt-0.5" />
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                                        Le nouveau système demande désormais l'accord pour les notifications et la newsletter dès l'entrée sur le site.
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={() => alert('Fonction de test activée. Un push simulation a été envoyé au worker.')}
+                                    className="w-full py-5 bg-gradient-to-r from-neon-red to-neon-purple text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg hover:brightness-110 active:scale-[0.98] border border-white/10"
+                                >
+                                    Envoyer un push test
+                                </button>
+
+                                <button
+                                    onClick={() => setIsNotificationModalOpen(false)}
+                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all border border-white/10 hover:border-white/20"
+                                >
+                                    Fermer
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
             </AnimatePresence>
         </div>
     );

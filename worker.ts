@@ -223,8 +223,32 @@ export default {
             path === '/api/dashboard-actions/update' ||
             path.startsWith('/api/editors') ||
             path === '/api/auth/revoke-all' ||
-            path.startsWith('/api/contacts')
+            path.startsWith('/api/contacts') ||
+            path.startsWith('/api/push/subscribe') ||
+            path.startsWith('/api/push/unsubscribe')
         );
+
+        // --- API: PUSH NOTIFICATIONS ---
+        if (path === '/api/push/subscribe' && request.method === 'POST') {
+            const { subscription, favorites } = await request.json();
+            if (!subscription || !subscription.endpoint) {
+                return new Response(JSON.stringify({ error: 'Invalid subscription' }), { status: 400, headers });
+            }
+            if (env.CHAT_KV) {
+                const subKey = `push_sub_${subscription.endpoint}`;
+                await env.CHAT_KV.put(subKey, JSON.stringify({ subscription, favorites, timestamp: Date.now() }), { expirationTtl: 60 * 60 * 24 * 30 }); // 30 days
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/push/unsubscribe' && request.method === 'POST') {
+            const { endpoint } = await request.json();
+            if (env.CHAT_KV && endpoint) {
+                await env.CHAT_KV.delete(`push_sub_${endpoint}`);
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
 
         let authenticated = false;
         let userPermissions = [];
@@ -1023,7 +1047,7 @@ export default {
 
             try {
                 const body = await request.json();
-                const { title, date, summary, content, image, category, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo, year } = body;
+                const { title, date, summary, content, image, category, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo, year, sendPush } = body;
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
                 // 1. Update news.json (Metadata only)
@@ -1068,6 +1092,43 @@ export default {
                     const newContentItem = { id: newId, content: content };
                     const updatedContentFile = [...contentFile.content, newContentItem];
                     await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add news content: ${newId}`, contentFile.sha);
+                }
+
+                if (sendPush) {
+                    ctx.waitUntil((async () => {
+                        try {
+                            const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+                            for (const key of list.keys) {
+                                const subRaw = await env.CHAT_KV.get(key.name);
+                                if (!subRaw) continue;
+                                const { subscription } = JSON.parse(subRaw);
+
+                                // This is where we would call a Push Service (OneSignal, web-push, etc.)
+                                // If we have OneSignal keys in env, we use them
+                                if (env.ONESIGNAL_APP_ID && env.ONESIGNAL_API_KEY) {
+                                    await fetch('https://onesignal.com/api/v1/notifications', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Basic ${env.ONESIGNAL_API_KEY}`
+                                        },
+                                        body: JSON.stringify({
+                                            app_id: env.ONESIGNAL_APP_ID,
+                                            contents: { "fr": `NOUVEL ARTICLE : ${title}`, "en": `NEW ARTICLE : ${title}` },
+                                            headings: { "fr": "Dropsiders News", "en": "Dropsiders News" },
+                                            url: newArticle.link,
+                                            // Sending to specific subscription endpoint (approximation)
+                                            include_subscription_ids: [subscription.endpoint.split('/').pop()]
+                                        })
+                                    });
+                                }
+                                // Log push attempt
+                                console.log(`Triggering push for ${subscription.endpoint} - article: ${title}`);
+                            }
+                        } catch (pushErr) {
+                            console.error('Push broadcast error:', pushErr);
+                        }
+                    })());
                 }
 
                 return new Response(JSON.stringify({ success: true, article: newArticle }), { status: 200, headers });
@@ -1145,7 +1206,7 @@ export default {
             const FILE_PATH = 'src/data/news.json';
             try {
                 const body = await request.json();
-                const { id, title, summary, content, image, category, date, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year } = body;
+                const { id, title, summary, content, image, category, date, isFeatured, isFocus, author, youtubeId: bodyYoutubeId, showVideo: bodyShowVideo, year, sendPush } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
@@ -1879,6 +1940,52 @@ export default {
             }
         }
 
+        // --- API: PUSH NOTIFICATIONS ---
+        if (path === '/api/push/subscribe' && request.method === 'POST') {
+            try {
+                const { subscription, favorites } = await request.json();
+                if (!subscription || !subscription.endpoint) {
+                    return new Response(JSON.stringify({ error: 'Invalid subscription' }), { status: 400, headers });
+                }
+
+                // Store in KV
+                // Use endpoint hash as key to avoid duplicates and long keys
+                const key = `push_sub_${btoa(subscription.endpoint).substring(0, 100)}`;
+                await env.CHAT_KV.put(key, JSON.stringify({
+                    subscription,
+                    favorites: favorites || [],
+                    date: new Date().toISOString()
+                }));
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/push/unsubscribe' && request.method === 'POST') {
+            try {
+                const { endpoint } = await request.json();
+                if (!endpoint) return new Response(JSON.stringify({ error: 'Missing endpoint' }), { status: 400, headers });
+
+                const key = `push_sub_${btoa(endpoint).substring(0, 100)}`;
+                await env.CHAT_KV.delete(key);
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/push/subscribers-count' && request.method === 'GET') {
+            try {
+                const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+                return new Response(JSON.stringify({ count: list.keys.length }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ count: 0 }), { status: 200, headers });
+            }
+        }
+
         // --- STATIC ASSETS & FALLBACK ---
 
         // --- API: GET NEWS CONTENT ---
@@ -2010,5 +2117,109 @@ export default {
         }
 
         return response;
+    },
+
+    async scheduled(event, env, ctx) {
+        const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
+        const REPO = env.GITHUB_REPO || 'sitedropsiders';
+        const TOKEN = env.GITHUB_TOKEN;
+
+        // 1. Fetch current settings to get the lineup
+        const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/src/data/settings.json`;
+        const res = await fetch(getUrl, {
+            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
+        });
+        if (!res.ok) return;
+        const fileData = await res.json();
+        const content = JSON.parse(atob(fileData.content));
+        const lineup = content?.takeover?.lineup;
+        if (!lineup) return;
+
+        // 2. Parse lineup and find current artists
+        const parseLineup = (text) => {
+            const lines = text.split('\n');
+            const items = [];
+            let currentStage = 'Stage Principal';
+            for (const line of lines) {
+                if (line.trim().startsWith('---')) {
+                    currentStage = line.replace(/---/g, '').trim();
+                    continue;
+                }
+                const match = line.match(/(\d{1,2}:\d{2})\s+-\s+([^(\[]+)(?:\s+\[(.*?)\])?/);
+                if (match) {
+                    items.push({ time: match[1], artist: match[2].trim(), instagram: match[3], stage: currentStage });
+                }
+            }
+            return items;
+        };
+
+        const items = parseLineup(lineup);
+        const now = new Date();
+        const currentTotal = now.getHours() * 60 + now.getMinutes();
+
+        const currentlyLive = items
+            .filter(i => {
+                const [h, m] = i.time.split(':').map(Number);
+                const total = h * 60 + m;
+                // Considered live if within the last 5 minutes (to account for cron jitter)
+                return total <= currentTotal && total > currentTotal - 10;
+            });
+
+        if (currentlyLive.length === 0) return;
+
+        // 3. Check which artists we already notified for
+        const lastNotifiedRaw = await env.CHAT_KV.get('last_notified_artists');
+        const lastNotified = lastNotifiedRaw ? JSON.parse(lastNotifiedRaw) : {};
+        const newArtistsToNotify = [];
+
+        for (const item of currentlyLive) {
+            if (!lastNotified[item.artist] || (Date.now() - lastNotified[item.artist]) > 1000 * 60 * 60 * 2) { // Notify every 2 hours max per artist
+                newArtistsToNotify.push(item);
+                lastNotified[item.artist] = Date.now();
+            }
+        }
+
+        if (newArtistsToNotify.length === 0) return;
+
+        // 4. Update notified list in KV
+        await env.CHAT_KV.put('last_notified_artists', JSON.stringify(lastNotified), { expirationTtl: 86400 });
+
+        // 5. Fetch all subscribers and filter by favorites
+        const { keys } = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+
+        for (const key of keys) {
+            const subDataRaw = await env.CHAT_KV.get(key.name);
+            if (!subDataRaw) continue;
+            const { subscription, favorites } = JSON.parse(subDataRaw);
+
+            const matchingArtists = newArtistsToNotify.filter(i => favorites.includes(i.artist));
+            if (matchingArtists.length > 0) {
+                for (const artist of matchingArtists) {
+                    // Trigger Push Notification via OneSignal or direct Web Push
+                    // For now, we call a helper or log. 
+                    // In a real scenario, this is where you'd call OneSignal or sign VAPID.
+                    console.log(`Sending push to ${subscription.endpoint} for ${artist.artist}`);
+
+                    // Simple example with OneSignal (if configured)
+                    if (env.ONESIGNAL_APP_ID) {
+                        await fetch('https://onesignal.com/api/v1/notifications', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Basic ${env.ONESIGNAL_API_KEY}`
+                            },
+                            body: JSON.stringify({
+                                app_id: env.ONESIGNAL_APP_ID,
+                                contents: { "en": `${artist.artist} est en LIVE sur Dropsiders !`, "fr": `${artist.artist} est en LIVE sur Dropsiders !` },
+                                headings: { "en": "DROPSIDERS LIVE", "fr": "DROPSIDERS LIVE" },
+                                url: `https://dropsiders.fr/takeover`,
+                                include_subscription_ids: [subscription.endpoint.split('/').pop()] // OneSignal specific
+                            })
+                        });
+                    }
+                }
+            }
+        }
     }
 }
+

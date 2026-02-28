@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
-    Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight
+    Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -622,7 +621,70 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [messages]);
 
 
+    const [isPushEnabled, setIsPushEnabled] = useState(() => Notification.permission === 'granted');
+
+    const subscribeToPushNotifications = async () => {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            alert("Les notifications push ne sont pas supportées sur ce navigateur.");
+            return;
+        }
+
+        try {
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                setIsPushEnabled(false);
+                return;
+            }
+
+            const registration = await navigator.serviceWorker.ready;
+
+            // Public VAPID Key - Needs to be 65 bytes base64url encoded
+            // Generated via: npx web-push generate-vapid-keys
+            const vapidPublicKey = 'BCYvM8X8m7_placeholder_X_V_J_p_V_J_p_V_J_p_V_J';
+
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: vapidPublicKey
+            });
+
+            const res = await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    subscription,
+                    favorites
+                })
+            });
+
+            if (res.ok) {
+                setIsPushEnabled(true);
+            }
+        } catch (error) {
+            console.error('Push subscription failed:', error);
+            setIsPushEnabled(false);
+        }
+    };
+
+    const unsubscribeFromPush = async () => {
+        try {
+            const registration = await navigator.serviceWorker.ready;
+            const subscription = await registration.pushManager.getSubscription();
+            if (subscription) {
+                await subscription.unsubscribe();
+                await fetch('/api/push/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ endpoint: subscription.endpoint })
+                });
+            }
+            setIsPushEnabled(false);
+        } catch (error) {
+            console.error('Push unsubscription failed:', error);
+        }
+    };
+
     const [isSending, setIsSending] = useState(false);
+
     const [userColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
 
     const getAuthHeaders = () => {
@@ -3548,7 +3610,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <Music2 className="w-5 h-5" />
                                                         </button>
 
+                                                        <button
+                                                            type="button"
+                                                            onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
+                                                            title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
+                                                            className={`p-2.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                        >
+                                                            <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                        </button>
+
                                                         <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
 
                                                         <div
                                                             className="flex items-center gap-1.5 px-3 py-2 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-all group/drops mr-1"

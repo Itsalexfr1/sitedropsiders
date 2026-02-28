@@ -5,7 +5,7 @@ import {
     Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic,
     Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram,
     ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star,
-    AlignLeft, AlignCenter, AlignRight, Palette, MapPin
+    AlignLeft, AlignCenter, AlignRight, Palette, MapPin, Bell
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -168,8 +168,8 @@ export function NewsCreate() {
         );
         return found ? found.name : 'Alex';
     });
-    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [artistNameLabel, setArtistNameLabel] = useState('');
+    const [sendPush, setSendPush] = useState<boolean | null>(null);
     const [showSocialSuite, setShowSocialSuite] = useState(false);
     const [socialSuiteData, setSocialSuiteData] = useState<{
         title: string,
@@ -1241,7 +1241,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         }
 
 
-        // New validation: check all interview video blocks for empty mediaUrl
         if (type === 'Interview') {
             const hasEmptyVideoBlock = interviewQuestions.some(q => q.type === 'video' && !q.mediaUrl);
             if (hasEmptyVideoBlock) {
@@ -1249,6 +1248,17 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 setMessage('Veuillez remplir le lien YouTube pour tous vos blocs vidéo.');
                 return;
             }
+        }
+
+        if (sendPush === null) {
+            setStatus('error');
+            setMessage('Veuillez choisir si vous souhaitez envoyer une notification push.');
+            // Scroll to the push section
+            const pushSection = document.querySelector('.bg-white\\/5.border-white\\/10.rounded-\\[2rem\\]');
+            if (pushSection) {
+                pushSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            return;
         }
 
         setStatus('loading');
@@ -1347,7 +1357,8 @@ ${generateSocialsHtml()}
                 year: year || undefined,
                 isFocus,
                 isFeatured,
-                author
+                author,
+                sendPush
             };
 
             const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
@@ -1397,6 +1408,7 @@ ${generateSocialsHtml()}
                     ]);
                     setIsFeatured(false);
                     setIsAuthorConfirmed(false);
+                    setSendPush(null);
                     setIsDirty(false); // Reset dirty state after successful publication
                     setActiveTab('News');
                     setShowVideo(type !== 'Interview');
@@ -2957,6 +2969,44 @@ ${generateSocialsHtml()}
                     </div>
 
                     <div className="pt-6 flex flex-col gap-4">
+                        {/* Option Push Notification */}
+                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-6 relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue opacity-50" />
+
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 shadow-lg shadow-neon-red/5">
+                                    <Bell className="w-6 h-6 text-neon-red animate-pulse" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">NOTIFICATION PUSH</h3>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Envoyer une alerte immédiate aux abonnés ?</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <button
+                                    onClick={() => setSendPush(true)}
+                                    type="button"
+                                    className={`py-4 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border ${sendPush === true ? 'bg-neon-red border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                >
+                                    Oui, notifier ✅
+                                </button>
+                                <button
+                                    onClick={() => setSendPush(false)}
+                                    type="button"
+                                    className={`py-4 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border ${sendPush === false ? 'bg-white/10 border-white/20 text-white shadow-xl' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                >
+                                    Non, pas de push ❌
+                                </button>
+                            </div>
+                            {sendPush === null && (
+                                <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-neon-red/10 rounded-lg border border-neon-red/20 animate-pulse">
+                                    <AlertCircle className="w-3.5 h-3.5 text-neon-red" />
+                                    <span className="text-[9px] text-neon-red font-black uppercase tracking-widest">Choix obligatoire avant publication</span>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <button
                                 onClick={() => handleSubmit(true)}

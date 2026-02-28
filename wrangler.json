@@ -9,6 +9,14 @@
 	"observability": {
 		"enabled": true
 	},
+	"triggers": {
+		"crons": [
+			"* * * * *"
+		]
+	},
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"routes": [
 		{
 			"pattern": "dropsiders.fr",
