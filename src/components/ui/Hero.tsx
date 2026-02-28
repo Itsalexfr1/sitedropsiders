@@ -22,7 +22,7 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
                         <iframe
                             className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-[52%] scale-[1.2] aspect-video pointer-events-none border-none"
                             src={`https://www.youtube.com/embed/${finalVideoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${finalVideoId}&playsinline=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1`}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
                             title="Hero Video"
                         />
                     )}

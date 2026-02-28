@@ -4,8 +4,21 @@ import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
-    Facebook, Twitter, Linkedin
+    Facebook, Twitter, Linkedin, Ghost, Maximize, Minimize
 } from 'lucide-react';
+
+const XIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+    </svg>
+);
+
+const SnapchatIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.8c-2.8 0-4.5 1.5-4.5 3.9 0 1 .1 1.8.4 2.4.1.2.1.3.1.5 0 .2-.1.3-.2.5-.2.2-.4.4-.7.8-.3.3-.5.7-.5 1.1 0 .6.4 1.1.9 1.5.5.4 1.1.7 1.8.8.4.1.8.1 1.2.1 1 0 2-.2 2.9-.6.4-.2.8-.4 1.2-.4s.8.2 1.2.4c.9.4 1.9.6 2.9.6.4 0 .8 0 1.2-.1.7-.1 1.3-.4 1.8-.8.5-.4.9-.9.9-1.5 0-.4-.2-.8-.5-1.1s-.5-.6-.7-.8c-.1-.2-.2-.3-.2-.5 0-.2 0-.3.1-.5.3-.6.4-1.4.4-2.4 0-2.4-1.7-3.9-4.5-3.9zm6.6 9.4c.6.6 1.1 1.3 1.1 2.2 0 1-.5 1.9-1.4 2.5-.9.6-2 .9-3.3.9-1.2 0-2.3-.3-3.1-.8-.4-.3-.8-.4-1.2-.4s-.8.1-1.2.4c-.8.5-1.9.8-3.1.8-1.3 0-2.4-.3-3.3-.9-.9-.6-1.4-1.5-1.4-2.5 0-.9.5-1.6 1.1-2.2.6-.6 1.3-1 2.2-1.3.4-.1.8-.2 1.2-.2 1.1 0 2.2.4 3.1 1.1.4.3.8.4 1.2.4s.8-.1 1.2-.4c.9-.7 2-1.1 3.1-1.1.4 0 .8.1 1.2.2.9.3 1.6.7 2.2 1.3z" />
+    </svg>
+);
+
 
 
 interface TakeoverProps {
@@ -39,12 +52,17 @@ interface TakeoverProps {
         botBgColor?: string;
         adminColor?: string;
         adminBgColor?: string;
+        isOnline?: boolean;
+        disableMainPlayer?: boolean;
+        startDate?: string;
+        endDate?: string;
     };
 }
 
 export function TakeoverPage({ settings }: TakeoverProps) {
     const [viewersCount, setViewersCount] = useState(0);
     const [showLineup, setShowLineup] = useState(false);
+    const [isFullScreen, setIsFullScreen] = useState(false);
     const [showVideoEdit, setShowVideoEdit] = useState(false);
     const [newVideoId, setNewVideoId] = useState(settings.youtubeId);
     const [isUnlocked, setIsUnlocked] = useState(() => {
@@ -98,7 +116,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName || 'MAIN STAGE');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
-    const [activeVideoIndex, setActiveVideoIndex] = useState(0);
+    const [activeVideoIndex, setActiveVideoIndex] = useState(settings.disableMainPlayer ? 1 : 0);
     const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
@@ -110,18 +128,47 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const channelItems = useMemo(() => {
         const items = [];
         if (settings.youtubeId) {
-            items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal' });
+            items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal', isMain: true });
         }
         if (settings.channels) {
             settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
                 const [id, ...titleParts] = line.split(':');
                 if (id && id.trim()) {
-                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM' });
+                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM', isMain: false });
                 }
             });
         }
         return items;
     }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
+
+    // Scheduling Logic
+    useEffect(() => {
+        const checkSchedule = () => {
+            if (!settings.startDate && !settings.endDate) return;
+
+            const now = new Date();
+            const start = settings.startDate ? new Date(settings.startDate) : null;
+            const end = settings.endDate ? new Date(settings.endDate) : null;
+
+            let shouldBeOnline = settings.isOnline;
+
+            if (start && end) {
+                shouldBeOnline = now >= start && now <= end;
+            } else if (start) {
+                shouldBeOnline = now >= start;
+            } else if (end) {
+                shouldBeOnline = now <= end;
+            }
+
+            if (shouldBeOnline !== settings.isOnline) {
+                handleUpdateSettings({ isOnline: shouldBeOnline });
+            }
+        };
+
+        const interval = setInterval(checkSchedule, 30000); // Check every 30s
+        checkSchedule();
+        return () => clearInterval(interval);
+    }, [settings.startDate, settings.endDate, settings.isOnline]);
 
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
@@ -139,13 +186,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     // Calculate current artist for the selected stage/flux
     const fluxCurrentArtist = useMemo(() => {
-        if (currentFluxLineup.length === 0) {
-            return { artist: settings.currentArtist || '', instagram: settings.artistInstagram || '' };
-        }
         const now = new Date();
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // Find best match in current flux lineup
         const currentItem = [...currentFluxLineup]
-            .filter(i => i.time.includes(':'))
+            .filter(i => i.time && i.time.includes(':'))
             .map(i => {
                 const [h, m] = i.time.split(':').map(Number);
                 return { ...i, total: h * 60 + m };
@@ -153,11 +199,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             .sort((a, b) => b.total - a.total)
             .find(i => i.total <= currentMinutes);
 
-        return {
-            artist: currentItem?.artist || (activeVideoIndex === 0 && (!displayLineup && !settings.lineup) ? settings.currentArtist : '') || '',
-            instagram: currentItem?.instagram || (activeVideoIndex === 0 && (!displayLineup && !settings.lineup) ? settings.artistInstagram : '') || ''
-        };
-    }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime]);
+        if (currentItem) {
+            return { artist: currentItem.artist || '', instagram: currentItem.instagram || '' };
+        }
+
+        // Fallback to general settings artist if on main flux
+        if (activeVideoIndex === 0) {
+            return { artist: settings.currentArtist || '', instagram: settings.artistInstagram || '' };
+        }
+
+        return { artist: '', instagram: '' };
+    }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime, activeVideoIndex]);
 
     const handleUnlock = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -228,6 +280,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '';
     });
+
+    // Local state for settings modal to avoid multiple builds
+    const [localSettings, setLocalSettings] = useState<Partial<TakeoverProps['settings']>>({});
+    useEffect(() => {
+        if (showEditModal) {
+            setLocalSettings({ ...settings });
+        }
+    }, [showEditModal, settings]);
+
+    const handleUpdateLocalSetting = (updates: Partial<TakeoverProps['settings']>) => {
+        setLocalSettings(prev => ({ ...prev, ...updates }));
+    };
     const [stage1Name, setStage1Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[0] ? (lines[0].split(':').slice(1).join(':').trim() || 'Stage 1') : 'Stage 1';
@@ -356,12 +420,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return JSON.parse(localStorage.getItem('chat_promoted_modos') || '[]');
     });
 
-    const activeUsers = messages.reduce((acc: { pseudo: string, country: string }[], m: any) => {
-        if (!m.isBot && m.pseudo && m.pseudo !== 'DROPSIDERS' && !acc.find((u) => u.pseudo.toUpperCase() === m.pseudo.toUpperCase())) {
-            acc.push({ pseudo: m.pseudo, country: m.country || 'FR' });
-        }
-        return acc;
-    }, []);
+    const activeUsers = useMemo(() => {
+        return messages.reduce((acc: { pseudo: string, country: string }[], m: any) => {
+            if (!m.isBot && m.pseudo && m.pseudo !== 'DROPSIDERS' && !acc.find((u) => u.pseudo.toUpperCase() === m.pseudo.toUpperCase())) {
+                acc.push({ pseudo: m.pseudo, country: m.country || 'FR' });
+            }
+            return acc;
+        }, []);
+    }, [messages]);
+
+    const allActiveUsers = useMemo(() => activeUsers, [activeUsers]);
+
+    const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
+    const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
+
+    const handleUpdateLocalSetting = (newVal: any) => {
+        setLocalSettings(prev => ({ ...prev, ...newVal }));
+        // Immediate feedback updates
+        if (newVal.tickerType !== undefined) setTickerType(newVal.tickerType);
+        if (newVal.tickerBgColor !== undefined) setTickerBgColor(newVal.tickerBgColor);
+        if (newVal.tickerTextColor !== undefined) setTickerTextColor(newVal.tickerTextColor);
+        if (newVal.showTickerBanner !== undefined) setShowTickerBanner(newVal.showTickerBanner);
+        if (newVal.showTopBanner !== undefined) setShowTopBanner(newVal.showTopBanner);
+        if (newVal.adminColor !== undefined) setAdminColor(newVal.adminColor);
+        if (newVal.adminBgColor !== undefined) setAdminBgColor(newVal.adminBgColor);
+    };
     const [isSending, setIsSending] = useState(false);
     const [userColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
 
@@ -1044,6 +1127,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     if (updates.adminColor !== undefined) setAdminColor(updates.adminColor);
                     if (updates.adminBgColor !== undefined) setAdminBgColor(updates.adminBgColor);
 
+                    if (updates.isOnline !== undefined) {
+                        settings.isOnline = updates.isOnline;
+                    }
+                    if (updates.enabled !== undefined) {
+                        settings.enabled = updates.enabled;
+                    }
                     if (updates.autoMessage !== undefined) {
                         settings.autoMessage = updates.autoMessage;
                     }
@@ -1091,7 +1180,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         } finally {
             setIsSaving(false);
         }
-    }, [getAuthHeaders, editTitle, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, settings]);
+    }, [getAuthHeaders, editTitle, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, botColor, botBgColor, adminColor, adminBgColor, settings]);
+
+    const handleToggleLive = async () => {
+        const isCurrentlyOnline = settings.isOnline;
+        const action = isCurrentlyOnline ? 'couper' : 'lancer';
+        if (!window.confirm(`Voulez-vous vraiment ${action} le LIVE ?`)) return;
+        handleUpdateSettings({ isOnline: !isCurrentlyOnline });
+    };
+
+    const handleCutLiveFull = async () => {
+        if (!window.confirm('Voulez-vous vraiment désactiver COMPLÈTEMENT le Takeover ?')) return;
+        await handleUpdateSettings({ enabled: false });
+        window.location.href = '/';
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -1181,23 +1283,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-    const handleCutLive = async () => {
-        if (!window.confirm('Voulez-vous vraiment désactiver le LIVE ?')) return;
-        try {
-            const response = await fetch('/api/settings/takeover', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ enabled: false })
-            });
-            if (response.ok) {
-                window.location.reload();
-            }
-        } catch (e) {
-            console.error('Failed to cut live', e);
-        }
-    };
-
-
     if (settings.isSecret && !isUnlocked && !hasModPowers) {
         return (
             <div className="fixed inset-0 bg-[#050505] z-[9999] flex items-center justify-center p-6">
@@ -1257,14 +1342,25 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }
 
     return (
-        <div className={`fixed ${showTopBanner ? 'top-[70px] lg:top-32' : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
+        <div className={`fixed ${showTopBanner && !isFullScreen ? 'top-[70px] lg:top-32' : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
             {/* Live Banner Header - Conditionally based on top banner enabled */}
-            {showTopBanner && !isFocusMode && (
+            {showTopBanner && !isFocusMode && !isFullScreen && (
                 <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
-                            <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                            <span className="text-xs font-black text-red-500 uppercase tracking-widest">EN DIRECT</span>
+                        <div className="flex flex-col items-center gap-1.5">
+                            <div className="flex items-center gap-2 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
+                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+                                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none">EN DIRECT</span>
+                            </div>
+                            <div
+                                className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all shadow-lg"
+                                onClick={() => setShowUsersPanel(!showUsersPanel)}
+                            >
+                                <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] leading-none flex items-center gap-2">
+                                    <Users className="w-3 h-3" />
+                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (allActiveUsers.length || '...')}
+                                </span>
+                            </div>
                         </div>
                         <div className="flex flex-col min-w-0">
                             <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
@@ -1301,16 +1397,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         {/* Multi-Video Switcher */}
                         {channelItems.length > 1 && (
                             <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                                {channelItems.map((item, idx) => (
-                                    <button
-                                        key={idx}
-                                        id={`channel-btn-${idx}`}
-                                        onClick={() => setActiveVideoIndex(idx)}
-                                        className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
-                                    >
-                                        {item.title}
-                                    </button>
-                                ))}
+                                {channelItems.map((item: any, idx) => {
+                                    if (item.isMain && settings.disableMainPlayer) return null;
+                                    return (
+                                        <button
+                                            key={idx}
+                                            id={`channel-btn-${idx}`}
+                                            onClick={() => setActiveVideoIndex(idx)}
+                                            className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                        >
+                                            {item.title}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
                         <div className="flex items-center gap-2">
@@ -1338,6 +1437,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <List className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Planning</span>
                             </button>
+                            <button
+                                onClick={() => setIsFullScreen(!isFullScreen)}
+                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${isFullScreen ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30'}`}
+                                title={isFullScreen ? "Quitter le plein écran" : "Mode plein écran"}
+                            >
+                                {isFullScreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+                                <span className="hidden sm:inline">{isFullScreen ? "Réduire" : "Plein écran"}</span>
+                            </button>
                         </div>
                         <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-9">
                             <a
@@ -1357,17 +1464,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 className="p-1.5 text-gray-500 hover:text-white transition-colors"
                                 title="Partager sur X"
                             >
-                                <Twitter className="w-3.5 h-3.5" />
+                                <XIcon className="w-3.5 h-3.5" />
                             </a>
                             <div className="w-[1px] h-3 bg-white/10" />
                             <a
-                                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+                                href={`https://www.snapchat.com/share?url=${encodeURIComponent(window.location.href)}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="p-1.5 text-gray-500 hover:text-blue-400 transition-colors"
-                                title="Partager sur LinkedIn"
+                                className="p-1.5 text-gray-500 hover:text-yellow-400 transition-colors"
+                                title="Partager sur Snapchat"
                             >
-                                <Linkedin className="w-3.5 h-3.5" />
+                                <SnapchatIcon className="w-3.5 h-3.5" />
                             </a>
                         </div>
                     </div>
@@ -1386,6 +1493,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
+            {isFullScreen && (
+                <button
+                    onClick={() => setIsFullScreen(false)}
+                    className="fixed top-4 right-4 z-[100] p-3 bg-neon-cyan/20 backdrop-blur-md border border-neon-cyan/30 rounded-full text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all shadow-[0_0_20px_rgba(0,255,204,0.3)]"
+                    title="Quitter le plein écran"
+                >
+                    <Minimize className="w-5 h-5" />
+                </button>
+            )}
+
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
                 {/* Video Section */}
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
@@ -1393,13 +1510,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         {/* Stream Name Badge */}
                         {/* Redundant Stream Name Badge removed */}
                         <div className="absolute inset-0 z-0">
-                            <iframe
-                                className="w-full h-full border-none"
-                                src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
-                                title={settings.title}
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                allowFullScreen
-                            ></iframe>
+                            {(!settings.disableMainPlayer || activeVideoIndex !== 0) ? (
+                                <iframe
+                                    className="w-full h-full border-none"
+                                    src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
+                                    title={settings.title}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            ) : (
+                                <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
+                                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
+                                    <p className="text-gray-400 text-sm max-w-md">Veuillez sélectionner un autre flux dans le switcher ci-dessus (Stage 1, 2, 3 ou 4) pour continuer le visionnage.</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Active Poll Overlay */}
@@ -1647,13 +1771,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-4 lg:p-10 flex flex-col items-center overflow-y-auto custom-scrollbar"
-
+                                    className="absolute inset-0 bg-black/60 backdrop-blur-md z-[40] p-4 lg:p-10 flex flex-col items-center overflow-y-auto custom-scrollbar"
                                 >
                                     <motion.div
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="w-full max-w-5xl h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col"
+                                        className="w-full max-w-5xl h-[90vh] bg-black/40 backdrop-blur-[30px] border border-white/10 rounded-[3rem] shadow-[0_0_80px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col"
                                         onClick={e => e.stopPropagation()}
                                     >
                                         <div className="flex items-center justify-between p-8 lg:p-10 border-b border-white/10 shrink-0">
@@ -1667,7 +1790,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
 
                                         {/* Tabs Navigation */}
-                                        <div className="flex border-b border-white/10 px-6 shrink-0 bg-white/[0.02] overflow-x-auto no-scrollbar">
+                                        <div className="flex justify-center border-b border-white/10 px-6 shrink-0 bg-white/[0.02] overflow-x-auto no-scrollbar">
                                             <button
                                                 onClick={() => setActiveSettingsTab('general')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'general' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
@@ -1724,33 +1847,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-red">Affichage</span></h3>
                                                             </div>
-                                                            <div className="space-y-3">
-                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Page En Ligne</label>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ enabled: !settings.enabled })}
-                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.enabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
-                                                                    >
-                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                    </button>
+                                                            <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                <div className="flex flex-col">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Menu</label>
+                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">{settings.isOnline ? 'Online Menu Active' : 'Offline Menu Active'}</span>
                                                                 </div>
-                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Affichage Shop (Global)</label>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ showShop: !settings.showShop })}
-                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.showShop ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
-                                                                    >
-                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.showShop ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                    </button>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.isOnline ? 'bg-green-500 shadow-[0_0_15px_#22c55e44]' : 'bg-gray-800'}`}
+                                                                >
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.isOnline ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                </button>
+                                                            </div>
+                                                            <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                <div className="flex flex-col">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Flux Principal</label>
+                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">{settings.disableMainPlayer ? 'Désactivé' : 'Activé'}</span>
                                                                 </div>
-                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Accès Privé (Secret Code)</label>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ isSecret: !settings.isSecret })}
-                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.isSecret ? 'bg-neon-purple shadow-[0_0_15px_#bc13fe44]' : 'bg-gray-800'}`}
-                                                                    >
-                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.isSecret ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                    </button>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ disableMainPlayer: !settings.disableMainPlayer })}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${!settings.disableMainPlayer ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
+                                                                >
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${!settings.disableMainPlayer ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                </button>
+                                                            </div>
+                                                            <div className="pt-2 grid grid-cols-2 gap-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Début du Live (Optionnel)</label>
+                                                                    <input type="datetime-local" value={localSettings.startDate || ''} onChange={e => handleUpdateLocalSetting({ startDate: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] font-bold text-white outline-none focus:border-neon-red" />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Fin du Live (Optionnel)</label>
+                                                                    <input type="datetime-local" value={localSettings.endDate || ''} onChange={e => handleUpdateLocalSetting({ endDate: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] font-bold text-white outline-none focus:border-neon-red" />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -1876,28 +2004,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {activeSettingsTab === 'ticker' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                        {/* Top Banner Control */}
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <Activity className="w-4 h-4 text-neon-red" />
-                                                                    </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 2 <span className="text-neon-red">(Titre & Infos)</span></h3>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => setShowTopBanner(!showTopBanner)}
-                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
-                                                                >
-                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                                </button>
-                                                            </div>
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                                                                Affiche le logo du festival et le menu de navigation en haut de la page.
-                                                            </p>
-                                                        </div>
-
-                                                        {/* Ticker Banner Control */}
+                                                        {/* Ticker Banner Control (Bandeau 1) */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center justify-between mb-4">
                                                                 <div className="flex items-center gap-3">
@@ -1907,7 +2014,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Défilant)</span></h3>
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => setShowTickerBanner(!showTickerBanner)}
+                                                                    onClick={() => handleUpdateLocalSetting({ showTickerBanner: !showTickerBanner })}
                                                                     className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
                                                                 >
                                                                     <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
@@ -1919,7 +2026,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Type de contenu</label>
                                                                     <select
                                                                         value={tickerType}
-                                                                        onChange={(e) => setTickerType(e.target.value as any)}
+                                                                        onChange={(e) => handleUpdateLocalSetting({ tickerType: e.target.value as any })}
                                                                         className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red cursor-pointer"
                                                                     >
                                                                         <option value="news">📢 Actualités automatiques</option>
@@ -1932,14 +2039,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="space-y-1.5">
                                                                         <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
                                                                         <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                            <input type="color" value={tickerBgColor} onChange={(e) => setTickerBgColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                            <input type="color" value={tickerBgColor} onChange={(e) => handleUpdateLocalSetting({ tickerBgColor: e.target.value })} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
                                                                             <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerBgColor}</span>
                                                                         </div>
                                                                     </div>
                                                                     <div className="space-y-1.5">
                                                                         <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
                                                                         <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                            <input type="color" value={tickerTextColor} onChange={(e) => setTickerTextColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                            <input type="color" value={tickerTextColor} onChange={(e) => handleUpdateLocalSetting({ tickerTextColor: e.target.value })} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
                                                                             <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerTextColor}</span>
                                                                         </div>
                                                                     </div>
@@ -1949,15 +2056,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="space-y-4 pt-2">
                                                                         <div className="space-y-1.5">
                                                                             <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Votre message</label>
-                                                                            <input type="text" value={tickerText} onChange={(e) => setTickerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                                            <input type="text" value={tickerText} onChange={(e) => handleUpdateLocalSetting({ tickerText: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
                                                                         </div>
                                                                         <div className="space-y-1.5">
                                                                             <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien au clic (Optionnel)</label>
-                                                                            <input type="text" value={tickerLink} onChange={(e) => setTickerLink(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="https://..." />
+                                                                            <input type="text" value={tickerLink} onChange={(e) => handleUpdateLocalSetting({ tickerLink: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="https://..." />
                                                                         </div>
                                                                     </div>
                                                                 )}
                                                             </div>
+                                                        </div>
+
+                                                        {/* Top Banner Control (Bandeau 2) */}
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                        <Activity className="w-4 h-4 text-neon-red" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 2 <span className="text-neon-red">(Titre & Infos)</span></h3>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleUpdateLocalSetting({ showTopBanner: !showTopBanner })}
+                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                >
+                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                                                                Affiche le logo du festival et le menu de navigation en haut de la page.
+                                                            </p>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2128,18 +2256,29 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                     {/* Apparence Admin */}
                                                     <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                <Pencil className="w-4 h-4 text-neon-red" />
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Pencil className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-red">Admin</span></h3>
                                                             </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-red">Admin</span></h3>
+                                                            <button
+                                                                onClick={() => handleUpdateSettings({
+                                                                    adminColor: localSettings.adminColor,
+                                                                    adminBgColor: localSettings.adminBgColor
+                                                                })}
+                                                                className="px-4 py-1.5 bg-neon-red text-white text-[10px] font-black uppercase rounded-lg hover:bg-neon-red/80 transition-all font-bold shadow-[0_0_15px_rgba(255,0,51,0.3)]"
+                                                            >
+                                                                VALIDER
+                                                            </button>
                                                         </div>
                                                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
                                                                 <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-red transition-all">
-                                                                    <input type="color" value={adminColor} onChange={(e) => handleUpdateSettings({ adminColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
-                                                                    <span className="text-xs font-bold text-white uppercase">{adminColor}</span>
+                                                                    <input type="color" value={localSettings.adminColor || adminColor} onChange={(e) => handleUpdateLocalSetting({ adminColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{localSettings.adminColor || adminColor}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-2">
@@ -2148,10 +2287,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="relative group/picker">
                                                                         <input
                                                                             type="color"
-                                                                            value={adminColor}
+                                                                            value={localSettings.adminColor || adminColor}
                                                                             onChange={(e) => {
                                                                                 const hex = e.target.value;
-                                                                                handleUpdateSettings({ adminBgColor: `${hex}0d` }); // 0.05 opacity by default
+                                                                                handleUpdateLocalSetting({ adminBgColor: `${hex}0d` }); // 0.05 opacity by default
                                                                             }}
                                                                             className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
                                                                         />
@@ -2161,16 +2300,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <input
                                                                             type="text"
                                                                             placeholder="ex: rgba(255, 0, 51, 0.05)"
-                                                                            value={adminBgColor}
-                                                                            onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })}
+                                                                            value={localSettings.adminBgColor || adminBgColor}
+                                                                            onChange={(e) => handleUpdateLocalSetting({ adminBgColor: e.target.value })}
                                                                             className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
                                                                         />
-                                                                        <button
-                                                                            onClick={() => alert(`Couleur Admin Validée : ${adminBgColor}`)}
-                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-red hover:text-white transition-all whitespace-nowrap"
-                                                                        >
-                                                                            VALIDER
-                                                                        </button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2623,21 +2756,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
 
                                                     handleUpdateSettings({
-                                                        title: editTitle,
-                                                        mainFluxName: editMainFluxName,
-                                                        lineup: editLineup,
+                                                        ...localSettings,
                                                         youtubeId: fId,
                                                         channels: newChannels.join('\n'),
                                                         shopItems: selectedShopIds.join(','),
-                                                        tickerType,
-                                                        tickerBgColor,
-                                                        tickerTextColor,
-                                                        tickerText,
-                                                        tickerLink,
-                                                        showTopBanner,
-                                                        showTickerBanner,
-                                                        currentArtist: editCurrentArtist,
-                                                        artistInstagram: editArtistInstagram,
                                                         chat_enabled: true
                                                     });
                                                 }}
@@ -2647,11 +2769,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
                                             </button>
                                             <button
-                                                onClick={handleCutLive}
-                                                className="py-4 bg-black border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-white/10 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                                onClick={handleToggleLive}
+                                                className="py-4 bg-white/5 border border-white/5 text-neon-red text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red hover:text-white transition-all group flex items-center justify-center gap-3 relative overflow-hidden active:scale-[0.98]"
                                             >
-                                                <Power className="w-4 h-4 text-neon-red" />
-                                                Couper Live
+                                                <Power className={`w-4 h-4 ${settings.isOnline ? 'text-neon-red' : 'text-green-500'} group-hover:text-white transition-colors`} />
+                                                {settings.isOnline ? 'Couper Live' : 'Lancer Live'}
                                             </button>
                                         </div>
                                     </motion.div>
@@ -2832,16 +2954,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                     <span
                                                         className="text-[11px] lg:text-[13px] font-black uppercase tracking-widest"
-                                                        style={{ color: isBot ? botColor : isMsgAdmin ? adminColor : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                        style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                     >
                                                         {msg.pseudo}
                                                     </span>
-                                                    {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: adminColor, boxShadow: `0 0 10px ${adminColor}66` }}>ADMIN</span>}
+                                                    {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
                                                     <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                 </div>
                                                 <div
                                                     className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
-                                                    style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: adminBgColor, borderColor: `${adminColor}40`, color: '#ffffff' } : {}}
+                                                    style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                 >
                                                     {/* Message with clickable links */}
                                                     <span className="relative z-10">
@@ -2971,39 +3093,39 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </form>
                                         </div>
                                     ) : (
-                                        <form onSubmit={handleSendMessage} className="relative group/input">
-                                            <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within/input:opacity-50 blur-md rounded-2xl lg:rounded-3xl transition-all" />
-                                            <div className="relative flex flex-col bg-black border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/50 shadow-2xl">
-                                                <div className="flex items-center justify-between bg-white/[0.02] border-b border-white/5 px-2">
-                                                    <div className="flex items-center">
-                                                        <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-3 transition-all ${showEmojiPicker ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}><Smile className="w-5 h-5 shadow-neon-red" /></button>
-                                                        <div className="w-[1px] h-4 bg-white/10 mx-1" />
-                                                        <button type="button" onClick={handleShazam} className={`p-3 transition-all flex items-center gap-2 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan'}`}>
-                                                            <Music2 className="w-5 h-5" />
-                                                            {shazamLoading && <span className="text-[10px] font-black uppercase tracking-widest">Identification...</span>}
-                                                        </button>
-                                                    </div>
+                                        <form onSubmit={handleSendMessage} className="relative group/input p-4">
+                                            <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-2xl lg:rounded-3xl transition-all" />
+                                            <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
+                                                <div className="flex items-center px-2 py-1 lg:py-1.5">
+                                                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
+                                                    <div className="w-[1px] h-4 bg-white/10 mx-1" />
 
-                                                    <div
-                                                        className="flex items-center gap-1.5 px-2 py-1 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-colors"
-                                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                                    >
-                                                        <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
-                                                        <span className="text-[9px] font-black text-neon-red uppercase tracking-widest leading-none">
-                                                            {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center">
                                                     <input
                                                         type="text"
                                                         value={newMessage}
                                                         onChange={(e) => setNewMessage(e.target.value)}
-                                                        placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire un message..."}
-                                                        className="flex-1 bg-transparent px-6 py-4 lg:py-5 text-sm font-medium text-white outline-none placeholder:text-gray-700"
+                                                        placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
+                                                        className="flex-1 bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
                                                     />
-                                                    <button type="submit" disabled={!newMessage.trim() || isSending} className="p-4 lg:p-5 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-30 transition-all flex items-center justify-center">
-                                                        <Send className={`w-5 h-5 ${isSending ? 'animate-pulse' : ''}`} />
+
+                                                    <button type="button" onClick={handleShazam} className={`p-2.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                        <Music2 className="w-5 h-5" />
+                                                    </button>
+
+                                                    <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+                                                    <div
+                                                        className="flex items-center gap-1.5 px-3 py-2 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-all group/drops mr-1"
+                                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                                    >
+                                                        <Users className="w-3.5 h-3.5 text-neon-red group-hover/drops:scale-110 transition-transform" />
+                                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none drop-shadow-[0_0_5px_rgba(255,0,0,0.3)]">
+                                                            {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
+                                                        </span>
+                                                    </div>
+
+                                                    <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                        <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
                                                     </button>
                                                 </div>
                                             </div>
@@ -3133,11 +3255,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
+            </div >
 
             {/* Ticker Banner */}
             {
-                !isFocusMode && showTickerBanner && (
+                !isFocusMode && !isFullScreen && showTickerBanner && (
                     <div
                         className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
                         style={{ backgroundColor: tickerBgColor }}
@@ -3313,7 +3435,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
-        </div>
+        </div >
     );
 }
 

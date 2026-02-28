@@ -149,7 +149,7 @@ export function SpotifyWidget({
                                     height={height}
                                     frameBorder="0"
                                     allowFullScreen
-                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen"
                                     loading="lazy"
                                     className={`w-full transition-all duration-500 shadow-2xl ${isPlaying
                                         ? 'grayscale-0 opacity-100'

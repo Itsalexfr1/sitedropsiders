@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 import { getAgendaLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
+import { Users, Music2 } from 'lucide-react';
 
 export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor }: { maxItems?: number, accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -27,12 +28,85 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
     const playHoverSound = useHoverSound();
 
     const [takeoverEnabled, setTakeoverEnabled] = useState(false);
+    const [takeoverSettings, setTakeoverSettings] = useState<any>(null);
+    const [viewersCount, setViewersCount] = useState<number>(0);
+    const [currentArtist, setCurrentArtist] = useState<{ artist: string; instagram: string; stage: string } | null>(null);
+
     useEffect(() => {
-        fetch('/api/settings/takeover')
-            .then(res => res.json())
-            .then(data => setTakeoverEnabled(!!data?.enabled))
-            .catch(() => { });
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data?.takeover) {
+                        const isSecret = !!data.takeover.isSecret;
+                        setTakeoverSettings(isSecret ? null : data.takeover);
+                        setTakeoverEnabled(isSecret ? false : !!data.takeover.isOnline);
+                    }
+                }
+            } catch (err) { }
+        };
+
+        fetchSettings();
+        const interval = setInterval(fetchSettings, 5000);
+        return () => clearInterval(interval);
     }, []);
+
+    // Polling Spectators
+    useEffect(() => {
+        if (!takeoverEnabled) return;
+        const fetchViewers = async () => {
+            try {
+                const res = await fetch('/api/chat/ping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pseudo: 'ANON-AGENDA', channel: takeoverSettings?.youtubeId })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data?.count !== undefined) setViewersCount(data.count);
+                }
+            } catch (err) { }
+        };
+        fetchViewers();
+        const intv = setInterval(fetchViewers, 20000);
+        return () => clearInterval(intv);
+    }, [takeoverEnabled, takeoverSettings?.youtubeId]);
+
+    // Current Artist Logic
+    useEffect(() => {
+        if (!takeoverEnabled || !takeoverSettings?.lineup) return;
+
+        const parseLineup = (text: string) => {
+            const lines = text.split('\n').filter(l => l.trim());
+            return lines.map(line => {
+                const timeMatch = line.match(/^\[(.*?)\]/);
+                if (!timeMatch) return null;
+                const timeStr = timeMatch[1].trim();
+                const rest = line.replace(timeMatch[0], '').trim();
+                const parts = rest.split(/\s*-\s*/);
+                const artist = parts[0]?.trim() || '';
+                const stage = parts[1]?.trim() || '';
+                const insta = parts.slice(2).join(' - ')?.trim() || '';
+
+                const [h, m] = timeStr.replace('h', ':').split(':').map(n => parseInt(n));
+                const d = new Date();
+                d.setHours(h || 0, m || 0, 0, 0);
+                return { artist, stage, instagram: insta, date: d };
+            }).filter(Boolean) as any[];
+        };
+
+        const updateArtist = () => {
+            const lineup = parseLineup(takeoverSettings.lineup);
+            const now = new Date();
+            const currentItem = [...lineup].reverse().find(item => item.date <= now);
+            setCurrentArtist(currentItem || null);
+        };
+
+        updateArtist();
+        const interval = setInterval(updateArtist, 60000);
+        return () => clearInterval(interval);
+    }, [takeoverEnabled, takeoverSettings?.lineup]);
 
     const getEventStyles = (genre: string) => {
         const g = (genre || '').toLowerCase().trim();
@@ -123,12 +197,27 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                 </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 lg:gap-3 mb-0.5 lg:mb-1">
-                                    <span className="text-[10px] lg:text-[11px] font-black text-white bg-neon-red px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-[0_0_10px_rgba(255,0,51,0.5)]">DIRECT</span>
+                                <div className="flex items-center gap-2 lg:gap-3 mb-1">
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] lg:text-[11px] font-black text-white bg-neon-red px-2 py-0.5 rounded-sm uppercase tracking-widest shadow-[0_0_10px_rgba(255,0,51,0.5)] w-fit">DIRECT</span>
+                                        {viewersCount > 0 && (
+                                            <span className="text-[9px] font-black text-neon-red mt-1 flex items-center gap-1">
+                                                <Users className="w-2.5 h-2.5" /> {viewersCount} SPECTATEURS
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <h4 className="text-sm lg:text-base font-display font-black text-white uppercase tracking-tighter truncate group-hover:text-neon-red transition-colors duration-300">
-                                    LIVE
+                                    {takeoverSettings?.title || 'DROPSIDERS LIVE'}
                                 </h4>
+                                {currentArtist && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Music2 className="w-2.5 h-2.5 text-neon-cyan" />
+                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest truncate">
+                                            EN LIVE : <span className="text-white">{currentArtist.artist}</span>
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </Link>
