@@ -622,10 +622,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [messages]);
 
 
-    const [isPushEnabled, setIsPushEnabled] = useState(() => Notification.permission === 'granted');
+    const [isPushEnabled, setIsPushEnabled] = useState(() => 'Notification' in window && Notification.permission === 'granted');
 
     const subscribeToPushNotifications = async () => {
-        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
             alert("Les notifications push ne sont pas supportées sur ce navigateur.");
             return;
         }
@@ -2861,7 +2861,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 setEditLineup(lines.join('\n'));
                                                                             };
 
-                                                                            const timeMatch = line.match(/^\[(.*?)\]/);
+                                                                            const timeMatch = line.includes('|') ? line.split('|')[0] : line.match(/^\[(.*?)\]/)?.[1];
                                                                             if (!timeMatch) return (
                                                                                 <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
                                                                                     <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
@@ -2873,9 +2873,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 </tr>
                                                                             );
 
-                                                                            const time = timeMatch[1].trim();
-                                                                            const rest = line.replace(timeMatch[0], '').trim();
-                                                                            const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
+                                                                            const time = timeMatch.trim();
+                                                                            const rest = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : line.replace(/^\[(.*?)\]/, '').trim();
+                                                                            const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
                                                                             const artist = parts[0] || '';
                                                                             const stage = parts[1] || '';
                                                                             // Direct 3rd part is Instagram now
