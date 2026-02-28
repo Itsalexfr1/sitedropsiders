@@ -3537,7 +3537,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     {getCountryFlag(msg.country || 'FR')}
                                                                 </div>
                                                                 <span
-                                                                    className="text-[12px] lg:text-[14px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                    className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
                                                                     style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                 >
                                                                     {msg.pseudo}
@@ -3546,7 +3546,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                             </div>
                                                             <div
-                                                                className={`p-2 px-3 rounded-xl text-[12px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                 style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                             >
                                                                 {/* Message with clickable links */}
