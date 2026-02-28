@@ -215,18 +215,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.beginPath(); ctx.arc(centerX, centerY, 45, 0, Math.PI * 2); ctx.fillStyle = '#0a0a0a'; ctx.fill();
                     ctx.strokeStyle = activeData.color; ctx.lineWidth = 10; ctx.stroke();
                 }
-                // Style name - Simple Bold Italic
+                // Artist - Main Line
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 85px "Inter", sans-serif';
+                ctx.font = '900 italic 75px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
-                ctx.fillText(item.main.toUpperCase(), centerX + slideX, centerY + radius + 150);
+                ctx.fillText(item.main.toUpperCase(), centerX + slideX, centerY + radius + 120);
 
-                ctx.textAlign = 'right';
-                ctx.font = '900 italic 150px "Inter", sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
+                // Title - Sub Line
+                ctx.font = '900 italic 45px "Inter", sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillText(item.sub.toUpperCase(), centerX + slideX, centerY + radius + 190);
+
+                // Only title and artist
 
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
@@ -496,8 +498,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     {top5Items.map((item, i) => (
                                         <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
                                             <div className="grid grid-cols-2 gap-2 mb-2">
-                                                <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder={theme.includes('STYLES') ? "STYLE" : "ARTISTE"} className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                                <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder={theme.includes('STYLES') ? "DESCRIPTION" : "TITRE"} className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                                <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="ARTISTE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                                <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                             </div>
                                             {theme === 'TOP 5 ARTISTE' && (
                                                 <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
