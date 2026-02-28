@@ -53,7 +53,7 @@
     "chat_enabled": true,
     "currentArtist": "COSMIC GATE",
     "artistInstagram": "https://www.instagram.com/cosmicgate/",
-    "showClosedDoors": false,
+    "showClosedDoors": true,
     "isOnline": true
   }
 }
