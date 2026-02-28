@@ -133,16 +133,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
                 const centerX = canvas.width / 2;
-                const centerY = safeTop + 450;
+                const centerY = safeTop + 480; // Disc slightly lower
                 const radius = 350;
-
-                // Title Style - Center High
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 80px "Inter", sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 15;
-                ctx.fillText(item.main.toUpperCase(), centerX, safeTop + 150);
 
                 // Rotating Disc (Vinyl)
                 if (img) {
@@ -168,6 +160,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.lineWidth = 10;
                     ctx.stroke();
                 }
+
+                // Title Style - NOW BELOW THE VINYL
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 80px "Inter", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 15;
+                ctx.fillText(item.main.toUpperCase(), centerX, centerY + radius + 120);
 
                 // Rank
                 ctx.textAlign = 'right';
