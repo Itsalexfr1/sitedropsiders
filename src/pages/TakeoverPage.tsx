@@ -3530,7 +3530,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             key={msg.id || idx}
                                                             initial={{ opacity: 0, x: 10 }}
                                                             animate={{ opacity: 1, x: 0 }}
-                                                            className="group relative"
+                                                            className="group relative min-w-0 overflow-hidden"
                                                         >
                                                             <div className="flex items-center gap-2 mb-1 px-1">
                                                                 <div className="w-4 flex items-center justify-center opacity-80">
@@ -3546,7 +3546,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                             </div>
                                                             <div
-                                                                className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                 style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                             >
                                                                 {/* Message with clickable links */}
@@ -3564,7 +3564,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                         href={part}
                                                                                         target="_blank"
                                                                                         rel="noopener noreferrer"
-                                                                                        className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all"
+                                                                                        className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
                                                                                         onClick={(e) => e.stopPropagation()}
                                                                                     >
                                                                                         {part}
