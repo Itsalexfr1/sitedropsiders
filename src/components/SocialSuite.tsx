@@ -142,6 +142,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             ctx.fillStyle = 'rgba(0,0,0,0.1)';
             for (let i = 0; i < canvas.height; i += 6) ctx.fillRect(0, i, canvas.width, 2);
 
+            // Transition Slide logic
+            let slideX = 0;
+            if (transitionProgress > 0) {
+                if (transitionProgress < 0.5) {
+                    // Slide OUT to the LEFT (Ease In)
+                    const p = transitionProgress * 2;
+                    slideX = -canvas.width * (p * p);
+                } else {
+                    // Slide IN from the RIGHT (Ease Out)
+                    const p = (transitionProgress - 0.5) * 2;
+                    slideX = canvas.width * (1 - (p * (2 - p)));
+                }
+            }
+
             // HELPER: Draw Tape/Label
             const drawTapeLabel = (text: string, x: number, y: number, w: number, h: number, color: string, gradStr: string) => {
                 ctx.save();
@@ -201,14 +215,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.beginPath(); ctx.arc(centerX, centerY, 45, 0, Math.PI * 2); ctx.fillStyle = '#0a0a0a'; ctx.fill();
                     ctx.strokeStyle = activeData.color; ctx.lineWidth = 10; ctx.stroke();
                 }
-                // Style name using TAPE design if needed? The user said "met le style au lieu d'une couleurs uniquement".
-                // I will use a smaller tape design for the style name.
-                drawTapeLabel(item.main, centerX, centerY + radius + 150, 700, 180, activeData.color, activeData.grad);
+                // Style name using TAPE design
+                drawTapeLabel(item.main, centerX + slideX, centerY + radius + 150, 700, 180, activeData.color, activeData.grad);
 
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 150px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100, canvas.height - 150);
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
@@ -218,19 +231,19 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.font = '900 italic 52px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), 100, baseY);
+                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), 100 + slideX, baseY);
                 const barWidth = 880; const barHeight = 90; const barX = 90; const barY = baseY + 45;
                 ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
-                ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
+                ctx.fillRect(barX - 10 + slideX, barY - 10, barWidth + 20, barHeight + 20);
                 ctx.fillStyle = activeData.color;
-                ctx.fillRect(barX, barY, barWidth, barHeight);
+                ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
                 ctx.font = '900 italic 46px "Inter", sans-serif';
-                ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30, barY + 60);
+                ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 120px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100, canvas.height - 150);
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
             } else {
                 const fontSize = 85; const lineHeight = fontSize * 1.2;
