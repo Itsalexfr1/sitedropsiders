@@ -54,6 +54,6 @@
     "currentArtist": "COSMIC GATE",
     "artistInstagram": "https://www.instagram.com/cosmicgate/",
     "showClosedDoors": false,
-    "showInAgenda": true
+    "isOnline": true
   }
 }
