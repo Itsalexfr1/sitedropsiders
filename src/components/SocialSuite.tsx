@@ -73,9 +73,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 });
             }
 
-            // Set canvas size (Post 1080x1440)
+            // Dynamic Canvas Size: Reel (9:16) for TOP5, Post (4:5) for others
+            const isVideo = theme === 'TOP5';
             canvas.width = 1080;
-            canvas.height = 1440;
+            canvas.height = isVideo ? 1920 : 1350;
+
+            // 1:1 Safe Zone (for Post grid visibility)
+            const safeTop = (canvas.height - 1080) / 2;
+            const safeBottom = safeTop + 1080;
 
             // 1. Draw Background
             if (img) {
@@ -107,7 +112,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // 4. Layout Logic
             if (theme === 'TOP5') {
                 const track = top5Tracks[currentPreviewTrack];
-                const baseY = canvas.height - 380;
+                const baseY = isVideo ? 1500 : safeBottom - 280;
 
                 // Artist - Song
                 ctx.textAlign = 'left';
@@ -123,10 +128,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const barX = 90;
                 const barY = baseY + 45;
 
-                ctx.fillStyle = 'rgba(189, 0, 255, 0.4)'; // Purple glow
+                ctx.fillStyle = 'rgba(189, 0, 255, 0.4)';
                 ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
 
-                ctx.fillStyle = '#ff1241'; // Solid Dropsiders Red
+                ctx.fillStyle = '#ff1241';
                 ctx.fillRect(barX, barY, barWidth, barHeight);
 
                 ctx.fillStyle = '#ffffff';
@@ -155,18 +160,17 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText(`#${5 - currentPreviewTrack}`, canvas.width - 100, canvas.height - 150);
 
             } else if (theme === 'MUSIQUE') {
-                // Single Track Layout (Similar to TOP 5)
                 const track = top5Tracks[0];
-                const baseY = canvas.height - 380;
+                const baseY = safeBottom - 220; // Lowered to be within 1:1 safe zone
 
-                // Genre Label Top Center
+                // Genre Label Center 
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#39ff14'; // Music Green
+                ctx.fillStyle = '#39ff14';
                 const genreW = ctx.measureText(selectedGenre).width + 60;
-                ctx.fillRect((canvas.width - genreW) / 2, 450, genreW, 60);
+                ctx.fillRect((canvas.width - genreW) / 2, safeTop + 240, genreW, 60);
                 ctx.fillStyle = '#000';
                 ctx.font = '900 italic 34px "Inter", sans-serif';
-                ctx.fillText(selectedGenre, canvas.width / 2, 492);
+                ctx.fillText(selectedGenre, canvas.width / 2, safeTop + 282);
 
                 // Artist - Song
                 ctx.textAlign = 'left';
@@ -182,10 +186,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const barX = 90;
                 const barY = baseY + 45;
 
-                ctx.fillStyle = 'rgba(57, 255, 20, 0.4)'; // Green glow
+                ctx.fillStyle = 'rgba(57, 255, 20, 0.4)';
                 ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
 
-                ctx.fillStyle = '#39ff14'; // Music Green
+                ctx.fillStyle = '#39ff14';
                 ctx.fillRect(barX, barY, barWidth, barHeight);
 
                 ctx.fillStyle = '#000';
@@ -208,7 +212,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 }
 
             } else {
-                // Classic News Layout
+                // Classic News/Recap Layout
                 const fontSize = 85;
                 const lineHeight = fontSize * 1.2;
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
@@ -229,15 +233,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 lines.push(currentLine.trim());
 
                 const totalH = lines.length * lineHeight;
-                const startY = canvas.height - 220 - (totalH / 2); // Lowered from 400 to 220 to be near the bottom safe zone (1260)
+                const startY = safeBottom - 100 - (totalH / 2); // At the very bottom of 1:1 square
 
                 // Label
                 ctx.fillStyle = activeColor.label;
-                const labelW = ctx.measureText(theme).width + 80;
+                const themeLabel = theme === 'RECAP' ? 'REPLAY' : theme;
+                const labelW = ctx.measureText(themeLabel).width + 80;
                 ctx.fillRect((canvas.width - labelW) / 2, startY - 100, labelW, 80);
                 ctx.fillStyle = '#fff';
                 ctx.font = '900 italic 50px "Inter", sans-serif';
-                ctx.fillText(theme, canvas.width / 2, startY - 45);
+                ctx.fillText(themeLabel, canvas.width / 2, startY - 45);
 
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
                 lines.forEach((line, i) => {
@@ -245,14 +250,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 });
             }
 
-            // Top Right Official Logo
+            // Top Right Official Logo - HIGHEST POSSIBLE
             try {
                 const logo = new Image();
                 logo.src = '/Logo.png';
                 await new Promise(r => { logo.onload = r; logo.onerror = r; });
                 if (logo.complete && logo.width > 0) {
                     const w = 320;
-                    ctx.drawImage(logo, canvas.width - w - 60, 190, w, (logo.height * w) / logo.width);
+                    // Placed at the very top edge of the canvas (not safe zone) for Reels, top of canvas for Posts
+                    ctx.drawImage(logo, canvas.width - w - 40, 40, w, (logo.height * w) / logo.width);
                 }
             } catch { }
 
@@ -261,7 +267,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 38px "Inter", sans-serif';
                 ctx.fillStyle = '#fff';
-                ctx.fillText('>>', canvas.width - 80, 1250);
+                ctx.fillText('>>', canvas.width - 80, safeBottom - 30);
             }
 
         } catch (e) {
@@ -296,7 +302,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         recorder.start();
         for (let i = 0; i < 5; i++) {
             setCurrentPreviewTrack(i);
-            await new Promise(r => setTimeout(r, 12000)); // 12s per track = 60s total
+            await new Promise(r => setTimeout(r, 12000));
         }
         recorder.stop();
     };
@@ -366,7 +372,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <div key={i} className={`p-4 rounded-2xl border transition-all ${currentPreviewTrack === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewTrack(i)}>
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="text-[10px] font-black text-neon-red"># {5 - i}</span>
-                                            {currentPreviewTrack === i && <span className="text-[8px] font-black text-white/40 uppercase">Aperçu actif</span>}
                                         </div>
                                         <div className="grid grid-cols-2 gap-2 mb-2">
                                             <input value={track.artist} onChange={e => {
@@ -380,18 +385,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                                 setTop5Tracks(news);
                                             }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                         </div>
-                                        <div className="flex gap-2">
-                                            <input value={track.streams} onChange={e => {
-                                                const news = [...top5Tracks];
-                                                news[i] = { ...track, streams: e.target.value };
-                                                setTop5Tracks(news);
-                                            }} placeholder="STREAMS (MILLIONS)" className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                            <input value={track.spotifyUrl} onChange={e => {
-                                                const news = [...top5Tracks];
-                                                news[i] = { ...track, spotifyUrl: e.target.value };
-                                                setTop5Tracks(news);
-                                            }} placeholder="LIEN SPOTIFY" className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                        </div>
+                                        <input value={track.streams} onChange={e => {
+                                            const news = [...top5Tracks];
+                                            news[i] = { ...track, streams: e.target.value };
+                                            setTop5Tracks(news);
+                                        }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                     </div>
                                 ))}
                             </div>
@@ -433,7 +431,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-neon-cyan"><Type className="w-4 h-4" /><span className="text-[10px] font-black uppercase tracking-widest">Texte de l'article</span></div>
+                            <div className="flex items-center gap-3 text-neon-cyan"><Type className="w-4 h-4" /><span className="text-[10px] font-black uppercase tracking-widest">Texte</span></div>
                             <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} className="w-full h-28 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
                         </div>
                     )}
@@ -466,13 +464,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                         {isDownloading ? '...' : 'Télécharger'}
                                     </button>
                                 </div>
-
                                 {visualsList.length > 0 && (
                                     <div className="space-y-3">
-                                        <div className="flex items-center justify-between px-2">
-                                            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Collection ({visualsList.length})</span>
-                                            <button onClick={() => setVisualsList([])} className="text-[8px] font-black text-red-500 uppercase hover:underline">Vider</button>
-                                        </div>
                                         <div className="grid grid-cols-4 gap-2">
                                             {visualsList.slice(-4).map((src, idx) => (
                                                 <div key={idx} className="aspect-[3/4] bg-white/5 rounded-lg overflow-hidden border border-white/10 relative group">
@@ -481,9 +474,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                                 </div>
                                             ))}
                                         </div>
-                                        <button onClick={downloadAll} disabled={isDownloading} className="w-full py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all">
-                                            <Layers className="w-3.5 h-3.5" /> Tout Télécharger
-                                        </button>
+                                        <button onClick={downloadAll} disabled={isDownloading} className="w-full py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"><Layers className="w-3.5 h-3.5" /> Tout Télécharger</button>
                                     </div>
                                 )}
                             </div>
@@ -506,4 +497,3 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         </motion.div>
     );
 }
-
