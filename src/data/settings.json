@@ -53,6 +53,8 @@
     "chat_enabled": true,
     "showShop": false,
     "currentArtist": "DAVID FORBES",
-    "artistInstagram": "https://www.instagram.com/davidforbesdj/"
+    "artistInstagram": "https://www.instagram.com/davidforbesdj/",
+    "startDate": "2026-02-28T20:45",
+    "endDate": "2026-03-01T06:02"
   }
 }
