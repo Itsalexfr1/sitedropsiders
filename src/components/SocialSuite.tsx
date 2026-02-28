@@ -21,13 +21,17 @@ interface Top5Item {
     spotifyUrl?: string;
 }
 
-const COLOR_PRESETS = [
-    { name: 'ROUGE', grad: '255, 0, 51', color: '#ff0033' },
-    { name: 'BLEU', grad: '0, 50, 255', color: '#0032ff' },
-    { name: 'CYAN', grad: '0, 240, 255', color: '#00f0ff' },
-    { name: 'VERT', grad: '57, 255, 20', color: '#39ff14' },
-    { name: 'ORANGE', grad: '255, 170, 0', color: '#ffaa00' },
-    { name: 'VIOLET', grad: '189, 0, 255', color: '#bd00ff' }
+const STYLE_PRESETS = [
+    { name: 'HOUSE', grad: '189, 0, 255', color: '#bd00ff' },
+    { name: 'TECH HOUSE', grad: '255, 170, 0', color: '#ffaa00' },
+    { name: 'AFRO HOUSE', grad: '57, 255, 20', color: '#39ff14' },
+    { name: 'HARD TECHNO', grad: '255, 0, 51', color: '#ff0033' },
+    { name: 'HARD STYLE', grad: '255, 10, 10', color: '#ff0a0a' },
+    { name: 'ELECTRO', grad: '0, 240, 255', color: '#00f0ff' },
+    { name: 'INDIE DANCE', grad: '0, 50, 255', color: '#0032ff' },
+    { name: 'PROGRESSIVE', grad: '0, 200, 255', color: '#00c8ff' },
+    { name: 'MELODIC', grad: '0, 150, 255', color: '#0096ff' },
+    { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
@@ -41,8 +45,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
 
-    // Theme Color state
-    const [themeColor, setThemeColor] = useState<typeof COLOR_PRESETS[0] | null>(null);
+    // Selected Music Style state
+    const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
 
     // For Top 5
     const [top5Items, setTop5Items] = useState<Top5Item[]>(Array.from({ length: 5 }, () => ({
@@ -388,12 +392,19 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                     {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
                         <div className="space-y-4">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur du thème</span>
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
                             <div className="flex flex-wrap gap-2">
-                                {COLOR_PRESETS.map(c => (
-                                    <button key={c.name} onClick={() => setThemeColor(c)} className={`w-8 h-8 rounded-lg border-2 transition-all ${themeColor?.name === c.name ? 'border-white scale-110' : 'border-transparent opacity-60'}`} style={{ backgroundColor: c.color }} />
+                                {STYLE_PRESETS.map(s => (
+                                    <button
+                                        key={s.name}
+                                        onClick={() => setThemeColor(s)}
+                                        className={`px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all border-2 ${themeColor?.name === s.name ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-400 border-white/5 hover:border-white/20'}`}
+                                        style={themeColor?.name === s.name ? {} : { color: s.color }}
+                                    >
+                                        {s.name}
+                                    </button>
                                 ))}
-                                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase">Reset</button>
+                                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all underline underline-offset-4">Reset</button>
                             </div>
                         </div>
                     )}
