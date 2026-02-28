@@ -3290,7 +3290,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
+                <div className="flex-1 lg:w-[380px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                     {/* Glossy Header */}
                     {!isFocusMode && (
                         <div className="p-4 lg:p-7 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
@@ -3655,26 +3655,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </div>
 
-                        {!isFocusMode && hasModPowers && (
+                        {!isFocusMode && (
                             <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
                                 <button
                                     onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                    className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
+                                    className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
                                 >
-                                    <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                    <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
                                 </button>
                             </div>
                         )}
 
                         <AnimatePresence>
-                            {!isFocusMode && hasModPowers && showUsersPanel && (
+                            {!isFocusMode && showUsersPanel && (
                                 <motion.div
                                     initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 250, opacity: 1 }}
+                                    animate={{ width: 200, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
                                 >
-                                    <div className="w-[250px] flex flex-col h-full">
+                                    <div className="w-[200px] flex flex-col h-full">
                                         <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
                                             <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
                                                 <Users className="w-4 h-4 text-neon-red" /> Utilisateurs

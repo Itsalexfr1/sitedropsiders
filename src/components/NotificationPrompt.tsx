@@ -79,29 +79,29 @@ export function NotificationPrompt() {
                     initial={{ opacity: 0, y: 50, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                    className="fixed bottom-6 right-6 z-[9999] max-w-sm w-full"
+                    className="fixed bottom-6 right-6 z-[9999] max-w-[300px] w-full"
                 >
-                    <div className="bg-dark-bg/90 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden relative group">
+                    <div className="bg-dark-bg/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-5 shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden relative group">
                         {/* Gradient de fond subtil */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue" />
 
                         <div className="flex gap-4">
-                            <div className="shrink-0 w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                            <div className="shrink-0 w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 shadow-inner group-hover:scale-110 transition-transform duration-500">
                                 <motion.div
                                     animate={status === 'loading' ? { rotate: 360 } : {}}
                                     transition={status === 'loading' ? { repeat: Infinity, duration: 1, ease: 'linear' } : {}}
                                 >
                                     {status === 'success' ? (
-                                        <Check className="w-8 h-8 text-neon-green" />
+                                        <Check className="w-6 h-6 text-neon-green" />
                                     ) : (
-                                        <Bell className="w-8 h-8 text-neon-red" />
+                                        <Bell className="w-6 h-6 text-neon-red" />
                                     )}
                                 </motion.div>
                             </div>
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between mb-1">
-                                    <h3 className="text-lg font-display font-black text-white uppercase italic tracking-tight leading-none">
+                                    <h3 className="text-base font-display font-black text-white uppercase italic tracking-tight leading-none">
                                         Stay <span className="text-neon-red">Alert</span>
                                     </h3>
                                     <button
