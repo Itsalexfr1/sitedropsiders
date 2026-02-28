@@ -215,20 +215,19 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.beginPath(); ctx.arc(centerX, centerY, 45, 0, Math.PI * 2); ctx.fillStyle = '#0a0a0a'; ctx.fill();
                     ctx.strokeStyle = activeData.color; ctx.lineWidth = 10; ctx.stroke();
                 }
-                // Artist - Main Line
+                // Artist & Title - Single Line Bold Italic
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 75px "Inter", sans-serif';
+                ctx.font = '900 italic 65px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
-                ctx.fillText(item.main.toUpperCase(), centerX + slideX, centerY + radius + 120);
+                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), centerX + slideX, centerY + radius + 140);
 
-                // Title - Sub Line
-                ctx.font = '900 italic 45px "Inter", sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.fillText(item.sub.toUpperCase(), centerX + slideX, centerY + radius + 190);
-
-                // Only title and artist
+                // Restore Ranking Number
+                ctx.textAlign = 'right';
+                ctx.font = '900 italic 150px "Inter", sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
