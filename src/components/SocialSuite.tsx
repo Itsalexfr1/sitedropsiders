@@ -252,7 +252,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
             } else {
-                const fontSize = 85; const lineHeight = fontSize * 1.2;
+                const fontSize = activeTab === 'PUBLICATION' ? 80 : 85; const lineHeight = fontSize * 1.2;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.split('\n');
                 let lines: string[] = [];

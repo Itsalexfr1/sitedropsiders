@@ -13,7 +13,9 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
 
     const heroNews = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
-        const all = [...(newsData as any[])].filter(item => (item.date || '').substring(0, 10) <= today);
+        const all = [...(newsData as any[])]
+            .filter(item => (item.date || '').substring(0, 10) <= today)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         const featured = all.find(item => item.isFeatured);
         if (featured) return featured;
 
