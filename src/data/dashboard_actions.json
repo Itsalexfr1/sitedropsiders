@@ -29,12 +29,15 @@
     "columns": 1
   },
   {
-    "title": "Shop",
-    "description": "Gérer le shop",
-    "icon": "ShoppingBag",
-    "link": "/admin/shop",
-    "baseColor": "#00ffd5",
-    "permission": "shop"
+    "title": "Social Studio",
+    "description": "Vidéos & Stories",
+    "icon": "Instagram",
+    "link": "social-studio",
+    "color": "border-neon-pink/20 hover:border-pink-500",
+    "bg": "bg-pink-500/5",
+    "permission": "news",
+    "baseColor": "pink",
+    "columns": 1
   },
   {
     "title": "News",
@@ -70,6 +73,14 @@
     "columns": 1
   },
   {
+    "title": "Shop",
+    "description": "Gérer le shop",
+    "icon": "ShoppingBag",
+    "link": "/admin/shop",
+    "baseColor": "#00ffd5",
+    "permission": "shop"
+  },
+  {
     "title": "Interviews",
     "description": "Gérer les interviews",
     "icon": "Mic",
@@ -93,7 +104,7 @@
     "link": "/admin/spotify",
     "baseColor": "#00ff11",
     "permission": "spotify",
-    "columns": 2
+    "columns": 1
   },
   {
     "title": "Newsletter",
