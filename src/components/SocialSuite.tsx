@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-    X, Download, Type, Upload, PlusCircle, Layers,
-    Music, Video, Layout, Trash2, Smartphone, Image as ImageIcon
+    X, Download, Upload, PlusCircle,
+    Video, Layout, Smartphone, Image as ImageIcon
 } from 'lucide-react';
 
 interface SocialSuiteProps {
