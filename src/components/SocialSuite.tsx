@@ -299,7 +299,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 38px "Inter", sans-serif';
                 ctx.fillStyle = '#fff';
-                ctx.fillText('>>', canvas.width - 80, safeBottom - 10); // Lowered Swipe indicator
+                ctx.fillText('>>', canvas.width - 80, safeBottom - 5); // Absolute bottom
             }
 
             // 5. Apply Transition Effects (Glitch / Zoom)
