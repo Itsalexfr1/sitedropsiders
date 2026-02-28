@@ -20,6 +20,11 @@ interface Top5Track {
     spotifyUrl: string;
 }
 
+const MUSIC_GENRES = [
+    'HOUSE', 'TECH HOUSE', 'AFRO HOUSE', 'HARD TECHNO', 'HARD STYLE',
+    'ELECTRO', 'INDIE DANCE', 'PROGRESSIVE', 'MELODIC', 'DRUM N BASS'
+];
+
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [theme, setTheme] = useState<ThemeType>('NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
@@ -35,6 +40,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         spotifyUrl: ''
     })));
     const [currentPreviewTrack, setCurrentPreviewTrack] = useState(0);
+    const [selectedGenre, setSelectedGenre] = useState('TECH HOUSE');
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -148,6 +154,59 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
                 ctx.fillText(`#${5 - currentPreviewTrack}`, canvas.width - 100, canvas.height - 150);
 
+            } else if (theme === 'MUSIQUE') {
+                // Single Track Layout (Similar to TOP 5)
+                const track = top5Tracks[0];
+                const baseY = canvas.height - 380;
+
+                // Genre Label Top Center
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#39ff14'; // Music Green
+                const genreW = ctx.measureText(selectedGenre).width + 60;
+                ctx.fillRect((canvas.width - genreW) / 2, 450, genreW, 60);
+                ctx.fillStyle = '#000';
+                ctx.font = '900 italic 34px "Inter", sans-serif';
+                ctx.fillText(selectedGenre, canvas.width / 2, 492);
+
+                // Artist - Song
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 52px "Inter", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 10;
+                ctx.fillText(`${track.artist} - ${track.song}`.toUpperCase(), 100, baseY);
+
+                // Streams Bar
+                const barWidth = 880;
+                const barHeight = 90;
+                const barX = 90;
+                const barY = baseY + 45;
+
+                ctx.fillStyle = 'rgba(57, 255, 20, 0.4)'; // Green glow
+                ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
+
+                ctx.fillStyle = '#39ff14'; // Music Green
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                ctx.fillStyle = '#000';
+                ctx.font = '900 italic 46px "Inter", sans-serif';
+                ctx.fillText(`${track.streams} MILLIONS DE STREAMS`, barX + 30, barY + barHeight / 2 + 15);
+
+                // Spotify Logo (Mini)
+                const spotX = barX + barWidth - 60;
+                const spotY = barY + barHeight / 2;
+                ctx.beginPath();
+                ctx.fillStyle = '#000';
+                ctx.arc(spotX, spotY, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#39ff14';
+                ctx.lineWidth = 4;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(spotX, spotY + 5, 20 - i * 5, -1.2, -0.2);
+                    ctx.stroke();
+                }
+
             } else {
                 // Classic News Layout
                 const fontSize = 85;
@@ -210,7 +269,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         }
     };
 
-    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Tracks, currentPreviewTrack]);
+    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Tracks, currentPreviewTrack, selectedGenre]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -335,6 +394,41 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+                    ) : theme === 'MUSIQUE' ? (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 text-neon-green">
+                                <Music className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Style Musical</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {MUSIC_GENRES.map(g => (
+                                    <button key={g} onClick={() => setSelectedGenre(g)} className={`px-3 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${selectedGenre === g ? 'bg-neon-green text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
+                                        {g}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="space-y-4">
+                                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                        <input value={top5Tracks[0].artist} onChange={e => {
+                                            const news = [...top5Tracks];
+                                            news[0] = { ...news[0], artist: e.target.value.toUpperCase() };
+                                            setTop5Tracks(news);
+                                        }} placeholder="ARTISTE" className="bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                        <input value={top5Tracks[0].song} onChange={e => {
+                                            const news = [...top5Tracks];
+                                            news[0] = { ...news[0], song: e.target.value.toUpperCase() };
+                                            setTop5Tracks(news);
+                                        }} placeholder="TITRE" className="bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                    </div>
+                                    <input value={top5Tracks[0].streams} onChange={e => {
+                                        const news = [...top5Tracks];
+                                        news[0] = { ...news[0], streams: e.target.value };
+                                        setTop5Tracks(news);
+                                    }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                </div>
                             </div>
                         </div>
                     ) : (
