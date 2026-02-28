@@ -1588,8 +1588,25 @@ export function AdminDashboard() {
                             </div>
 
                             <div className="space-y-6">
-                                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sélectionner un article récent</div>
+                                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sélectionner un article récent ou créer à vide</div>
                                 <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                                    <button
+                                        onClick={() => {
+                                            setSelectedSocialArticle({ title: '', image: '' });
+                                            setIsSocialModalOpen(false);
+                                        }}
+                                        className="w-full p-6 bg-neon-pink/10 border border-neon-pink/30 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/20 transition-all group text-left"
+                                    >
+                                        <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                            <Plus className="w-8 h-8 text-neon-pink" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="font-black text-white uppercase italic text-lg tracking-tighter">Visuel Vide / Manuel</h3>
+                                            <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">Démarrer sans article</p>
+                                        </div>
+                                        <ArrowRight className="w-6 h-6 text-neon-pink" />
+                                    </button>
+
                                     {isLoadingSocial ? (
                                         <div className="py-10 flex justify-center">
                                             <Loader2 className="w-8 h-8 animate-spin text-neon-pink" />

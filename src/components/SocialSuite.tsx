@@ -12,7 +12,7 @@ type TemplateType = 'news_only' | 'news_swipe' | 'musique';
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [template, setTemplate] = useState<TemplateType>('news_only');
-    const [customText, setCustomText] = useState(title.toUpperCase());
+    const [customText, setCustomText] = useState((title || '').toUpperCase());
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [isDownloading, setIsDownloading] = useState(false);
 
@@ -21,30 +21,38 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     const generateImage = async () => {
         const canvas = canvasRef.current;
-        if (!canvas || !bgImage) return;
+        if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
         try {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = bgImage;
+            let img: HTMLImageElement | null = null;
+            if (bgImage) {
+                img = new Image();
+                img.crossOrigin = "anonymous";
+                img.src = bgImage;
 
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-            });
+                await new Promise((resolve, reject) => {
+                    img!.onload = resolve;
+                    img!.onerror = reject;
+                });
+            }
 
             // Set canvas size (Post 1080x1440)
             canvas.width = 1080;
             canvas.height = 1440;
 
             // 1. Draw Background
-            const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
-            const x = (canvas.width - img.width * scale) / 2;
-            const y = (canvas.height - img.height * scale) / 2;
-            ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            if (img) {
+                const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                const x = (canvas.width - img.width * scale) / 2;
+                const y = (canvas.height - img.height * scale) / 2;
+                ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+            } else {
+                ctx.fillStyle = '#0a0a0a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
             // 2. Draw Gradient Overlay (Matches user visuals)
             const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
