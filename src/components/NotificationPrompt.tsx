@@ -76,10 +76,10 @@ export function NotificationPrompt() {
         <AnimatePresence>
             {isVisible && (
                 <motion.div
-                    initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 50, scale: 0.9 }}
-                    className="fixed bottom-6 right-6 z-[9999] max-w-[300px] w-full"
+                    initial={{ opacity: 0, x: -50, scale: 0.9 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    exit={{ opacity: 0, x: -50, scale: 0.9 }}
+                    className="fixed bottom-6 left-6 z-[9999] max-w-[300px] w-full"
                 >
                     <div className="bg-dark-bg/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-5 shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden relative group">
                         {/* Gradient de fond subtil */}
