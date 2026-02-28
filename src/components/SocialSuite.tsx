@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Share2, X, Download, Type, Layout, Upload, Trash2, PlusCircle, Layers
+    X, Download, Type, Upload, PlusCircle, Layers,
+    Music, Video, Layout, Trash2
 } from 'lucide-react';
 
 interface SocialSuiteProps {
@@ -10,7 +11,14 @@ interface SocialSuiteProps {
     onClose: () => void;
 }
 
-type ThemeType = 'NEWS' | 'RECAP' | 'MUSIQUE' | 'INTERVIEW';
+type ThemeType = 'NEWS' | 'RECAP' | 'MUSIQUE' | 'INTERVIEW' | 'TOP5';
+
+interface Top5Track {
+    artist: string;
+    song: string;
+    streams: string;
+    spotifyUrl: string;
+}
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [theme, setTheme] = useState<ThemeType>('NEWS');
@@ -18,7 +26,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [customText, setCustomText] = useState((title || '').toUpperCase());
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
+    const [top5Tracks, setTop5Tracks] = useState<Top5Track[]>(Array.from({ length: 5 }, () => ({
+        artist: 'ARTISTE',
+        song: 'TITRE DU MORCEAU',
+        streams: '50',
+        spotifyUrl: ''
+    })));
+    const [currentPreviewTrack, setCurrentPreviewTrack] = useState(0);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,7 +43,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'NEWS': { label: '#ff0033', grad: '255, 0, 51' },
         'RECAP': { label: '#bd00ff', grad: '189, 0, 255' },
         'MUSIQUE': { label: '#39ff14', grad: '57, 255, 20' },
-        'INTERVIEW': { label: '#00f0ff', grad: '0, 240, 255' }
+        'INTERVIEW': { label: '#00f0ff', grad: '0, 240, 255' },
+        'TOP5': { label: '#ff1241', grad: '255, 18, 65' }
     };
 
     const generateImage = async () => {
@@ -61,149 +78,173 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const y = (canvas.height - img.height * scale) / 2;
                 ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
             } else {
-                ctx.fillStyle = '#0a0a0a';
+                ctx.fillStyle = '#111';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // 2. Draw Gradient Overlay (Matches user themes)
+            // 2. Draw Gradient Overlay
             const activeColor = themeColors[theme];
             const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
-
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(0.8, `rgba(${activeColor.grad}, 0.8)`);
-            grad.addColorStop(1, `rgba(${activeColor.grad}, 1)`);
+            grad.addColorStop(0.8, `rgba(${activeColor.grad}, 0.6)`);
+            grad.addColorStop(1, `rgba(${activeColor.grad}, 0.9)`);
             ctx.fillStyle = grad;
             ctx.fillRect(0, canvas.height * 0.3, canvas.width, canvas.height * 0.7);
 
-            // 3. Scanlines effect
+            // 3. Scanlines
             ctx.fillStyle = 'rgba(0,0,0,0.1)';
             for (let i = 0; i < canvas.height; i += 6) {
                 ctx.fillRect(0, i, canvas.width, 2);
             }
 
-            // 4. Custom Text Wrapping & Height Calculation
-            const fontSize = 85;
-            const lineHeight = fontSize * 1.2;
-            ctx.fillStyle = '#ffffff';
-            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans - serif`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
+            // 4. Layout Logic
+            if (theme === 'TOP5') {
+                const track = top5Tracks[currentPreviewTrack];
+                const baseY = canvas.height - 380;
 
-            const maxWidth = canvas.width - 240;
-            const paragraphs = customText.split('\n');
-            let lines: string[] = [];
+                // Artist - Song
+                ctx.textAlign = 'left';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 52px "Inter", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 10;
+                ctx.fillText(`${track.artist} - ${track.song}`.toUpperCase(), 100, baseY);
 
-            paragraphs.forEach(paragraph => {
-                const words = paragraph.split(' ');
+                // Streams Bar
+                const barWidth = 880;
+                const barHeight = 90;
+                const barX = 90;
+                const barY = baseY + 45;
+
+                ctx.fillStyle = 'rgba(189, 0, 255, 0.4)'; // Purple glow
+                ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
+
+                ctx.fillStyle = '#ff1241'; // Solid Dropsiders Red
+                ctx.fillRect(barX, barY, barWidth, barHeight);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 46px "Inter", sans-serif';
+                ctx.fillText(`${track.streams} MILLIONS DE STREAMS`, barX + 30, barY + barHeight / 2 + 15);
+
+                // Spotify Logo (Mini)
+                const spotX = barX + barWidth - 60;
+                const spotY = barY + barHeight / 2;
+                ctx.beginPath();
+                ctx.fillStyle = '#1DB954';
+                ctx.arc(spotX, spotY, 30, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 4;
+                for (let i = 0; i < 3; i++) {
+                    ctx.beginPath();
+                    ctx.arc(spotX, spotY + 5, 20 - i * 5, -1.2, -0.2);
+                    ctx.stroke();
+                }
+
+                // Rank
+                ctx.textAlign = 'right';
+                ctx.font = '900 italic 120px "Inter", sans-serif';
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                ctx.fillText(`#${5 - currentPreviewTrack}`, canvas.width - 100, canvas.height - 150);
+
+            } else {
+                // Classic News Layout
+                const fontSize = 85;
+                const lineHeight = fontSize * 1.2;
+                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+
+                const words = customText.split(' ');
+                let lines: string[] = [];
                 let currentLine = '';
-
-                for (let n = 0; n < words.length; n++) {
-                    const testLine = currentLine + words[n] + ' ';
-                    const metrics = ctx.measureText(testLine);
-                    if (metrics.width > maxWidth && n > 0) {
-                        lines.push(currentLine.trim());
-                        currentLine = words[n] + ' ';
+                for (let word of words) {
+                    if (ctx.measureText(currentLine + word).width < canvas.width - 200) {
+                        currentLine += word + ' ';
                     } else {
-                        currentLine = testLine;
+                        lines.push(currentLine.trim());
+                        currentLine = word + ' ';
                     }
                 }
                 lines.push(currentLine.trim());
-            });
 
-            const totalHeight = lines.length * lineHeight;
+                const totalH = lines.length * lineHeight;
+                const startY = canvas.height - 220 - (totalH / 2); // Lowered from 400 to 220 to be near the bottom safe zone (1260)
 
-            // Instagram Grid Safe Zone (1:1 crop of 4:5 post)
-            // Post: 1080x1440. Grid: 1080x1080. 
-            // Crop takes 180px from top and 180px from bottom.
-            // Safe zone is between Y=180 and Y=1260.
-            const bottomMargin = 220;
-            const startY = Math.min(1150, canvas.height - bottomMargin - (totalHeight / 2));
+                // Label
+                ctx.fillStyle = activeColor.label;
+                const labelW = ctx.measureText(theme).width + 80;
+                ctx.fillRect((canvas.width - labelW) / 2, startY - 100, labelW, 80);
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 italic 50px "Inter", sans-serif';
+                ctx.fillText(theme, canvas.width / 2, startY - 45);
 
-            // 5. Label (NEWS / RECAP / MUSIQUE / INTERVIEW)
-            const label = theme;
-            const labelBg = activeColor.label;
-            const labelY = startY - (totalHeight / 2) - 100;
-
-            ctx.font = 'bold 75px "Inter", sans-serif';
-            const labelMetrics = ctx.measureText(label);
-            const labelWidth = labelMetrics.width + 100;
-            const labelX = (canvas.width - labelWidth) / 2;
-
-            ctx.fillStyle = labelBg;
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 30;
-            ctx.fillRect(labelX, labelY - 80, labelWidth, 110);
-            ctx.shadowBlur = 0;
-
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '900 italic 75px "Inter", sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(label, canvas.width / 2, labelY - 20);
-
-            // 6. Custom Text Rendering
-            ctx.textAlign = 'center';
-            ctx.fillStyle = '#ffffff';
-            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans - serif`;
-            ctx.shadowColor = 'rgba(0,0,0,0.8)';
-            ctx.shadowBlur = 20;
-
-            lines.forEach((line, i) => {
-                const lineY = startY - (totalHeight / 2) + (i * lineHeight) + (lineHeight / 2);
-                ctx.fillText(line.toUpperCase(), canvas.width / 2, lineY);
-            });
-            ctx.shadowBlur = 0;
-
-            // 7. Swipe arrows
-            if (showSwipe) {
-                ctx.textAlign = 'right';
-                ctx.font = '900 italic 38px "Inter", sans-serif';
-                ctx.fillStyle = '#ffffff';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 10;
-                ctx.fillText('>>', canvas.width - 80, 1250); // Positioned at the very bottom of the 1:1 safe zone (ends at 1260)
-                ctx.shadowBlur = 0;
+                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight));
+                });
             }
 
-            // 8. Real Logo Top Right
+            // Top Right Official Logo
             try {
                 const logo = new Image();
                 logo.src = '/Logo.png';
-                await new Promise((resolve) => {
-                    logo.onload = resolve;
-                    logo.onerror = resolve;
-                });
+                await new Promise(r => { logo.onload = r; logo.onerror = r; });
                 if (logo.complete && logo.width > 0) {
-                    const logoW = 320;
-                    const logoH = (logo.height * logoW) / logo.width;
-                    ctx.drawImage(logo, canvas.width - logoW - 60, 190, logoW, logoH); // Positioned at the very top of the 1:1 safe zone (starts at 180)
+                    const w = 320;
+                    ctx.drawImage(logo, canvas.width - w - 60, 190, w, (logo.height * w) / logo.width);
                 }
-            } catch (e) {
-                console.warn("Logo load failed, skipping");
+            } catch { }
+
+            // Swipe arrows
+            if (showSwipe) {
+                ctx.textAlign = 'right';
+                ctx.font = '900 italic 38px "Inter", sans-serif';
+                ctx.fillStyle = '#fff';
+                ctx.fillText('>>', canvas.width - 80, 1250);
             }
 
         } catch (e) {
-            console.error("Studio drawing error:", e);
+            console.error(e);
         }
     };
 
-    useEffect(() => {
-        generateImage();
-    }, [bgImage, customText, theme, showSwipe]);
+    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Tracks, currentPreviewTrack]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const url = URL.createObjectURL(file);
-            setBgImage(url);
+        if (file) setBgImage(URL.createObjectURL(file));
+    };
+
+    const startVideoRecording = async () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        setIsVideoRecording(true);
+        const stream = canvas.captureStream(30);
+        const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+        const chunks: Blob[] = [];
+        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `dropsiders-top5-${Date.now()}.webm`;
+            a.click();
+            setIsVideoRecording(false);
+        };
+        recorder.start();
+        for (let i = 0; i < 5; i++) {
+            setCurrentPreviewTrack(i);
+            await new Promise(r => setTimeout(r, 12000)); // 12s per track = 60s total
         }
+        recorder.stop();
     };
 
     const addVisualToList = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const dataUrl = canvas.toDataURL('image/png', 1.0);
-        setVisualsList([...visualsList, dataUrl]);
+        if (!canvasRef.current) return;
+        setVisualsList([...visualsList, canvasRef.current.toDataURL('image/png')]);
     };
 
     const removeVisual = (index: number) => {
@@ -211,227 +252,159 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     };
 
     const downloadSingle = () => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
+        if (!canvasRef.current) return;
         setIsDownloading(true);
-        const link = document.createElement('a');
-        link.download = `dropsiders - ${theme.toLowerCase()} -${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
+        const a = document.createElement('a');
+        a.download = `dropsiders-${theme}-${Date.now()}.png`;
+        a.href = canvasRef.current.toDataURL('image/png');
+        a.click();
         setTimeout(() => setIsDownloading(false), 1000);
     };
 
     const downloadAll = async () => {
-        if (visualsList.length === 0) return;
         setIsDownloading(true);
-
-        // Sequential download for all visuals
         for (let i = 0; i < visualsList.length; i++) {
-            const link = document.createElement('a');
-            link.download = `dropsiders - pack - ${i + 1}.png`;
-            link.href = visualsList[i];
-            link.click();
-            // Small delay to prevent browser from blocking multiple triggers
+            const a = document.createElement('a');
+            a.download = `dropsiders-pack-${i}.png`;
+            a.href = visualsList[i];
+            a.click();
             await new Promise(r => setTimeout(r, 300));
         }
-
         setIsDownloading(false);
     };
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-3xl"
-        >
-            <motion.div
-                initial={{ scale: 0.95, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                className="bg-[#050505] border border-white/10 rounded-[40px] w-full max-w-[1400px] h-[95vh] overflow-hidden flex flex-col shadow-2xl relative"
-            >
-                {/* Header Section */}
-                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                    <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-neon-red/10 border border-neon-red/20 rounded-xl flex items-center justify-center">
-                            <Share2 className="w-5 h-5 text-neon-red" />
-                        </div>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-3xl">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] w-full max-w-6xl h-[90vh] rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row">
+
+                {/* Sidebar */}
+                <div className="w-full lg:w-[400px] border-r border-white/10 p-8 flex flex-col gap-8 overflow-y-auto custom-scrollbar">
+                    <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-xl font-black text-white italic uppercase tracking-tighter">Social <span className="text-neon-red">Suite V2</span></h2>
-                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">Premium Content Hub</p>
+                            <h2 className="text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Générateur de publications</p>
                         </div>
+                        <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all"><X className="w-5 h-5" /></button>
                     </div>
 
-                    <div className="flex items-center gap-4">
-                        {visualsList.length > 0 && (
-                            <div className="flex items-center gap-2 px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl">
-                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">{visualsList.length} VISUELS PRÊTS</span>
-                            </div>
-                        )}
-                        <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all">
-                            <X className="w-5 h-5" />
-                        </button>
+                    {/* Themes */}
+                    <div className="grid grid-cols-2 gap-2">
+                        {(Object.keys(themeColors) as ThemeType[]).map(t => (
+                            <button key={t} onClick={() => setTheme(t)} className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${theme === t ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-400 border-white/5 hover:border-white/20'}`}>
+                                {t === 'TOP5' ? 'VIDEO TOP 5' : t}
+                            </button>
+                        ))}
                     </div>
-                </div>
 
-                <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
-                    {/* Sidebar Editor */}
-                    <div className="w-full lg:w-[400px] border-r border-white/5 p-6 overflow-y-auto space-y-8 custom-scrollbar">
-
-                        {/* 1. Theme Choice */}
-                        <div className="space-y-4">
+                    {theme === 'TOP5' ? (
+                        <div className="space-y-6">
                             <div className="flex items-center gap-3 text-neon-red">
-                                <Layout className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Thème de la publication</span>
+                                <Music className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Top 5 Artistes</span>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
-                                {(Object.keys(themeColors) as ThemeType[]).map((t) => (
-                                    <button
-                                        key={t}
-                                        onClick={() => setTheme(t)}
-                                        className={`py - 3 rounded - xl text - [9px] font - black uppercase tracking - widest transition - all border ${theme === t
-                                            ? 'bg-white text-black shadow-lg scale-[1.02]'
-                                            : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
-                                            } `}
-                                        style={theme === t ? { borderBottom: `4px solid ${themeColors[t].label} ` } : {}}
-                                    >
-                                        {t}
-                                    </button>
+                            <div className="space-y-4">
+                                {top5Tracks.map((track, i) => (
+                                    <div key={i} className={`p-4 rounded-2xl border transition-all ${currentPreviewTrack === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewTrack(i)}>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <span className="text-[10px] font-black text-neon-red"># {5 - i}</span>
+                                            {currentPreviewTrack === i && <span className="text-[8px] font-black text-white/40 uppercase">Aperçu actif</span>}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 mb-2">
+                                            <input value={track.artist} onChange={e => {
+                                                const news = [...top5Tracks];
+                                                news[i] = { ...track, artist: e.target.value.toUpperCase() };
+                                                setTop5Tracks(news);
+                                            }} placeholder="ARTISTE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                            <input value={track.song} onChange={e => {
+                                                const news = [...top5Tracks];
+                                                news[i] = { ...track, song: e.target.value.toUpperCase() };
+                                                setTop5Tracks(news);
+                                            }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <input value={track.streams} onChange={e => {
+                                                const news = [...top5Tracks];
+                                                news[i] = { ...track, streams: e.target.value };
+                                                setTop5Tracks(news);
+                                            }} placeholder="STREAMS (MILLIONS)" className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                            <input value={track.spotifyUrl} onChange={e => {
+                                                const news = [...top5Tracks];
+                                                news[i] = { ...track, spotifyUrl: e.target.value };
+                                                setTop5Tracks(news);
+                                            }} placeholder="LIEN SPOTIFY" className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                        </div>
+                                    </div>
                                 ))}
                             </div>
                         </div>
-
-                        {/* 2. Text Input */}
+                    ) : (
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-neon-cyan">
-                                <Type className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Texte de l'article</span>
-                            </div>
-                            <textarea
-                                value={customText}
-                                onChange={(e) => setCustomText(e.target.value.toUpperCase())}
-                                placeholder="FRAUDEURS DE FESTIVAL... @ENTRÉE POUR LIGNE"
-                                className="w-full h-28 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:outline-none focus:border-neon-cyan/50 transition-colors uppercase"
-                            />
+                            <div className="flex items-center gap-3 text-neon-cyan"><Type className="w-4 h-4" /><span className="text-[10px] font-black uppercase tracking-widest">Texte de l'article</span></div>
+                            <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} className="w-full h-28 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
                         </div>
+                    )}
 
-                        {/* 3. Swipe Option */}
-                        <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
-                            <div className="flex items-center gap-3">
-                                <div className={`w - 10 h - 10 rounded - xl flex items - center justify - center transition - all ${showSwipe ? 'bg-neon-red/20 text-neon-red' : 'bg-white/5 text-gray-600'} `}>
-                                    <Layout className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Logo Swipe</p>
-                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Ajouter {">>"} en bas</p>
-                                </div>
+                    {/* Swipe Toggle */}
+                    <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group hover:border-white/20 transition-all mb-4" onClick={() => setShowSwipe(!showSwipe)}>
+                        <div className="flex items-center gap-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${showSwipe ? 'bg-neon-red/10 text-neon-red' : 'bg-white/5 text-gray-500'}`}>
+                                <Layout className="w-4 h-4" />
                             </div>
-                            <div className={`w - 10 h - 5 rounded - full relative transition - all ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'} `}>
-                                <div className={`absolute top - 0.5 w - 4 h - 4 rounded - full bg - white transition - all ${showSwipe ? 'right-0.5' : 'left-0.5'} `} />
-                            </div>
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Logo Swipe</span>
                         </div>
-
-                        {/* 4. Photo Upload */}
-                        <div className="space-y-3">
-                            <div className="flex items-center gap-3 text-neon-purple">
-                                <PlusCircle className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Photo de fond</span>
-                            </div>
-                            <div className="flex flex-col gap-2">
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="w-full py-8 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-white/30 hover:bg-white/5 transition-all group"
-                                >
-                                    <Upload className="w-6 h-6 text-gray-500 group-hover:text-white" />
-                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Modifier le fond</span>
-                                </button>
-                                {bgImage && (
-                                    <button
-                                        onClick={() => setBgImage('')}
-                                        className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
-                                    >
-                                        <Trash2 className="w-3 h-3" />
-                                        Supprimer la photo
-                                    </button>
-                                )}
-                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                            </div>
-                        </div>
-
-                        {/* 5. Production Queue */}
-                        <div className="space-y-4 pt-4 border-t border-white/10">
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={addVisualToList}
-                                    className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
-                                >
-                                    <PlusCircle className="w-3.5 h-3.5" />
-                                    Ajouter
-                                </button>
-                                <button
-                                    onClick={downloadSingle}
-                                    className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all shadow-[0_0_15px_rgba(0,240,255,0.1)]"
-                                >
-                                    <Download className="w-3.5 h-3.5" />
-                                    Télécharger
-                                </button>
-                            </div>
-
-                            {visualsList.length > 0 && (
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between pb-2">
-                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ma Collection</span>
-                                        <button onClick={() => setVisualsList([])} className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:underline">Vider</button>
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
-                                        {visualsList.map((src, i) => (
-                                            <div key={i} className="relative aspect-[3/4] bg-white/5 rounded-lg overflow-hidden border border-white/10 group">
-                                                <img src={src} className="w-full h-full object-cover" />
-                                                <button
-                                                    onClick={() => removeVisual(i)}
-                                                    className="absolute top-1 right-1 p-1 bg-black/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <Trash2 className="w-2.5 h-2.5" />
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <button
-                                        onClick={downloadAll}
-                                        className="w-full py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all"
-                                    >
-                                        <Layers className="w-4 h-4" />
-                                        Tout Télécharger ({visualsList.length})
-                                    </button>
-                                </div>
-                            )}
+                        <div className={`w-8 h-4 rounded-full relative ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'}`}>
+                            <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${showSwipe ? 'right-0.5' : 'left-0.5'}`} />
                         </div>
                     </div>
 
-                    {/* Preview Canvas Section */}
-                    <div className="flex-1 bg-[#020202] p-6 lg:p-12 flex flex-col items-center justify-center relative overflow-hidden">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.03)_0%,_transparent_70%)] pointer-events-none" />
-
-                        <div className="h-full w-full max-w-[500px] flex flex-col gap-6">
-                            <div className="flex-1 relative group">
-                                <div className="absolute -inset-2 bg-gradient-to-r from-neon-red/10 via-neon-purple/10 to-neon-cyan/10 blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
-                                <div className="w-full h-full bg-[#111] rounded-[40px] overflow-hidden border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative">
-                                    <canvas ref={canvasRef} className="w-full h-full object-contain" />
-                                    <div className="absolute top-4 left-4 flex items-center gap-2">
-                                        <div className="bg-black/60 backdrop-blur-md text-[8px] font-black text-white/80 px-3 py-1.5 rounded-full border border-white/5 uppercase tracking-widest">
-                                            VUES D'ARTISTE HDR
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={downloadSingle}
-                                className="w-full py-5 bg-white/5 border border-white/10 hover:border-white/30 text-white rounded-[24px] text-[10px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 transition-all"
-                            >
-                                <Download className="w-5 h-5" />
-                                {isDownloading ? 'EXPORT EN COURS...' : 'TÉLÉCHARGER CE VISUEL'}
+                    <div className="space-y-4 pt-4 border-t border-white/10">
+                        {theme === 'TOP5' ? (
+                            <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20 shadow-[0_0_20px_rgba(255,18,65,0.1)]'}`}>
+                                <Video className="w-4 h-4" />
+                                {isVideoRecording ? 'ENREGISTREMENT...' : 'Générer Vidéo Top 5'}
                             </button>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
+                                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all shadow-[0_0_15px_rgba(0,240,255,0.1)]">
+                                        <Download className="w-3.5 h-3.5" />
+                                        {isDownloading ? '...' : 'Télécharger'}
+                                    </button>
+                                </div>
+
+                                {visualsList.length > 0 && (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Collection ({visualsList.length})</span>
+                                            <button onClick={() => setVisualsList([])} className="text-[8px] font-black text-red-500 uppercase hover:underline">Vider</button>
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {visualsList.slice(-4).map((src, idx) => (
+                                                <div key={idx} className="aspect-[3/4] bg-white/5 rounded-lg overflow-hidden border border-white/10 relative group">
+                                                    <img src={src} className="w-full h-full object-cover" />
+                                                    <button onClick={() => removeVisual(idx)} className="absolute top-1 right-1 p-1 bg-black/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-2 h-2 text-white" /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button onClick={downloadAll} disabled={isDownloading} className="w-full py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:scale-[1.02] transition-all">
+                                            <Layers className="w-3.5 h-3.5" /> Tout Télécharger
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-500 text-[10px] font-black uppercase hover:border-white/30 transition-all"><Upload className="w-4 h-4" /> Modifier fond</button>
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                    </div>
+                </div>
+
+                {/* Preview */}
+                <div className="flex-1 bg-[#020202] p-8 flex flex-col items-center justify-center relative overflow-hidden">
+                    <div className="h-full w-full max-w-[450px] relative">
+                        <div className="absolute -inset-4 bg-gradient-to-r from-neon-red/10 via-neon-purple/10 to-neon-cyan/10 blur-3xl opacity-50" />
+                        <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
+                            <canvas ref={canvasRef} className="w-full h-full object-contain" />
                         </div>
                     </div>
                 </div>
@@ -439,3 +412,4 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         </motion.div>
     );
 }
+
