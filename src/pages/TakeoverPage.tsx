@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
     Pencil, List, Instagram, Power, Smile, Activity,
-    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2, Droplets, Gift, Star
+    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
+    Facebook, Twitter, Linkedin
 } from 'lucide-react';
 
 
@@ -38,13 +39,6 @@ interface TakeoverProps {
         botBgColor?: string;
         adminColor?: string;
         adminBgColor?: string;
-        dropsActions?: string;
-        dropsInterval?: number;
-        dropsAmount?: number;
-        forceHome?: boolean;
-        showInMenu?: boolean;
-        scheduledStart?: string;
-        scheduledEnd?: string;
     };
 }
 
@@ -64,27 +58,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const parseLineup = useCallback((text: string) => {
         if (!text) return [];
         const now = new Date();
-        const currentDay = now.getDate();
-        const currentMonth = now.getMonth() + 1;
         const currentTotal = now.getHours() * 60 + now.getMinutes();
 
         return text.split('\n').filter(line => line.trim()).map(line => {
             let time = '', artist = '', stage = '', festival = '', instagram = '';
-            let isCurrentDay = true;
 
             const timeMatch = line.match(/\[(.*?)\]/);
             if (timeMatch) {
-                const inner = timeMatch[1]; // ex: "28/02 22:00" or just "22:00"
-                if (inner.includes(' ')) {
-                    const [datePart, timePart] = inner.split(' ');
-                    const [day, month] = datePart.split('/').map(Number);
-                    if (day && month && (day !== currentDay || month !== currentMonth)) {
-                        isCurrentDay = false;
-                    }
-                    time = timePart;
-                } else {
-                    time = inner;
-                }
+                time = timeMatch[1];
                 const rest = line.replace(timeMatch[0], '').trim();
                 const parts = rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
                 artist = parts[0] || '';
@@ -109,77 +90,46 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 if (itemMinutes < currentTotal - 1) isPast = true;
             }
 
-            return { time, artist, stage, festival, instagram, isPast, isCurrentDay };
+            return { time, artist, stage, festival, instagram, isPast };
         });
     }, []);
 
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
-    const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName || 'DIRECT');
-    const [isLiveEnabled, setIsLiveEnabled] = useState(settings.enabled ?? true);
-    const [forceHome, setForceHome] = useState(settings.forceHome ?? false);
-    const [showInMenu, setShowInMenu] = useState(settings.showInMenu ?? true);
-    const [isSecretMode, setIsSecretMode] = useState(settings.isSecret ?? false);
-    const [scheduledStart, setScheduledStart] = useState(settings.scheduledStart || '');
-    const [scheduledEnd, setScheduledEnd] = useState(settings.scheduledEnd || '');
-    const [cameraList, setCameraList] = useState<{ id: string, title: string }[]>(() => {
-        if (!settings.channels) return [{ id: settings.youtubeId || '', title: settings.mainFluxName || 'DIRECT' }];
-        try {
-            // Check if it's JSON or CSV
-            if (settings.channels.startsWith('[')) return JSON.parse(settings.channels);
-            return settings.channels.split('\n').filter(Boolean).map(c => {
-                const [id, ...titleParts] = c.split(':');
-                return { id: id.trim(), title: titleParts.join(':').trim() || 'CAM' };
-            });
-        } catch {
-            return [{ id: settings.youtubeId || '', title: settings.mainFluxName || 'DIRECT' }];
-        }
-    });
-
+    const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName || 'MAIN STAGE');
+    const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
     const [currentTime, setCurrentTime] = useState(new Date());
 
-    const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage || '');
-    const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
-    const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
-
-    const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
-
     useEffect(() => {
-        const timer = setInterval(() => {
-            const now = new Date();
-            setCurrentTime(now);
-
-            // AUTO ACTIVATION / DEACTIVATION
-            if (scheduledStart || scheduledEnd) {
-                const currentISO = now.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:mm"
-
-                if (scheduledStart && currentISO >= scheduledStart && !isLiveEnabled && (!scheduledEnd || currentISO < scheduledEnd)) {
-                    setIsLiveEnabled(true);
-                    handleUpdateSettings({ enabled: true });
-                }
-
-                if (scheduledEnd && currentISO >= scheduledEnd && isLiveEnabled) {
-                    setIsLiveEnabled(false);
-                    handleUpdateSettings({ enabled: false });
-                }
-            }
-        }, 30000); // Check every 30 seconds
+        const timer = setInterval(() => setCurrentTime(new Date()), 5000); // Mise à jour toutes les 5 secondes
         return () => clearInterval(timer);
-    }, [scheduledStart, scheduledEnd, isLiveEnabled]);
+    }, []);
 
+    // Dynamic Video List with Titles
     const channelItems = useMemo(() => {
-        return cameraList.length > 0 ? cameraList : [{ id: settings.youtubeId, title: settings.mainFluxName || 'DIRECT' }];
-    }, [cameraList, settings.youtubeId, settings.mainFluxName]);
+        const items = [];
+        if (settings.youtubeId) {
+            items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal' });
+        }
+        if (settings.channels) {
+            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
+                const [id, ...titleParts] = line.split(':');
+                if (id && id.trim()) {
+                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM' });
+                }
+            });
+        }
+        return items;
+    }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
 
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
         const items = parseLineup(displayLineup || settings.lineup || '');
         const currentTitle = channelItems[activeVideoIndex]?.title || '';
-        // Filter by Today and by Stage
+        // Filter items based on stage name matching current flux title
+        if (!currentTitle) return items;
         return items.filter(item => {
-            if (!item.isCurrentDay) return false;
-            if (!currentTitle) return true;
             const sName = (item.stage || '').toLowerCase();
             const fName = currentTitle.toLowerCase();
             if (!sName) return activeVideoIndex === 0;
@@ -225,26 +175,75 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
 
-    const [localAutoMessage, setLocalAutoMessage] = useState(settings.autoMessage || '');
-    const [localAutoMessageInterval, setLocalAutoMessageInterval] = useState(settings.autoMessageInterval || 5);
-    const [localDropsActions, setLocalDropsActions] = useState(settings.dropsActions || '!badge:Badge Fan:500\n!color:Changer Couleur Chat:1000\n!priority:Message Prioritaire:2500\n!vip:Accès VIP Discord:5000');
-    const [localDropsInterval, setLocalDropsInterval] = useState(settings.dropsInterval || 10);
-    const [localDropsAmount, setLocalDropsAmount] = useState(settings.dropsAmount || 50);
+    const [fluxPrincipal, setFluxPrincipal] = useState(settings.youtubeId ? `https://youtube.com/watch?v=${settings.youtubeId}` : '');
+    const [stage1, setStage1] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '';
+    });
+
+
+    const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
+    const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
+    const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
     const [localCustomCommands, setLocalCustomCommands] = useState(settings.customCommands || '');
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
-    const [selectedShopIds, setSelectedShopIds] = useState<string[]>(String(settings.shopItems || '').split(',').filter(Boolean));
+    const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
     const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
 
-    const extractYoutubeId = (url: string) => {
-        if (!url) return '';
-        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-        return match ? match[1] : url.trim();
-    };
+    // Sync with props when they change (e.g. from parent polling or settings update)
+    useEffect(() => {
+        setDisplayTitle(settings.title);
+        setEditTitle(settings.title);
+        setDisplayLineup(settings.lineup || '');
+        setEditLineup(settings.lineup || '');
+        setFluxPrincipal(settings.youtubeId ? `https://youtube.com/watch?v=${settings.youtubeId}` : '');
 
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        setStage1(lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '');
+        setStage2(lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '');
+        setStage3(lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '');
+        setStage4(lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '');
 
+        setShowTopBanner(settings.showTopBanner ?? true);
+        setShowTickerBanner(settings.showTickerBanner ?? true);
+        setLocalPinnedMessage(settings.pinnedMessage ?? '');
+        setEditCurrentArtist(settings.currentArtist || '');
+        setEditArtistInstagram(settings.artistInstagram || '');
+        setLocalCustomCommands(settings.customCommands || '');
+        setLocalModerators(settings.moderators || '');
+        setShowShopWidget(settings.showShop ?? false);
+    }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
     const [isSaving, setIsSaving] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'planning' | 'general' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'shop' | 'drops'>('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'shop'>('general');
+    const [stage2, setStage2] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
+    });
+    const [stage3, setStage3] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
+    });
+    const [stage4, setStage4] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '';
+    });
+    const [stage1Name, setStage1Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[0] ? (lines[0].split(':').slice(1).join(':').trim() || 'Stage 1') : 'Stage 1';
+    });
+    const [stage2Name, setStage2Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? (lines[1].split(':').slice(1).join(':').trim() || 'Stage 2') : 'Stage 2';
+    });
+    const [stage3Name, setStage3Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? (lines[2].split(':').slice(1).join(':').trim() || 'Stage 3') : 'Stage 3';
+    });
+    const [stage4Name, setStage4Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[3] ? (lines[3].split(':').slice(1).join(':').trim() || 'Stage 4') : 'Stage 4';
+    });
     const [isLocalBanned, setIsLocalBanned] = useState(false);
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
     const [pollQuestion, setPollQuestion] = useState('');
@@ -325,75 +324,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [botColor, setBotColor] = useState(settings.botColor || '#00ffcc');
     const [botBgColor, setBotBgColor] = useState(settings.botBgColor || 'rgba(0, 255, 204, 0.05)');
     const [adminColor, setAdminColor] = useState(settings.adminColor || '#ff0033');
-    const [userDrops] = useState(1250); // Mock value
-    const [rewardTrigger, setRewardTrigger] = useState('');
-    const [rewardName, setRewardName] = useState('');
-    const [rewardCost, setRewardCost] = useState('');
-    const [isEditingReward, setIsEditingReward] = useState<string | null>(null);
-
-    const handleAddOrUpdateReward = () => {
-        if (!rewardTrigger.trim() || !rewardName.trim() || !rewardCost.trim()) return;
-
-        const lines = localDropsActions.split('\n').filter(l => l.trim());
-        const newLine = `${rewardTrigger.startsWith('!') ? rewardTrigger : '!' + rewardTrigger}:${rewardName.trim()}:${rewardCost.trim()}`;
-
-        let updated;
-        if (isEditingReward) {
-            updated = lines.map(line => line.toLowerCase().startsWith(isEditingReward.toLowerCase() + ':') ? newLine : line);
-        } else {
-            updated = [...lines, newLine];
-        }
-
-        const final = updated.join('\n');
-        setLocalDropsActions(final);
-        // Assuming handleUpdateSettings is defined elsewhere and takes an object
-        // with the settings to update.
-        // If not, you'll need to define it or adjust this call.
-        handleUpdateSettings({ dropsActions: final });
-        setRewardTrigger('');
-        setRewardName('');
-        setRewardCost('');
-        setIsEditingReward(null);
-    };
-
-    const handleDeleteReward = (trigger: string) => {
-        const lines = localDropsActions.split('\n').filter(l => l.trim());
-        const updated = lines.filter(line => !line.toLowerCase().startsWith(trigger.toLowerCase() + ':'));
-        const final = updated.join('\n');
-        setLocalDropsActions(final);
-        // Assuming handleUpdateSettings is defined elsewhere.
-        handleUpdateSettings({ dropsActions: final });
-    };
-
-    const [favorites, setFavorites] = useState<string[]>(() => {
-        return JSON.parse(localStorage.getItem('user_favorites') || '[]');
-    });
-
-    const toggleFavorite = (artist: string) => {
-        const newFavs = favorites.includes(artist)
-            ? favorites.filter(a => a !== artist)
-            : [...favorites, artist];
-        setFavorites(newFavs);
-        localStorage.setItem('user_favorites', JSON.stringify(newFavs));
-    };
-
-    useEffect(() => {
-        if (Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
-    }, []);
-
-    useEffect(() => {
-        if (fluxCurrentArtist.artist && favorites.includes(fluxCurrentArtist.artist)) {
-            // Local notification
-            if (Notification.permission === 'granted') {
-                new Notification(`DROPSIDERS LIVE`, {
-                    body: `🔥 @${fluxCurrentArtist.artist.toUpperCase()} commence son set maintenant !`,
-                    icon: '/favicon.ico'
-                });
-            }
-        }
-    }, [fluxCurrentArtist.artist, favorites]);
     const [adminBgColor, setAdminBgColor] = useState(settings.adminBgColor || 'rgba(255, 0, 51, 0.05)');
 
     // Collapsible Chat
@@ -408,50 +338,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [lineupHour, setLineupHour] = useState("");
     const [lineupMinute, setLineupMinute] = useState("");
-
-    // Sync with props when they change (e.g. from parent polling or settings update)
-    useEffect(() => {
-        setEditTitle(settings.title);
-        setDisplayLineup(settings.lineup || '');
-        setEditLineup(settings.lineup || '');
-        setIsLiveEnabled(settings.enabled ?? true);
-        setForceHome(settings.forceHome ?? false);
-        setShowInMenu(settings.showInMenu ?? true);
-        setIsSecretMode(settings.isSecret ?? false);
-        setScheduledStart(settings.scheduledStart || '');
-        setScheduledEnd(settings.scheduledEnd || '');
-
-        if (settings.channels) {
-            try {
-                if (settings.channels.startsWith('[')) setCameraList(JSON.parse(settings.channels));
-                else {
-                    const lines = settings.channels.split('\n').filter(Boolean).map(c => {
-                        const [id, ...titleParts] = c.split(':');
-                        return { id: id.trim(), title: titleParts.join(':').trim() || 'CAM' };
-                    });
-                    setCameraList(lines);
-                }
-            } catch { }
-        }
-
-        setShowTopBanner(settings.showTopBanner ?? true);
-        setShowTickerBanner(settings.showTickerBanner ?? true);
-        setLocalPinnedMessage(settings.pinnedMessage ?? '');
-        setEditCurrentArtist(settings.currentArtist || '');
-        setEditArtistInstagram(settings.artistInstagram || '');
-        setLocalCustomCommands(settings.customCommands || '');
-        setLocalModerators(settings.moderators || '');
-        setLocalAutoMessage(settings.autoMessage || '');
-        setLocalAutoMessageInterval(settings.autoMessageInterval || 5);
-        setLocalDropsActions(settings.dropsActions || '');
-        setLocalDropsInterval(settings.dropsInterval || 10);
-        setLocalDropsAmount(settings.dropsAmount || 50);
-        setShowShopWidget(settings.showShop ?? true);
-        setAdminColor(settings.adminColor || '#ff0033');
-        setAdminBgColor(settings.adminBgColor || 'rgba(255, 0, 51, 0.05)');
-        setBotColor(settings.botColor || '#00ffcc');
-        setBotBgColor(settings.botBgColor || 'rgba(0, 255, 204, 0.05)');
-    }, [settings]);
     const [lineupArtist, setLineupArtist] = useState("");
     const [lineupStage, setLineupStage] = useState("");
     const [lineupInstagram, setLineupInstagram] = useState("");
@@ -1121,41 +1007,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             const res = await fetch('/api/settings');
             if (res.ok) {
                 const currentSettings = await res.json();
-
                 const newSettings = {
                     ...currentSettings,
                     takeover: {
                         ...currentSettings.takeover,
-                        ...updates
+                        ...updates,
+                        tickerType: updates.tickerType ?? tickerType,
+                        tickerText: updates.tickerText ?? tickerText,
+                        tickerLink: updates.tickerLink ?? tickerLink,
+                        tickerBgColor: updates.tickerBgColor ?? tickerBgColor,
+                        tickerTextColor: updates.tickerTextColor ?? tickerTextColor,
+                        showTopBanner: updates.showTopBanner ?? showTopBanner,
+                        showTickerBanner: updates.showTickerBanner ?? showTickerBanner,
+                        botColor: updates.botColor ?? botColor,
+                        botBgColor: updates.botBgColor ?? botBgColor,
+                        adminColor: updates.adminColor ?? adminColor,
+                        adminBgColor: updates.adminBgColor ?? adminBgColor
                     }
                 };
-
-                // Update Local States
-                if (updates.title !== undefined) { setDisplayTitle(updates.title); setEditTitle(updates.title); }
-                if (updates.lineup !== undefined) { setDisplayLineup(updates.lineup); setEditLineup(updates.lineup); }
-                if (updates.tickerType !== undefined) setTickerType(updates.tickerType);
-                if (updates.tickerText !== undefined) setTickerText(updates.tickerText);
-                if (updates.tickerLink !== undefined) setTickerLink(updates.tickerLink);
-                if (updates.tickerBgColor !== undefined) setTickerBgColor(updates.tickerBgColor);
-                if (updates.tickerTextColor !== undefined) setTickerTextColor(updates.tickerTextColor);
-                if (updates.showTopBanner !== undefined) setShowTopBanner(updates.showTopBanner);
-                if (updates.showTickerBanner !== undefined) setShowTickerBanner(updates.showTickerBanner);
-                if (updates.pinnedMessage !== undefined) setLocalPinnedMessage(updates.pinnedMessage);
-                if (updates.currentArtist !== undefined) setEditCurrentArtist(updates.currentArtist);
-                if (updates.artistInstagram !== undefined) setEditArtistInstagram(updates.artistInstagram);
-                if (updates.customCommands !== undefined) setLocalCustomCommands(updates.customCommands);
-                if (updates.moderators !== undefined) setLocalModerators(updates.moderators);
-                if (updates.showShop !== undefined) setShowShopWidget(updates.showShop);
-                if (updates.adminColor !== undefined) setAdminColor(updates.adminColor);
-                if (updates.adminBgColor !== undefined) setAdminBgColor(updates.adminBgColor);
-                if (updates.botColor !== undefined) setBotColor(updates.botColor);
-                if (updates.botBgColor !== undefined) setBotBgColor(updates.botBgColor);
-                if (updates.youtubeId !== undefined) {
-                    // setFluxPrincipal(`https://youtube.com/watch?v=${updates.youtubeId}`); // Removed fluxPrincipal state
-                }
-                if (updates.scheduledStart !== undefined) setScheduledStart(updates.scheduledStart);
-                if (updates.scheduledEnd !== undefined) setScheduledEnd(updates.scheduledEnd);
-
 
                 const saveRes = await fetch('/api/settings/update', {
                     method: 'POST',
@@ -1163,14 +1032,66 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     body: JSON.stringify(newSettings)
                 });
 
-                if (!saveRes.ok) throw new Error('Failed to save settings');
+                if (saveRes.ok) {
+                    setShowVideoEdit(false);
+                    setDisplayTitle(updates.title || editTitle);
+                    if (updates.lineup !== undefined) setDisplayLineup(updates.lineup);
+                    if (updates.showTopBanner !== undefined) setShowTopBanner(updates.showTopBanner);
+                    if (updates.showTickerBanner !== undefined) setShowTickerBanner(updates.showTickerBanner);
+
+                    if (updates.botColor !== undefined) setBotColor(updates.botColor);
+                    if (updates.botBgColor !== undefined) setBotBgColor(updates.botBgColor);
+                    if (updates.adminColor !== undefined) setAdminColor(updates.adminColor);
+                    if (updates.adminBgColor !== undefined) setAdminBgColor(updates.adminBgColor);
+
+                    if (updates.autoMessage !== undefined) {
+                        settings.autoMessage = updates.autoMessage;
+                    }
+                    if (updates.autoMessageInterval !== undefined) {
+                        settings.autoMessageInterval = updates.autoMessageInterval;
+                    }
+                    if (updates.pinnedMessage !== undefined) {
+                        settings.pinnedMessage = updates.pinnedMessage;
+                        setLocalPinnedMessage(updates.pinnedMessage);
+                    }
+                    if (updates.youtubeId !== undefined) {
+                        settings.youtubeId = updates.youtubeId;
+                    }
+                    if (updates.channels !== undefined) {
+                        settings.channels = updates.channels;
+                    }
+                    if (updates.currentArtist !== undefined) {
+                        settings.currentArtist = updates.currentArtist;
+                        setEditCurrentArtist(updates.currentArtist);
+                    }
+                    if (updates.artistInstagram !== undefined) {
+                        settings.artistInstagram = updates.artistInstagram;
+                        setEditArtistInstagram(updates.artistInstagram);
+                    }
+                    if (updates.customCommands !== undefined) {
+                        setLocalCustomCommands(updates.customCommands);
+                    }
+                    if (updates.moderators !== undefined) {
+                        setLocalModerators(updates.moderators);
+                    }
+                    if (updates.showShop !== undefined) {
+                        settings.showShop = updates.showShop;
+                        setShowShopWidget(updates.showShop);
+                    }
+                    if (updates.mainFluxName !== undefined) {
+                        settings.mainFluxName = updates.mainFluxName;
+                    }
+                    if (updates.lineup !== undefined) {
+                        settings.lineup = updates.lineup;
+                    }
+                }
             }
         } catch (err) {
-            console.error('Failed to update settings:', err);
+            console.error('Failed to update settings', err);
         } finally {
             setIsSaving(false);
         }
-    }, [settings, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, botColor, botBgColor, adminColor, adminBgColor, getAuthHeaders, editTitle, scheduledStart, scheduledEnd]);
+    }, [getAuthHeaders, editTitle, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, settings]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -1254,9 +1175,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         await handleUpdateSettings({ customCommands: currentCmds.join('\n') });
     };
 
-    const isUserOnline = (userData: { pseudo: string; country: string }) => {
-        const upseudo = (userData.pseudo || '').toLowerCase();
-        return allActiveUsers.some(u => (u.pseudo || '').toLowerCase() === upseudo);
+    const isUserOnline = (pseudo: string) => {
+        return allActiveUsers.some(u => u.pseudo.toLowerCase() === pseudo.toLowerCase());
     };
 
 
@@ -1373,16 +1293,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </a>
                                         )}
                                     </div>
-                                    {/* DROPS Counter */}
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg backdrop-blur-md shadow-[0_0_15px_rgba(0,255,255,0.1)] group cursor-default">
-                                        <div className="relative">
-                                            <Droplets className="w-2.5 h-2.5 text-neon-cyan animate-pulse group-hover:scale-110 transition-transform" />
-                                            <div className="absolute -top-1 -right-1 w-1 h-1 bg-white rounded-full animate-ping" />
-                                        </div>
-                                        <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest whitespace-nowrap">
-                                            {userDrops} <span className="text-[7px] opacity-70">DROPS</span>
-                                        </span>
-                                    </div>
                                 </motion.div>
                             )}
                         </div>
@@ -1429,8 +1339,36 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <span className="hidden sm:inline">Planning</span>
                             </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                            {/* Social buttons removed here */}
+                        <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-9">
+                            <a
+                                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-gray-500 hover:text-blue-500 transition-colors"
+                                title="Partager sur Facebook"
+                            >
+                                <Facebook className="w-3.5 h-3.5" />
+                            </a>
+                            <div className="w-[1px] h-3 bg-white/10" />
+                            <a
+                                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(settings.title || 'Dropsiders Live')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                                title="Partager sur X"
+                            >
+                                <Twitter className="w-3.5 h-3.5" />
+                            </a>
+                            <div className="w-[1px] h-3 bg-white/10" />
+                            <a
+                                href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 text-gray-500 hover:text-blue-400 transition-colors"
+                                title="Partager sur LinkedIn"
+                            >
+                                <Linkedin className="w-3.5 h-3.5" />
+                            </a>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -1469,57 +1407,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
                         {/* Redundant Stream Name Badge removed */}
-                        <div className="absolute inset-0 z-0 bg-black overflow-y-auto custom-scrollbar">
-                            <div className="flex-1 flex flex-col gap-3 min-h-0">
-                                {/* Stream Grouping Container */}
-                                {channelItems.length > 0 ? (
-                                    <div className={`grid gap-3 lg:gap-4 shrink-0 h-full ${channelItems.length === 1 ? 'grid-cols-1' :
-                                        channelItems.length === 2 ? 'grid-cols-1 lg:grid-cols-2' :
-                                            'grid-cols-1 lg:grid-cols-2'
-                                        }`}>
-                                        {/* Primary Stream (Large if alone or with 1-2 others, otherwise part of grid) */}
-                                        {channelItems.map((item, idx) => {
-                                            const isMain = idx === 0;
-                                            const showInSpecialLayout = channelItems.length <= 3 && isMain;
-
-                                            return (
-                                                <div
-                                                    key={`${item.id}-${idx}`}
-                                                    className={`relative aspect-video bg-[#050505] rounded-[2rem] overflow-hidden border border-white/5 shadow-2xl group/stream ${showInSpecialLayout ? 'lg:row-span-2 h-full' : ''
-                                                        }`}
-                                                >
-                                                    <iframe
-                                                        className="w-full h-full border-none"
-                                                        src={`https://www.youtube.com/embed/${item.id}?autoplay=${idx === 0 ? 1 : 0}&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
-                                                        title={item.title}
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    ></iframe>
-
-                                                    {/* Stream Title Overlay */}
-                                                    <div className="absolute top-4 left-4 flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 opacity-0 group-hover/stream:opacity-100 transition-opacity duration-500 z-10">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-red-500 animate-pulse' : 'bg-neon-cyan opacity-80'}`} />
-                                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">{item.title}</span>
-                                                    </div>
-
-                                                    {/* Static Bottom Badge */}
-                                                    <div className="absolute bottom-4 left-4 flex items-center gap-2.5 px-3 py-1 bg-black/40 backdrop-blur-md rounded-lg border border-white/10 group-hover/stream:bg-neon-red/20 group-hover/stream:border-neon-red/30 transition-all duration-300">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-red-600 shadow-[0_0_8px_#ff0000]' : 'bg-white/40'}`} />
-                                                        <span className="text-[9px] font-black text-white/90 uppercase tracking-widest leading-none">{item.title}</span>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-10 bg-[#050505] rounded-[3rem] border border-white/5">
-                                        <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                                            <Youtube className="w-10 h-10 text-gray-700" />
-                                        </div>
-                                        <h3 className="text-xl font-black text-white/40 uppercase tracking-widest italic">Aucun flux disponible</h3>
-                                    </div>
-                                )}
-                            </div>
+                        <div className="absolute inset-0 z-0">
+                            <iframe
+                                className="w-full h-full border-none"
+                                src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
+                                title={settings.title}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                            ></iframe>
                         </div>
 
 
@@ -1640,17 +1535,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 EN DIRECT
                                                             </div>
                                                         )}
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.2, rotate: 5 }}
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                toggleFavorite(item.artist);
-                                                            }}
-                                                            className={`w-7 h-7 flex items-center justify-center rounded-full p-1.5 shadow-lg transition-all ${favorites.includes(item.artist) ? 'bg-yellow-400 text-black' : 'bg-white/10 text-gray-400 hover:text-yellow-400'}`}
-                                                        >
-                                                            <Star className={`w-full h-full ${favorites.includes(item.artist) ? 'fill-current' : ''}`} />
-                                                        </motion.button>
-
                                                         {item.instagram && (
                                                             <motion.a
                                                                 whileHover={{ scale: 1.2, rotate: 5 }}
@@ -1782,277 +1666,267 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] p-4 lg:p-10 flex flex-col items-center justify-center overflow-hidden"
+                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-4 lg:p-10 flex flex-col items-center justify-center overflow-y-auto custom-scrollbar"
+
                                 >
                                     <motion.div
                                         initial={{ scale: 0.95, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
-                                        className="w-full max-w-5xl h-[90vh] bg-[#0a0a0a] border border-white/5 rounded-[2rem] shadow-2xl relative flex flex-col overflow-hidden"
+                                        className="w-full max-w-5xl h-[90vh] bg-[#0a0a0a] border border-white/10 rounded-[3rem] shadow-2xl relative overflow-hidden flex flex-col"
                                         onClick={e => e.stopPropagation()}
                                     >
-                                        {/* Red Accent Top Border */}
-                                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
-
-                                        <div className="flex items-center justify-between p-8 lg:p-10 shrink-0">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-3">
-                                                    <h2 className="text-4xl font-black text-white uppercase italic tracking-tighter flex items-center leading-none">
-                                                        LIVE <span className="text-neon-red ml-2">TAKEOVER</span>
-                                                    </h2>
-                                                </div>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-2">PRENDRE LE CONTRÔLE DE LA PAGE D'ACCUEIL</p>
+                                        <div className="flex items-center justify-between p-8 lg:p-10 border-b border-white/10 shrink-0">
+                                            <div>
+                                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter">Live <span className="text-neon-red">Takeover</span></h2>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Configuration et outils d'administration</p>
                                             </div>
-                                            <button
-                                                onClick={() => setShowEditModal(false)}
-                                                className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
-                                            >
-                                                <X className="w-6 h-6 text-gray-400 group-hover:text-white transition-colors" />
+                                            <button onClick={() => setShowEditModal(false)} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-colors">
+                                                <X className="w-6 h-6 text-white" />
                                             </button>
                                         </div>
 
-                                        {/* Navigation Tabs - Modernized */}
-                                        {/* Menu des Réglages */}
-                                        <div className="flex gap-2 p-2 bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl mb-8 overflow-x-auto custom-scrollbar no-scrollbar">
-                                            {[
-                                                { id: 'general', label: 'LIVE / VIDÉO' },
-                                                { id: 'ticker', label: 'BANDEAU' },
-                                                { id: 'moderation', label: 'MODÉRATION' },
-                                                { id: 'planning', label: 'PLANNING' },
-                                                { id: 'mods', label: 'ÉQUIPE' },
-                                                { id: 'bot', label: 'BOT' },
-                                                { id: 'shop', label: 'ACCÈS' },
-                                                { id: 'bans', label: 'BLOQUÉS' }
-                                            ].map(tab => (
-                                                <button
-                                                    key={tab.id}
-                                                    onClick={() => setActiveSettingsTab(tab.id as any)}
-                                                    className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeSettingsTab === tab.id ? 'bg-white/10 text-white border border-white/10 shadow-lg' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                                >
-                                                    {tab.label}
-                                                </button>
-                                            ))}
+                                        {/* Tabs Navigation */}
+                                        <div className="flex border-b border-white/10 px-6 shrink-0 bg-white/[0.02] overflow-x-auto no-scrollbar">
+                                            <button
+                                                onClick={() => setActiveSettingsTab('general')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'general' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Live / Vidéo
+                                                {activeSettingsTab === 'general' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('ticker')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'ticker' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Bandeau
+                                                {activeSettingsTab === 'ticker' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('moderation')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Sécurité & Équipe
+                                                {activeSettingsTab === 'moderation' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('planning')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'planning' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Planning
+                                                {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('shop')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'shop' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Shop
+                                                {activeSettingsTab === 'shop' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('bot')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'bot' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Bot
+                                                {activeSettingsTab === 'bot' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
+                                            </button>
                                         </div>
 
-                                        <div className="flex-1 overflow-y-auto px-8 pb-32 scroll-smooth custom-scrollbar">
+                                        {/* Tab Content */}
+                                        <div className="flex-1 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
                                             {activeSettingsTab === 'general' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    {/* Activer le Mode Live */}
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] flex items-center justify-between group/live">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className={`p-4 rounded-2xl transition-all ${isLiveEnabled ? 'bg-neon-cyan/20 shadow-[0_0_20px_rgba(0,255,153,0.15)]' : 'bg-white/5'}`}>
-                                                                <Activity className={`w-6 h-6 ${isLiveEnabled ? 'text-neon-cyan animate-pulse' : 'text-gray-600'}`} />
-                                                            </div>
-                                                            <div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">ACTIVER LE MODE LIVE</h3>
-                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">{isLiveEnabled ? 'Le système live est opérationnel' : 'Le direct est actuellement désactivé'}</p>
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setIsLiveEnabled(!isLiveEnabled)}
-                                                            className={`w-16 h-8 rounded-full p-1 transition-all flex items-center ${isLiveEnabled ? 'bg-neon-cyan justify-end shadow-[0_0_15px_#00ff9944]' : 'bg-gray-800 justify-start'}`}
-                                                        >
-                                                            <div className="w-6 h-6 rounded-full bg-white shadow-lg" />
-                                                        </button>
-                                                    </div>
-
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                        <div className="bg-white/5 border border-white/5 p-5 rounded-[2rem] flex items-center justify-between">
-                                                            <div>
-                                                                <h3 className="text-[11px] font-black text-white uppercase tracking-widest leading-none">FORCER L'ACCUEIL</h3>
-                                                                <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-2 italic">Remplace la home par le live</p>
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Activity className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-red">Affichage</span></h3>
                                                             </div>
-                                                            <button
-                                                                onClick={() => setForceHome(!forceHome)}
-                                                                className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${forceHome ? 'bg-neon-cyan justify-end' : 'bg-gray-800 justify-start'}`}
-                                                            >
-                                                                <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                            </button>
-                                                        </div>
-                                                        <div className="bg-white/5 border border-white/5 p-5 rounded-[2rem] flex items-center justify-between">
-                                                            <div>
-                                                                <h3 className="text-[11px] font-black text-white uppercase tracking-widest leading-none">AFFICHER DANS LE MENU</h3>
-                                                                <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-2 italic">Icône vidéo en haut du site</p>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => setShowInMenu(!showInMenu)}
-                                                                className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showInMenu ? 'bg-neon-cyan justify-end' : 'bg-gray-800 justify-start'}`}
-                                                            >
-                                                                <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-[2rem] border-l-4 border-l-neon-purple/50 flex items-center justify-between">
-                                                        <div>
-                                                            <h3 className="text-[11px] font-black text-neon-purple uppercase tracking-widest leading-none">MODE SECRET (PWD: 2026)</h3>
-                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-2 italic">Activation + Protection 2026</p>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => setIsSecretMode(!isSecretMode)}
-                                                            className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${isSecretMode ? 'bg-neon-purple justify-end shadow-[0_0_15px_#bc13fe44]' : 'bg-gray-800 justify-start'}`}
-                                                        >
-                                                            <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                        </button>
-                                                    </div>
-
-                                                    {/* Chaines / Caméras Section */}
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-red" /></div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">CHAÎNES / <span className="text-neon-red">CAMÉRAS</span></h3>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => setCameraList([...cameraList, { id: '', title: '' }])}
-                                                                className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-lg hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,0,51,0.2)]"
-                                                            >
-                                                                + AJOUTER
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                                            {cameraList.map((cam, idx) => (
-                                                                <div key={idx} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center gap-4 group/cam relative">
-                                                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                        <div className="space-y-1.5">
-                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">ID VIDÉO / LIEN</label>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={cam.id}
-                                                                                onChange={(e) => {
-                                                                                    const newList = [...cameraList];
-                                                                                    newList[idx].id = extractYoutubeId(e.target.value);
-                                                                                    setCameraList(newList);
-                                                                                }}
-                                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                                placeholder="ID Vidéo YouTube..."
-                                                                            />
-                                                                        </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">TITRE CAMÉRA</label>
-                                                                            <input
-                                                                                type="text"
-                                                                                value={cam.title}
-                                                                                onChange={(e) => {
-                                                                                    const newList = [...cameraList];
-                                                                                    newList[idx].title = e.target.value;
-                                                                                    setCameraList(newList);
-                                                                                }}
-                                                                                className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-black text-neon-red uppercase tracking-widest outline-none focus:border-neon-red transition-all"
-                                                                                placeholder="Nom de la scène..."
-                                                                            />
-                                                                        </div>
-                                                                    </div>
+                                                            <div className="space-y-3">
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Page En Ligne</label>
                                                                     <button
-                                                                        onClick={() => setCameraList(cameraList.filter((_, i) => i !== idx))}
-                                                                        className="p-2 text-gray-700 hover:text-neon-red transition-colors"
+                                                                        onClick={() => handleUpdateSettings({ enabled: !settings.enabled })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.enabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
                                                                     >
-                                                                        <Trash2 className="w-5 h-5" />
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.enabled ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                     </button>
                                                                 </div>
-                                                            ))}
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Affichage Shop (Global)</label>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ showShop: !settings.showShop })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.showShop ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.showShop ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
+                                                                <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Accès Privé (Secret Code)</label>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ isSecret: !settings.isSecret })}
+                                                                        className={`w-12 h-6 rounded-full p-1 transition-all ${settings.isSecret ? 'bg-neon-purple shadow-[0_0_15px_#bc13fe44]' : 'bg-gray-800'}`}
+                                                                    >
+                                                                        <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.isSecret ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Youtube className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FESTIVAL</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editTitle}
+                                                                        onChange={(e) => setEditTitle(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="TITRE DU LIVE..."
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX PRINCIPAL</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={editMainFluxName}
+                                                                        onChange={(e) => setEditMainFluxName(e.target.value)}
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                        placeholder="ex: MAIN STAGE..."
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Flux Principal (Lien YouTube)</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            value={fluxPrincipal}
+                                                                            onChange={(e) => setFluxPrincipal(e.target.value)}
+                                                                            className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
+                                                                            placeholder="ex: https://youtube.com/watch?v=..."
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                alert('Lien Principal Validé !');
+                                                                            }}
+                                                                            className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-red hover:text-white transition-all"
+                                                                        >
+                                                                            VALIDER
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">1 + 2</span></h3>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 1</label>
+                                                                        <input type="text" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 1" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 2</label>
+                                                                        <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 1</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage1} onChange={e => setStage1(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 1 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 2</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage2} onChange={e => setStage2(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 2 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3 mb-2">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">3 + 4</span></h3>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 3</label>
+                                                                        <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 4</label>
+                                                                        <input type="text" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 4" />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 3</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 3 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 4</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="text" value={stage4} onChange={e => setStage4(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
+                                                                        <button onClick={() => alert('Stage 4 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl"><Pencil className="w-4 h-4 text-neon-cyan" /></div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">CONFIG. <span className="text-neon-cyan">FLUX</span></h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">TITRE DU LIVE</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editTitle}
-                                                                    onChange={(e) => setEditTitle(e.target.value)}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] font-black text-white uppercase tracking-widest outline-none focus:border-neon-cyan transition-all"
-                                                                    placeholder="Titre affiché sur le site..."
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX PRINCIPAL</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={editMainFluxName}
-                                                                    onChange={(e) => setEditMainFluxName(e.target.value)}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] font-black text-neon-cyan uppercase tracking-widest outline-none focus:border-neon-cyan transition-all"
-                                                                    placeholder="DIRECT, SCÈNE MAIN..."
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {/* Programmation Automatique Section */}
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-purple/10 rounded-xl"><Clock className="w-4 h-4 text-neon-purple" /></div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">PROGRAMMATION <span className="text-neon-purple">AUTOMATIQUE</span></h3>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">LANCEMENT PROGRAMMÉ</label>
-                                                                <input
-                                                                    type="datetime-local"
-                                                                    value={scheduledStart}
-                                                                    onChange={(e) => setScheduledStart(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-purple transition-all"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-1.5">
-                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">ARRÊT PROGRAMMÉ</label>
-                                                                <input
-                                                                    type="datetime-local"
-                                                                    value={scheduledEnd}
-                                                                    onChange={(e) => setScheduledEnd(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-[10px] font-bold text-white outline-none focus:border-neon-purple transition-all"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le live s'activera et se désactivera automatiquement aux heures indiquées.</p>
-                                                    </div>
-
-                                                    {/* Bouton Enregistrer Final */}
-                                                    <button
-                                                        onClick={() => {
-                                                            handleUpdateSettings({
-                                                                enabled: isLiveEnabled,
-                                                                forceHome,
-                                                                showInMenu,
-                                                                isSecret: isSecretMode,
-                                                                channels: JSON.stringify(cameraList),
-                                                                title: editTitle,
-                                                                scheduledStart,
-                                                                scheduledEnd
-                                                            });
-                                                        }}
-                                                        className="w-full py-5 bg-neon-red text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(255,0,51,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
-                                                    >
-                                                        <CheckCircle2 className="w-5 h-5" /> ENREGISTRER LES RÉGLAGES
-                                                    </button>
                                                 </div>
                                             )}
 
                                             {activeSettingsTab === 'ticker' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                        {/* Spacer or additional settings could go here */}
-                                                        <div className="lg:col-span-1" />
+                                                        {/* Top Banner Control */}
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                        <Activity className="w-4 h-4 text-neon-red" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 2 <span className="text-neon-red">(Titre & Infos)</span></h3>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => setShowTopBanner(!showTopBanner)}
+                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                >
+                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                </button>
+                                                            </div>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                                                                Affiche le logo du festival et le menu de navigation en haut de la page.
+                                                            </p>
+                                                        </div>
 
                                                         {/* Ticker Banner Control */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center justify-between mb-4">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <Pin className="w-4 h-4 text-neon-red" />
+                                                                        <Activity className="w-4 h-4 text-neon-red" />
                                                                     </div>
-                                                                    <div>
-                                                                        <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 2 <span className="text-neon-red">(Défilement)</span></h3>
-                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Barre de texte déroulant à l'écran</p>
-                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Défilant)</span></h3>
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => handleUpdateSettings({ showTickerBanner: !showTickerBanner })}
+                                                                    onClick={() => setShowTickerBanner(!showTickerBanner)}
                                                                     className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
                                                                 >
                                                                     <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
@@ -2060,7 +1934,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
 
                                                             <div className="space-y-4">
-                                                                <div className="grid grid-cols-2 gap-3">
+                                                                <div className="space-y-1.5">
                                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Type de contenu</label>
                                                                     <select
                                                                         value={tickerType}
@@ -2112,165 +1986,159 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {activeSettingsTab === 'moderation' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                        {/* Colonne 1: Interaction & Sécurité */}
-                                                        <div className="space-y-6">
-                                                            {/* Gestion Sondage */}
-                                                            <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <HelpCircle className="w-4 h-4 text-neon-red" />
-                                                                    </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
+                                                        {/* Section Équipe de modération */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Shield className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Équipe de <span className="text-neon-red">Modération</span></h3>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <div className="flex gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        id="add-mod-input"
+                                                                        placeholder="Pseudo du modérateur..."
+                                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-red transition-all"
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter') {
+                                                                                const input = e.currentTarget;
+                                                                                handleAddModerator(input.value);
+                                                                                input.value = '';
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const input = document.getElementById('add-mod-input') as HTMLInputElement;
+                                                                            handleAddModerator(input.value);
+                                                                            if (input) input.value = '';
+                                                                        }}
+                                                                        className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all font-bold"
+                                                                    >
+                                                                        Ajouter
+                                                                    </button>
                                                                 </div>
 
-                                                                <div className="space-y-4">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
-                                                                        <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
-                                                                    </div>
-                                                                    <div className="space-y-2">
-                                                                        <div className="grid grid-cols-2 gap-2">
-                                                                            {pollOptions.map((opt, i) => (
-                                                                                <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
-                                                                                    const newOpts = [...pollOptions];
-                                                                                    newOpts[i] = e.target.value;
-                                                                                    setPollOptions(newOpts);
-                                                                                }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
-                                                                            ))}
-                                                                        </div>
-                                                                        {pollOptions.length < 6 && (
+                                                                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                    {localModerators?.split(',').filter(m => m.trim()).map(mod => (
+                                                                        <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <div className={`w-1.5 h-1.5 rounded-full bg-gray-600`} />
+                                                                                <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
+                                                                            </div>
                                                                             <button
-                                                                                onClick={() => setPollOptions([...pollOptions, ''])}
-                                                                                className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                                                onClick={() => handleRemoveModerator(mod.trim())}
+                                                                                className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
                                                                             >
-                                                                                <Plus className="w-3 h-3" /> Ajouter une option
+                                                                                <Trash2 className="w-4 h-4" />
                                                                             </button>
-                                                                        )}
-                                                                    </div>
-
-                                                                    <div className="flex flex-col gap-2 pt-2">
-                                                                        <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer le Sondage</button>
-                                                                        {activePoll && (
-                                                                            <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer le Sondage</button>
-                                                                        )}
-                                                                    </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
                                                                 </div>
                                                             </div>
+                                                        </div>
 
-                                                            {/* Outils de Sécurité */}
-                                                            <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <ShieldAlert className="w-4 h-4 text-neon-red" />
+                                                        {/* Modos Connectés */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-green-500/10 rounded-xl">
+                                                                    <Activity className="w-4 h-4 text-green-500" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Modos <span className="text-green-500">Connectés</span></h3>
+                                                            </div>
+                                                            <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                {localModerators?.split(',').filter(m => m.trim() && messages.some(msg => msg.pseudo.toLowerCase() === m.trim().toLowerCase())).map(mod => (
+                                                                    <div key={mod} className="flex items-center justify-between group rounded-xl p-3 bg-black/40 border border-white/5 transition-colors">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
+                                                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{mod.trim()}</span>
+                                                                        </div>
                                                                     </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Outils de <span className="text-neon-red">Sécurité</span></h3>
+                                                                ))}
+                                                                {localModerators?.split(',').filter(m => m.trim() && isUserOnline(m.trim())).length === 0 && (
+                                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modo connecté</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Outils de Sécurité */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <ShieldAlert className="w-4 h-4 text-neon-red" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Outils de <span className="text-neon-red">Sécurité</span></h3>
+                                                            </div>
+
+                                                            <div className="space-y-4">
+                                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                                    <div>
+                                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-1">
+                                                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                                                        </p>
+                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Limite l'envoi de messages</p>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => setIsSlowMode(!isSlowMode)}
+                                                                        className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${isSlowMode ? 'bg-yellow-500 shadow-[0_0_15px_#eab30844] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                    >
+                                                                        <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                    </button>
                                                                 </div>
 
-                                                                <div className="space-y-4">
-                                                                    <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
-                                                                        <div>
-                                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-1">
-                                                                                <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                                                            </p>
-                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Limite l'envoi de messages</p>
-                                                                        </div>
-                                                                        <button
-                                                                            onClick={() => setIsSlowMode(!isSlowMode)}
-                                                                            className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${isSlowMode ? 'bg-yellow-500 shadow-[0_0_15px_#eab30844] justify-end' : 'bg-gray-800 justify-start'}`}
-                                                                        >
-                                                                            <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                                        </button>
-                                                                    </div>
-
-                                                                    <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-3">
-                                                                            <Globe className="w-3.5 h-3.5 text-neon-cyan" /> Filtre de Liens
-                                                                        </p>
-                                                                        <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                                                                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bloquer les liens externes</span>
-                                                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] font-black uppercase border border-green-500/20">Toujours Actif</span>
-                                                                        </div>
+                                                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-3">
+                                                                        <Globe className="w-3.5 h-3.5 text-neon-cyan" /> Filtre de Liens
+                                                                    </p>
+                                                                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
+                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bloquer les liens externes</span>
+                                                                        <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] font-black uppercase border border-green-500/20">Toujours Actif</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
 
-                                                        {/* Colonne 2: Équipe & Modération */}
-                                                        <div className="space-y-6">
-                                                            {/* Section Équipe de modération */}
-                                                            <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <Shield className="w-4 h-4 text-neon-red" />
-                                                                    </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Équipe de <span className="text-neon-red">Modération</span></h3>
+                                                        {/* Gestion Sondage */}
+                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <HelpCircle className="w-4 h-4 text-neon-red" />
                                                                 </div>
-                                                                <div className="space-y-4">
-                                                                    <div className="flex gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            id="add-mod-input"
-                                                                            placeholder="Pseudo du modérateur..."
-                                                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-red transition-all"
-                                                                            onKeyDown={(e) => {
-                                                                                if (e.key === 'Enter') {
-                                                                                    const input = e.currentTarget;
-                                                                                    handleAddModerator(input.value);
-                                                                                    input.value = '';
-                                                                                }
-                                                                            }}
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const input = document.getElementById('add-mod-input') as HTMLInputElement;
-                                                                                handleAddModerator(input.value);
-                                                                                if (input) input.value = '';
-                                                                            }}
-                                                                            className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all font-bold"
-                                                                        >
-                                                                            Ajouter
-                                                                        </button>
-                                                                    </div>
-
-                                                                    <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                        {localModerators?.split(',').filter(m => m.trim()).map(mod => (
-                                                                            <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <div className={`w-1.5 h-1.5 rounded-full bg-gray-600`} />
-                                                                                    <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
-                                                                                </div>
-                                                                                <button
-                                                                                    onClick={() => handleRemoveModerator(mod.trim())}
-                                                                                    className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
-                                                                                >
-                                                                                    <Trash2 className="w-4 h-4" />
-                                                                                </button>
-                                                                            </div>
-                                                                        ))}
-                                                                        {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
-                                                                    </div>
-                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
                                                             </div>
 
-                                                            {/* Modos Connectés */}
-                                                            <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-green-500/10 rounded-xl">
-                                                                        <Activity className="w-4 h-4 text-green-500" />
-                                                                    </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Modos <span className="text-green-500">Connectés</span></h3>
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
+                                                                    <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
                                                                 </div>
-                                                                <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                    {localModerators?.split(',').filter(m => m.trim() && isUserOnline({ pseudo: m.trim(), country: 'FR' })).map(mod => (
-                                                                        <div key={mod} className="flex items-center justify-between group rounded-xl p-3 bg-black/40 border border-white/5 transition-colors">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
-                                                                                <span className="text-[11px] font-black text-white uppercase tracking-widest">{mod.trim()}</span>
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                    {localModerators?.split(',').filter(m => m.trim() && isUserOnline({ pseudo: m.trim(), country: 'FR' })).length === 0 && (
-                                                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modo connecté</p>
+                                                                <div className="space-y-2">
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        {pollOptions.map((opt, i) => (
+                                                                            <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
+                                                                                const newOpts = [...pollOptions];
+                                                                                newOpts[i] = e.target.value;
+                                                                                setPollOptions(newOpts);
+                                                                            }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
+                                                                        ))}
+                                                                    </div>
+                                                                    {pollOptions.length < 6 && (
+                                                                        <button
+                                                                            onClick={() => setPollOptions([...pollOptions, ''])}
+                                                                            className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <Plus className="w-3 h-3" /> Ajouter une option
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                <div className="flex flex-col gap-2 pt-2">
+                                                                    <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer le Sondage</button>
+                                                                    {activePoll && (
+                                                                        <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer le Sondage</button>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -2289,19 +2157,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
                                                                 <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-red transition-all">
-                                                                    <input
-                                                                        type="color"
-                                                                        value={adminColor}
-                                                                        onChange={(e) => setAdminColor(e.target.value)}
-                                                                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
-                                                                    />
-                                                                    <span className="text-xs font-bold text-white uppercase flex-1">{adminColor}</span>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ adminColor })}
-                                                                        className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-red hover:text-white transition-all"
-                                                                    >
-                                                                        VALIDER
-                                                                    </button>
+                                                                    <input type="color" value={adminColor} onChange={(e) => handleUpdateSettings({ adminColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{adminColor}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-2">
@@ -2313,7 +2170,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             value={adminColor}
                                                                             onChange={(e) => {
                                                                                 const hex = e.target.value;
-                                                                                setAdminBgColor(`${hex}0d`); // 0.05 opacity by default
+                                                                                handleUpdateSettings({ adminBgColor: `${hex}0d` }); // 0.05 opacity by default
                                                                             }}
                                                                             className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
                                                                         />
@@ -2324,7 +2181,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             type="text"
                                                                             placeholder="ex: rgba(255, 0, 51, 0.05)"
                                                                             value={adminBgColor}
-                                                                            onChange={(e) => setAdminBgColor(e.target.value)}
+                                                                            onChange={(e) => handleUpdateSettings({ adminBgColor: e.target.value })}
                                                                             className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
                                                                         />
                                                                         <button
@@ -2358,9 +2215,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="col-span-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
                                                                 <option value="" disabled>Sélectionner un Stage</option>
                                                                 <option value="Flux Principal">Flux Principal</option>
-                                                                {cameraList.slice(1).map((cam, idx) => (
-                                                                    <option key={idx} value={cam.title}>{cam.title}</option>
-                                                                ))}
+                                                                {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
+                                                                {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
+                                                                {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
+                                                                {stage4Name && <option value={stage4Name}>{stage4Name}</option>}
                                                             </select>
                                                             <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="col-span-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
                                                             <button onClick={appendLineup} className="col-span-5 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
@@ -2375,7 +2233,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Heure</th>
                                                                             <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Artiste</th>
                                                                             <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Stage</th>
-                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10 text-center"><Star className="w-3 h-3 inline text-yellow-500 animate-pulse" /></th>
                                                                             <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Instagram</th>
                                                                             <th className="px-4 py-2.5 border-b border-white/10"></th>
                                                                         </tr>
@@ -2416,11 +2273,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 // On essaye de matcher le stage avec les options existantes
                                                                                 const lowerStage = stage.trim().toLowerCase();
                                                                                 if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
-                                                                                else {
-                                                                                    const stageMatch = cameraList.find(c => c.title.toLowerCase() === lowerStage);
-                                                                                    if (stageMatch) setLineupStage(stageMatch.title);
-                                                                                    else setLineupStage(stage.trim());
-                                                                                }
+                                                                                else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
+                                                                                else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
+                                                                                else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
+                                                                                else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
+                                                                                else setLineupStage(stage.trim());
 
                                                                                 setLineupInstagram(instagram.trim());
                                                                                 deleteLine();
@@ -2441,14 +2298,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase truncate max-w-[150px]">{artist}</td>
                                                                                     <td className="px-4 py-2.5 border-b border-white/5">
                                                                                         {stage && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${getStageColor(stage)}`}>{stage}</span>}
-                                                                                    </td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-center">
-                                                                                        <button
-                                                                                            onClick={() => toggleFavorite(artist)}
-                                                                                            className="p-1 hover:bg-white/5 rounded-full transition-all group/fav"
-                                                                                        >
-                                                                                            <Star className={`w-3 h-3 ${favorites.includes(artist) ? 'text-yellow-400 fill-current shadow-[0_0_10px_rgba(250,204,21,0.5)]' : 'text-gray-600 group-hover/fav:text-yellow-400'} transition-all`} />
-                                                                                        </button>
                                                                                     </td>
                                                                                     <td className="px-4 py-2.5 border-b border-white/5">
                                                                                         {instagram && (
@@ -2483,126 +2332,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                             {activeSettingsTab === 'bot' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    {/* Drops Management - Top of the list */}
-                                                    <div className="bg-neon-cyan/5 border border-neon-cyan/20 p-6 rounded-[2rem] space-y-6 relative overflow-hidden group/drops">
-                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/5 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
 
-                                                        <div className="flex items-center justify-between relative z-10">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2.5 bg-neon-cyan/10 rounded-2xl shadow-[0_0_15px_rgba(0,255,255,0.1)]">
-                                                                    <Droplets className="w-5 h-5 text-neon-cyan animate-pulse" />
-                                                                </div>
-                                                                <div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-cyan">DROPS</span></h3>
-                                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Automatique & Récompenses</p>
-                                                                </div>
-                                                            </div>
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="text-right">
-                                                                    <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Intervalle</p>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <input
-                                                                            type="number"
-                                                                            value={localDropsInterval}
-                                                                            onChange={e => setLocalDropsInterval(parseInt(e.target.value) || 1)}
-                                                                            className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-bold text-center focus:border-neon-cyan outline-none"
-                                                                        />
-                                                                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">MIN</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-1">Montant</p>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <input
-                                                                            type="number"
-                                                                            value={localDropsAmount}
-                                                                            onChange={e => setLocalDropsAmount(parseInt(e.target.value) || 0)}
-                                                                            className="w-16 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-xs text-white font-bold text-center focus:border-neon-cyan outline-none"
-                                                                        />
-                                                                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">PTS</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-4 relative z-10">
-                                                            <div className="flex items-center justify-between">
-                                                                <label className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center gap-2">
-                                                                    <Gift className="w-3.5 h-3.5 text-neon-cyan" /> Configuration des Récompenses
-                                                                </label>
-                                                                <span className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic leading-none">Format: !commande:Nom:Prix</span>
-                                                            </div>
-
-                                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                                <div className="space-y-3">
-                                                                    <textarea
-                                                                        value={localDropsActions}
-                                                                        onChange={e => setLocalDropsActions(e.target.value)}
-                                                                        placeholder="!badge:Badge Fan:500&#10;!color:Chat Couleur:1000..."
-                                                                        className="w-full h-40 bg-black/40 border border-white/10 rounded-2xl p-4 text-[10px] text-white font-mono font-bold outline-none focus:border-neon-cyan transition-all resize-none custom-scrollbar"
-                                                                    />
-                                                                </div>
-
-                                                                <div className="space-y-4">
-                                                                    <div className="p-4 bg-black/60 rounded-2xl border border-white/5 space-y-4">
-                                                                        <div className="flex items-center gap-3 mb-2">
-                                                                            <Star className="w-3.5 h-3.5 text-yellow-500" />
-                                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{isEditingReward ? 'Éditer' : 'Ajouter RAPIDEMENT'}</span>
-                                                                        </div>
-                                                                        <div className="space-y-3">
-                                                                            <input type="text" placeholder="Déclencheur (ex: !vip)" value={rewardTrigger} onChange={e => setRewardTrigger(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder:text-gray-700 outline-none focus:border-neon-cyan" />
-                                                                            <input type="text" placeholder="Nom de la récompense" value={rewardName} onChange={e => setRewardName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder:text-gray-700 outline-none focus:border-neon-cyan" />
-                                                                            <div className="flex gap-2">
-                                                                                <input type="number" placeholder="Coût" value={rewardCost} onChange={e => setRewardCost(e.target.value)} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-xs text-white placeholder:text-gray-700 outline-none focus:border-neon-cyan" />
-                                                                                <button onClick={handleAddOrUpdateReward} className="px-6 bg-neon-cyan text-black rounded-xl text-[10px] font-black uppercase hover:scale-105 transition-all">OK</button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ dropsActions: localDropsActions, dropsInterval: localDropsInterval, dropsAmount: localDropsAmount })}
-                                                                        className="w-full py-4 bg-neon-cyan text-black rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-neon-cyan/80 transition-all shadow-[0_10px_20px_rgba(0,255,255,0.1)] active:scale-95"
-                                                                    >
-                                                                        ENREGISTRER LES DROPS
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Auto Message Management - Now below Drops */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
-                                                        </label>
-                                                        <div className="space-y-4">
-                                                            <textarea
-                                                                className="w-full h-24 bg-black/40 border border-white/10 rounded-2xl p-4 text-[10px] text-white outline-none focus:border-neon-cyan font-bold transition-all resize-none"
-                                                                placeholder="Entrez le message automatique..."
-                                                                value={localAutoMessage}
-                                                                onChange={(e) => setLocalAutoMessage(e.target.value)}
-                                                            />
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="flex-1 space-y-1">
-                                                                    <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Intervalle (Mins)</label>
-                                                                    <input
-                                                                        type="number"
-                                                                        min="1"
-                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-cyan transition-all"
-                                                                        value={localAutoMessageInterval}
-                                                                        onChange={(e) => setLocalAutoMessageInterval(parseInt(e.target.value))}
-                                                                    />
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateSettings({ autoMessage: localAutoMessage, autoMessageInterval: localAutoMessageInterval })}
-                                                                    className="px-6 py-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all shadow-[0_0_20px_rgba(0,255,153,0.1)]"
-                                                                >
-                                                                    VALIDER
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Liste des Commandes */}
                                                     <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
                                                         <div className="flex items-center justify-between mb-2">
                                                             <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
@@ -2615,7 +2345,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     setCmdResponse('');
                                                                     document.getElementById('cmd-input')?.focus();
                                                                 }}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all font-bold"
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all"
                                                             >
                                                                 <Plus className="w-3.5 h-3.5" /> Ajouter
                                                             </button>
@@ -2660,7 +2390,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                         </button>
                                                                                         <button
                                                                                             onClick={() => handleDeleteCommand(trigger)}
-                                                                                            className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all font-bold"
+                                                                                            className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all"
                                                                                             title="Supprimer"
                                                                                         >
                                                                                             <Trash2 className="w-3.5 h-3.5" />
@@ -2685,7 +2415,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             setCmdTrigger('');
                                                                             setCmdResponse('');
                                                                         }}
-                                                                        className="text-[8px] font-black text-neon-red uppercase tracking-widest hover:underline font-bold"
+                                                                        className="text-[8px] font-black text-neon-red uppercase tracking-widest hover:underline"
                                                                     >
                                                                         Annuler
                                                                     </button>
@@ -2711,12 +2441,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         value={cmdResponse}
                                                                         onChange={e => setCmdResponse(e.target.value)}
                                                                         placeholder="Message du bot..."
-                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-[11px] text-white focus:border-neon-cyan outline-none font-bold"
+                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-[11px] text-white focus:border-neon-cyan outline-none"
                                                                     />
                                                                     <button
                                                                         onClick={handleAddOrUpdateCommand}
                                                                         disabled={!cmdTrigger.trim() || !cmdResponse.trim()}
-                                                                        className="px-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 shrink-0 font-bold"
+                                                                        className="px-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 shrink-0"
                                                                     >
                                                                         {isEditingCmd ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                                                                         {isEditingCmd ? 'OK' : 'Ajouter'}
@@ -2752,19 +2482,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
                                                                 <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <input
-                                                                        type="color"
-                                                                        value={botColor}
-                                                                        onChange={(e) => setBotColor(e.target.value)}
-                                                                        className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
-                                                                    />
-                                                                    <span className="text-xs font-bold text-white uppercase flex-1">{botColor}</span>
-                                                                    <button
-                                                                        onClick={() => handleUpdateSettings({ botColor })}
-                                                                        className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all font-bold"
-                                                                    >
-                                                                        VALIDER
-                                                                    </button>
+                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
                                                                 </div>
                                                             </div>
                                                             <div className="space-y-2">
@@ -2776,23 +2495,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             value={botColor}
                                                                             onChange={(e) => {
                                                                                 const hex = e.target.value;
-                                                                                setBotBgColor(`${hex}0d`); // 0.05 opacity by default
+                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
                                                                             }}
                                                                             className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
                                                                         />
-                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10 font-bold">Base pour le fond</div>
+                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
                                                                     </div>
                                                                     <div className="flex flex-1 items-center gap-2">
                                                                         <input
                                                                             type="text"
                                                                             placeholder="ex: rgba(0, 255, 204, 0.05)"
                                                                             value={botBgColor}
-                                                                            onChange={(e) => setBotBgColor(e.target.value)}
+                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
                                                                             className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
                                                                         />
                                                                         <button
-                                                                            onClick={() => handleUpdateSettings({ botBgColor })}
-                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all font-bold"
+                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
+                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
                                                                         >
                                                                             VALIDER
                                                                         </button>
@@ -2801,6 +2520,45 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* Auto Message Management */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
+                                                        </label>
+
+                                                        <div className="space-y-4">
+                                                            <div className="space-y-2">
+                                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
+                                                                <textarea
+                                                                    value={settings.autoMessage || ''}
+                                                                    onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
+                                                                    placeholder="Message à envoyer automatiquement..."
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
+                                                                />
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={settings.autoMessageInterval || 60}
+                                                                        onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
+                                                                        className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
+                                                                        min="10"
+                                                                    />
+                                                                    <Clock className="w-4 h-4 text-gray-500" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
+                                                    </div>
+
                                                 </div>
                                             )}
 
@@ -2860,250 +2618,60 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                 </div>
                                             )}
-                                            {activeSettingsTab === 'drops' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    {/* Points Configuration */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                    <Activity className="w-4 h-4 text-neon-cyan" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gain de <span className="text-neon-cyan">DROPS</span></h3>
-                                                            </div>
-                                                            <div className="space-y-4">
-                                                                <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
-                                                                    <div>
-                                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest">Montant</p>
-                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Points par intervalle</p>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <input
-                                                                            type="number"
-                                                                            value={settings.dropsAmount || 10}
-                                                                            onChange={(e) => handleUpdateSettings({ dropsAmount: parseInt(e.target.value) || 10 })}
-                                                                            className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
-                                                                        />
-                                                                        <Droplets className="w-4 h-4 text-neon-cyan" />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
-                                                                    <div>
-                                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (minutes)</p>
-                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps de visionnage requis</p>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-3">
-                                                                        <input
-                                                                            type="number"
-                                                                            value={settings.dropsInterval || 5}
-                                                                            onChange={(e) => handleUpdateSettings({ dropsInterval: parseInt(e.target.value) || 5 })}
-                                                                            className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
-                                                                        />
-                                                                        <Clock className="w-4 h-4 text-neon-red" />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="bg-white/5 border border-white/5 p-5 rounded-3xl flex flex-col items-center justify-center text-center space-y-3">
-                                                            <div className="w-16 h-16 bg-neon-cyan/10 rounded-full flex items-center justify-center border border-neon-cyan/20 animate-pulse">
-                                                                <Droplets className="w-8 h-8 text-neon-cyan" />
-                                                            </div>
-                                                            <div>
-                                                                <h4 className="text-xs font-black text-white uppercase tracking-widest">Système DROPS Actif</h4>
-                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Les utilisateurs gagnent {settings.dropsAmount || 10} DROPS toutes les {settings.dropsInterval || 5} minutes de visionnage.</p>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Rewards Management */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                <Gift className="w-4 h-4 text-neon-purple shadow-[0_0_10px_#bc13fe66]" /> Actions et Récompenses
-                                                            </label>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setIsEditingReward(null);
-                                                                    setRewardTrigger('');
-                                                                    setRewardName('');
-                                                                    setRewardCost('');
-                                                                    document.getElementById('reward-input')?.focus();
-                                                                }}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-purple text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-purple/80 transition-all font-display italic"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" /> Créer
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
-                                                            {localDropsActions.split('\n').filter(l => l.includes(':')).map((line, idx) => {
-                                                                const [trigger, name, cost] = line.split(':');
-                                                                return (
-                                                                    <div key={idx} className="bg-black/40 border border-white/5 p-4 rounded-2xl flex items-center justify-between group hover:border-neon-cyan/30 transition-all">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <div className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-neon-cyan/10 transition-colors">
-                                                                                <Zap className="w-4 h-4 text-neon-cyan" />
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] font-black text-white uppercase tracking-tighter italic">{name}</p>
-                                                                                <div className="flex items-center gap-1 mt-0.5">
-                                                                                    <span className="text-[8px] font-bold text-gray-500 uppercase">{trigger}</span>
-                                                                                    <span className="text-[8px] text-white/20">•</span>
-                                                                                    <span className="text-[8px] font-black text-neon-cyan flex items-center gap-0.5">
-                                                                                        <Droplets className="w-2 h-2" /> {cost}
-                                                                                    </span>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setRewardTrigger(trigger);
-                                                                                    setRewardName(name);
-                                                                                    setRewardCost(cost);
-                                                                                    setIsEditingReward(trigger.toLowerCase().replace('!', ''));
-                                                                                }}
-                                                                                className="p-1.5 hover:bg-white/5 rounded-lg text-gray-400 hover:text-white transition-all"
-                                                                            >
-                                                                                <Edit2 className="w-3 h-3" />
-                                                                            </button>
-                                                                            <button
-                                                                                onClick={() => handleDeleteReward(trigger)}
-                                                                                className="p-1.5 hover:bg-white/5 rounded-lg text-gray-400 hover:text-neon-red transition-all"
-                                                                            >
-                                                                                <Trash2 className="w-3 h-3" />
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-
-                                                        {/* Add/Edit Reward Form */}
-                                                        <div className="mt-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem] space-y-4">
-                                                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest text-center">{isEditingReward ? 'Modifier la récompense' : 'Ajouter une nouvelle récompense'}</h4>
-                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">COMMANDE</label>
-                                                                    <input
-                                                                        id="reward-input"
-                                                                        type="text"
-                                                                        value={rewardTrigger}
-                                                                        onChange={e => setRewardTrigger(e.target.value)}
-                                                                        placeholder="ex: !badge"
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DE L'ACTION</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={rewardName}
-                                                                        onChange={e => setRewardName(e.target.value)}
-                                                                        placeholder="ex: Badge Fan"
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">COÛT (DROPS)</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input
-                                                                            type="number"
-                                                                            value={rewardCost}
-                                                                            onChange={e => setRewardCost(e.target.value)}
-                                                                            placeholder="ex: 500"
-                                                                            className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all"
-                                                                        />
-                                                                        <button
-                                                                            onClick={handleAddOrUpdateReward}
-                                                                            disabled={!rewardTrigger.trim() || !rewardName.trim() || !rewardCost.trim()}
-                                                                            className="px-6 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 italic tracking-tighter"
-                                                                        >
-                                                                            {isEditingReward ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                                                                            {isEditingReward ? 'Mettre à jour' : 'Créer'}
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
 
-                                        <div className="pt-6 border-t border-white/10 mt-auto">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <button
-                                                    onClick={() => {
-                                                        const fId = extractYoutubeId(newVideoId);
-                                                        const newChannels = cameraList.map(cam => `${extractYoutubeId(cam.id)}:${cam.title}`).join('\n');
+                                        <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
+                                            <button
+                                                onClick={() => {
+                                                    const extractYoutubeId = (url: string) => {
+                                                        if (!url) return '';
+                                                        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                                        return match ? match[1] : url.trim();
+                                                    };
 
-                                                        handleUpdateSettings({
-                                                            enabled: true,
-                                                            title: editTitle,
-                                                            mainFluxName: editMainFluxName,
-                                                            youtubeId: fId,
-                                                            channels: newChannels,
-                                                            shopItems: selectedShopIds.join(','),
-                                                            tickerType,
-                                                            tickerBgColor,
-                                                            tickerTextColor,
-                                                            tickerText,
-                                                            tickerLink,
-                                                            showTopBanner,
-                                                            showTickerBanner,
-                                                            currentArtist: editCurrentArtist,
-                                                            artistInstagram: editArtistInstagram,
-                                                            chat_enabled: true
-                                                        });
-                                                        setTimeout(() => {
-                                                            window.location.reload();
-                                                        }, 800);
-                                                    }}
-                                                    disabled={isSaving}
-                                                    className="py-4 bg-neon-cyan text-black text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/10 active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
-                                                >
-                                                    <Power className="w-4 h-4" />
-                                                    Lancer le Live
-                                                </button>
-                                                <button
-                                                    onClick={handleCutLive}
-                                                    className="py-4 bg-black border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-white/10 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                                                >
-                                                    <Power className="w-4 h-4 text-neon-red" />
-                                                    Couper Live
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        const fId = extractYoutubeId(newVideoId);
-                                                        const newChannelsList = cameraList.map(cam => `${extractYoutubeId(cam.id)}:${cam.title}`).join('\n');
+                                                    const fId = extractYoutubeId(fluxPrincipal);
+                                                    const s1Id = extractYoutubeId(stage1);
+                                                    const s2Id = extractYoutubeId(stage2);
+                                                    const s3Id = extractYoutubeId(stage3);
+                                                    const s4Id = extractYoutubeId(stage4);
 
-                                                        handleUpdateSettings({
-                                                            title: editTitle,
-                                                            mainFluxName: editMainFluxName,
-                                                            lineup: editLineup,
-                                                            youtubeId: fId,
-                                                            channels: newChannelsList,
-                                                            shopItems: selectedShopIds.join(','),
-                                                            tickerType,
-                                                            tickerBgColor,
-                                                            tickerTextColor,
-                                                            tickerText,
-                                                            tickerLink,
-                                                            showTopBanner,
-                                                            showTickerBanner,
-                                                            currentArtist: editCurrentArtist,
-                                                            artistInstagram: editArtistInstagram,
-                                                            chat_enabled: true
-                                                        });
-                                                    }}
-                                                    disabled={isSaving}
-                                                    className="col-span-2 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-white/10 transition-all disabled:opacity-50"
-                                                >
-                                                    {isSaving ? 'ENREGISTREMENT...' : 'ENREGISTRER LES RÉGLAGES'}
-                                                </button>
-                                            </div>
+                                                    const newChannels = [];
+                                                    if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
+                                                    if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
+                                                    if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
+                                                    if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
+
+                                                    handleUpdateSettings({
+                                                        title: editTitle,
+                                                        mainFluxName: editMainFluxName,
+                                                        lineup: editLineup,
+                                                        youtubeId: fId,
+                                                        channels: newChannels.join('\n'),
+                                                        shopItems: selectedShopIds.join(','),
+                                                        tickerType,
+                                                        tickerBgColor,
+                                                        tickerTextColor,
+                                                        tickerText,
+                                                        tickerLink,
+                                                        showTopBanner,
+                                                        showTickerBanner,
+                                                        currentArtist: editCurrentArtist,
+                                                        artistInstagram: editArtistInstagram,
+                                                        chat_enabled: true
+                                                    });
+                                                }}
+                                                disabled={isSaving}
+                                                className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
+                                            >
+                                                {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
+                                            </button>
+                                            <button
+                                                onClick={handleCutLive}
+                                                className="py-4 bg-black border border-white/20 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-white/10 transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                                            >
+                                                <Power className="w-4 h-4 text-neon-red" />
+                                                Couper Live
+                                            </button>
                                         </div>
                                     </motion.div>
                                 </motion.div>
@@ -3742,7 +3310,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
-                .animate-ticker:hover, #ticker-animate-container-1:hover, #ticker-animate-container-2:hover { animation-play-state: paused !important; }
+                .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
                 @keyframes shop-scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-shop-scroll { animation: shop-scroll 40s linear infinite; width: max-content; }
                 .animate-shop-scroll:hover { animation-play-state: paused; }
@@ -3752,7 +3320,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
-        </div>
+        </div >
     );
 }
 
