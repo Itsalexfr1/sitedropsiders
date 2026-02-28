@@ -4,7 +4,7 @@ import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
-    Facebook, Twitter, Linkedin, Ghost, Maximize, Minimize
+    Facebook, Maximize, Minimize
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -235,8 +235,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
-    const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
-    const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
+    const [, setEditCurrentArtist] = useState(settings.currentArtist || '');
+    const [, setEditArtistInstagram] = useState(settings.artistInstagram || '');
     const [localCustomCommands, setLocalCustomCommands] = useState(settings.customCommands || '');
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
     const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
@@ -289,8 +289,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     }, [showEditModal, settings]);
 
-    const handleUpdateLocalSetting = (updates: Partial<TakeoverProps['settings']>) => {
-        setLocalSettings(prev => ({ ...prev, ...updates }));
+    const handleUpdateLocalSetting = (newVal: Partial<TakeoverProps['settings']>) => {
+        setLocalSettings(prev => ({ ...prev, ...newVal }));
+        // Immediate feedback updates
+        if (newVal.tickerType !== undefined) setTickerType(newVal.tickerType);
+        if (newVal.tickerBgColor !== undefined) setTickerBgColor(newVal.tickerBgColor);
+        if (newVal.tickerTextColor !== undefined) setTickerTextColor(newVal.tickerTextColor);
+        if (newVal.showTickerBanner !== undefined) setShowTickerBanner(newVal.showTickerBanner);
+        if (newVal.showTopBanner !== undefined) setShowTopBanner(newVal.showTopBanner);
+        if (newVal.adminColor !== undefined) setAdminColor(newVal.adminColor);
+        if (newVal.adminBgColor !== undefined) setAdminBgColor(newVal.adminBgColor);
     };
     const [stage1Name, setStage1Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
@@ -378,8 +386,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     // Ticker Settings
     const [tickerType, setTickerType] = useState<'news' | 'planning' | 'custom'>(settings.tickerType || 'news');
-    const [tickerText, setTickerText] = useState(settings.tickerText || '');
-    const [tickerLink, setTickerLink] = useState(settings.tickerLink || '');
+    const [tickerText] = useState(settings.tickerText || '');
+    const [tickerLink] = useState(settings.tickerLink || '');
     const [tickerBgColor, setTickerBgColor] = useState(settings.tickerBgColor || '#ff0033');
     const [tickerTextColor, setTickerTextColor] = useState(settings.tickerTextColor || '#ffffff');
     const [showTopBanner, setShowTopBanner] = useState(settings.showTopBanner ?? true);
@@ -429,22 +437,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }, []);
     }, [messages]);
 
-    const allActiveUsers = useMemo(() => activeUsers, [activeUsers]);
 
-    const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
-    const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
-
-    const handleUpdateLocalSetting = (newVal: any) => {
-        setLocalSettings(prev => ({ ...prev, ...newVal }));
-        // Immediate feedback updates
-        if (newVal.tickerType !== undefined) setTickerType(newVal.tickerType);
-        if (newVal.tickerBgColor !== undefined) setTickerBgColor(newVal.tickerBgColor);
-        if (newVal.tickerTextColor !== undefined) setTickerTextColor(newVal.tickerTextColor);
-        if (newVal.showTickerBanner !== undefined) setShowTickerBanner(newVal.showTickerBanner);
-        if (newVal.showTopBanner !== undefined) setShowTopBanner(newVal.showTopBanner);
-        if (newVal.adminColor !== undefined) setAdminColor(newVal.adminColor);
-        if (newVal.adminBgColor !== undefined) setAdminBgColor(newVal.adminBgColor);
-    };
     const [isSending, setIsSending] = useState(false);
     const [userColor] = useState(() => localStorage.getItem('chat_color') || '#ffffff');
 
@@ -1189,11 +1182,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         handleUpdateSettings({ isOnline: !isCurrentlyOnline });
     };
 
-    const handleCutLiveFull = async () => {
-        if (!window.confirm('Voulez-vous vraiment désactiver COMPLÈTEMENT le Takeover ?')) return;
-        await handleUpdateSettings({ enabled: false });
-        window.location.href = '/';
-    };
+
 
     useEffect(() => {
         const interval = setInterval(() => {
