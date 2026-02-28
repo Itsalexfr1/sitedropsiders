@@ -73,61 +73,79 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, i, canvas.width, 2);
             }
 
-            // 4. Custom Text Wrapping & Height Calculation
+            // 4. Custom Text Wrapping & Height Calculation (Handling manual \n)
+            const fontSize = 85;
+            const lineHeight = fontSize * 1.2;
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 italic 110px "Built Bold", "Inter", sans-serif';
+            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans-serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            const maxWidth = canvas.width - 200;
-            const words = customText.split(' ');
-            let lines = [];
-            let currentLine = '';
+            const maxWidth = canvas.width - 240;
+            const paragraphs = customText.split('\n');
+            let lines: string[] = [];
 
-            for (let n = 0; n < words.length; n++) {
-                const testLine = currentLine + words[n] + ' ';
-                const metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    lines.push(currentLine.trim());
-                    currentLine = words[n] + ' ';
-                } else {
-                    currentLine = testLine;
+            paragraphs.forEach(paragraph => {
+                const words = paragraph.split(' ');
+                let currentLine = '';
+
+                for (let n = 0; n < words.length; n++) {
+                    const testLine = currentLine + words[n] + ' ';
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && n > 0) {
+                        lines.push(currentLine.trim());
+                        currentLine = words[n] + ' ';
+                    } else {
+                        currentLine = testLine;
+                    }
                 }
-            }
-            lines.push(currentLine.trim());
+                lines.push(currentLine.trim());
+            });
 
-            const totalHeight = lines.length * 130;
-            const startY = canvas.height - totalHeight - 120; // Position from bottom
+            const totalHeight = lines.length * lineHeight;
 
-            // 5. Label "NEWS" or "MUSIQUE" (Positioned above text)
-            const label = isMusique ? 'MUSIQUE' : 'NEWS';
-            const labelBg = isMusique ? '#ee2a7b' : '#FF1241';
-            const labelY = startY - 120;
+            // Instagram Grid Safe Zone (1:1 crop of 4:5 post)
+            // Post: 1080x1440. Grid: 1080x1080. 
+            // Crop takes 180px from top and 180px from bottom.
+            // Safe zone is between Y=180 and Y=1260.
+            const bottomMargin = 220; // Extra margin to stay safe from UI elements
+            const startY = Math.min(1150, canvas.height - bottomMargin - (totalHeight / 2));
 
-            ctx.font = 'bold 80px "Inter", sans-serif';
+            // 5. Label "NEWS" / "RECAP" / "MUSIQUE" / "INTERVIEW" (Centered above text)
+            let label = 'NEWS';
+            if (template === 'musique') label = 'MUSIQUE';
+            else if (template === 'news_swipe') label = 'RECAP';
+            else if (customText.toUpperCase().includes('INTERVIEW')) label = 'INTERVIEW';
+
+            const labelBg = template === 'musique' ? '#ee2a7b' : '#FF1241';
+            const labelY = startY - (totalHeight / 2) - 100;
+
+            ctx.font = 'bold 75px "Inter", sans-serif';
             const labelMetrics = ctx.measureText(label);
-            const labelWidth = labelMetrics.width + 120;
+            const labelWidth = labelMetrics.width + 100;
+            const labelX = (canvas.width - labelWidth) / 2;
 
             ctx.fillStyle = labelBg;
             ctx.shadowColor = 'rgba(0,0,0,0.5)';
             ctx.shadowBlur = 30;
-            ctx.fillRect(0, labelY - 90, labelWidth, 120);
+            ctx.fillRect(labelX, labelY - 80, labelWidth, 110);
             ctx.shadowBlur = 0;
 
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 italic 85px "Inter", sans-serif';
-            ctx.textAlign = 'left';
-            ctx.fillText(label, 60, labelY);
+            ctx.font = '900 italic 75px "Inter", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, canvas.width / 2, labelY - 20);
 
             // 6. Custom Text Rendering
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 italic 110px "Built Bold", "Inter", sans-serif';
+            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans-serif`;
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
             ctx.shadowBlur = 20;
 
             lines.forEach((line, i) => {
-                ctx.fillText(line.toUpperCase(), canvas.width / 2, startY + (i * 130));
+                const lineY = startY - (totalHeight / 2) + (i * lineHeight) + (lineHeight / 2);
+                ctx.fillText(line.toUpperCase(), canvas.width / 2, lineY);
             });
             ctx.shadowBlur = 0;
 
@@ -136,10 +154,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 120px "Inter", sans-serif';
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('>>', canvas.width - 80, canvas.height - 150);
+                ctx.fillText('>>', canvas.width - 80, 1150); // Moved up to stay in safe zone
             }
 
-            // 8. Real Logo Top Right
+            // 8. Real Logo Top Right (Stay in safe zone)
             try {
                 const logo = new Image();
                 logo.src = '/Logo.png';
@@ -148,9 +166,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     logo.onerror = resolve;
                 });
                 if (logo.complete && logo.width > 0) {
-                    const logoW = 350;
+                    const logoW = 320;
                     const logoH = (logo.height * logoW) / logo.width;
-                    ctx.drawImage(logo, canvas.width - logoW - 60, 60, logoW, logoH);
+                    ctx.drawImage(logo, canvas.width - logoW - 60, 200, logoW, logoH); // Moved down to 200px (safe zone starts at 180)
                 }
             } catch (e) {
                 console.warn("Logo load failed, skipping");

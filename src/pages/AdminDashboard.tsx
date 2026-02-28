@@ -2808,10 +2808,22 @@ export function AdminDashboard() {
                                                     setTakeoverState({ ...takeoverState, lineup: rows.join('\n') });
                                                 };
 
+                                                const moveRow = (direction: 'up' | 'down') => {
+                                                    const rows = (takeoverState.lineup || '').split('\n');
+                                                    if (direction === 'up' && idx > 0) {
+                                                        [rows[idx], rows[idx - 1]] = [rows[idx - 1], rows[idx]];
+                                                    } else if (direction === 'down' && idx < rows.length - 1) {
+                                                        [rows[idx], rows[idx + 1]] = [rows[idx + 1], rows[idx]];
+                                                    }
+                                                    setTakeoverState({ ...takeoverState, lineup: rows.join('\n') });
+                                                };
+
                                                 const deleteRow = () => {
                                                     const rows = (takeoverState.lineup || '').split('\n').filter((_, i) => i !== idx);
                                                     setTakeoverState({ ...takeoverState, lineup: rows.join('\n') });
                                                 };
+
+                                                const rowsArray = (takeoverState.lineup || '').split('\n').filter(l => l.length > 0);
 
                                                 return (
                                                     <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-1.5 rounded-xl hover:border-white/10 transition-all group items-center">
@@ -2851,7 +2863,7 @@ export function AdminDashboard() {
                                                                 className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
                                                             />
                                                         </div>
-                                                        <div className="col-span-3">
+                                                        <div className="col-span-2">
                                                             <input
                                                                 type="text"
                                                                 value={row.instagram}
@@ -2860,10 +2872,27 @@ export function AdminDashboard() {
                                                                 className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
                                                             />
                                                         </div>
-                                                        <div className="col-span-1 flex items-center justify-center">
+                                                        <div className="col-span-2 flex items-center justify-end gap-1 px-1">
+                                                            <button
+                                                                onClick={() => moveRow('up')}
+                                                                disabled={idx === 0}
+                                                                className="p-1.5 text-gray-600 hover:text-neon-cyan transition-all disabled:opacity-20"
+                                                                title="Monter"
+                                                            >
+                                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => moveRow('down')}
+                                                                disabled={idx === rowsArray.length - 1}
+                                                                className="p-1.5 text-gray-600 hover:text-neon-cyan transition-all disabled:opacity-20"
+                                                                title="Descendre"
+                                                            >
+                                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                            </button>
                                                             <button
                                                                 onClick={deleteRow}
-                                                                className="p-1.5 text-gray-600 hover:text-neon-red transition-all"
+                                                                className="p-1.5 text-gray-600 hover:text-neon-red transition-all ml-1"
+                                                                title="Supprimer"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
                                                             </button>
