@@ -5,7 +5,7 @@
   "shop_password": "2026",
   "kit_media_password": "DROPSIDERS",
   "announcement_banner": {
-    "enabled": true,
+    "enabled": false,
     "text": "BIENVENUE SUR LE NOUVEAU SITE DROPSIDERS - RECRUTEMENT OUVERT !",
     "text_en": "WELCOME TO THE NEW DROPSIDERS SITE - RECRUITMENT OPEN!",
     "color": "#ffffff",
