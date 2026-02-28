@@ -21,10 +21,6 @@ interface Top5Item {
     spotifyUrl?: string;
 }
 
-const MUSIC_GENRES = [
-    'HOUSE', 'TECH HOUSE', 'AFRO HOUSE', 'HARD TECHNO', 'HARD STYLE',
-    'ELECTRO', 'INDIE DANCE', 'PROGRESSIVE', 'MELODIC', 'DRUM N BASS'
-];
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
@@ -44,7 +40,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         spotifyUrl: ''
     })));
     const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
-    const [selectedGenre, setSelectedGenre] = useState('TECH HOUSE');
 
     // Animation state for disc rotation
     const [rotation, setRotation] = useState(0);
@@ -227,16 +222,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const totalH = lines.length * lineHeight;
                 const startY = safeBottom - 100 - (totalH / 2); // Placed at very bottom of 1:1 safe square
 
-                // Musique Genre Label (Only if Musique)
-                if (theme === 'MUSIQUE') {
-                    ctx.fillStyle = '#39ff14';
-                    const genreW = ctx.measureText(selectedGenre).width + 60;
-                    ctx.fillRect((canvas.width - genreW) / 2, safeTop + 240, genreW, 60);
-                    ctx.fillStyle = '#000';
-                    ctx.font = '900 italic 34px "Inter", sans-serif';
-                    ctx.fillText(selectedGenre, canvas.width / 2, safeTop + 282);
-                }
-
                 // Main Label
                 ctx.fillStyle = activeTheme.color;
                 const labelText = activeTheme.label;
@@ -274,7 +259,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         } catch (e) { console.error(e); }
     };
 
-    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Items, currentPreviewIndex, selectedGenre, activeTab, rotation]);
+    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -373,13 +358,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             </>
                         ) : (
                             <div className="space-y-4">
-                                {theme === 'MUSIQUE' && (
-                                    <div className="flex flex-wrap gap-2 mb-2">
-                                        {MUSIC_GENRES.map(g => (
-                                            <button key={g} onClick={() => setSelectedGenre(g)} className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all ${selectedGenre === g ? 'bg-neon-green text-black' : 'bg-white/5 text-gray-400'}`}>{g}</button>
-                                        ))}
-                                    </div>
-                                )}
                                 <span className="text-[10px] font-black text-gray-500 uppercase">Contenu</span>
                                 <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
                             </div>
