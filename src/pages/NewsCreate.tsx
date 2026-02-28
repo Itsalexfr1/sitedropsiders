@@ -1633,10 +1633,7 @@ ${generateSocialsHtml()}
                                 <SocialSuite
                                     title={socialSuiteData.title}
                                     imageUrl={socialSuiteData.imageUrl}
-                                    type={socialSuiteData.type}
-                                    category={socialSuiteData.category}
                                     onClose={() => setShowSocialSuite(false)}
-                                    articleId={socialSuiteData.articleId}
                                 />
                             )}
                         </AnimatePresence>
