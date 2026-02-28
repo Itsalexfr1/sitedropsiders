@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
     X, Download, Type, Upload, PlusCircle, Layers,
-    Music, Video, Layout, Trash2
+    Music, Video, Layout, Trash2, Smartphone, Image as ImageIcon
 } from 'lucide-react';
 
 interface SocialSuiteProps {
@@ -11,13 +11,14 @@ interface SocialSuiteProps {
     onClose: () => void;
 }
 
-type ThemeType = 'NEWS' | 'RECAP' | 'MUSIQUE' | 'INTERVIEW' | 'TOP5';
+type TabType = 'REEL' | 'PUBLICATION';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP';
 
-interface Top5Track {
-    artist: string;
-    song: string;
-    streams: string;
-    spotifyUrl: string;
+interface Top5Item {
+    main: string; // Artist or Genre
+    sub: string;  // Song or Description
+    value: string; // Streams or Percent
+    spotifyUrl?: string;
 }
 
 const MUSIC_GENRES = [
@@ -26,6 +27,7 @@ const MUSIC_GENRES = [
 ];
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
+    const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>('NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
     const [customText, setCustomText] = useState((title || '').toUpperCase());
@@ -33,30 +35,38 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
-    const [top5Tracks, setTop5Tracks] = useState<Top5Track[]>(Array.from({ length: 5 }, () => ({
-        artist: 'ARTISTE',
-        song: 'TITRE DU MORCEAU',
-        streams: '50',
+
+    // For Top 5 (Artiste or Styles)
+    const [top5Items, setTop5Items] = useState<Top5Item[]>(Array.from({ length: 5 }, () => ({
+        main: 'ARTISTE',
+        sub: 'TITRE DU MORCEAU',
+        value: '50',
         spotifyUrl: ''
     })));
-    const [currentPreviewTrack, setCurrentPreviewTrack] = useState(0);
+    const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
     const [selectedGenre, setSelectedGenre] = useState('TECH HOUSE');
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const themeColors: Record<ThemeType, { label: string; grad: string }> = {
-        'NEWS': { label: '#ff0033', grad: '255, 0, 51' },
-        'RECAP': { label: '#bd00ff', grad: '189, 0, 255' },
-        'MUSIQUE': { label: '#39ff14', grad: '57, 255, 20' },
-        'INTERVIEW': { label: '#00f0ff', grad: '0, 240, 255' },
-        'TOP5': { label: '#ff1241', grad: '255, 18, 65' }
+    const themeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
+        'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 18, 65', color: '#ff1241' },
+        'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
+        'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
+        'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
+        'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
+        'RECAP': { label: 'REPLAY', grad: '189, 0, 255', color: '#bd00ff' }
     };
+
+    // Auto-update theme when tab changes
+    useEffect(() => {
+        if (activeTab === 'REEL') setTheme('TOP 5 ARTISTE');
+        else setTheme('NEWS');
+    }, [activeTab]);
 
     const generateImage = async () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -66,19 +76,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 img = new Image();
                 img.crossOrigin = "anonymous";
                 img.src = bgImage;
-
-                await new Promise((resolve, reject) => {
-                    img!.onload = resolve;
-                    img!.onerror = reject;
-                });
+                await new Promise((res, rej) => { img!.onload = res; img!.onerror = rej; });
             }
 
-            // Dynamic Canvas Size: Reel (9:16) for TOP5, Post (4:5) for others
-            const isVideo = theme === 'TOP5';
+            // Canvas Setup
             canvas.width = 1080;
-            canvas.height = isVideo ? 1920 : 1440;
+            canvas.height = activeTab === 'REEL' ? 1920 : 1440;
 
-            // 1:1 Safe Zone (for Post grid visibility)
             const safeTop = (canvas.height - 1080) / 2;
             const safeBottom = safeTop + 1080;
 
@@ -93,77 +97,69 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // 2. Draw Gradient Overlay
-            const activeColor = themeColors[theme];
+            // 2. Gradient Overlay
+            const activeTheme = themeData[theme];
             const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(0.8, `rgba(${activeColor.grad}, 0.6)`);
-            grad.addColorStop(1, `rgba(${activeColor.grad}, 0.9)`);
+            grad.addColorStop(0.8, `rgba(${activeTheme.grad}, 0.6)`);
+            grad.addColorStop(1, `rgba(${activeTheme.grad}, 0.9)`);
             ctx.fillStyle = grad;
             ctx.fillRect(0, canvas.height * 0.3, canvas.width, canvas.height * 0.7);
 
             // 3. Scanlines
             ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            for (let i = 0; i < canvas.height; i += 6) {
-                ctx.fillRect(0, i, canvas.width, 2);
-            }
+            for (let i = 0; i < canvas.height; i += 6) ctx.fillRect(0, i, canvas.width, 2);
 
             // 4. Layout Logic
-            if (theme === 'TOP5') {
-                const track = top5Tracks[currentPreviewTrack];
-                const baseY = isVideo ? 1500 : safeBottom - 280;
+            if (theme.startsWith('TOP 5')) {
+                const item = top5Items[currentPreviewIndex];
+                const baseY = activeTab === 'REEL' ? 1500 : safeBottom - 280;
 
-                // Artist - Song
+                // Main Info (Artist or Style)
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 52px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText(`${track.artist} - ${track.song}`.toUpperCase(), 100, baseY);
+                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), 100, baseY);
 
-                // Streams Bar
+                // Bar
                 const barWidth = 880;
                 const barHeight = 90;
                 const barX = 90;
                 const barY = baseY + 45;
 
-                ctx.fillStyle = 'rgba(189, 0, 255, 0.4)';
+                ctx.fillStyle = `rgba(${activeTheme.grad}, 0.4)`;
                 ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
 
-                ctx.fillStyle = '#ff1241';
+                ctx.fillStyle = activeTheme.color;
                 ctx.fillRect(barX, barY, barWidth, barHeight);
 
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = theme === 'TOP 5 STYLES' ? '#000' : '#fff';
                 ctx.font = '900 italic 46px "Inter", sans-serif';
-                ctx.fillText(`${track.streams} MILLIONS DE STREAMS`, barX + 30, barY + barHeight / 2 + 15);
+                const labelSuffix = theme === 'TOP 5 STYLES' ? '% DE L\'AUDIENCE' : 'MILLIONS DE STREAMS';
+                ctx.fillText(`${item.value} ${labelSuffix}`, barX + 30, barY + barHeight / 2 + 15);
 
-                // Spotify Logo (Mini)
+                // Logo Mini (Spotify for Artists, Genre icon for styles?)
                 const spotX = barX + barWidth - 60;
                 const spotY = barY + barHeight / 2;
                 ctx.beginPath();
-                ctx.fillStyle = '#1DB954';
+                ctx.fillStyle = theme === 'TOP 5 STYLES' ? '#000' : '#1DB954';
                 ctx.arc(spotX, spotY, 30, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.strokeStyle = '#000';
-                ctx.lineWidth = 4;
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(spotX, spotY + 5, 20 - i * 5, -1.2, -0.2);
-                    ctx.stroke();
-                }
 
                 // Rank
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 120px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                ctx.fillText(`#${5 - currentPreviewTrack}`, canvas.width - 100, canvas.height - 150);
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100, canvas.height - 150);
 
             } else if (theme === 'MUSIQUE') {
-                const track = top5Tracks[0];
-                const baseY = safeBottom - 220; // Lowered to be within 1:1 safe zone
+                const singleItem = top5Items[0];
+                const baseY = safeBottom - 220;
 
-                // Genre Label Center 
+                // Genre Label
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#39ff14';
                 const genreW = ctx.measureText(selectedGenre).width + 60;
@@ -172,47 +168,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.font = '900 italic 34px "Inter", sans-serif';
                 ctx.fillText(selectedGenre, canvas.width / 2, safeTop + 282);
 
-                // Artist - Song
+                // Text info
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 52px "Inter", sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,0.5)';
-                ctx.shadowBlur = 10;
-                ctx.fillText(`${track.artist} - ${track.song}`.toUpperCase(), 100, baseY);
+                ctx.fillText(`${singleItem.main} - ${singleItem.sub}`.toUpperCase(), 100, baseY);
 
-                // Streams Bar
-                const barWidth = 880;
-                const barHeight = 90;
-                const barX = 90;
                 const barY = baseY + 45;
-
                 ctx.fillStyle = 'rgba(57, 255, 20, 0.4)';
-                ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
-
+                ctx.fillRect(80, barY - 10, 900, 110);
                 ctx.fillStyle = '#39ff14';
-                ctx.fillRect(barX, barY, barWidth, barHeight);
-
+                ctx.fillRect(90, barY, 880, 90);
                 ctx.fillStyle = '#000';
                 ctx.font = '900 italic 46px "Inter", sans-serif';
-                ctx.fillText(`${track.streams} MILLIONS DE STREAMS`, barX + 30, barY + barHeight / 2 + 15);
-
-                // Spotify Logo (Mini)
-                const spotX = barX + barWidth - 60;
-                const spotY = barY + barHeight / 2;
-                ctx.beginPath();
-                ctx.fillStyle = '#000';
-                ctx.arc(spotX, spotY, 30, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.strokeStyle = '#39ff14';
-                ctx.lineWidth = 4;
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(spotX, spotY + 5, 20 - i * 5, -1.2, -0.2);
-                    ctx.stroke();
-                }
+                ctx.fillText(`${singleItem.value} MILLIONS DE STREAMS`, 120, barY + 60);
 
             } else {
-                // Classic News/Recap Layout
+                // NEWS, FOCUS, RECAP
                 const fontSize = 85;
                 const lineHeight = fontSize * 1.2;
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
@@ -223,41 +195,33 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 let lines: string[] = [];
                 let currentLine = '';
                 for (let word of words) {
-                    if (ctx.measureText(currentLine + word).width < canvas.width - 200) {
-                        currentLine += word + ' ';
-                    } else {
-                        lines.push(currentLine.trim());
-                        currentLine = word + ' ';
-                    }
+                    if (ctx.measureText(currentLine + word).width < canvas.width - 200) currentLine += word + ' ';
+                    else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                 }
                 lines.push(currentLine.trim());
 
                 const totalH = lines.length * lineHeight;
-                const startY = safeBottom - 100 - (totalH / 2); // At the very bottom of 1:1 square
+                const startY = safeBottom - 100 - (totalH / 2); // Lowest in 1:1
 
                 // Label
-                ctx.fillStyle = activeColor.label;
-                const themeLabel = theme === 'RECAP' ? 'REPLAY' : theme;
-                const labelW = ctx.measureText(themeLabel).width + 80;
+                ctx.fillStyle = activeTheme.color;
+                const labelW = ctx.measureText(activeTheme.label).width + 80;
                 ctx.fillRect((canvas.width - labelW) / 2, startY - 100, labelW, 80);
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = activeTheme.color === '#ffaa00' ? '#000' : '#fff';
                 ctx.font = '900 italic 50px "Inter", sans-serif';
-                ctx.fillText(themeLabel, canvas.width / 2, startY - 45);
+                ctx.fillText(activeTheme.label, canvas.width / 2, startY - 45);
 
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
-                lines.forEach((line, i) => {
-                    ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight));
-                });
+                lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight)));
             }
 
-            // Top Right Official Logo - HIGHEST POSSIBLE
+            // Official Logo - ABSOLUTE TOP
             try {
                 const logo = new Image();
                 logo.src = '/Logo.png';
                 await new Promise(r => { logo.onload = r; logo.onerror = r; });
                 if (logo.complete && logo.width > 0) {
                     const w = 320;
-                    // Placed at the very top edge of the canvas (not safe zone) for Reels, top of canvas for Posts
                     ctx.drawImage(logo, canvas.width - w - 40, 40, w, (logo.height * w) / logo.width);
                 }
             } catch { }
@@ -275,7 +239,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         }
     };
 
-    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Tracks, currentPreviewTrack, selectedGenre]);
+    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Items, currentPreviewIndex, selectedGenre, activeTab]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -295,13 +259,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `dropsiders-top5-${Date.now()}.webm`;
+            a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.webm`;
             a.click();
             setIsVideoRecording(false);
         };
         recorder.start();
         for (let i = 0; i < 5; i++) {
-            setCurrentPreviewTrack(i);
+            setCurrentPreviewIndex(i);
             await new Promise(r => setTimeout(r, 12000));
         }
         recorder.stop();
@@ -312,10 +276,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         setVisualsList([...visualsList, canvasRef.current.toDataURL('image/png')]);
     };
 
-    const removeVisual = (index: number) => {
-        setVisualsList(visualsList.filter((_, i) => i !== index));
-    };
-
     const downloadSingle = () => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
@@ -324,18 +284,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         a.href = canvasRef.current.toDataURL('image/png');
         a.click();
         setTimeout(() => setIsDownloading(false), 1000);
-    };
-
-    const downloadAll = async () => {
-        setIsDownloading(true);
-        for (let i = 0; i < visualsList.length; i++) {
-            const a = document.createElement('a');
-            a.download = `dropsiders-pack-${i}.png`;
-            a.href = visualsList[i];
-            a.click();
-            await new Promise(r => setTimeout(r, 300));
-        }
-        setIsDownloading(false);
     };
 
     return (
@@ -352,142 +300,124 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all"><X className="w-5 h-5" /></button>
                     </div>
 
-                    {/* Themes */}
-                    <div className="grid grid-cols-2 gap-2">
-                        {(Object.keys(themeColors) as ThemeType[]).map(t => (
-                            <button key={t} onClick={() => setTheme(t)} className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${theme === t ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-400 border-white/5 hover:border-white/20'}`}>
-                                {t === 'TOP5' ? 'VIDEO TOP 5' : t}
-                            </button>
-                        ))}
+                    {/* Main Tabs */}
+                    <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
+                        <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}>
+                            <Smartphone className="w-4 h-4" /> REEL
+                        </button>
+                        <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}>
+                            <ImageIcon className="w-4 h-4" /> PUBLICATION
+                        </button>
                     </div>
 
-                    {theme === 'TOP5' ? (
-                        <div className="space-y-6">
-                            <div className="flex items-center gap-3 text-neon-red">
-                                <Music className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Top 5 Artistes</span>
-                            </div>
-                            <div className="space-y-4">
-                                {top5Tracks.map((track, i) => (
-                                    <div key={i} className={`p-4 rounded-2xl border transition-all ${currentPreviewTrack === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewTrack(i)}>
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-[10px] font-black text-neon-red"># {5 - i}</span>
-                                        </div>
+                    {/* Sub-Themes */}
+                    <div className="grid grid-cols-2 gap-2">
+                        {activeTab === 'REEL' ? (
+                            <>
+                                <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${theme === 'TOP 5 ARTISTE' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
+                                <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                            </>
+                        ) : (
+                            <>
+                                <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+                                <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/5 text-gray-400'}`}>FOCUS</button>
+                                <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+                                <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase transition-all border ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RECAP</button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Fields based on Theme */}
+                    {theme.startsWith('TOP 5') ? (
+                        <div className="space-y-4">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Édition des 5 éléments</span>
+                            <div className="space-y-3">
+                                {top5Items.map((item, i) => (
+                                    <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
                                         <div className="grid grid-cols-2 gap-2 mb-2">
-                                            <input value={track.artist} onChange={e => {
-                                                const news = [...top5Tracks];
-                                                news[i] = { ...track, artist: e.target.value.toUpperCase() };
-                                                setTop5Tracks(news);
-                                            }} placeholder="ARTISTE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                            <input value={track.song} onChange={e => {
-                                                const news = [...top5Tracks];
-                                                news[i] = { ...track, song: e.target.value.toUpperCase() };
-                                                setTop5Tracks(news);
-                                            }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                            <input value={item.main} onChange={e => {
+                                                const news = [...top5Items];
+                                                news[i] = { ...item, main: e.target.value.toUpperCase() };
+                                                setTop5Items(news);
+                                            }} placeholder={theme === 'TOP 5 STYLES' ? "STYLE" : "ARTISTE"} className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                            <input value={item.sub} onChange={e => {
+                                                const news = [...top5Items];
+                                                news[i] = { ...item, sub: e.target.value.toUpperCase() };
+                                                setTop5Items(news);
+                                            }} placeholder={theme === 'TOP 5 STYLES' ? "DESCRIPTION" : "TITRE"} className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                         </div>
-                                        <input value={track.streams} onChange={e => {
-                                            const news = [...top5Tracks];
-                                            news[i] = { ...track, streams: e.target.value };
-                                            setTop5Tracks(news);
-                                        }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                                        <input value={item.value} onChange={e => {
+                                            const news = [...top5Items];
+                                            news[i] = { ...item, value: e.target.value };
+                                            setTop5Items(news);
+                                        }} placeholder={theme === 'TOP 5 STYLES' ? "% AUDIENCE" : "STREAMS (MILLIONS)"} className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                     </div>
                                 ))}
                             </div>
                         </div>
                     ) : theme === 'MUSIQUE' ? (
                         <div className="space-y-6">
-                            <div className="flex items-center gap-3 text-neon-green">
-                                <Music className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Style Musical</span>
-                            </div>
                             <div className="flex flex-wrap gap-2">
                                 {MUSIC_GENRES.map(g => (
-                                    <button key={g} onClick={() => setSelectedGenre(g)} className={`px-3 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${selectedGenre === g ? 'bg-neon-green text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}>
-                                        {g}
-                                    </button>
+                                    <button key={g} onClick={() => setSelectedGenre(g)} className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all ${selectedGenre === g ? 'bg-neon-green text-black' : 'bg-white/5 text-gray-400'}`}>{g}</button>
                                 ))}
                             </div>
-                            <div className="space-y-4">
-                                <div className="p-4 rounded-2xl bg-white/5 border border-white/5">
-                                    <div className="grid grid-cols-2 gap-2 mb-2">
-                                        <input value={top5Tracks[0].artist} onChange={e => {
-                                            const news = [...top5Tracks];
-                                            news[0] = { ...news[0], artist: e.target.value.toUpperCase() };
-                                            setTop5Tracks(news);
-                                        }} placeholder="ARTISTE" className="bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                        <input value={top5Tracks[0].song} onChange={e => {
-                                            const news = [...top5Tracks];
-                                            news[0] = { ...news[0], song: e.target.value.toUpperCase() };
-                                            setTop5Tracks(news);
-                                        }} placeholder="TITRE" className="bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                    </div>
-                                    <input value={top5Tracks[0].streams} onChange={e => {
-                                        const news = [...top5Tracks];
-                                        news[0] = { ...news[0], streams: e.target.value };
-                                        setTop5Tracks(news);
-                                    }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-white font-bold" />
+                            <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2">
+                                <div className="grid grid-cols-2 gap-2">
+                                    <input value={top5Items[0].main} onChange={e => { const n = [...top5Items]; n[0].main = e.target.value.toUpperCase(); setTop5Items(n); }} className="bg-white/10 rounded-lg p-2 text-[10px] text-white font-bold" placeholder="ARTISTE" />
+                                    <input value={top5Items[0].sub} onChange={e => { const n = [...top5Items]; n[0].sub = e.target.value.toUpperCase(); setTop5Items(n); }} className="bg-white/10 rounded-lg p-2 text-[10px] text-white font-bold" placeholder="TITRE" />
                                 </div>
+                                <input value={top5Items[0].value} onChange={e => { const n = [...top5Items]; n[0].value = e.target.value; setTop5Items(n); }} className="w-full bg-white/10 rounded-lg p-2 text-[10px] text-white font-bold" placeholder="STREAMS" />
                             </div>
                         </div>
                     ) : (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-neon-cyan"><Type className="w-4 h-4" /><span className="text-[10px] font-black uppercase tracking-widest">Texte</span></div>
-                            <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} className="w-full h-28 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
+                        <div className="space-y-2">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du post</span>
+                            <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
                         </div>
                     )}
 
-                    {/* Swipe Toggle */}
-                    <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group hover:border-white/20 transition-all mb-4" onClick={() => setShowSwipe(!showSwipe)}>
-                        <div className="flex items-center gap-3">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${showSwipe ? 'bg-neon-red/10 text-neon-red' : 'bg-white/5 text-gray-500'}`}>
-                                <Layout className="w-4 h-4" />
+                    {/* Shared controls */}
+                    <div className="space-y-4 mt-auto">
+                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer" onClick={() => setShowSwipe(!showSwipe)}>
+                            <div className="flex items-center gap-3">
+                                <Layout className="w-4 h-4 text-gray-500" />
+                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Logo Swipe</span>
                             </div>
-                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Logo Swipe</span>
+                            <div className={`w-8 h-4 rounded-full relative ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'}`}>
+                                <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${showSwipe ? 'right-0.5' : 'left-0.5'}`} />
+                            </div>
                         </div>
-                        <div className={`w-8 h-4 rounded-full relative ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'}`}>
-                            <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${showSwipe ? 'right-0.5' : 'left-0.5'}`} />
-                        </div>
-                    </div>
 
-                    <div className="space-y-4 pt-4 border-t border-white/10">
-                        {theme === 'TOP5' ? (
-                            <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20 shadow-[0_0_20px_rgba(255,18,65,0.1)]'}`}>
-                                <Video className="w-4 h-4" />
-                                {isVideoRecording ? 'ENREGISTREMENT...' : 'Générer Vidéo Top 5'}
-                            </button>
-                        ) : (
-                            <div className="space-y-4">
+                        <div className="space-y-2">
+                            {activeTab === 'REEL' ? (
+                                <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
+                                    <Video className="w-4 h-4" /> {isVideoRecording ? 'ENREGISTREMENT...' : `Générer Vidéo ${theme}`}
+                                </button>
+                            ) : (
                                 <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all shadow-[0_0_15px_rgba(0,240,255,0.1)]">
-                                        <Download className="w-3.5 h-3.5" />
-                                        {isDownloading ? '...' : 'Télécharger'}
+                                    <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
+                                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
+                                        <Download className="w-3.5 h-3.5" /> {isDownloading ? '...' : 'Télécharger'}
                                     </button>
                                 </div>
-                                {visualsList.length > 0 && (
-                                    <div className="space-y-3">
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {visualsList.slice(-4).map((src, idx) => (
-                                                <div key={idx} className="aspect-[3/4] bg-white/5 rounded-lg overflow-hidden border border-white/10 relative group">
-                                                    <img src={src} className="w-full h-full object-cover" />
-                                                    <button onClick={() => removeVisual(idx)} className="absolute top-1 right-1 p-1 bg-black/80 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 className="w-2 h-2 text-white" /></button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                        <button onClick={downloadAll} disabled={isDownloading} className="w-full py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"><Layers className="w-3.5 h-3.5" /> Tout Télécharger</button>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-500 text-[10px] font-black uppercase hover:border-white/30 transition-all"><Upload className="w-4 h-4" /> Modifier fond</button>
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                            )}
+                            {visualsList.length > 0 && activeTab === 'PUBLICATION' && (
+                                <div className="grid grid-cols-4 gap-2 py-2">
+                                    {visualsList.slice(-4).map((src, idx) => (
+                                        <div key={idx} className="aspect-[3/4] bg-white/5 rounded-lg overflow-hidden border border-white/10"><img src={src} className="w-full h-full object-cover" /></div>
+                                    ))}
+                                </div>
+                            )}
+                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-500 text-[10px] font-black uppercase hover:border-white/30 transition-all"><Upload className="w-4 h-4" /> Modifier fond</button>
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                        </div>
                     </div>
                 </div>
 
                 {/* Preview */}
                 <div className="flex-1 bg-[#020202] p-8 flex flex-col items-center justify-center relative overflow-hidden">
                     <div className="h-full w-full max-w-[450px] relative">
-                        <div className="absolute -inset-4 bg-gradient-to-r from-neon-red/10 via-neon-purple/10 to-neon-cyan/10 blur-3xl opacity-50" />
                         <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                             <canvas ref={canvasRef} className="w-full h-full object-contain" />
                         </div>
