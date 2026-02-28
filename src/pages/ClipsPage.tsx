@@ -3,15 +3,29 @@ import { motion } from 'framer-motion';
 import { Video, Instagram, Calendar, Clock } from 'lucide-react';
 
 export function ClipsPage() {
-    const [clips, setClips] = useState<{ id: string, title: string, duration: string, date: string }[]>([]);
+    const [clips, setClips] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        try {
-            const savedClips = JSON.parse(localStorage.getItem('user_clips') || '[]');
-            setClips(savedClips);
-        } catch {
-            setClips([]);
-        }
+        const fetchClips = async () => {
+            try {
+                const res = await fetch('/api/clips');
+                if (res.ok) {
+                    const data = await res.json();
+                    setClips(data);
+                } else {
+                    // Fallback to localStorage if API fails
+                    const savedClips = JSON.parse(localStorage.getItem('user_clips') || '[]');
+                    setClips(savedClips);
+                }
+            } catch (e) {
+                const savedClips = JSON.parse(localStorage.getItem('user_clips') || '[]');
+                setClips(savedClips);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchClips();
     }, []);
 
     return (
@@ -26,7 +40,12 @@ export function ClipsPage() {
             </div>
 
             <div className="max-w-[1400px] mx-auto px-4 md:px-12 xl:px-16 2xl:px-24 pb-12">
-                {clips.length === 0 ? (
+                {isLoading ? (
+                    <div className="text-center py-32 flex flex-col items-center justify-center space-y-4">
+                        <div className="w-12 h-12 border-4 border-neon-purple border-t-transparent rounded-full animate-spin" />
+                        <p className="text-gray-500 font-black uppercase tracking-widest text-xs">Chargement des clips...</p>
+                    </div>
+                ) : clips.length === 0 ? (
                     <div className="text-center py-32 flex flex-col items-center justify-center space-y-4 bg-white/[0.02] border border-white/5 rounded-[3rem]">
                         <div className="relative group">
                             <div className="absolute inset-0 bg-neon-purple blur-2xl opacity-10" />
@@ -56,17 +75,18 @@ export function ClipsPage() {
                                         </span>
                                     </div>
                                     <h4 className="text-white font-black uppercase text-lg italic tracking-tighter mb-2 line-clamp-1">{clip.title}</h4>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
-                                        <Calendar className="w-3 h-3" /> {clip.date}
-                                    </p>
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest flex items-center gap-2">
+                                            <Calendar className="w-3 h-3" /> {clip.date}
+                                        </p>
+                                        <p className="text-[10px] text-neon-purple font-black uppercase tracking-widest">
+                                            @{clip.creator || 'ANONYME'}
+                                        </p>
+                                    </div>
 
                                     <div className="flex gap-3">
-                                        <a href="https://instagram.com/create/story" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-2xl text-[10px] font-black uppercase text-white hover:opacity-90 transition-opacity shadow-[0_0_20px_rgba(230,104,60,0.2)]">
-                                            <Instagram className="w-4 h-4" /> Story IG
-                                        </a>
-                                        <a href="https://tiktok.com/upload" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white/10 border border-white/20 hover:bg-white hover:text-black rounded-2xl text-[10px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(255,255,255,0.05)]">
-                                            <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg>
-                                            TikTok
+                                        <a href={clip.url} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-neon-purple rounded-2xl text-[10px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(188,19,254,0.3)]">
+                                            <Video className="w-4 h-4" /> Voir le Clip
                                         </a>
                                     </div>
                                 </div>

@@ -41,6 +41,7 @@ export function AdminDashboard() {
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+    const [isClipsModalOpen, setIsClipsModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
@@ -117,27 +118,10 @@ export function AdminDashboard() {
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
 
     useEffect(() => {
-        if (isTakeoverModalOpen) {
-            setTakeoverTab('general');
-            // Load banned users from server
-            const perms = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-            if (perms.includes('all') || perms.includes('takeover_modo')) {
-                const password = localStorage.getItem('admin_password') || '';
-                const username = localStorage.getItem('admin_user') || 'alex';
-                const sessionId = localStorage.getItem('admin_session_id') || '';
-                fetch('/api/chat/banned', {
-                    headers: {
-                        'X-Admin-Password': password,
-                        'X-Admin-Username': username,
-                        'X-Session-ID': sessionId
-                    }
-                })
-                    .then(r => r.ok ? r.json() : [])
-                    .then(data => setBannedChatUsers(Array.isArray(data) ? data : []))
-                    .catch(() => setBannedChatUsers([]));
-            }
+        if (isClipsModalOpen) {
+            fetchClips();
         }
-    }, [isTakeoverModalOpen]);
+    }, [isClipsModalOpen]);
 
     const navigate = useNavigate();
 
@@ -892,12 +876,19 @@ export function AdminDashboard() {
                                         Bandeau
                                     </button>
                                     <button
-                                        onClick={() => setIsTakeoverModalOpen(true)}
+                                        onClick={() => setIsClipsModalOpen(true)}
+                                        className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-neon-cyan transition-all flex items-center gap-2"
+                                    >
+                                        <Video className="w-4 h-4" />
+                                        Gestion Clips
+                                    </button>
+                                    <Link
+                                        to="/live"
                                         className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         <Youtube className="w-4 h-4" />
-                                        Live / Takeover
-                                    </button>
+                                        Accès Live
+                                    </Link>
                                 </>
                             )}
                         </div>
@@ -1070,7 +1061,7 @@ export function AdminDashboard() {
                                             setIsSettingsModalOpen(true);
                                         } else if (action.title === 'LIVE / TAKEOVER') {
                                             e.preventDefault();
-                                            setIsTakeoverModalOpen(true);
+                                            navigate('/live');
                                         } else if (action.title === 'Notifications') {
                                             e.preventDefault();
                                             setIsNotificationModalOpen(true);
@@ -3509,6 +3500,112 @@ export function AdminDashboard() {
                                 >
                                     Annuler l'opération
                                 </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Modal Clips */}
+            <AnimatePresence>
+                {isClipsModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full max-h-[90vh] shadow-2xl relative overflow-hidden flex flex-col"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+
+                            <div className="flex justify-between items-start mb-12 shrink-0">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Gestion <span className="text-neon-cyan">Clips</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Extraits créés par la communauté</p>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={fetchClips}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <RotateCcw className={`w-6 h-6 ${isLoadingClips ? 'animate-spin' : ''}`} />
+                                    </button>
+                                    <button
+                                        onClick={() => setIsClipsModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
+                                {isLoadingClips ? (
+                                    <div className="py-20 flex flex-col items-center justify-center grayscale opacity-50">
+                                        <Loader2 className="w-12 h-12 text-neon-cyan animate-spin mb-4" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-cyan animate-pulse">Chargement des clips...</p>
+                                    </div>
+                                ) : clips.length === 0 ? (
+                                    <div className="py-32 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02]">
+                                        <VideoOff className="w-12 h-12 text-gray-600 mx-auto mb-6" />
+                                        <h3 className="text-xl font-black text-white/40 uppercase italic tracking-widest">Aucun clip trouvé</h3>
+                                        <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits apparaîtront dès qu'un viewer en créera en live</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {clips.map((clip: any) => (
+                                            <motion.div
+                                                key={clip.id}
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden group hover:border-neon-cyan/30 transition-all flex flex-col"
+                                            >
+                                                <div className="aspect-video relative overflow-hidden">
+                                                    <img
+                                                        src={clip.url?.includes('cloudinary') ? clip.url.replace('.mp4', '.jpg') : `https://img.youtube.com/vi/${clip.videoId}/maxresdefault.jpg`}
+                                                        alt={clip.title}
+                                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                        onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80\u0026w=2070\u0026auto=format\u0026fit=crop')}
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                                                    <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                                                        <div className="px-2 py-1 bg-black/80 rounded-lg border border-white/10 backdrop-blur-md">
+                                                            <p className="text-[9px] font-black text-white">{clip.duration || '0:30'}</p>
+                                                        </div>
+                                                        <div className="px-2 py-1 bg-neon-cyan/80 rounded-lg border border-neon-cyan/30 backdrop-blur-md">
+                                                            <p className="text-[9px] font-black text-black uppercase tracking-widest truncate max-w-[80px]">{clip.creator || 'USER'}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="p-5 flex-1 flex flex-col">
+                                                    <h4 className="text-[11px] font-black text-white uppercase italic tracking-tight mb-1 truncate">{clip.title}</h4>
+                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-4">{clip.date} • {clip.timestamp}</p>
+
+                                                    <div className="mt-auto grid grid-cols-2 gap-2">
+                                                        <a
+                                                            href={clip.url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                        >
+                                                            <Download className="w-3 h-3" />
+                                                            VOIR
+                                                        </a>
+                                                        <button
+                                                            onClick={() => handleDeleteClip(clip.id)}
+                                                            className="py-2.5 bg-red-600/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                                                        >
+                                                            <Trash2 className="w-3 h-3" />
+                                                            SUPPR.
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </div>

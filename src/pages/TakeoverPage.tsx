@@ -66,6 +66,7 @@ interface TakeoverProps {
         stage3Name?: string;
         stage4Name?: string;
         showInAgenda?: boolean;
+        showClosedDoors?: boolean;
     };
 }
 
@@ -120,17 +121,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [totalWatchTime, setTotalWatchTime] = useState(0);
-    const [currentTime, setCurrentTime] = useState(new Date());
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
     const [annBannerText, setAnnBannerText] = useState('');
     const [annBannerColor, setAnnBannerColor] = useState('#ffffff');
     const [annBannerBg, setAnnBannerBg] = useState('#0a0a0a');
+    const [showClosedDoors, setShowClosedDoors] = useState(false);
+    const [upcomingLives, setUpcomingLives] = useState<any[]>([]);
 
-    // Update current time every 30s for artist tracking
+
+
+    // Fetch upcoming lives for closed doors
     useEffect(() => {
-        const interval = setInterval(() => setCurrentTime(new Date()), 30000);
-        return () => clearInterval(interval);
+        const fetchUpcoming = async () => {
+            try {
+                const res = await fetch('/api/agenda');
+                if (res.ok) {
+                    const data = await res.json();
+                    const now = new Date();
+                    const filtered = data
+                        .filter((ev: any) => ev.isLiveDropsiders && new Date(ev.date || ev.startDate) >= now)
+                        .sort((a: any, b: any) => new Date(a.date || a.startDate).getTime() - new Date(b.date || b.startDate).getTime())
+                        .slice(0, 3);
+                    setUpcomingLives(filtered);
+                }
+            } catch (e) { }
+        };
+        fetchUpcoming();
     }, []);
 
     // Transition effect when changing player counts
@@ -275,7 +292,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             return { time: startTime, endTime, artist, stage, instagram, isPast, totalMinutes: startMinutes, progress };
         });
-    }, []);
+    }, [currentTime]);
 
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
@@ -959,6 +976,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         settings.pinnedMessage = newSettings.pinnedMessage;
                         settings.currentArtist = newSettings.currentArtist;
                         settings.artistInstagram = newSettings.artistInstagram;
+                        setShowClosedDoors(newSettings.showClosedDoors ?? false);
                     }
                     if (data?.announcement_banner) {
                         setAnnBannerEnabled(data.announcement_banner.enabled ?? false);
@@ -1524,7 +1542,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         adminBgColor: updates.adminBgColor ?? adminBgColor,
                         showInAgenda: updates.showInAgenda ?? settings.showInAgenda,
                         startDate: updates.startDate ?? settings.startDate,
-                        endDate: updates.endDate ?? settings.endDate
+                        endDate: updates.endDate ?? settings.endDate,
+                        showClosedDoors: updates.showClosedDoors ?? showClosedDoors
                     }
                 };
 
@@ -2020,49 +2039,92 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="w-full h-full relative overflow-hidden">
                                         {/* CLOSED DOOR EFFECT */}
                                         <AnimatePresence>
-                                            {!settings.isOnline && (
+                                            {(!settings.isOnline && (showClosedDoors || settings.showClosedDoors)) && (
                                                 <div className="absolute inset-0 z-[100] flex">
+                                                    {/* LEFT PANEL */}
                                                     <motion.div
                                                         initial={{ x: '-100%' }}
                                                         animate={{ x: 0 }}
                                                         exit={{ x: '-100%' }}
-                                                        transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
-                                                        className="flex-1 bg-[#0a0a0a] border-r border-white/5 relative"
+                                                        transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                                                        className="flex-1 bg-black border-r border-white/5 relative flex items-center justify-end overflow-hidden"
                                                     >
-                                                        <div className="absolute inset-0 bg-gradient-to-l from-neon-red/5 to-transparent" />
+                                                        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-neon-red/10 to-transparent" />
+                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-neon-red/10 to-transparent" />
+                                                        <motion.div
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 0.05 }}
+                                                            className="text-[20vw] font-black text-white whitespace-nowrap -rotate-90 origin-right translate-x-12 select-none uppercase"
+                                                        >
+                                                            NO LIVE
+                                                        </motion.div>
                                                     </motion.div>
+
+                                                    {/* RIGHT PANEL */}
                                                     <motion.div
                                                         initial={{ x: '100%' }}
                                                         animate={{ x: 0 }}
                                                         exit={{ x: '100%' }}
-                                                        transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
-                                                        className="flex-1 bg-[#0a0a0a] border-l border-white/5 relative"
+                                                        transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                                                        className="flex-1 bg-black border-l border-white/5 relative flex items-center justify-start overflow-hidden"
                                                     >
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent" />
+                                                        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-neon-red/10 to-transparent" />
+                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-neon-red/10 to-transparent" />
+                                                        <motion.div
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 0.05 }}
+                                                            className="text-[20vw] font-black text-white whitespace-nowrap rotate-90 origin-left -translate-x-12 select-none uppercase"
+                                                        >
+                                                            OFFLINE
+                                                        </motion.div>
                                                     </motion.div>
 
+                                                    {/* CONTENT CENTER */}
                                                     <motion.div
-                                                        initial={{ opacity: 0, scale: 0.9 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        transition={{ delay: 0.8 }}
-                                                        className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center z-[110]"
+                                                        initial={{ opacity: 0, y: 40 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: 1, duration: 0.8 }}
+                                                        className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-[110]"
                                                     >
-                                                        <div className="mb-8 relative">
-                                                            <div className="absolute inset-0 bg-neon-red blur-3xl opacity-20 animate-pulse" />
-                                                            <Power className="w-20 h-20 text-neon-red relative z-10" />
+                                                        <div className="w-24 h-24 rounded-full bg-neon-red/10 border border-neon-red/30 flex items-center justify-center mb-10 shadow-[0_0_50px_#ff000033]">
+                                                            <Power className="w-10 h-10 text-neon-red animate-pulse" />
                                                         </div>
-                                                        <h3 className="text-4xl lg:text-6xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
+
+                                                        <h3 className="text-4xl lg:text-7xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
                                                             PAS DE LIVE <span className="text-neon-red">ACTUELLEMENT</span>
                                                         </h3>
-                                                        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px] lg:text-xs mb-12">Le flux reprendra lors du prochain événement</p>
+                                                        <p className="text-gray-500 font-bold uppercase tracking-[0.4em] text-[10px] lg:text-sm mb-16">Accès restreint • Reprise prochainement</p>
 
-                                                        <div className="space-y-4 w-full max-w-md">
-                                                            <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Prochaines Dates :</div>
-                                                            {/* We could fetch actual upcoming events here */}
-                                                            <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] backdrop-blur-xl">
-                                                                <p className="text-sm font-bold text-white italic">Consultez l'agenda pour ne rien manquer !</p>
+                                                        {upcomingLives.length > 0 && (
+                                                            <div className="w-full max-w-2xl">
+                                                                <div className="flex items-center gap-4 mb-8">
+                                                                    <div className="h-px flex-1 bg-white/10" />
+                                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Prochainement en Live</span>
+                                                                    <div className="h-px flex-1 bg-white/10" />
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                    {upcomingLives.map((ev, i) => (
+                                                                        <motion.div
+                                                                            key={ev.id}
+                                                                            initial={{ opacity: 0, y: 20 }}
+                                                                            animate={{ opacity: 1, y: 0 }}
+                                                                            transition={{ delay: 1.2 + (i * 0.1) }}
+                                                                            className="group p-4 bg-white/[0.03] border border-white/10 rounded-[2rem] hover:bg-white/[0.05] hover:border-neon-red/30 transition-all cursor-default text-left overflow-hidden relative"
+                                                                        >
+                                                                            <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
+                                                                                <Bell className="w-4 h-4 text-neon-red" />
+                                                                            </div>
+                                                                            <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-1">
+                                                                                {new Date(ev.date || ev.startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'LONG' }).toUpperCase()}
+                                                                            </p>
+                                                                            <h4 className="text-sm font-black text-white uppercase italic tracking-tight line-clamp-1 group-hover:text-neon-red transition-colors">{ev.title}</h4>
+                                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">{ev.location || 'LIVE'}</p>
+                                                                        </motion.div>
+                                                                    ))}
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                        )}
                                                     </motion.div>
                                                 </div>
                                             )}
@@ -2653,6 +2715,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     className={`w-12 h-6 rounded-full p-1 transition-all ${settings.disableMainPlayer === false ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
                                                                 >
                                                                     <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.disableMainPlayer === false ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                </button>
+                                                            </div>
+                                                            <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                                                <div className="flex flex-col">
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Effet Fermeture (Offline)</label>
+                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">{showClosedDoors || settings.showClosedDoors ? 'Activé' : 'Désactivé'}</span>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ showClosedDoors: !(showClosedDoors || settings.showClosedDoors) })}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${(showClosedDoors || settings.showClosedDoors) ? 'bg-neon-red shadow-[0_0_15px_#ff000044]' : 'bg-gray-800'}`}
+                                                                >
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${(showClosedDoors || settings.showClosedDoors) ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                 </button>
                                                             </div>
                                                             <div className="pt-2 grid grid-cols-2 gap-3">
