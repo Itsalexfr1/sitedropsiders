@@ -372,22 +372,32 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         if (!canvas) return;
         setIsVideoRecording(true);
 
-        // Settings for Premiere Pro compatibility (Higher bitrate, VP9 or H264 if browser allows)
-        const stream = canvas.captureStream(60); // 60fps for smoother editing
-        const options = {
-            mimeType: 'video/webm;codecs=vp9', // Best available in Chrome/Edge, widely supported in Premiere 2023+
-            videoBitsPerSecond: 10000000 // 10Mbps for high quality
-        };
+        // Detect best supported format
+        const formats = [
+            'video/mp4;codecs=h264',
+            'video/webm;codecs=h264',
+            'video/webm;codecs=vp9',
+            'video/webm;codecs=vp8',
+            'video/webm'
+        ];
 
-        const recorder = new MediaRecorder(stream, options);
+        const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
+        const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+
+        const stream = canvas.captureStream(60);
+        const recorder = new MediaRecorder(stream, {
+            mimeType,
+            videoBitsPerSecond: 12000000 // 12Mbps for pro quality
+        });
+
         const chunks: Blob[] = [];
         recorder.ondataavailable = (e) => chunks.push(e.data);
         recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
+            const blob = new Blob(chunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.webm`;
+            a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
             a.click();
             setIsVideoRecording(false);
         };
