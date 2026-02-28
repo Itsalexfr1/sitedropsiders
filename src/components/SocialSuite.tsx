@@ -12,7 +12,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -53,7 +53,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'REPLAY', grad: '189, 0, 255', color: '#bd00ff' }
+        'RECAP': { label: 'REPLAY', grad: '189, 0, 255', color: '#bd00ff' },
+        'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' }
     };
 
     // Rotation Animation
@@ -125,7 +126,65 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             for (let i = 0; i < canvas.height; i += 6) ctx.fillRect(0, i, canvas.width, 2);
 
             // 4. Layouts
-            if (theme === 'TOP 5 STYLES') {
+            if (theme === 'INTRO') {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // The "Blue Tape" - Slightly tilted or irregular? Let's go with a solid stylized rectangle
+                ctx.save();
+                ctx.translate(centerX, centerY);
+
+                // Outer glow
+                ctx.shadowColor = 'rgba(0, 50, 255, 0.5)';
+                ctx.shadowBlur = 30;
+
+                const tapeW = 900;
+                const tapeH = 260;
+
+                // Draw irregular taped edges (simplified as polygons)
+                ctx.fillStyle = '#0032ff';
+                ctx.beginPath();
+                ctx.moveTo(-tapeW / 2 - 20, -tapeH / 2 + 10);
+                ctx.lineTo(tapeW / 2 + 20, -tapeH / 2 - 10);
+                ctx.lineTo(tapeW / 2 + 40, tapeH / 2 + 5);
+                ctx.lineTo(-tapeW / 2 - 30, tapeH / 2 - 5);
+                ctx.closePath();
+                ctx.fill();
+
+                // Shiny Plastic texture (Simplified)
+                const plasticGrad = ctx.createLinearGradient(-tapeW / 2, -tapeH / 2, tapeW / 2, tapeH / 2);
+                plasticGrad.addColorStop(0, 'rgba(255,255,255,0.1)');
+                plasticGrad.addColorStop(0.5, 'rgba(0,0,0,0.1)');
+                plasticGrad.addColorStop(1, 'rgba(255,255,255,0.05)');
+                ctx.fillStyle = plasticGrad;
+                ctx.fill();
+
+                // Text
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const fontSize = 70;
+                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
+
+                // Metallic effect
+                const textGrad = ctx.createLinearGradient(0, -tapeH / 2, 0, tapeH / 2);
+                textGrad.addColorStop(0, '#ffffff');
+                textGrad.addColorStop(0.4, '#e0e0e0');
+                textGrad.addColorStop(0.5, '#a0a0a0');
+                textGrad.addColorStop(0.6, '#e0e0e0');
+                textGrad.addColorStop(1, '#ffffff');
+
+                ctx.fillStyle = textGrad;
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 10;
+
+                const lines = customText.split('\n');
+                lines.forEach((line, i) => {
+                    ctx.fillText(line.toUpperCase(), 0, (i - (lines.length - 1) / 2) * fontSize * 1.1);
+                });
+
+                ctx.restore();
+
+            } else if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
                 const centerX = canvas.width / 2;
                 const centerY = safeTop + 480; // Disc slightly lower
@@ -327,6 +386,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     <div className="grid grid-cols-2 gap-2">
                         {activeTab === 'REEL' ? (
                             <>
+                                <button onClick={() => setTheme('INTRO')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
                                 <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
                                 <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
                             </>
