@@ -1,5 +1,16 @@
 [
   {
+    "title": "Social Studio",
+    "description": "Vidéos & Stories",
+    "icon": "Instagram",
+    "link": "social-studio",
+    "color": "border-neon-pink/20 hover:border-pink-500",
+    "bg": "bg-pink-500/5",
+    "permission": "news",
+    "baseColor": "#fff700",
+    "columns": 1
+  },
+  {
     "title": "Accueil",
     "description": "Vues & Sections",
     "icon": "LayoutDashboard",
@@ -26,17 +37,6 @@
     "bg": "bg-neon-orange/5",
     "permission": "messages",
     "baseColor": "#ffb81f",
-    "columns": 1
-  },
-  {
-    "title": "Social Studio",
-    "description": "Vidéos & Stories",
-    "icon": "Instagram",
-    "link": "social-studio",
-    "color": "border-neon-pink/20 hover:border-pink-500",
-    "bg": "bg-pink-500/5",
-    "permission": "news",
-    "baseColor": "#fff700",
     "columns": 1
   },
   {
