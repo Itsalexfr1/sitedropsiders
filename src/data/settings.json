@@ -22,7 +22,7 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "LGhKi21i3cE",
     "title": "A State of Trance Live ",
     "moderators": "",
@@ -37,21 +37,11 @@
     "showInNavbar": true,
     "forceHomepage": false,
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
-    "isSecret": false,
+    "isSecret": true,
     "password": "2026",
     "channels": "9QBW6bHRJnM:Area 2",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "",
-    "chat_enabled": true,
-    "currentArtist": "armin van buuren f2f funk tribu",
-    "artistInstagram": "",
-    "showShop": false,
-    "shopItems": "1,4,3,2,10,11,13,12,25,22,24,23",
-    "mainFluxName": "AREA 1",
-    "botColor": "#ff0000",
-    "botBgColor": "rgba(0, 255, 20, 0.05",
-    "adminColor": "#ff0033",
-    "adminBgColor": "rgba(255, 0, 51, 0.05)"
+    "pinnedMessage": ""
   }
 }
