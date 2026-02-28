@@ -36,9 +36,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 img.onerror = reject;
             });
 
-            // Set canvas size (Story 9:16)
+            // Set canvas size (Post 1080x1440)
             canvas.width = 1080;
-            canvas.height = 1920;
+            canvas.height = 1440;
 
             // 1. Draw Background
             const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
@@ -155,7 +155,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         if (!canvas) return;
         setIsDownloading(true);
         const link = document.createElement('a');
-        link.download = `dropsiders-story.png`;
+        link.download = `dropsiders-post.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
         setTimeout(() => setIsDownloading(false), 1000);
@@ -265,7 +265,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 className="w-full py-6 bg-white text-black rounded-3xl text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl"
                             >
                                 <Download className="w-5 h-5" />
-                                {isDownloading ? 'Génération...' : 'Télécharger Story'}
+                                {isDownloading ? 'Génération...' : 'Télécharger Post'}
                             </button>
 
                             <div className="grid grid-cols-2 gap-4 mt-4">
@@ -284,14 +284,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         {/* Mesh background effect */}
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neon-red/5 via-transparent to-transparent pointer-events-none" />
 
-                        <div className="h-full max-h-full aspect-[9/16] relative">
+                        <div className="h-full max-h-full aspect-[1080/1440] relative">
                             <div className="absolute -inset-4 bg-neon-red/20 blur-[60px] opacity-20 pointer-events-none" />
                             <div className="w-full h-full bg-[#111] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl relative">
                                 <canvas ref={canvasRef} className="w-full h-full object-contain" />
 
                                 {/* Overlay Helper */}
                                 <div className="absolute top-4 left-4 text-[8px] font-black bg-black/60 text-white px-2 py-1 rounded border border-white/10 uppercase tracking-widest">
-                                    Prévisualisation HD (1080x1920)
+                                    Prévisualisation HD (1080x1440)
                                 </div>
                             </div>
                         </div>
