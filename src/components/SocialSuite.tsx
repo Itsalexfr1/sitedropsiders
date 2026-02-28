@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, Download, Instagram, Share2, Upload, Type, Layout, Image as ImageIcon } from 'lucide-react';
+import { X, Download, Share2, Upload, Type, Layout, Trash2, PlusCircle, Layers } from 'lucide-react';
 
 interface SocialSuiteProps {
     title: string;
@@ -8,16 +8,25 @@ interface SocialSuiteProps {
     onClose: () => void;
 }
 
-type TemplateType = 'news_only' | 'news_swipe' | 'musique';
+type ThemeType = 'NEWS' | 'RECAP' | 'MUSIQUE' | 'INTERVIEW';
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
-    const [template, setTemplate] = useState<TemplateType>('news_only');
+    const [theme, setTheme] = useState<ThemeType>('NEWS');
+    const [showSwipe, setShowSwipe] = useState(false);
     const [customText, setCustomText] = useState((title || '').toUpperCase());
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [visualsList, setVisualsList] = useState<string[]>([]);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const themeColors: Record<ThemeType, { label: string; grad: string }> = {
+        'NEWS': { label: '#FF1241', grad: '177, 18, 65' },
+        'RECAP': { label: '#6228d7', grad: '98, 40, 215' },
+        'MUSIQUE': { label: '#ee2a7b', grad: '238, 42, 123' },
+        'INTERVIEW': { label: '#00f0ff', grad: '0, 150, 200' }
+    };
 
     const generateImage = async () => {
         const canvas = canvasRef.current;
@@ -54,16 +63,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
-            // 2. Draw Gradient Overlay (Matches user visuals)
+            // 2. Draw Gradient Overlay (Matches user themes)
+            const activeColor = themeColors[theme];
             const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
-            const isMusique = template === 'musique';
-            // Neon Red for News, Neon Pink/Musique gradient
-            const baseColor = isMusique ? '238, 42, 123' : '177, 18, 65';
 
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(0.8, `rgba(${baseColor}, 0.8)`);
-            grad.addColorStop(1, `rgba(${baseColor}, 1)`);
+            grad.addColorStop(0.8, `rgba(${activeColor.grad}, 0.8)`);
+            grad.addColorStop(1, `rgba(${activeColor.grad}, 1)`);
             ctx.fillStyle = grad;
             ctx.fillRect(0, canvas.height * 0.3, canvas.width, canvas.height * 0.7);
 
@@ -73,7 +80,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, i, canvas.width, 2);
             }
 
-            // 4. Custom Text Wrapping & Height Calculation (Handling manual \n)
+            // 4. Custom Text Wrapping & Height Calculation
             const fontSize = 85;
             const lineHeight = fontSize * 1.2;
             ctx.fillStyle = '#ffffff';
@@ -108,16 +115,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // Post: 1080x1440. Grid: 1080x1080. 
             // Crop takes 180px from top and 180px from bottom.
             // Safe zone is between Y=180 and Y=1260.
-            const bottomMargin = 220; // Extra margin to stay safe from UI elements
+            const bottomMargin = 220;
             const startY = Math.min(1150, canvas.height - bottomMargin - (totalHeight / 2));
 
-            // 5. Label "NEWS" / "RECAP" / "MUSIQUE" / "INTERVIEW" (Centered above text)
-            let label = 'NEWS';
-            if (template === 'musique') label = 'MUSIQUE';
-            else if (template === 'news_swipe') label = 'RECAP';
-            else if (customText.toUpperCase().includes('INTERVIEW')) label = 'INTERVIEW';
-
-            const labelBg = template === 'musique' ? '#ee2a7b' : '#FF1241';
+            // 5. Label (NEWS / RECAP / MUSIQUE / INTERVIEW)
+            const label = theme;
+            const labelBg = activeColor.label;
             const labelY = startY - (totalHeight / 2) - 100;
 
             ctx.font = 'bold 75px "Inter", sans-serif';
@@ -149,15 +152,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             });
             ctx.shadowBlur = 0;
 
-            // 7. Swipe arrows (Template 3)
-            if (template === 'news_swipe') {
+            // 7. Swipe arrows
+            if (showSwipe) {
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 120px "Inter", sans-serif';
+                ctx.font = '900 italic 90px "Inter", sans-serif'; // Reduced size as requested
                 ctx.fillStyle = '#ffffff';
-                ctx.fillText('>>', canvas.width - 80, 1150); // Moved up to stay in safe zone
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 10;
+                ctx.fillText('>>', canvas.width - 80, 1180);
+                ctx.shadowBlur = 0;
             }
 
-            // 8. Real Logo Top Right (Stay in safe zone)
+            // 8. Real Logo Top Right
             try {
                 const logo = new Image();
                 logo.src = '/Logo.png';
@@ -168,7 +174,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 if (logo.complete && logo.width > 0) {
                     const logoW = 320;
                     const logoH = (logo.height * logoW) / logo.width;
-                    ctx.drawImage(logo, canvas.width - logoW - 60, 200, logoW, logoH); // Moved down to 200px (safe zone starts at 180)
+                    ctx.drawImage(logo, canvas.width - logoW - 60, 200, logoW, logoH);
                 }
             } catch (e) {
                 console.warn("Logo load failed, skipping");
@@ -181,7 +187,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     useEffect(() => {
         generateImage();
-    }, [bgImage, customText, template]);
+    }, [bgImage, customText, theme, showSwipe]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -191,15 +197,43 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         }
     };
 
-    const download = () => {
+    const addVisualToList = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const dataUrl = canvas.toDataURL('image/png', 1.0);
+        setVisualsList([...visualsList, dataUrl]);
+    };
+
+    const removeVisual = (index: number) => {
+        setVisualsList(visualsList.filter((_, i) => i !== index));
+    };
+
+    const downloadSingle = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         setIsDownloading(true);
         const link = document.createElement('a');
-        link.download = `dropsiders-post.png`;
+        link.download = `dropsiders-${theme.toLowerCase()}-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
         setTimeout(() => setIsDownloading(false), 1000);
+    };
+
+    const downloadAll = async () => {
+        if (visualsList.length === 0) return;
+        setIsDownloading(true);
+
+        // Sequential download for all visuals
+        for (let i = 0; i < visualsList.length; i++) {
+            const link = document.createElement('a');
+            link.download = `dropsiders-pack-${i + 1}.png`;
+            link.href = visualsList[i];
+            link.click();
+            // Small delay to prevent browser from blocking multiple triggers
+            await new Promise(r => setTimeout(r, 300));
+        }
+
+        setIsDownloading(false);
     };
 
     return (
@@ -212,50 +246,54 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <motion.div
                 initial={{ scale: 0.95, y: 20 }}
                 animate={{ scale: 1, y: 0 }}
-                className="bg-[#050505] border border-white/10 rounded-[40px] w-full max-w-[1200px] h-[90vh] overflow-hidden flex flex-col shadow-2xl relative"
+                className="bg-[#050505] border border-white/10 rounded-[40px] w-full max-w-[1400px] h-[95vh] overflow-hidden flex flex-col shadow-2xl relative"
             >
                 {/* Header Section */}
-                <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
+                <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-neon-red/10 border border-neon-red/20 rounded-2xl flex items-center justify-center">
-                            <Share2 className="w-6 h-6 text-neon-red" />
+                        <div className="w-10 h-10 bg-neon-red/10 border border-neon-red/20 rounded-xl flex items-center justify-center">
+                            <Share2 className="w-5 h-5 text-neon-red" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter">Social <span className="text-neon-red">Builder</span></h2>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">Custom Story Visuals</p>
+                            <h2 className="text-xl font-black text-white italic uppercase tracking-tighter">Social <span className="text-neon-red">Suite V2</span></h2>
+                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">Premium Content Hub</p>
                         </div>
                     </div>
 
-                    <button onClick={onClose} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
-                        <X className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-4">
+                        {visualsList.length > 0 && (
+                            <div className="flex items-center gap-2 px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-xl">
+                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">{visualsList.length} VISUELS PRÊTS</span>
+                            </div>
+                        )}
+                        <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-all">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
                 </div>
 
                 <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
                     {/* Sidebar Editor */}
-                    <div className="w-full lg:w-[450px] border-r border-white/5 p-8 overflow-y-auto space-y-10 custom-scrollbar">
+                    <div className="w-full lg:w-[400px] border-r border-white/5 p-6 overflow-y-auto space-y-8 custom-scrollbar">
 
-                        {/* 1. Template Choice */}
+                        {/* 1. Theme Choice */}
                         <div className="space-y-4">
                             <div className="flex items-center gap-3 text-neon-red">
                                 <Layout className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Type de Visuel</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Thème de la publication</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                {[
-                                    { id: 'news_only', label: 'News' },
-                                    { id: 'musique', label: 'Music' },
-                                    { id: 'news_swipe', label: 'Swipe' }
-                                ].map((t) => (
+                            <div className="grid grid-cols-2 gap-2">
+                                {(Object.keys(themeColors) as ThemeType[]).map((t) => (
                                     <button
-                                        key={t.id}
-                                        onClick={() => setTemplate(t.id as TemplateType)}
-                                        className={`py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${template === t.id
-                                            ? 'bg-neon-red border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]'
-                                            : 'bg-white/5 border-white/5 text-gray-500 hover:text-white hover:bg-white/10'
+                                        key={t}
+                                        onClick={() => setTheme(t)}
+                                        className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${theme === t
+                                            ? 'bg-white text-black shadow-lg scale-[1.02]'
+                                            : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
                                             }`}
+                                        style={theme === t ? { borderBottom: `4px solid ${themeColors[t].label}` } : {}}
                                     >
-                                        {t.label}
+                                        {t}
                                     </button>
                                 ))}
                             </div>
@@ -263,78 +301,126 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                         {/* 2. Text Input */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-neon-red">
+                            <div className="flex items-center gap-3 text-neon-cyan">
                                 <Type className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Texte Central</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest">Texte de l'article</span>
                             </div>
                             <textarea
                                 value={customText}
                                 onChange={(e) => setCustomText(e.target.value.toUpperCase())}
-                                placeholder="Votre message ici..."
-                                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-6 text-white text-lg font-black italic resize-none focus:outline-none focus:border-neon-red/50 transition-colors uppercase"
+                                placeholder="FRAUDEURS DE FESTIVAL... @ENTRÉE POUR LIGNE"
+                                className="w-full h-28 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:outline-none focus:border-neon-cyan/50 transition-colors uppercase"
                             />
                         </div>
 
-                        {/* 3. Photo Upload */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-3 text-neon-red">
-                                <ImageIcon className="w-4 h-4" />
-                                <span className="text-[10px] font-black uppercase tracking-widest">Image de fond</span>
-                            </div>
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full py-12 border-2 border-dashed border-white/10 rounded-[32px] flex flex-col items-center justify-center gap-4 hover:border-neon-red/50 hover:bg-neon-red/5 transition-all group"
-                            >
-                                <div className="p-4 bg-white/5 rounded-2xl group-hover:scale-110 transition-transform">
-                                    <Upload className="w-8 h-8 text-gray-400 group-hover:text-neon-red" />
+                        {/* 3. Swipe Option */}
+                        <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
+                            <div className="flex items-center gap-3">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${showSwipe ? 'bg-neon-red/20 text-neon-red' : 'bg-white/5 text-gray-600'}`}>
+                                    <Layout className="w-5 h-5" />
                                 </div>
-                                <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Télécharger une photo</span>
-                            </button>
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                onChange={handleFileChange}
-                                className="hidden"
-                                accept="image/*"
-                            />
+                                <div>
+                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Logo Swipe</p>
+                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Ajouter {">>"} en bas</p>
+                                </div>
+                            </div>
+                            <div className={`w-10 h-5 rounded-full relative transition-all ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'}`}>
+                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${showSwipe ? 'right-0.5' : 'left-0.5'}`} />
+                            </div>
                         </div>
 
-                        {/* Export Buttons */}
-                        <div className="pt-6">
+                        {/* 4. Photo Upload */}
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-3 text-neon-purple">
+                                <PlusCircle className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Photo de fond</span>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="w-full py-8 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-3 hover:border-white/30 hover:bg-white/5 transition-all group"
+                                >
+                                    <Upload className="w-6 h-6 text-gray-500 group-hover:text-white" />
+                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Modifier le fond</span>
+                                </button>
+                                {bgImage && (
+                                    <button
+                                        onClick={() => setBgImage('')}
+                                        className="w-full py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-500/20 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Trash2 className="w-3 h-3" />
+                                        Supprimer la photo
+                                    </button>
+                                )}
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                            </div>
+                        </div>
+
+                        {/* 5. Production Queue */}
+                        <div className="space-y-4 pt-4 border-t border-white/10">
                             <button
-                                onClick={download}
-                                className="w-full py-6 bg-white text-black rounded-3xl text-xs font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl"
+                                onClick={addVisualToList}
+                                className="w-full py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-neon-cyan/20 transition-all shadow-[0_0_20px_rgba(0,240,255,0.1)]"
                             >
-                                <Download className="w-5 h-5" />
-                                {isDownloading ? 'Génération...' : 'Télécharger Post'}
+                                <PlusCircle className="w-4 h-4" />
+                                Ajouter au Pack
                             </button>
 
-                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                <button className="py-4 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 transition-all">
-                                    <Instagram className="w-4 h-4" /> Insta Share
-                                </button>
-                                <button className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
-                                    <Share2 className="w-4 h-4" /> Autre
-                                </button>
-                            </div>
+                            {visualsList.length > 0 && (
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between pb-2">
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Ma Collection</span>
+                                        <button onClick={() => setVisualsList([])} className="text-[9px] font-black text-red-500 uppercase tracking-widest hover:underline">Vider</button>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto pr-1 custom-scrollbar">
+                                        {visualsList.map((src, i) => (
+                                            <div key={i} className="relative aspect-[3/4] bg-white/5 rounded-lg overflow-hidden border border-white/10 group">
+                                                <img src={src} className="w-full h-full object-cover" />
+                                                <button
+                                                    onClick={() => removeVisual(i)}
+                                                    className="absolute top-1 right-1 p-1 bg-black/80 text-white rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                                                >
+                                                    <Trash2 className="w-2.5 h-2.5" />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={downloadAll}
+                                        className="w-full py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                                    >
+                                        <Layers className="w-4 h-4" />
+                                        Tout Télécharger ({visualsList.length})
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 
                     {/* Preview Canvas Section */}
-                    <div className="flex-1 bg-black p-8 flex items-center justify-center relative overflow-hidden group">
-                        {/* Mesh background effect */}
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-neon-red/5 via-transparent to-transparent pointer-events-none" />
+                    <div className="flex-1 bg-[#020202] p-6 lg:p-12 flex flex-col items-center justify-center relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.03)_0%,_transparent_70%)] pointer-events-none" />
 
-                        <div className="h-full max-h-full aspect-[1080/1440] relative">
-                            <div className="absolute -inset-4 bg-neon-red/20 blur-[60px] opacity-20 pointer-events-none" />
-                            <div className="w-full h-full bg-[#111] rounded-[32px] overflow-hidden border border-white/10 shadow-2xl relative">
-                                <canvas ref={canvasRef} className="w-full h-full object-contain" />
-
-                                {/* Overlay Helper */}
-                                <div className="absolute top-4 left-4 text-[8px] font-black bg-black/60 text-white px-2 py-1 rounded border border-white/10 uppercase tracking-widest">
-                                    Prévisualisation HD (1080x1440)
+                        <div className="h-full w-full max-w-[500px] flex flex-col gap-6">
+                            <div className="flex-1 relative group">
+                                <div className="absolute -inset-2 bg-gradient-to-r from-neon-red/10 via-neon-purple/10 to-neon-cyan/10 blur-2xl opacity-50 group-hover:opacity-100 transition-opacity duration-1000" />
+                                <div className="w-full h-full bg-[#111] rounded-[40px] overflow-hidden border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative">
+                                    <canvas ref={canvasRef} className="w-full h-full object-contain" />
+                                    <div className="absolute top-4 left-4 flex items-center gap-2">
+                                        <div className="bg-black/60 backdrop-blur-md text-[8px] font-black text-white/80 px-3 py-1.5 rounded-full border border-white/5 uppercase tracking-widest">
+                                            VUES D'ARTISTE HDR
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
+                            <button
+                                onClick={downloadSingle}
+                                className="w-full py-5 bg-white/5 border border-white/10 hover:border-white/30 text-white rounded-[24px] text-[10px] font-black uppercase tracking-[0.4em] flex items-center justify-center gap-4 transition-all"
+                            >
+                                <Download className="w-5 h-5" />
+                                {isDownloading ? 'EXPORT EN COURS...' : 'TÉLÉCHARGER CE VISUEL'}
+                            </button>
                         </div>
                     </div>
                 </div>
