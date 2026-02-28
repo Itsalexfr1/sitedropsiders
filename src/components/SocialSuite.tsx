@@ -246,12 +246,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const labelY = safeBottom - 420; // Lowered label
                 const startY = labelY + 110; // Text starts clearly below
                 ctx.fillStyle = activeData.color;
-                const labelText = activeData.label;
+                const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 80;
                 ctx.fillRect((canvas.width - labelW) / 2, labelY - 50, labelW, 80);
 
                 // Text color inside label: black for specific light themes
-                ctx.fillStyle = (theme === 'MUSIQUE' || theme === 'FOCUS' || theme === 'TOP 5 ARTISTE') ? '#000' : '#fff';
+                ctx.fillStyle = (theme === 'MUSIQUE' || theme === 'FOCUS') ? '#000' : '#fff';
                 ctx.font = '900 italic 50px "Inter", sans-serif';
                 ctx.fillText(labelText, canvas.width / 2, labelY + 5);
 
@@ -386,7 +386,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         )}
                     </div>
 
-                    {activeTab === 'REEL' && (
+                    {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
                         <div className="space-y-4">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur du thème</span>
                             <div className="flex flex-wrap gap-2">
