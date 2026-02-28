@@ -157,11 +157,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // 7. Swipe arrows
             if (showSwipe) {
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 38px "Inter", sans-serif'; // Reduced size further
+                ctx.font = '900 italic 38px "Inter", sans-serif';
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText('>>', canvas.width - 80, 1380); // Lowered closer to bottom
+                ctx.fillText('>>', canvas.width - 80, 1250); // Positioned at the very bottom of the 1:1 safe zone (ends at 1260)
                 ctx.shadowBlur = 0;
             }
 
@@ -176,7 +176,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 if (logo.complete && logo.width > 0) {
                     const logoW = 320;
                     const logoH = (logo.height * logoW) / logo.width;
-                    ctx.drawImage(logo, canvas.width - logoW - 60, 200, logoW, logoH);
+                    ctx.drawImage(logo, canvas.width - logoW - 60, 190, logoW, logoH); // Positioned at the very top of the 1:1 safe zone (starts at 180)
                 }
             } catch (e) {
                 console.warn("Logo load failed, skipping");
