@@ -73,6 +73,17 @@
     "columns": 1
   },
   {
+    "title": "Notifications",
+    "description": "Gérer les pushs",
+    "icon": "Bell",
+    "link": "push-notifications",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-red-500/5",
+    "permission": "superadmin",
+    "baseColor": "#e100ff",
+    "columns": 1
+  },
+  {
     "title": "Shop",
     "description": "Gérer le shop",
     "icon": "ShoppingBag",
@@ -113,7 +124,7 @@
     "link": "/newsletter/studio",
     "baseColor": "#1fc7ff",
     "permission": "newsletter",
-    "columns": 2
+    "columns": 1
   },
   {
     "title": "Team",
