@@ -6,11 +6,12 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { translateText } from '../utils/translate';
+import { SocialSuite } from '../components/SocialSuite';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,6 +40,10 @@ export function AdminDashboard() {
     const [isNewsletterModalOpen, setIsNewsletterModalOpen] = useState(false);
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
+    const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+    const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
+    const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
+    const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
         text: '',
@@ -393,8 +398,9 @@ export function AdminDashboard() {
 
     const getFallbackActions = () => [
         { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Social Studio", description: "Vidéos & Stories", icon: "Instagram", link: "social-studio", color: "border-neon-pink/20 hover:border-pink-500", bg: "bg-pink-500/5", permission: "news", baseColor: "pink", columns: 1 },
         { title: "News", description: "Gérer les actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "news", baseColor: "blue", columns: 1 },
-        { title: "Musique", description: "Gérer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "publications", baseColor: "cyan", columns: 1 },
+        { title: "Musique", description: "Gérer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
         { title: "Interviews", description: "Gérer & Créer", icon: "Mic", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
         { title: "Récaps", description: "Gérer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "recaps", baseColor: "red", columns: 1 },
         { title: "Agenda", description: "Gérer les dates", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
@@ -960,6 +966,27 @@ export function AdminDashboard() {
                                         } else if (action.title === 'LIVE / TAKEOVER') {
                                             e.preventDefault();
                                             setIsTakeoverModalOpen(true);
+                                        } else if (action.title === 'Social Studio') {
+                                            e.preventDefault();
+                                            const fetchSocialContent = async () => {
+                                                setIsLoadingSocial(true);
+                                                setIsSocialModalOpen(true);
+                                                try {
+                                                    const res = await fetch('/api/news');
+                                                    if (res.ok) {
+                                                        const data = await res.json();
+                                                        setSocialRecentArticles(data.slice(0, 10));
+                                                    } else {
+                                                        const { default: news } = await import('../data/news.json');
+                                                        setSocialRecentArticles(news.slice(0, 10));
+                                                    }
+                                                } catch (e) {
+                                                    console.error("Error fetching social content:", e);
+                                                } finally {
+                                                    setIsLoadingSocial(false);
+                                                }
+                                            };
+                                            fetchSocialContent();
                                         }
                                     }}
                                     className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -1467,6 +1494,88 @@ export function AdminDashboard() {
                 )}
             </AnimatePresence>
 
+            {/* Modal Social Studio */}
+            <AnimatePresence>
+                {isSocialModalOpen && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-[#ee2a7b] to-[#f9ce34]" />
+
+                            <div className="flex justify-between items-start mb-10">
+                                <div>
+                                    <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                        Social <span className="text-neon-pink">Studio</span>
+                                    </h2>
+                                    <p className="text-gray-400 font-medium">Générez des visuels pour vos réseaux</p>
+                                </div>
+                                <button
+                                    onClick={() => setIsSocialModalOpen(false)}
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+
+                            <div className="space-y-6">
+                                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sélectionner un article récent</div>
+                                <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                                    {isLoadingSocial ? (
+                                        <div className="py-10 flex justify-center">
+                                            <Loader2 className="w-8 h-8 animate-spin text-neon-pink" />
+                                        </div>
+                                    ) : socialRecentArticles.length > 0 ? (
+                                        socialRecentArticles.map(article => (
+                                            <button
+                                                key={article.id}
+                                                onClick={() => setSelectedSocialArticle(article)}
+                                                className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all group text-left"
+                                            >
+                                                <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 flex-shrink-0">
+                                                    <img src={article.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-bold text-white uppercase italic truncate text-sm">{article.title}</h3>
+                                                    <p className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">{article.date || article.pubDate}</p>
+                                                </div>
+                                                <Instagram className="w-5 h-5 text-gray-600 group-hover:text-neon-pink transition-colors" />
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouvé</div>
+                                    )}
+                                </div>
+
+                                <Link
+                                    to="/admin/manage"
+                                    className="block w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-center text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                    onClick={() => setIsSocialModalOpen(false)}
+                                >
+                                    Voir tout le contenu
+                                </Link>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {selectedSocialArticle && (
+                    <SocialSuite
+                        title={selectedSocialArticle.title}
+                        imageUrl={selectedSocialArticle.image}
+                        type={selectedSocialArticle.type || 'News'}
+                        category={selectedSocialArticle.category || 'News'}
+                        articleId={selectedSocialArticle.id}
+                        onClose={() => setSelectedSocialArticle(null)}
+                    />
+                )}
+            </AnimatePresence>
+
             {/* Modal Agenda */}
             <AnimatePresence>
                 {isAgendaModalOpen && (
@@ -1478,6 +1587,7 @@ export function AdminDashboard() {
                             className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-lg w-full shadow-2xl relative overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-yellow via-neon-orange to-neon-yellow" />
+
 
                             <div className="flex justify-between items-start mb-12">
                                 <div>
@@ -1604,12 +1714,12 @@ export function AdminDashboard() {
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
                             className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
                         >
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-green via-white to-neon-green" />
 
                             <div className="flex justify-between items-start mb-12">
                                 <div>
                                     <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                        Gestion <span className="text-neon-cyan">Musique</span>
+                                        Gestion <span className="text-neon-green">Musique</span>
                                     </h2>
                                     <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                 </div>
@@ -1625,10 +1735,10 @@ export function AdminDashboard() {
                                 <Link
                                     to="/news/create?type=Musique"
                                     onClick={() => setIsMusiqueModalOpen(false)}
-                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                                    className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group"
                                 >
-                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                                        <Plus className="w-6 h-6 text-neon-cyan" />
+                                    <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-green/30 group-hover:scale-110 transition-transform">
+                                        <Plus className="w-6 h-6 text-neon-green" />
                                     </div>
                                     <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel Article</h3>
                                     <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Focus musique</p>
@@ -2559,19 +2669,21 @@ export function AdminDashboard() {
                                                     const currentLines = (takeoverState.lineup || '').split('\n');
                                                     const rows = currentLines.filter(l => l.length > 0).map(line => {
                                                         const timeMatch = line.match(/\[(.*?)\]/);
-                                                        const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0] : '');
+                                                        const timeRange = timeMatch ? timeMatch[1] : '';
+                                                        const [startTime, endTime] = timeRange.includes('-') ? timeRange.split('-') : [timeRange, ''];
                                                         const rest = line.replace(/\[.*?\]/, '');
-                                                        const parts = rest.split('-');
+                                                        const parts = rest.split('-').map(p => p.trim());
                                                         return {
-                                                            time: time,
+                                                            time: startTime,
+                                                            endTime: endTime,
                                                             artist: parts[0] || '',
                                                             stage: parts[1] || '',
-                                                            festival: parts[2] || ''
+                                                            instagram: parts[2] || ''
                                                         };
                                                     });
-                                                    const newRow = { time: '', artist: 'NOUVEL ARTISTE', stage: '', festival: '' };
+                                                    const newRow = { time: '', endTime: '', artist: 'NOUVEL ARTISTE', stage: '', instagram: '' };
                                                     const newRows = [...rows, newRow];
-                                                    const newText = newRows.map(r => `[${r.time || '00:00'}] ${r.artist}${r.stage ? ` - ${r.stage}` : ''}${r.festival ? ` - ${r.festival}` : ''}`).join('\n');
+                                                    const newText = newRows.map(r => `[${r.time || '00:00'}${r.endTime ? `-${r.endTime}` : ''}] ${r.artist}${r.stage ? ` - ${r.stage}` : ''}${r.instagram ? ` - ${r.instagram}` : ''}`).join('\n');
                                                     setTakeoverState({ ...takeoverState, lineup: newText });
                                                 }}
                                                 className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
@@ -2583,21 +2695,23 @@ export function AdminDashboard() {
                                         <div className="space-y-3">
                                             {(takeoverState.lineup || '').split('\n').filter(l => l.length > 0).map((line, idx) => {
                                                 const timeMatch = line.match(/\[(.*?)\]/);
-                                                const time = timeMatch ? timeMatch[1] : (line.includes('-') ? line.split('-')[0] : '');
+                                                const timeRange = timeMatch ? timeMatch[1] : '';
+                                                const [startTime, endTime] = timeRange.includes('-') ? timeRange.split('-') : [timeRange, ''];
                                                 const rest = line.replace(/\[.*?\]/, '');
-                                                const parts = rest.split('-');
+                                                const parts = rest.split('-').map(p => p.trim());
                                                 const row = {
-                                                    time: time,
+                                                    time: startTime,
+                                                    endTime: endTime,
                                                     artist: parts[0] || '',
                                                     stage: parts[1] || '',
-                                                    festival: parts[2] || ''
+                                                    instagram: parts[2] || ''
                                                 };
 
                                                 const updateRow = (newData: Partial<typeof row>) => {
                                                     const rows = (takeoverState.lineup || '').split('\n').map((l, i) => {
                                                         if (i === idx) {
                                                             const updated = { ...row, ...newData };
-                                                            return `[${updated.time || '00:00'}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.festival ? ` - ${updated.festival}` : ''}`;
+                                                            return `[${updated.time || '00:00'}${updated.endTime ? `-${updated.endTime}` : ''}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.instagram ? ` - ${updated.instagram}` : ''}`;
                                                         }
                                                         return l;
                                                     });
@@ -2611,15 +2725,27 @@ export function AdminDashboard() {
 
                                                 return (
                                                     <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-3 rounded-2xl hover:border-white/10 transition-all group">
-                                                        <div className="col-span-2">
+                                                        <div className="col-span-1">
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Heure</label>
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Début</label>
                                                                 <input
                                                                     type="text"
                                                                     value={row.time}
                                                                     onChange={e => updateRow({ time: e.target.value })}
                                                                     placeholder="22:00"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-black uppercase text-center focus:border-neon-red outline-none"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2.5 text-xs text-white font-black uppercase text-center focus:border-neon-red outline-none"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                        <div className="col-span-1">
+                                                            <div className="flex flex-col gap-1.5">
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Fin</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={row.endTime}
+                                                                    onChange={e => updateRow({ endTime: e.target.value })}
+                                                                    placeholder="23:00"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2.5 text-xs text-white font-black uppercase text-center focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
                                                         </div>
@@ -2649,12 +2775,12 @@ export function AdminDashboard() {
                                                         </div>
                                                         <div className="col-span-3">
                                                             <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Festival</label>
+                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</label>
                                                                 <input
                                                                     type="text"
-                                                                    value={row.festival}
-                                                                    onChange={e => updateRow({ festival: e.target.value })}
-                                                                    placeholder="Festival"
+                                                                    value={row.instagram}
+                                                                    onChange={e => updateRow({ instagram: e.target.value })}
+                                                                    placeholder="Lien Instagram"
                                                                     className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-bold uppercase focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
@@ -2948,7 +3074,7 @@ export function AdminDashboard() {
                     </div>
                 )
                 }
-            </AnimatePresence >
-        </div >
+            </AnimatePresence>
+        </div>
     );
 }

@@ -12,6 +12,7 @@ import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
+import { SocialSuite } from '../components/SocialSuite';
 import newsData from '../data/news.json';
 import recapsData from '../data/recaps.json';
 import agendaData from '../data/agenda.json';
@@ -130,333 +131,7 @@ function VisualEditor({ content, onChange, className, widgetId, onFocus }: { con
     );
 }
 
-// Social Media Assets Generator
-function SocialSuite({ title, imageUrl, type, category, onClose, articleId }: {
-    title: string,
-    imageUrl: string,
-    type: string,
-    category: string,
-    onClose: () => void,
-    articleId: string
-}) {
-    const [copied, setCopied] = useState(false);
-    const storyCanvasRef = useRef<HTMLCanvasElement>(null);
-    const postCanvasRef = useRef<HTMLCanvasElement>(null);
 
-    const shareUrl = `${window.location.origin}/news/${articleId}`;
-    const promoText = `🎙️ NOUVEL ARTICLE : ${title.toUpperCase()}\n\nDécouvrez notre dernier reportage sur Dropsiders !\n\nLien en bio 🔗\n#dropsiders #festival #techno #hardstyle #edm`;
-
-    const shareToInstagram = async () => {
-        try {
-            const canvas = postCanvasRef.current;
-            if (!canvas) return;
-
-            // Convert canvas to blob
-            const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-            if (!blob) return;
-
-            const file = new File([blob], `dropsiders-${articleId}.png`, { type: 'image/png' });
-
-            if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({
-                    files: [file],
-                    title: title,
-                    text: promoText
-                });
-            } else {
-                // Fallback: Open Instagram and hope user has downloaded
-                window.open('https://www.instagram.com/reels/create/', '_blank');
-            }
-        } catch (err) {
-            console.error('Error sharing:', err);
-            window.open('https://www.instagram.com/', '_blank');
-        }
-    };
-
-    const generateImages = async () => {
-        if (!imageUrl) return;
-
-
-        try {
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = imageUrl;
-
-            await new Promise((resolve, reject) => {
-                img.onload = resolve;
-                img.onerror = reject;
-            });
-
-            // STORY (9:16 - 1080x1920)
-            if (storyCanvasRef.current) {
-                const ctx = storyCanvasRef.current.getContext('2d');
-                if (ctx) {
-                    // Background & Layout
-                    ctx.fillStyle = '#0a0a0a';
-                    ctx.fillRect(0, 0, 1080, 1920);
-
-                    // Main Image with cover fit
-                    const scale = Math.max(1080 / img.width, 1920 / img.height);
-                    const x = (1080 - img.width * scale) / 2;
-                    const y = (1920 - img.height * scale) / 2;
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-                    // Gradient Overlay
-                    const grad = ctx.createLinearGradient(0, 800, 0, 1920);
-                    grad.addColorStop(0, 'rgba(0,0,0,0)');
-                    grad.addColorStop(0.6, 'rgba(0,0,0,0.8)');
-                    grad.addColorStop(1, '#000000');
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, 0, 1080, 1920);
-
-                    // Category Banner
-                    ctx.fillStyle = type === 'Interview' ? '#BF00FF' : category === 'Musique' ? '#00FFFF' : '#FF1241';
-                    ctx.fillRect(80, 1450, 200, 50);
-                    ctx.fillStyle = category === 'Musique' ? '#000000' : '#ffffff';
-                    ctx.font = 'black 30px Inter, sans-serif';
-                    ctx.fillText(type.toUpperCase(), 100, 1485);
-
-                    // Title
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'black italic 80px Inter, sans-serif';
-                    const words = title.split(' ');
-                    let line = '';
-                    let yPos = 1600;
-                    for (let n = 0; n < words.length; n++) {
-                        const testLine = line + words[n] + ' ';
-                        const metrics = ctx.measureText(testLine);
-                        if (metrics.width > 920 && n > 0) {
-                            ctx.fillText(line.toUpperCase(), 80, yPos);
-                            line = words[n] + ' ';
-                            yPos += 100;
-                        } else {
-                            line = testLine;
-                        }
-                    }
-                    ctx.fillText(line.toUpperCase(), 80, yPos);
-
-                    // Footer Logo
-                    ctx.fillStyle = 'rgba(255,255,255,0.4)';
-                    ctx.font = '30px Inter, sans-serif';
-                    ctx.fillText('DROPSIDERS.FR', 440, 1850);
-                }
-            }
-
-            // POST (1:1 - 1080x1080)
-            if (postCanvasRef.current) {
-                const ctx = postCanvasRef.current.getContext('2d');
-                if (ctx) {
-                    ctx.fillStyle = '#0a0a0a';
-                    ctx.fillRect(0, 0, 1080, 1080);
-
-                    const scale = Math.max(1080 / img.width, 1080 / img.height);
-                    const x = (1080 - img.width * scale) / 2;
-                    const y = (1080 - img.height * scale) / 2;
-                    ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
-
-                    const grad = ctx.createLinearGradient(0, 400, 0, 1080);
-                    grad.addColorStop(0, 'rgba(0,0,0,0)');
-                    grad.addColorStop(0.7, 'rgba(0,0,0,0.8)');
-                    grad.addColorStop(1, '#000000');
-                    ctx.fillStyle = grad;
-                    ctx.fillRect(0, 0, 1080, 1080);
-
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = 'black italic 60px Inter, sans-serif';
-                    const words = title.split(' ');
-                    let line = '';
-                    let yPos = 850;
-                    for (let n = 0; n < words.length; n++) {
-                        const testLine = line + words[n] + ' ';
-                        const metrics = ctx.measureText(testLine);
-                        if (metrics.width > 920 && n > 0) {
-                            ctx.fillText(line.toUpperCase(), 60, yPos);
-                            line = words[n] + ' ';
-                            yPos += 70;
-                        } else {
-                            line = testLine;
-                        }
-                    }
-                    ctx.fillText(line.toUpperCase(), 60, yPos);
-
-                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                    ctx.font = '30px Inter, sans-serif';
-                    ctx.fillText('DROPSIDERS.FR', 440, 1030);
-                }
-            }
-
-        } catch (e) {
-            console.error("Error generating social assets:", e);
-        } finally {
-
-        }
-    };
-
-    useEffect(() => {
-        generateImages();
-    }, [imageUrl]);
-
-    const download = (canvas: HTMLCanvasElement | null, filename: string) => {
-        if (!canvas) return;
-        const link = document.createElement('a');
-        link.download = filename;
-        link.href = canvas.toDataURL('image/png');
-        link.click();
-    };
-
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
-    return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
-        >
-            <motion.div
-                initial={{ scale: 0.9, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                className="bg-zinc-900 border border-white/10 rounded-[32px] w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
-            >
-                {/* Header */}
-                <div className="p-6 md:p-8 border-b border-white/5 flex items-center justify-between bg-white/5">
-                    <div>
-                        <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Social <span className="text-neon-red">Suite</span></h2>
-                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Générez vos visuels Instagram en un clic</p>
-                    </div>
-                    <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
-                        <X className="w-6 h-6" />
-                    </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                        {/* Visuals Previews */}
-                        <div className="space-y-8">
-                            <div className="flex flex-col md:flex-row gap-6">
-                                {/* Story Card */}
-                                <div className="flex-1 space-y-3">
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 text-center">Format Story (9:16)</div>
-                                    <div className="aspect-[9/16] bg-black rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative group">
-                                        <canvas ref={storyCanvasRef} width={1080} height={1920} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <button
-                                                onClick={() => download(storyCanvasRef.current, `story-${articleId}.png`)}
-                                                className="p-4 bg-white text-black rounded-full shadow-2xl hover:scale-110 active:scale-90 transition-all font-black"
-                                            >
-                                                <Download className="w-6 h-6" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => download(storyCanvasRef.current, `story-${articleId}.png`)}
-                                        className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                                    >
-                                        <Download className="w-4 h-4" /> Télécharger Story
-                                    </button>
-                                </div>
-
-                                {/* Post Card */}
-                                <div className="flex-1 space-y-3">
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-gray-500 text-center">Format Post (1:1)</div>
-                                    <div className="aspect-square bg-black rounded-2xl overflow-hidden border border-white/5 shadow-2xl relative group">
-                                        <canvas ref={postCanvasRef} width={1080} height={1080} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                            <button
-                                                onClick={() => download(postCanvasRef.current, `post-${articleId}.png`)}
-                                                className="p-4 bg-white text-black rounded-full shadow-2xl hover:scale-110 active:scale-90 transition-all font-black"
-                                            >
-                                                <Download className="w-6 h-6" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => download(postCanvasRef.current, `post-${articleId}.png`)}
-                                        className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
-                                    >
-                                        <Download className="w-4 h-4" /> Télécharger Post
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Copier Text/Link */}
-                        <div className="space-y-6">
-                            <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                <div>
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-neon-red mb-4">Lien de l'article</div>
-                                    <div className="flex items-center gap-2 bg-black/40 p-3 rounded-xl border border-white/5 overflow-hidden">
-                                        <span className="text-gray-400 text-xs truncate flex-1">{shareUrl}</span>
-                                        <button
-                                            onClick={() => copyToClipboard(shareUrl)}
-                                            className="p-2 bg-white/5 hover:bg-neon-red hover:text-white rounded-lg transition-all"
-                                        >
-                                            <Copy className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="pt-4 border-t border-white/5">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-neon-red">Texte Promotionnel</div>
-                                        <button
-                                            onClick={() => copyToClipboard(promoText)}
-                                            className={`px-3 py-1 rounded-lg text-[9px] font-black flex items-center gap-2 transition-all ${copied ? 'bg-green-500 text-white' : 'bg-white/10 text-white hover:bg-white/20'}`}
-                                        >
-                                            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                                            {copied ? 'COPIÉ' : 'COPIER TOUT'}
-                                        </button>
-                                    </div>
-                                    <textarea
-                                        readOnly
-                                        value={promoText}
-                                        className="w-full h-40 bg-black/40 border border-white/5 rounded-xl p-4 text-xs text-gray-300 resize-none font-sans leading-relaxed"
-                                    />
-                                </div>
-
-                                <div className="pt-4 grid grid-cols-2 gap-3 mt-4">
-                                    <button
-                                        onClick={shareToInstagram}
-                                        className="flex items-center justify-center gap-2 py-4 bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl hover:scale-105 active:scale-95 transition-all"
-                                    >
-                                        <Instagram className="w-5 h-5" />
-                                        Partager Insta
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            if (navigator.share) {
-                                                navigator.share({
-                                                    title: title,
-                                                    url: shareUrl,
-                                                    text: promoText
-                                                });
-                                            }
-                                        }}
-                                        className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
-                                    >
-                                        <Share2 className="w-5 h-5" />
-                                        Partage Natif
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="p-6 bg-neon-red/5 border border-neon-red/20 rounded-2xl">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic leading-relaxed text-center">
-                                    Astuce : Téléchargez les visuels sur votre téléphone, ouvrez Instagram, et faites glisser pour partager en story !
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
-        </motion.div>
-    );
-}
 
 
 export function NewsCreate() {
@@ -495,7 +170,6 @@ export function NewsCreate() {
     });
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [artistNameLabel, setArtistNameLabel] = useState('');
-    const [festivalNameLabel, setFestivalNameLabel] = useState('');
     const [showSocialSuite, setShowSocialSuite] = useState(false);
     const [socialSuiteData, setSocialSuiteData] = useState<{
         title: string,
@@ -625,7 +299,7 @@ export function NewsCreate() {
     ]);
 
     const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(type === 'Musique' ? 'Musique' : 'News');
-    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
+    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', playerType: 'spotify' }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
         type: 'image' | 'gallery' | 'video',
@@ -658,14 +332,6 @@ export function NewsCreate() {
         spotify: '',
         soundcloud: '',
         beatport: ''
-    });
-    const [festivalSocials, setFestivalSocials] = useState({
-        website: '',
-        instagram: '',
-        tiktok: '',
-        youtube: '',
-        facebook: '',
-        x: ''
     });
     const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
@@ -748,29 +414,6 @@ export function NewsCreate() {
                 }
             }
 
-            const festSocialsContainer = doc.querySelector('.festival-socials-premium');
-            if (festSocialsContainer) {
-                const newSocials = {
-                    website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: ''
-                };
-                festSocialsContainer.querySelectorAll('a').forEach(a => {
-                    const platform = a.getAttribute('data-platform');
-                    const url = a.getAttribute('href');
-                    if (platform && url && platform in newSocials) {
-                        (newSocials as any)[platform] = url;
-                    }
-                });
-                setFestivalSocials(newSocials);
-
-                // Extract Festival Name Label
-                const h3 = festSocialsContainer.querySelector('h3');
-                if (h3) {
-                    const labelText = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim();
-                    if (labelText && labelText !== "LE FESTIVAL") {
-                        setFestivalNameLabel(labelText);
-                    }
-                }
-            }
 
             // Parse Content
             const foundWidgets: { id: string, content: string }[] = [];
@@ -817,7 +460,7 @@ export function NewsCreate() {
                             type: 'video',
                             mediaUrl
                         });
-                    } else if (html.includes('artist-socials-premium') || html.includes('festival-socials-premium')) {
+                    } else if (html.includes('artist-socials-premium')) {
                         // Skip socials block
                     } else {
                         foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: html });
@@ -1347,7 +990,7 @@ export function NewsCreate() {
     };
 
     const addMusicItem = () => {
-        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
+        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', playerType: 'spotify' }]);
     };
 
     const fetchMusicMetadata = async (id: string, url: string) => {
@@ -1401,22 +1044,22 @@ export function NewsCreate() {
         setMusicItems(prev => prev.filter(item => item.id !== id));
     };
 
-    const renderMediaEmbed = (url: string) => {
+    const renderMediaEmbed = (url: string, playerType?: string) => {
         if (!url) return '';
 
         // 1. Spotify
-        if (url.includes('spotify.com')) {
+        if (playerType === 'spotify' || url.includes('spotify.com')) {
             let embedUrl = url;
             // Standardize URL to use /embed/
             if (!url.includes('/embed/')) {
-                // Matches tracks, albums, playlists
-                embedUrl = url.replace(/(open\.spotify\.com\/)(track|album|playlist|artist)\/([a-zA-Z0-9]+)/, '$1embed/$2/$3');
+                // Matches tracks, albums, playlists, episodes, shows
+                embedUrl = url.replace(/(open\.spotify\.com\/)(track|album|playlist|artist|episode|show)\/([a-zA-Z0-9]+)(\?.*)?/, '$1embed/$2/$3');
             }
             return `<iframe src="${embedUrl}" width="100%" height="152" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`;
         }
 
         // 2. YouTube
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        if (playerType === 'youtube' || url.includes('youtube.com') || url.includes('youtu.be')) {
             let videoId = '';
             if (url.includes('v=')) {
                 videoId = url.split('v=')[1].split('&')[0];
@@ -1424,18 +1067,27 @@ export function NewsCreate() {
                 videoId = url.split('youtu.be/')[1].split('?')[0];
             } else if (url.includes('embed/')) {
                 videoId = url.split('embed/')[1].split('?')[0];
+            } else if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
+                videoId = url;
             }
             return `<div class="aspect-video h-full w-full"><iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>`;
         }
 
         // 3. Beatport
-        if (url.includes('beatport.com')) {
+        if (playerType === 'beatport' || url.includes('beatport.com') || url.match(/^\d+$/)) {
             // Match track or release ID: beatport.com/track/name/ID or beatport.com/release/name/ID
-            const match = url.match(/\/(track|release)\/[^/]+\/(\d+)/);
-            if (match) {
-                const type = match[1];
-                const id = match[2];
-                return `<iframe src="https://embed.beatport.com/?id=${id}&type=${type}" width="100%" height="162" frameBorder="0" scrolling="no" style="background: #111;"></iframe>`;
+            const trackMatch = url.match(/\/track\/[^/]+\/(\d+)/);
+            const releaseMatch = url.match(/\/release\/[^/]+\/(\d+)/);
+
+            if (trackMatch) {
+                return `<iframe src="https://embed.beatport.com/?id=${trackMatch[1]}&type=track" width="100%" height="162" frameBorder="0" scrolling="no" style="background: #111;"></iframe>`;
+            } else if (releaseMatch) {
+                return `<iframe src="https://embed.beatport.com/?id=${releaseMatch[1]}&type=release" width="100%" height="162" frameBorder="0" scrolling="no" style="background: #111;"></iframe>`;
+            } else if (url.match(/^\d+$/)) {
+                return `<iframe src="https://embed.beatport.com/?id=${url}&type=track" width="100%" height="162" frameBorder="0" scrolling="no" style="background: #111;"></iframe>`;
+            } else {
+                // If it contains beatport.com but no clear track/release in URL
+                return `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline p-4 block bg-white/5 rounded-xl border border-white/10 text-center font-bold uppercase tracking-widest text-[10px]">${url} (BEATPORT)</a>`;
             }
         }
 
@@ -1500,17 +1152,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         return `\n<div class="artist-socials-premium mt-12 pt-8 border-t border-white/10">\n<h3 class="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6" style="color: ${customColor || '#6b7280'}">SUIVEZ ${displayName}</h3>\n<div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n</div>\n</div>`;
     };
 
-    const generateFestivalSocialsHtml = () => {
-        const activeSocials = Object.entries(festivalSocials).filter(([_, url]) => url && url.trim() !== '');
-        if (activeSocials.length === 0) return '';
-
-        const linksHtml = activeSocials.map(([platform, url]) => {
-            return `<a href="${url.trim()}" target="_blank" data-platform="${platform}" class="festival-social-link">${platform}</a>`;
-        }).join('');
-
-        const displayName = (festivalNameLabel || "LE FESTIVAL").toUpperCase();
-        return `\n<div class="festival-socials-premium mt-12 pt-8 border-t border-white/10">\n<div class="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg mb-6">\n<h3 class="text-xs font-black text-neon-red uppercase tracking-[0.3em]">SUIVEZ ${displayName}</h3>\n</div>\n<div class="flex flex-wrap gap-4 uppercase font-black text-[10px] tracking-widest">\n    ${linksHtml}\n</div>\n</div>`;
-    };
 
     const handleDelete = async () => {
         if (!id) return;
@@ -1598,13 +1239,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
-        // Check if festival socials are filled but festivalNameLabel is empty
-        const hasFestivalSocials = Object.values(festivalSocials).some(v => !!v.trim());
-        if (hasFestivalSocials && !festivalNameLabel.trim()) {
-            setStatus('error');
-            setMessage("Veuillez indiquer le nom du festival pour les réseaux sociaux (Champ 'Suivre :').");
-            return;
-        }
 
         // New validation: check all interview video blocks for empty mediaUrl
         if (type === 'Interview') {
@@ -1638,7 +1272,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 finalContent = `<div class="article-section">
 ${videoHtml}
 ${generateSocialsHtml()}
-${generateFestivalSocialsHtml()}
 </div>`;
             } else if (type === 'Interview' && interviewSubtype === 'written') {
                 finalCategory = 'Interview';
@@ -1673,7 +1306,7 @@ ${generateFestivalSocialsHtml()}
                 const mainName = firstQA?.artistName || '';
                 const mainColor = firstQA?.artistColor || '#ff1241';
 
-                finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(artistNameLabel || mainName, mainColor)} ${generateFestivalSocialsHtml()}</div>` : '');
+                finalContent = widgetsHtml + "\n" + interviewHtml + (interviewHtml || widgetsHtml ? `\n<div class="article-section">${generateSocialsHtml(artistNameLabel || mainName, mainColor)}</div>` : '');
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
                 const musicHtml = musicItems.map((item) => `
@@ -1681,11 +1314,11 @@ ${generateFestivalSocialsHtml()}
     <div class="flex items-center gap-6 mb-6">
         <h3 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">${item.title}</h3>
     </div>
-    <div class="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
-        ${renderMediaEmbed(item.media)}
+    <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+        ${renderMediaEmbed(item.media, item.playerType)}
     </div>
 </div>`).join('\n');
-                finalContent = `<div class="article-section music-top-section">\n\n${musicHtml}\n\n${generateFestivalSocialsHtml()}\n\n</div>`;
+                finalContent = `<div class="article-section music-top-section">\n\n${musicHtml}\n\n</div>`;
             } else {
                 if (type === 'Interview') finalCategory = 'Interview';
                 // Construct Final Content with HTML Wrappers for Automatic Styling
@@ -1693,7 +1326,7 @@ ${generateFestivalSocialsHtml()}
                     `<div class="article-section">\n\n${w.content}\n\n</div>`
                 ).join('\n\n');
 
-                const socialsHtml = generateSocialsHtml() + generateFestivalSocialsHtml();
+                const socialsHtml = generateSocialsHtml();
                 if (socialsHtml) {
                     finalContent += `\n\n<div class="article-section">${socialsHtml}</div>`;
                 }
@@ -1755,12 +1388,8 @@ ${generateFestivalSocialsHtml()}
                     setYear('');
                     setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
                     setArtistNameLabel('');
-                    setFestivalNameLabel('');
                     setArtistSocials({
                         website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
-                    });
-                    setFestivalSocials({
-                        website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: ''
                     });
                     setInterviewQuestions([
                         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
@@ -3097,7 +2726,7 @@ ${generateFestivalSocialsHtml()}
                             <div className="space-y-6">
                                 {musicItems.map((item) => (
                                     <div key={item.id} className="bg-black/40 border border-white/5 rounded-2xl p-6 relative group overflow-hidden">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div>
                                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du morceau / Artiste</label>
                                                 <input
@@ -3109,13 +2738,33 @@ ${generateFestivalSocialsHtml()}
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Lien YouTube ou Spotify</label>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Source Player</label>
+                                                <div className="flex gap-2 p-1 bg-white/5 border border-white/10 rounded-lg h-[46px]">
+                                                    {[
+                                                        { id: 'spotify', label: 'Spotify', icon: SpotifyIcon, color: 'text-[#1DB954]' },
+                                                        { id: 'youtube', label: 'YouTube', icon: Youtube, color: 'text-[#FF0000]' },
+                                                        { id: 'beatport', label: 'Beatport', icon: BeatportIcon, color: 'text-[#00FF00]' }
+                                                    ].map(p => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => updateMusicItem(item.id, 'playerType', p.id)}
+                                                            className={`flex-1 flex items-center justify-center gap-2 rounded-md transition-all ${item.playerType === p.id ? 'bg-white/10 shadow-lg' : 'opacity-40 hover:opacity-100'}`}
+                                                            title={p.label}
+                                                        >
+                                                            <p.icon className={`w-4 h-4 ${p.color}`} />
+                                                            <span className="hidden xl:inline text-[8px] font-black uppercase">{p.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Lien ou ID {item.playerType || 'Media'}</label>
                                                 <input
                                                     type="text"
                                                     value={item.media}
                                                     onChange={(e) => updateMusicItem(item.id, 'media', e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                                    placeholder="URL du morceau..."
+                                                    placeholder={item.playerType === 'beatport' ? "Lien ou ID Beatport..." : item.playerType === 'youtube' ? "Lien YouTube..." : "Lien Spotify..."}
                                                 />
                                             </div>
                                         </div>
@@ -3129,7 +2778,7 @@ ${generateFestivalSocialsHtml()}
                                         {item.media && (
                                             <div className="mt-4 pt-4 border-t border-white/5">
                                                 <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Aperçu Media</div>
-                                                <div className="max-w-md" dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media) }} />
+                                                <div className="max-w-md" dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media, item.playerType) }} />
                                             </div>
                                         )}
                                     </div>
@@ -3199,7 +2848,7 @@ ${generateFestivalSocialsHtml()}
                                                 <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">{item.title || 'Titre du morceau'}</h3>
                                             </div>
                                             <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
-                                                <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media) }} />
+                                                <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media, item.playerType) }} />
                                             </div>
                                         </div>
                                     ))}
@@ -3291,19 +2940,14 @@ ${generateFestivalSocialsHtml()}
                                     )}
 
                                     {/* Socials Preview */}
-                                    {(Object.values(artistSocials).some(v => v) || Object.values(festivalSocials).some(v => v)) && (
+                                    {Object.values(artistSocials).some(v => v) && (
                                         <div className="article-section pt-12 border-t border-white/5 mt-12">
-                                            {Object.values(artistSocials).some(v => v) && (
-                                                <div dangerouslySetInnerHTML={{
-                                                    __html: generateSocialsHtml(
-                                                        (type === 'Interview' ? (artistNameLabel || interviewQuestions.find(q => q.type === 'qa')?.artistName) : artistNameLabel),
-                                                        (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
-                                                    )
-                                                }} />
-                                            )}
-                                            {Object.values(festivalSocials).some(v => v) && (
-                                                <div dangerouslySetInnerHTML={{ __html: generateFestivalSocialsHtml() }} />
-                                            )}
+                                            <div dangerouslySetInnerHTML={{
+                                                __html: generateSocialsHtml(
+                                                    (type === 'Interview' ? (artistNameLabel || interviewQuestions.find(q => q.type === 'qa')?.artistName) : artistNameLabel),
+                                                    (type === 'Interview' ? interviewQuestions.find(q => q.type === 'qa')?.artistColor : undefined)
+                                                )
+                                            }} />
                                         </div>
                                     )}
                                 </>

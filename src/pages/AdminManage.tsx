@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
+import { SocialSuite } from '../components/SocialSuite';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -98,6 +99,7 @@ export function AdminManage() {
     const [activePhotoId, setActivePhotoId] = useState<number | string | null>(null);
     const [team, setTeam] = useState<any[]>([]);
     const [featuredTarget, setFeaturedTarget] = useState<any | null>(null);
+    const [socialItem, setSocialItem] = useState<any | null>(null);
 
     useEffect(() => {
         const fetchTeam = async () => {
@@ -914,6 +916,15 @@ export function AdminManage() {
                                                             <Camera className="w-5 h-5" />
                                                         </button>
                                                     )}
+                                                    {['News', 'Musique', 'Interviews'].includes(activeTab) && (
+                                                        <button
+                                                            onClick={() => setSocialItem(item)}
+                                                            className="p-3 text-gray-500 hover:text-white hover:bg-gradient-to-tr from-[#f9ce34] via-[#ee2a7b] to-[#6228d7] rounded-xl transition-all shadow-xl hover:scale-110"
+                                                            title="Générer visuel Instagram"
+                                                        >
+                                                            <Instagram className="w-5 h-5" />
+                                                        </button>
+                                                    )}
                                                 </td>
                                             </tr>
                                         );
@@ -1030,6 +1041,19 @@ export function AdminManage() {
                 onCancel={() => setFeaturedTarget(null)}
                 accentColor="neon-yellow"
             />
+
+            <AnimatePresence>
+                {socialItem && (
+                    <SocialSuite
+                        title={socialItem.title}
+                        imageUrl={socialItem.image}
+                        type={activeTab === 'Interviews' ? 'Interview' : activeTab}
+                        category={socialItem.category || (activeTab === 'Musique' ? 'Musique' : 'News')}
+                        articleId={socialItem.id}
+                        onClose={() => setSocialItem(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }
