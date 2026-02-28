@@ -3084,5 +3084,22 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 267,
+    "title": "A State Of Trance Rotterdam 2026",
+    "date": "2026-02-28",
+    "startDate": "2026-02-28",
+    "endDate": "2026-02-28",
+    "location": "AHOY ROTTERDAM",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772237229/dropsiders/ix15z6pfqbp5bnxzs6fo.jpg",
+    "url": "https://festival.astateoftrance.com",
+    "genre": "Trance",
+    "month": "FÉVRIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": true
   }
 ]
