@@ -7,9 +7,9 @@
   "announcement_banner": {
     "enabled": true,
     "text": "BIENVENUE SUR LE NOUVEAU SITE DROPSIDERS - RECRUTEMENT OUVERT !",
-    "text_en": "",
+    "text_en": "WELCOME TO THE NEW DROPSIDERS SITE - RECRUITMENT OPEN!",
     "color": "#ffffff",
-    "bgColor": "#ff0033",
+    "bgColor": "#000000",
     "size": "small",
     "link": "/contact"
   },
