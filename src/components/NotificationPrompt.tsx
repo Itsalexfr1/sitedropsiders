@@ -13,8 +13,8 @@ export function NotificationPrompt() {
     useEffect(() => {
         // Ne pas montrer si déjà refusé ou déjà accepté récement
         const hasPrompted = localStorage.getItem('notification_prompted');
-        const isPermissionDenied = Notification.permission === 'denied';
-        const isPermissionGranted = Notification.permission === 'granted';
+        const isPermissionDenied = 'Notification' in window && Notification.permission === 'denied';
+        const isPermissionGranted = 'Notification' in window && Notification.permission === 'granted';
 
         if (!hasPrompted && !isPermissionDenied && !isPermissionGranted) {
             // Attendre un peu avant d'afficher (3 secondes) pour ne pas agresser l'utilisateur
@@ -55,7 +55,7 @@ export function NotificationPrompt() {
                 setTimeout(() => setIsVisible(false), 2000);
             } else {
                 // Permission refusée par le navigateur ou erreur
-                if (Notification.permission === 'denied') {
+                if ('Notification' in window && Notification.permission === 'denied') {
                     setStatus('denied');
                 } else {
                     setStatus('prompt');
