@@ -215,8 +215,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.beginPath(); ctx.arc(centerX, centerY, 45, 0, Math.PI * 2); ctx.fillStyle = '#0a0a0a'; ctx.fill();
                     ctx.strokeStyle = activeData.color; ctx.lineWidth = 10; ctx.stroke();
                 }
-                // Style name using TAPE design
-                drawTapeLabel(item.main, centerX + slideX, centerY + radius + 150, 700, 180, activeData.color, activeData.grad);
+                // Style name - Simple Bold Italic
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 85px "Inter", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 15;
+                ctx.fillText(item.main.toUpperCase(), centerX + slideX, centerY + radius + 150);
 
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 150px "Inter", sans-serif';
@@ -464,7 +469,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         )}
                     </div>
 
-                    {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
+                    {activeTab === 'REEL' && theme === 'INTRO' && (
                         <div className="space-y-4">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
                             <div className="flex flex-wrap gap-2">
