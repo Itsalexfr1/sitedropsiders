@@ -76,7 +76,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // Dynamic Canvas Size: Reel (9:16) for TOP5, Post (4:5) for others
             const isVideo = theme === 'TOP5';
             canvas.width = 1080;
-            canvas.height = isVideo ? 1920 : 1350;
+            canvas.height = isVideo ? 1920 : 1440;
 
             // 1:1 Safe Zone (for Post grid visibility)
             const safeTop = (canvas.height - 1080) / 2;
