@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { X, Download, Share2, Upload, Type, Layout, Trash2, PlusCircle, Layers } from 'lucide-react';
+import {
+    Share2, X, Download, Type, Layout, Upload, Trash2, PlusCircle, Layers, Settings,
+    FileText, Save, Info, CheckCircle2, AlertCircle, ChevronRight, ArrowRight,
+    ImageIcon, Instagram, Plus
+} from 'lucide-react';
 
 interface SocialSuiteProps {
     title: string;
@@ -84,7 +88,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const fontSize = 85;
             const lineHeight = fontSize * 1.2;
             ctx.fillStyle = '#ffffff';
-            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans-serif`;
+            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans - serif`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
@@ -142,7 +146,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // 6. Custom Text Rendering
             ctx.textAlign = 'center';
             ctx.fillStyle = '#ffffff';
-            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans-serif`;
+            ctx.font = `900 italic ${fontSize}px "Built Bold", "Inter", sans - serif`;
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
             ctx.shadowBlur = 20;
 
@@ -155,7 +159,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // 7. Swipe arrows
             if (showSwipe) {
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 90px "Inter", sans-serif'; // Reduced size as requested
+                ctx.font = '900 italic 45px "Inter", sans-serif'; // Further reduced size as requested
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
@@ -213,7 +217,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         if (!canvas) return;
         setIsDownloading(true);
         const link = document.createElement('a');
-        link.download = `dropsiders-${theme.toLowerCase()}-${Date.now()}.png`;
+        link.download = `dropsiders - ${theme.toLowerCase()} -${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
         setTimeout(() => setIsDownloading(false), 1000);
@@ -226,7 +230,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         // Sequential download for all visuals
         for (let i = 0; i < visualsList.length; i++) {
             const link = document.createElement('a');
-            link.download = `dropsiders-pack-${i + 1}.png`;
+            link.download = `dropsiders - pack - ${i + 1}.png`;
             link.href = visualsList[i];
             link.click();
             // Small delay to prevent browser from blocking multiple triggers
@@ -287,11 +291,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <button
                                         key={t}
                                         onClick={() => setTheme(t)}
-                                        className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${theme === t
-                                            ? 'bg-white text-black shadow-lg scale-[1.02]'
-                                            : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
-                                            }`}
-                                        style={theme === t ? { borderBottom: `4px solid ${themeColors[t].label}` } : {}}
+                                        className={`py - 3 rounded - xl text - [9px] font - black uppercase tracking - widest transition - all border ${theme === t
+                                                ? 'bg-white text-black shadow-lg scale-[1.02]'
+                                                : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
+                                            } `}
+                                        style={theme === t ? { borderBottom: `4px solid ${themeColors[t].label} ` } : {}}
                                     >
                                         {t}
                                     </button>
@@ -316,7 +320,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         {/* 3. Swipe Option */}
                         <div className="p-4 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
                             <div className="flex items-center gap-3">
-                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${showSwipe ? 'bg-neon-red/20 text-neon-red' : 'bg-white/5 text-gray-600'}`}>
+                                <div className={`w - 10 h - 10 rounded - xl flex items - center justify - center transition - all ${showSwipe ? 'bg-neon-red/20 text-neon-red' : 'bg-white/5 text-gray-600'} `}>
                                     <Layout className="w-5 h-5" />
                                 </div>
                                 <div>
@@ -324,8 +328,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Ajouter {">>"} en bas</p>
                                 </div>
                             </div>
-                            <div className={`w-10 h-5 rounded-full relative transition-all ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'}`}>
-                                <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${showSwipe ? 'right-0.5' : 'left-0.5'}`} />
+                            <div className={`w - 10 h - 5 rounded - full relative transition - all ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'} `}>
+                                <div className={`absolute top - 0.5 w - 4 h - 4 rounded - full bg - white transition - all ${showSwipe ? 'right-0.5' : 'left-0.5'} `} />
                             </div>
                         </div>
 
@@ -358,13 +362,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                         {/* 5. Production Queue */}
                         <div className="space-y-4 pt-4 border-t border-white/10">
-                            <button
-                                onClick={addVisualToList}
-                                className="w-full py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-neon-cyan/20 transition-all shadow-[0_0_20px_rgba(0,240,255,0.1)]"
-                            >
-                                <PlusCircle className="w-4 h-4" />
-                                Ajouter au Pack
-                            </button>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={addVisualToList}
+                                    className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-white/10 transition-all"
+                                >
+                                    <PlusCircle className="w-3.5 h-3.5" />
+                                    Ajouter
+                                </button>
+                                <button
+                                    onClick={downloadSingle}
+                                    className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all shadow-[0_0_15px_rgba(0,240,255,0.1)]"
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    Télécharger
+                                </button>
+                            </div>
 
                             {visualsList.length > 0 && (
                                 <div className="space-y-3">

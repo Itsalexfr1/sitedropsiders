@@ -209,17 +209,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
         const items = parseLineup(displayLineup || settings.lineup || '');
-        const sorted = items.sort((a, b) => {
-            if (a.isPast !== b.isPast) {
-                return a.isPast ? 1 : -1;
-            }
-            return (a.totalMinutes || 0) - (b.totalMinutes || 0);
-        });
         const currentTitle = channelItems[activeVideoIndex]?.title || '';
 
         // Filter items based on stage name matching current flux title
-        if (!currentTitle) return sorted;
-        return sorted.filter(item => {
+        if (!currentTitle) return items;
+        return items.filter(item => {
             const sName = (item.stage || '').toLowerCase();
             const fName = currentTitle.toLowerCase();
             if (!sName) return activeVideoIndex === 0;
@@ -1909,7 +1903,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <div className="text-right pr-10">SCÈNE</div>
                                             </div>
 
-                                            {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
+                                            {currentFluxLineup.map((item, idx) => (
                                                 <div
                                                     key={idx}
                                                     className="group grid grid-cols-[80px_1fr_1fr] lg:grid-cols-[100px_1fr_1fr] gap-4 lg:gap-8 items-center bg-white/[0.015] border border-white/5 hover:border-white/20 hover:bg-white/[0.04] p-5 lg:p-7 rounded-[2rem] transition-all duration-500 mb-2 relative overflow-hidden"
