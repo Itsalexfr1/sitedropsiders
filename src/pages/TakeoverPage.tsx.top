@@ -1,0 +1,59 @@
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
+    Pencil, List, Instagram, Power, Smile, Activity,
+    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
+    Facebook, Twitter, Linkedin, Ghost
+} from 'lucide-react';
+
+const XIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
+    </svg>
+);
+
+const SnapchatIcon = ({ className }: { className?: string }) => (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2.8c-2.8 0-4.5 1.5-4.5 3.9 0 1 .1 1.8.4 2.4.1.2.1.3.1.5 0 .2-.1.3-.2.5-.2.2-.4.4-.7.8-.3.3-.5.7-.5 1.1 0 .6.4 1.1.9 1.5.5.4 1.1.7 1.8.8.4.1.8.1 1.2.1 1 0 2-.2 2.9-.6.4-.2.8-.4 1.2-.4s.8.2 1.2.4c.9.4 1.9.6 2.9.6.4 0 .8 0 1.2-.1.7-.1 1.3-.4 1.8-.8.5-.4.9-.9.9-1.5 0-.4-.2-.8-.5-1.1s-.5-.6-.7-.8c-.1-.2-.2-.3-.2-.5 0-.2 0-.3.1-.5.3-.6.4-1.4.4-2.4 0-2.4-1.7-3.9-4.5-3.9zm6.6 9.4c.6.6 1.1 1.3 1.1 2.2 0 1-.5 1.9-1.4 2.5-.9.6-2 .9-3.3.9-1.2 0-2.3-.3-3.1-.8-.4-.3-.8-.4-1.2-.4s-.8.1-1.2.4c-.8.5-1.9.8-3.1.8-1.3 0-2.4-.3-3.3-.9-.9-.6-1.4-1.5-1.4-2.5 0-.9.5-1.6 1.1-2.2.6-.6 1.3-1 2.2-1.3.4-.1.8-.2 1.2-.2 1.1 0 2.2.4 3.1 1.1.4.3.8.4 1.2.4s.8-.1 1.2-.4c.9-.7 2-1.1 3.1-1.1.4 0 .8.1 1.2.2.9.3 1.6.7 2.2 1.3z" />
+    </svg>
+);
+
+
+interface TakeoverProps {
+    settings: {
+        youtubeId: string;
+        chat_enabled: boolean;
+        enabled: boolean;
+        title: string;
+        moderators?: string;
+        lineup?: string;
+        tickerType?: 'news' | 'planning' | 'custom';
+        tickerText?: string;
+        tickerLink?: string;
+        tickerBgColor?: string;
+        tickerTextColor?: string;
+        showTopBanner?: boolean;
+        showTickerBanner?: boolean;
+        customCommands?: string;
+        password?: string;
+        channels?: string;
+        autoMessage?: string;
+        autoMessageInterval?: number;
+        isSecret?: boolean;
+        pinnedMessage?: string;
+        currentArtist?: string;
+        artistInstagram?: string;
+        showShop?: boolean;
+        shopItems?: string;
+        mainFluxName?: string;
+        botColor?: string;
+        botBgColor?: string;
+        adminColor?: string;
+        adminBgColor?: string;
+        isOnline?: boolean;
+        disableMainPlayer?: boolean;
+        startDate?: string;
+        endDate?: string;
+    };
+}

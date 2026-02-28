@@ -2738,7 +2738,7 @@ export function AdminDashboard() {
                                                         const timeRange = timeMatch ? timeMatch[1] : '';
                                                         const [startTime, endTime] = timeRange.includes('-') ? timeRange.split('-') : [timeRange, ''];
                                                         const rest = line.replace(/\[.*?\]/, '');
-                                                        const parts = rest.split('-').map(p => p.trim());
+                                                        const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split('-').map(p => p.trim());
                                                         return {
                                                             time: startTime,
                                                             endTime: endTime,
@@ -2749,7 +2749,7 @@ export function AdminDashboard() {
                                                     });
                                                     const newRow = { time: '', endTime: '', artist: 'NOUVEL ARTISTE', stage: '', instagram: '' };
                                                     const newRows = [...rows, newRow];
-                                                    const newText = newRows.map(r => `[${r.time || '00:00'}${r.endTime ? `-${r.endTime}` : ''}] ${r.artist}${r.stage ? ` - ${r.stage}` : ''}${r.instagram ? ` - ${r.instagram}` : ''}`).join('\n');
+                                                    const newText = newRows.map(r => `[${r.time || '00:00'}${r.endTime ? ` - ${r.endTime}` : ''}] ${r.artist}${r.stage ? ` - ${r.stage}` : ''}${r.instagram ? ` - ${r.instagram}` : ''}`).join('\n');
                                                     setTakeoverState({ ...takeoverState, lineup: newText });
                                                 }}
                                                 className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
@@ -2758,13 +2758,23 @@ export function AdminDashboard() {
                                             </button>
                                         </div>
 
-                                        <div className="space-y-3">
+                                        <div className="space-y-2">
+                                            {takeoverState.lineup && takeoverState.lineup.trim() !== '' && (
+                                                <div className="grid grid-cols-12 gap-2 px-3 pb-1">
+                                                    <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Début</div>
+                                                    <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Fin</div>
+                                                    <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</div>
+                                                    <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</div>
+                                                    <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</div>
+                                                    <div className="col-span-1"></div>
+                                                </div>
+                                            )}
                                             {(takeoverState.lineup || '').split('\n').filter(l => l.length > 0).map((line, idx) => {
                                                 const timeMatch = line.match(/\[(.*?)\]/);
                                                 const timeRange = timeMatch ? timeMatch[1] : '';
                                                 const [startTime, endTime] = timeRange.includes('-') ? timeRange.split('-') : [timeRange, ''];
                                                 const rest = line.replace(/\[.*?\]/, '');
-                                                const parts = rest.split('-').map(p => p.trim());
+                                                const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split('-').map(p => p.trim());
                                                 const row = {
                                                     time: startTime,
                                                     endTime: endTime,
@@ -2777,7 +2787,7 @@ export function AdminDashboard() {
                                                     const rows = (takeoverState.lineup || '').split('\n').map((l, i) => {
                                                         if (i === idx) {
                                                             const updated = { ...row, ...newData };
-                                                            return `[${updated.time || '00:00'}${updated.endTime ? `-${updated.endTime}` : ''}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.instagram ? ` - ${updated.instagram}` : ''}`;
+                                                            return `[${updated.time || '00:00'}${updated.endTime ? ` - ${updated.endTime}` : ''}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.instagram ? ` - ${updated.instagram}` : ''}`;
                                                         }
                                                         return l;
                                                     });
@@ -2790,73 +2800,58 @@ export function AdminDashboard() {
                                                 };
 
                                                 return (
-                                                    <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-3 rounded-2xl hover:border-white/10 transition-all group">
+                                                    <div key={idx} className="grid grid-cols-12 gap-2 bg-white/[0.03] border border-white/5 p-1.5 rounded-xl hover:border-white/10 transition-all group items-center">
                                                         <div className="col-span-1">
-                                                            <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Début</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={row.time}
-                                                                    onChange={e => updateRow({ time: e.target.value })}
-                                                                    placeholder="22:00"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2.5 text-xs text-white font-black uppercase text-center focus:border-neon-red outline-none"
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={row.time}
+                                                                onChange={e => updateRow({ time: e.target.value })}
+                                                                placeholder="22:00"
+                                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-1 py-1.5 text-[10px] text-white font-black uppercase text-center focus:border-neon-red outline-none"
+                                                            />
                                                         </div>
                                                         <div className="col-span-1">
-                                                            <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Fin</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={row.endTime}
-                                                                    onChange={e => updateRow({ endTime: e.target.value })}
-                                                                    placeholder="23:00"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2.5 text-xs text-white font-black uppercase text-center focus:border-neon-red outline-none"
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={row.endTime}
+                                                                onChange={e => updateRow({ endTime: e.target.value })}
+                                                                placeholder="23:00"
+                                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-1 py-1.5 text-[10px] text-white font-black uppercase text-center focus:border-neon-red outline-none"
+                                                            />
                                                         </div>
                                                         <div className="col-span-3">
-                                                            <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={row.artist}
-                                                                    onChange={e => updateRow({ artist: e.target.value })}
-                                                                    placeholder="Artiste"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-black uppercase focus:border-neon-red outline-none"
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={row.artist}
+                                                                onChange={e => updateRow({ artist: e.target.value })}
+                                                                placeholder="Artiste"
+                                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-black uppercase focus:border-neon-red outline-none"
+                                                            />
                                                         </div>
                                                         <div className="col-span-3">
-                                                            <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={row.stage}
-                                                                    onChange={e => updateRow({ stage: e.target.value })}
-                                                                    placeholder="Scène"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-bold uppercase focus:border-neon-red outline-none"
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={row.stage}
+                                                                onChange={e => updateRow({ stage: e.target.value })}
+                                                                placeholder="Scène"
+                                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
+                                                            />
                                                         </div>
                                                         <div className="col-span-3">
-                                                            <div className="flex flex-col gap-1.5">
-                                                                <label className="text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={row.instagram}
-                                                                    onChange={e => updateRow({ instagram: e.target.value })}
-                                                                    placeholder="Lien Instagram"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white font-bold uppercase focus:border-neon-red outline-none"
-                                                                />
-                                                            </div>
+                                                            <input
+                                                                type="text"
+                                                                value={row.instagram}
+                                                                onChange={e => updateRow({ instagram: e.target.value })}
+                                                                placeholder="@insta"
+                                                                className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
+                                                            />
                                                         </div>
                                                         <div className="col-span-1 flex items-center justify-center">
                                                             <button
                                                                 onClick={deleteRow}
-                                                                className="p-2 text-gray-600 hover:text-neon-red transition-all"
+                                                                className="p-1.5 text-gray-600 hover:text-neon-red transition-all"
                                                             >
-                                                                <Trash2 className="w-4 h-4" />
+                                                                <Trash2 className="w-3.5 h-3.5" />
                                                             </button>
                                                         </div>
                                                     </div>
@@ -2864,7 +2859,7 @@ export function AdminDashboard() {
                                             })}
 
                                             {(!takeoverState.lineup || takeoverState.lineup.trim() === '') && (
-                                                <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
+                                                <div className="text-center py-6 bg-white/5 border border-white/5 rounded-2xl">
                                                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configuré</p>
                                                 </div>
                                             )}

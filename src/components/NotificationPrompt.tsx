@@ -33,13 +33,15 @@ export function NotificationPrompt() {
 
         setStatus('loading');
 
+        let newsletterSuccess = false;
         if (wantNewsletter && email) {
             try {
-                await fetch('/api/subscribe', {
+                const res = await fetch('/api/subscribe', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
+                if (res.ok) newsletterSuccess = true;
             } catch (err: any) {
                 console.error('Newsletter subscription error:', err);
             }
@@ -47,8 +49,22 @@ export function NotificationPrompt() {
 
         // 2. Inscription Push
         try {
+            // If push is not supported browser-wide
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                if (newsletterSuccess) {
+                    setStatus('success');
+                    localStorage.setItem('notification_prompted', 'true');
+                    setTimeout(() => setIsVisible(false), 2000);
+                    return;
+                } else {
+                    alert("Les notifications ne sont pas supportées sur ce navigateur (sur iOS, ajoutez l'app à l'écran d'accueil).");
+                    setStatus('prompt');
+                    return;
+                }
+            }
+
             const subscription = await subscribeUser();
-            if (subscription) {
+            if (subscription || newsletterSuccess) {
                 setStatus('success');
                 localStorage.setItem('notification_prompted', 'true');
                 // Fermer après un court délai
@@ -58,11 +74,19 @@ export function NotificationPrompt() {
                 if ('Notification' in window && Notification.permission === 'denied') {
                     setStatus('denied');
                 } else {
+                    alert("Impossible d'activer les notifications. Assurez-vous d'avoir autorisé les notifications.");
                     setStatus('prompt');
                 }
             }
         } catch (error: any) {
-            setStatus('prompt');
+            if (newsletterSuccess) {
+                setStatus('success');
+                localStorage.setItem('notification_prompted', 'true');
+                setTimeout(() => setIsVisible(false), 2000);
+            } else {
+                alert("Impossible d'activer les notifications.");
+                setStatus('prompt');
+            }
         }
     };
 
