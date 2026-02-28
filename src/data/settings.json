@@ -22,7 +22,7 @@
     "spotify": "dropsiders"
   },
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "LGhKi21i3cE",
     "title": "A State of Trance Rotterdam",
     "moderators": "",
@@ -37,24 +37,11 @@
     "showInNavbar": false,
     "forceHomepage": false,
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
-    "isSecret": true,
+    "isSecret": false,
     "password": "2026",
     "channels": "6Vl4n1NUcTM:AREA 1\njiG06Cp0hc4:AREA 2",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "",
-    "disableMainPlayer": true,
-    "botColor": "#00ffcc",
-    "botBgColor": "rgba(0, 255, 204, 0.05)",
-    "adminColor": "#ff0033",
-    "adminBgColor": "rgba(255, 0, 51, 0.05)",
-    "mainFluxName": "MAIN STAGE",
-    "shopItems": "",
-    "chat_enabled": true,
-    "showShop": false,
-    "currentArtist": "DAVID FORBES",
-    "artistInstagram": "https://www.instagram.com/davidforbesdj/",
-    "startDate": "2026-02-28T20:45",
-    "endDate": "2026-03-01T06:02"
+    "pinnedMessage": ""
   }
 }
