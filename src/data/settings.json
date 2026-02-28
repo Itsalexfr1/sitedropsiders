@@ -24,7 +24,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "LGhKi21i3cE",
-    "title": "A State of Trance Live ",
+    "title": "A State of Trance",
     "moderators": "",
     "lineup": "",
     "tickerType": "news",
@@ -33,7 +33,7 @@
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": false,
+    "showTickerBanner": true,
     "showInNavbar": false,
     "forceHomepage": false,
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
