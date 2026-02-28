@@ -3285,7 +3285,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[900px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
+                <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                     {/* Glossy Header */}
                     {!isFocusMode && (
                         <div className="p-3 lg:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
@@ -3298,10 +3298,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         Chat en direct
                                         {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">Mode Lent</span>}
                                     </h2>
-                                    <p className="text-[12px] lg:text-[14px] text-neon-cyan font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_5px_rgba(0,255,255,0.8)]" />
-                                        {viewersCount > 0 ? `${viewersCount} SPECTATEURS` : `${activeUsers.length || '1'} SPECTATEURS`}
-                                    </p>
                                 </div>
                             </div>
                             {hasModPowers && (
@@ -3620,15 +3616,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <div className="w-[1px] h-4 bg-white/10 mx-1" />
 
 
-                                                            <div
-                                                                className="flex items-center gap-1.5 px-3 py-2 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-all group/drops mr-1"
-                                                                onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                                            >
-                                                                <Users className="w-3.5 h-3.5 text-neon-red group-hover/drops:scale-110 transition-transform" />
-                                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none drop-shadow-[0_0_5px_rgba(255,0,0,0.3)]">
-                                                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
-                                                                </span>
-                                                            </div>
+
 
                                                             <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
                                                                 <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
