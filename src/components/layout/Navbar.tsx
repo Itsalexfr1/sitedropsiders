@@ -63,9 +63,9 @@ export function Navbar() {
         { name: t('nav.recaps'), path: '/recaps' },
         { name: t('nav.agenda'), path: '/agenda' },
         { name: t('nav.galerie'), path: '/galerie' },
+        { name: t('nav.clips') || 'Clips', path: '/clips' },
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
-        { name: t('nav.contact'), path: '/contact' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
         ...(takeoverEnabled && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
             name: 'LIVE',

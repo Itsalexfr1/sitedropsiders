@@ -4,7 +4,7 @@ import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
-    Facebook, Maximize, Minimize
+    Facebook, Maximize, Minimize, Video, LayoutGrid, Heart
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -64,6 +64,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [showLineup, setShowLineup] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [showVideoEdit, setShowVideoEdit] = useState(false);
+    const [showClipModal, setShowClipModal] = useState(false);
+    const [isClipping, setIsClipping] = useState(false);
+    const [clipProgress, setClipProgress] = useState(0);
+    const [clips, setClips] = useState<{ id: string, title: string, duration: string, date: string }[]>(() => {
+        try { return JSON.parse(localStorage.getItem('user_clips') || '[]'); } catch { return []; }
+    });
+    const [playersOption, setPlayersOption] = useState<number>(1);
+    const [favorites, setFavorites] = useState<string[]>(() => {
+        try { return JSON.parse(localStorage.getItem('favorited_artists') || '[]'); } catch { return []; }
+    });
+    const [notifiedArtists, setNotifiedArtists] = useState<string[]>([]);
     const [newVideoId, setNewVideoId] = useState(settings.youtubeId);
     const [isUnlocked, setIsUnlocked] = useState(() => {
         if (!settings.isSecret) return true;
@@ -211,6 +222,57 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return { artist: '', instagram: '' };
     }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime, activeVideoIndex]);
 
+    useEffect(() => {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+    }, []);
+
+    useEffect(() => {
+        if (favorites.length === 0) return;
+        const allItems = parseLineup(displayLineup || settings.lineup || '');
+        if (!allItems.length) return;
+
+        const now = new Date();
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        const currentlyLiveArtists = allItems
+            .filter(i => i.time && i.time.includes(':'))
+            .map(i => {
+                const [h, m] = i.time.split(':').map(Number);
+                return { ...i, total: h * 60 + m };
+            })
+            .reduce((acc, item) => {
+                if (item.total <= currentMinutes) {
+                    if (!acc[item.stage]) acc[item.stage] = item;
+                    else if (item.total > acc[item.stage].total) acc[item.stage] = item;
+                }
+                return acc;
+            }, {} as Record<string, any>);
+
+        const currentLiveArtistNames = Object.values(currentlyLiveArtists).map((item: any) => item.artist);
+
+        let newNotified = false;
+        const currentNotifs = [...notifiedArtists];
+
+        currentLiveArtistNames.forEach(artist => {
+            if (artist && favorites.includes(artist) && !notifiedArtists.includes(artist)) {
+                if ("Notification" in window && Notification.permission === "granted") {
+                    new Notification("Dropsiders Live", {
+                        body: `Votre artiste favori ${artist} est maintenant en direct !`,
+                        icon: '/favicon.ico'
+                    });
+                }
+                currentNotifs.push(artist);
+                newNotified = true;
+            }
+        });
+        if (newNotified) {
+            setNotifiedArtists(currentNotifs);
+        }
+    }, [displayLineup, settings.lineup, favorites, parseLineup, currentTime, notifiedArtists]);
+
     const handleUnlock = (e?: React.FormEvent) => {
         if (e) e.preventDefault();
         if (enteredPassword === (settings.password || '2026')) {
@@ -241,6 +303,30 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
     const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
     const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
+
+    const handleCreateClip = () => {
+        setIsClipping(true);
+        setClipProgress(0);
+
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 5;
+            setClipProgress(progress);
+            if (progress >= 100) {
+                clearInterval(interval);
+                setIsClipping(false);
+                const newClip = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    title: `Extrait Live - ${channelItems[activeVideoIndex]?.title || 'Main Stage'}`,
+                    duration: '0:30',
+                    date: new Date().toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                };
+                const updatedClips = [newClip, ...clips];
+                setClips(updatedClips);
+                localStorage.setItem('user_clips', JSON.stringify(updatedClips));
+            }
+        }, 150); // Simule 3 secondes de capture
+    };
 
     // Sync with props when they change (e.g. from parent polling or settings update)
     useEffect(() => {
@@ -811,6 +897,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 response = `🎪 Festival actuel : ${festivalName.toUpperCase()} ! 🎉`;
             } else if (cmd === '!shop' || cmd === '!boutique') {
                 response = "🛒 Retrouvez toute notre collection sur la boutique officielle : https://dropsiders.com/shop ! ✨";
+            } else if (cmd === '!clip') {
+                handleCreateClip();
+                response = "🎥 Ton clip des 30 dernières secondes est en cours de création ! Retrouve-le dans l'onglet Clips / VOD. ✂️";
             }
 
             if (hasModPowers) {
@@ -1385,20 +1474,34 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         {/* Multi-Video Switcher */}
                         {channelItems.length > 1 && (
-                            <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                                {channelItems.map((item: any, idx) => {
-                                    if (item.isMain && settings.disableMainPlayer) return null;
-                                    return (
+                            <div className="flex items-center flex-wrap gap-2">
+                                <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
+                                    {channelItems.map((item: any, idx) => {
+                                        if (item.isMain && settings.disableMainPlayer) return null;
+                                        return (
+                                            <button
+                                                key={idx}
+                                                id={`channel-btn-${idx}`}
+                                                onClick={() => { setActiveVideoIndex(idx); setPlayersOption(1); }}
+                                                className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                            >
+                                                {item.title}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 h-8">
+                                    {[1, 2, 3, 4].filter(n => n <= channelItems.length).map(n => (
                                         <button
-                                            key={idx}
-                                            id={`channel-btn-${idx}`}
-                                            onClick={() => setActiveVideoIndex(idx)}
-                                            className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                            key={n}
+                                            onClick={() => setPlayersOption(n)}
+                                            className={`min-w-[28px] h-full rounded flex items-center justify-center text-[10px] font-black transition-all ${playersOption === n ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:bg-white/10'}`}
+                                            title={n > 1 ? `Vue ${n} écrans` : `Vue unique`}
                                         >
-                                            {item.title}
+                                            {n === 1 ? <Maximize className="w-3 h-3" /> : <LayoutGrid className="w-3 h-3 mr-0.5" />} {n > 1 && n}
                                         </button>
-                                    );
-                                })}
+                                    ))}
+                                </div>
                             </div>
                         )}
                         <div className="flex items-center gap-2">
@@ -1412,6 +1515,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <Pencil className="w-3.5 h-3.5" />
                                 </button>
                             )}
+                            <button
+                                onClick={() => setShowClipModal(true)}
+                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg bg-white/5 border-white/10 text-gray-400 hover:text-neon-purple hover:border-neon-purple/30`}
+                                title="Clip & VOD"
+                            >
+                                <Video className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Clip / VOD</span>
+                            </button>
                             <button
                                 onClick={() => {
                                     if (showLineup) {
@@ -1498,15 +1609,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
                         {/* Redundant Stream Name Badge removed */}
-                        <div className="absolute inset-0 z-0">
-                            {(!settings.disableMainPlayer || activeVideoIndex !== 0) ? (
-                                <iframe
-                                    className="w-full h-full border-none"
-                                    src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
-                                    title={settings.title}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
+                        <div className="absolute inset-0 z-0 bg-black">
+                            {(!settings.disableMainPlayer || activeVideoIndex !== 0 || playersOption > 1) ? (
+                                <div className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-0.5 bg-white/10`}>
+                                    {Array.from({ length: playersOption }).map((_, i) => {
+                                        const cIdx = (activeVideoIndex + i) % channelItems.length;
+                                        const channel = channelItems[cIdx];
+                                        if (!channel) return null;
+                                        return (
+                                            <div key={`${channel.id}-${i}`} className="relative bg-black w-full h-full">
+                                                {playersOption > 1 && (
+                                                    <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/20 text-[9px] font-black text-white uppercase tracking-widest shadow-lg pointer-events-none">
+                                                        {channel.title}
+                                                    </div>
+                                                )}
+                                                <iframe
+                                                    className="w-full h-full border-none"
+                                                    src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${i > 0 ? '1' : '0'}&rel=0&modestbranding=1&enablejsapi=1`}
+                                                    title={channel.title}
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                ></iframe>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             ) : (
                                 <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
                                     <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
@@ -1641,6 +1768,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <Instagram className="w-full h-full text-white" />
                                                             </motion.a>
                                                         )}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (!item.artist) return;
+                                                                const newFavs = favorites.includes(item.artist)
+                                                                    ? favorites.filter(f => f !== item.artist)
+                                                                    : [...favorites, item.artist];
+                                                                setFavorites(newFavs);
+                                                                localStorage.setItem('favorited_artists', JSON.stringify(newFavs));
+                                                            }}
+                                                            className={`w-7 h-7 flex items-center justify-center rounded-full p-1.5 shadow-lg transition-all ${favorites.includes(item.artist) ? 'bg-neon-red opacity-100' : 'bg-white/10 opacity-60 hover:opacity-100 hover:bg-white/20'}`}
+                                                            title={favorites.includes(item.artist) ? "Retirer des favoris" : "Mettre en favoris pour recevoir une notification"}
+                                                        >
+                                                            <Heart className={`w-full h-full ${favorites.includes(item.artist) ? 'text-white fill-white' : 'text-white'}`} />
+                                                        </button>
                                                     </div>
 
                                                     {/* Stage Column */}
@@ -1705,6 +1847,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <Music2 className={`w-4 h-4 text-neon-cyan group-hover:text-white ${shazamLoading ? 'animate-spin' : ''}`} />
                                 {shazamLoading ? "Écoute en cours..." : "Shazam"}
                             </button>
+                            <button
+                                onClick={() => setIsFullScreen(!isFullScreen)}
+                                className={`flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all backdrop-blur-md shadow-2xl active:scale-95 group hover:bg-neon-cyan hover:border-neon-cyan/50`}
+                                title={isFullScreen ? "Quitter le plein écran" : "Plein écran"}
+                            >
+                                {isFullScreen ? <Minimize className="w-4 h-4 text-neon-cyan group-hover:text-white" /> : <Maximize className="w-4 h-4 text-neon-cyan group-hover:text-white" />}
+                                {isFullScreen ? "Réduire" : "Plein écran"}
+                            </button>
                         </div>
 
                         {/* Shazam Notification Overlay */}
@@ -1749,6 +1899,114 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             Ouvrir Spotify
                                         </a>
                                     </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Clip & VOD Modal Layer */}
+                        <AnimatePresence>
+                            {!isFocusMode && showClipModal && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-black/80 backdrop-blur-md z-[45] p-6 lg:p-12 flex items-center justify-center overflow-auto"
+                                    onClick={() => setShowClipModal(false)}
+                                >
+                                    <motion.div
+                                        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                                        className="w-full max-w-3xl bg-[#0a0a0a] border border-white/10 rounded-[2rem] shadow-[0_0_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col relative"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <div className="flex items-center justify-between p-6 lg:p-8 border-b border-white/5 shrink-0 bg-white/[0.02]">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-neon-purple/20 rounded-2xl border border-neon-purple/30 shadow-[0_0_20px_rgba(188,19,254,0.3)]">
+                                                    <Video className="w-6 h-6 text-neon-purple" />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Clips <span className="text-neon-purple">& VOD</span></h2>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Replay et meilleurs moments du live</p>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setShowClipModal(false)} className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red hover:border-neon-red hover:text-white transition-all text-gray-400 group">
+                                                <X className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                            </button>
+                                        </div>
+                                        <div className="p-6 lg:p-8 flex-1 overflow-y-auto min-h-[400px]">
+                                            <div className="mb-10 p-6 bg-white/[0.02] border border-white/10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
+                                                <div className="flex-1">
+                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 mb-2">
+                                                        <Zap className="w-4 h-4 text-neon-purple" />
+                                                        Capturer un Instant
+                                                    </h3>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.1em]">Générez un clip vidéo des 30 dernières secondes du flux sélectionné. Vous pourrez ensuite le partager sur vos réseaux.</p>
+                                                </div>
+                                                <button
+                                                    onClick={handleCreateClip}
+                                                    disabled={isClipping}
+                                                    className="relative w-full md:w-auto overflow-hidden px-8 py-4 bg-neon-purple/20 text-neon-purple border border-neon-purple/40 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neon-purple hover:text-white transition-all shadow-[0_0_20px_rgba(188,19,254,0.15)] group shrink-0 active:scale-95 disabled:opacity-50"
+                                                >
+                                                    {isClipping ? (
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-3 h-3 rounded-full bg-neon-purple animate-ping absolute" />
+                                                            <div className="w-3 h-3 rounded-full bg-neon-purple" />
+                                                            Création en cours {clipProgress}%...
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex items-center gap-2">
+                                                            <Video className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                            Créer un Clip Maintenent
+                                                        </div>
+                                                    )}
+                                                    {isClipping && (
+                                                        <div className="absolute bottom-0 left-0 h-1 bg-neon-purple shadow-[0_0_10px_#bc13fe] transition-all duration-150" style={{ width: `${clipProgress}%` }} />
+                                                    )}
+                                                </button>
+                                            </div>
+
+                                            <h3 className="text-xs font-black text-white/50 uppercase tracking-[0.3em] mb-4 pl-4 border-l-2 border-white/10">Mes Clips ({clips.length})</h3>
+
+                                            {clips.length === 0 ? (
+                                                <div className="text-center py-16 flex flex-col items-center justify-center space-y-4 bg-black/40 border border-white/5 rounded-3xl mt-4">
+                                                    <div className="relative group">
+                                                        <div className="absolute inset-0 bg-neon-purple blur-xl opacity-10" />
+                                                        <Video className="w-12 h-12 text-white/10 relative z-10" />
+                                                    </div>
+                                                    <h3 className="text-sm font-black text-white/50 uppercase tracking-widest mt-2">Aucun Clip pour le moment</h3>
+                                                    <p className="text-[9px] text-gray-500 max-w-sm px-6 font-bold uppercase tracking-widest">Lancez une capture pour générer votre premier clip vidéo du live.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    {clips.map(clip => (
+                                                        <div key={clip.id} className="relative group overflow-hidden bg-black/60 border border-white/10 rounded-3xl p-5 hover:border-white/20 transition-all">
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-0 pointer-events-none" />
+                                                            <div className="relative z-10">
+                                                                <div className="flex items-start justify-between mb-4">
+                                                                    <div className="p-2 bg-neon-purple/10 border border-neon-purple/20 rounded-xl text-neon-purple">
+                                                                        <Video className="w-4 h-4" />
+                                                                    </div>
+                                                                    <span className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-white/50 font-mono tracking-wider">{clip.duration}</span>
+                                                                </div>
+                                                                <h4 className="text-white font-black uppercase text-sm italic tracking-tight mb-1 truncate">{clip.title}</h4>
+                                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-6">Enregistré le {clip.date}</p>
+
+                                                                <div className="flex gap-2">
+                                                                    <a href="https://instagram.com/create/story" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-xl text-[8px] font-black uppercase text-white hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(230,104,60,0.2)]">
+                                                                        <Instagram className="w-3.5 h-3.5" /> Story IG
+                                                                    </a>
+                                                                    <a href="https://tiktok.com/upload" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-white/10 border border-white/20 hover:bg-white hover:text-black rounded-xl text-[8px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                                                                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg>
+                                                                        TikTok
+                                                                    </a>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -2746,6 +3004,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                     handleUpdateSettings({
                                                         ...localSettings,
+                                                        title: editTitle,
+                                                        mainFluxName: editMainFluxName,
+                                                        lineup: editLineup,
                                                         youtubeId: fId,
                                                         channels: newChannels.join('\n'),
                                                         shopItems: selectedShopIds.join(','),

@@ -19,7 +19,7 @@ import { CookiesPolicy } from './pages/CookiesPolicy';
 import { MentionsLegales } from './pages/MentionsLegales';
 import { Newsletter } from './pages/Newsletter';
 import { Unsubscribe } from './pages/Unsubscribe';
-import { Contact } from './pages/Contact';
+import { ClipsPage } from './pages/ClipsPage';
 import { RecapCreate } from './pages/RecapCreate';
 import { AgendaCreate } from './pages/AgendaCreate';
 import { GalerieCreate } from './pages/GalerieCreate';
@@ -82,7 +82,7 @@ const router = createBrowserRouter([
       { path: "cgu", element: <TermsOfService /> },
       { path: "cookies", element: <CookiesPolicy /> },
       { path: "kit-media", element: <KitMedia /> },
-      { path: "contact", element: <Contact /> },
+      { path: "clips", element: <ClipsPage /> },
 
       // Admin Routes
       { path: "admin", element: <AdminDashboard /> },
