@@ -171,6 +171,7 @@ export function NewsCreate() {
     const [artistNameLabel, setArtistNameLabel] = useState('');
     const [sendPush, setSendPush] = useState<boolean | null>(null);
     const [showSocialSuite, setShowSocialSuite] = useState(false);
+    const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [socialSuiteData, setSocialSuiteData] = useState<{
         title: string,
         imageUrl: string,

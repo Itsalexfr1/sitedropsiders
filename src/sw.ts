@@ -11,24 +11,23 @@ self.addEventListener('push', (event: PushEvent) => {
 
     try {
         const data = event.data.json();
-        const options: NotificationOptions = {
-            body: data.body || 'Nouvel artiste sur scène !',
+        const options: any = {
+            body: data.body || 'Nouvel article disponible !',
             icon: data.icon || '/android-chrome-192x192.png',
             badge: data.badge || '/android-chrome-192x192.png',
-            vibrate: [200, 100, 200, 100, 200], // Makes the phone vibrate "officially"
+            vibrate: [200, 100, 200],
             data: {
                 url: data.url || '/'
             },
             actions: [
-                { action: 'open', title: 'Voir le Live' },
-                { action: 'close', title: 'Fermer' }
+                { action: 'open', title: 'Ouvrir' }
             ],
-            tag: 'artist-live', // Replaces old notifications with new ones
+            tag: 'dropsiders-news',
             renotify: true
         };
 
         event.waitUntil(
-            self.registration.showNotification(data.title || 'DROPSIDERS LIVE', options)
+            self.registration.showNotification(data.title || 'DROPSIDERS', options)
         );
     } catch (e) {
         console.error('Error handling push event:', e);

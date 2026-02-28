@@ -166,7 +166,7 @@ export function NotificationPrompt() {
                                     >
                                         {status === 'loading' ? 'Connexion...' : status === 'success' ? 'Activé !' : (
                                             <>
-                                                <Zap className={`w-3 h-3 ${status !== 'success' ? 'group-hover/btn:animate-pulse' : ''}`} />
+                                                <Zap className="w-3 h-3 group-hover/btn:animate-pulse" />
                                                 Activer
                                             </>
                                         )}

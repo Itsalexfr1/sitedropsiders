@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -139,14 +139,65 @@ export function AdminDashboard() {
     const [isSavingInterviews, setIsSavingInterviews] = useState(false);
     const [interviewSearch, setInterviewSearch] = useState('');
 
+    const [pushNewsList, setPushNewsList] = useState<any[]>([]);
+    const [selectedPushNews, setSelectedPushNews] = useState<any | null>(null);
+    const [pushCustomTitle, setPushCustomTitle] = useState('DROPSIDERS NEWS');
+    const [pushCustomBody, setPushCustomBody] = useState('');
+    const [isSendingManualPush, setIsSendingManualPush] = useState(false);
+
     useEffect(() => {
         if (isNotificationModalOpen) {
+            // 1. Fetch count
             fetch('/api/push/subscribers-count')
                 .then(res => res.json())
                 .then(data => setPushSubscribersCount(data.count))
                 .catch(() => setPushSubscribersCount(0));
+
+            // 2. Fetch last news for selection
+            apiFetch('/api/news', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(data => {
+                    const sorted = Array.isArray(data) ? data.slice(0, 10) : [];
+                    setPushNewsList(sorted);
+                })
+                .catch(err => console.error("Error fetching news for push:", err));
         }
     }, [isNotificationModalOpen]);
+
+    const handleSendManualPush = async () => {
+        if (!pushCustomTitle || !pushCustomBody) {
+            alert('Veuillez remplir le titre et le message.');
+            return;
+        }
+
+        setIsSendingManualPush(true);
+        try {
+            const body = {
+                title: pushCustomTitle,
+                body: pushCustomBody,
+                url: selectedPushNews ? selectedPushNews.link : '/',
+                // Indicate it's a manual broadcast to all
+                broadcast: true
+            };
+
+            const resp = await fetch('/api/push/broadcast', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify(body)
+            });
+
+            if (resp.ok) {
+                alert('Notification envoyée avec succès à tous les abonnés !');
+                setIsNotificationModalOpen(false);
+            } else {
+                throw new Error('Erreur lors de l\'envoi');
+            }
+        } catch (e) {
+            alert('Erreur : ' + e.message);
+        } finally {
+            setIsSendingManualPush(false);
+        }
+    };
 
     const fetchInterviewsForSelection = async () => {
         try {
@@ -3156,18 +3207,86 @@ export function AdminDashboard() {
                                     </p>
                                 </div>
 
-                                <button
-                                    onClick={() => alert('Fonction de test activée. Un push simulation a été envoyé au worker.')}
-                                    className="w-full py-5 bg-gradient-to-r from-neon-red to-neon-purple text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all shadow-lg hover:brightness-110 active:scale-[0.98] border border-white/10"
-                                >
-                                    Envoyer un push test
-                                </button>
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Plus className="w-4 h-4 text-neon-red" />
+                                        <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Envoi Manuel Sur Mesure</h4>
+                                    </div>
+
+                                    {/* Sélecteur de News */}
+                                    <div className="space-y-2">
+                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">1. Cible (Optionnel)</label>
+                                        <div className="relative group/select">
+                                            <select
+                                                onChange={(e) => {
+                                                    const news = pushNewsList.find(n => n.id === e.target.value);
+                                                    setSelectedPushNews(news);
+                                                    if (news) {
+                                                        setPushCustomTitle(news.title || 'DROPSIDERS NEWS');
+                                                        setPushCustomBody(news.summary || '');
+                                                    }
+                                                }}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white appearance-none focus:border-neon-red/50 outline-none transition-all cursor-pointer"
+                                            >
+                                                <option value="">-- Lien : Page d'accueil --</option>
+                                                {pushNewsList.map(n => (
+                                                    <option key={n.id} value={n.id} className="bg-dark-bg text-white">
+                                                        [{n.category}] {n.title}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown className="absolute right-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none group-hover/select:text-white transition-colors" />
+                                        </div>
+                                    </div>
+
+                                    {/* Titre & Message */}
+                                    <div className="space-y-3">
+                                        <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">2. Contenu du Push</label>
+                                        <input
+                                            type="text"
+                                            value={pushCustomTitle}
+                                            onChange={(e) => setPushCustomTitle(e.target.value)}
+                                            placeholder="Titre de la notification..."
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-black text-neon-red placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all uppercase tracking-tight"
+                                        />
+                                        <textarea
+                                            value={pushCustomBody}
+                                            onChange={(e) => setPushCustomBody(e.target.value)}
+                                            placeholder="Message personnalisé pour les abonnés..."
+                                            rows={2}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all resize-none"
+                                        />
+                                    </div>
+
+                                    <button
+                                        onClick={handleSendManualPush}
+                                        disabled={isSendingManualPush || !pushCustomTitle || !pushCustomBody}
+                                        className={`w-full py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all flex items-center justify-center gap-3 relative overflow-hidden group/push ${isSendingManualPush
+                                            ? 'bg-white/10 text-gray-500 cursor-not-allowed'
+                                            : 'bg-white text-black hover:bg-neon-red hover:text-white shadow-[0_10px_30px_rgba(255,255,255,0.05)]'
+                                            }`}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue opacity-0 group-hover/push:opacity-20 transition-opacity" />
+                                        {isSendingManualPush ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-neon-red border-t-transparent animate-spin rounded-full" />
+                                                Envoi en cours...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Zap className="w-4 h-4" />
+                                                Diffuser aux {pushSubscribersCount || 0} abonnés
+                                                <ArrowRight className="w-4 h-4 group-hover/push:translate-x-1 transition-transform" />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
 
                                 <button
                                     onClick={() => setIsNotificationModalOpen(false)}
-                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-white rounded-[1.5rem] font-black uppercase tracking-widest text-[10px] transition-all border border-white/10 hover:border-white/20"
+                                    className="w-full py-4 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[8px] transition-all border border-white/10"
                                 >
-                                    Fermer
+                                    Annuler l'opération
                                 </button>
                             </div>
                         </motion.div>

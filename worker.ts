@@ -1986,7 +1986,42 @@ export default {
             }
         }
 
-        // --- STATIC ASSETS & FALLBACK ---
+        if (path === '/api/push/broadcast' && request.method === 'POST') {
+            try {
+                const { title, body, url } = await request.json();
+                if (!title || !body) return new Response(JSON.stringify({ error: 'Title and body required' }), { status: 400, headers });
+
+                const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+
+                // Use waitUntil to not block the response
+                ctx.waitUntil((async () => {
+                    for (const key of list.keys) {
+                        const subRaw = await env.CHAT_KV.get(key.name);
+                        if (!subRaw) continue;
+                        const { subscription } = JSON.parse(subRaw);
+
+                        if (env.ONESIGNAL_APP_ID && env.ONESIGNAL_API_KEY) {
+                            await fetch('https://onesignal.com/api/v1/notifications', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${env.ONESIGNAL_API_KEY}` },
+                                body: JSON.stringify({
+                                    app_id: env.ONESIGNAL_APP_ID,
+                                    contents: { "fr": body, "en": body },
+                                    headings: { "fr": title, "en": title },
+                                    url: url || 'https://dropsiders.fr',
+                                    include_subscription_ids: [subscription.endpoint.split('/').pop()]
+                                })
+                            });
+                        }
+                        console.log(`Manual broadcast to ${subscription.endpoint}`);
+                    }
+                })());
+
+                return new Response(JSON.stringify({ success: true, sentTo: list.keys.length }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
 
         // --- API: GET NEWS CONTENT ---
         if (path === '/api/news/content' && request.method === 'GET') {

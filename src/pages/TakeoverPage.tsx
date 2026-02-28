@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
-    Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell
+    Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
+    Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
