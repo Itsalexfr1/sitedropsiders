@@ -38,6 +38,7 @@ import { AdminHome } from './pages/AdminHome';
 import { AdminSettings } from './pages/AdminSettings';
 import { AdminMessages } from './pages/AdminMessages';
 import { AdminBanner } from './pages/AdminBanner';
+import { Contact } from './pages/Contact';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import { CookieConsent } from './components/ui/CookieConsent';
@@ -83,6 +84,7 @@ const router = createBrowserRouter([
       { path: "cookies", element: <CookiesPolicy /> },
       { path: "kit-media", element: <KitMedia /> },
       { path: "clips", element: <ClipsPage /> },
+      { path: "contact", element: <Contact /> },
 
       // Admin Routes
       { path: "admin", element: <AdminDashboard /> },

@@ -155,7 +155,7 @@ export function AnnouncementBanner() {
         </div>
     );
 
-    if (settings.link) {
+    if (settings.link && settings.link.trim()) {
         const isExternal = settings.link.startsWith('http');
         if (isExternal) {
             return (
