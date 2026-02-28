@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Share2, X, Download, Type, Layout, Upload, Trash2, PlusCircle, Layers, Settings,
-    FileText, Save, Info, CheckCircle2, AlertCircle, ChevronRight, ArrowRight,
-    ImageIcon, Instagram, Plus
+    Share2, X, Download, Type, Layout, Upload, Trash2, PlusCircle, Layers
 } from 'lucide-react';
 
 interface SocialSuiteProps {
@@ -292,8 +290,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                         key={t}
                                         onClick={() => setTheme(t)}
                                         className={`py - 3 rounded - xl text - [9px] font - black uppercase tracking - widest transition - all border ${theme === t
-                                                ? 'bg-white text-black shadow-lg scale-[1.02]'
-                                                : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
+                                            ? 'bg-white text-black shadow-lg scale-[1.02]'
+                                            : 'bg-white/5 border-white/5 text-gray-500 hover:text-white'
                                             } `}
                                         style={theme === t ? { borderBottom: `4px solid ${themeColors[t].label} ` } : {}}
                                     >
