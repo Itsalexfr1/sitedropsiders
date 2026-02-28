@@ -4,7 +4,8 @@ import {
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
-    Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send
+    Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send,
+    ChevronUp, ChevronDown
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -2858,17 +2859,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <tbody>
                                                                         {(() => {
                                                                             const lines = editLineup.split('\n').filter(l => l.trim());
-                                                                            return lines.sort((a, b) => {
-                                                                                const getTime = (l: string) => {
-                                                                                    const match = l.match(/\[(.*?)\]/);
-                                                                                    if (!match) return 0;
-                                                                                    const time = match[1].split('-')[0].trim();
-                                                                                    if (!time.includes(':')) return 0;
-                                                                                    const [h, m] = time.split(':').map(Number);
-                                                                                    return h * 60 + m;
-                                                                                };
-                                                                                return getTime(a) - getTime(b);
-                                                                            }).map((line, idx) => {
+
+                                                                            const moveLine = (index: number, direction: 'up' | 'down') => {
+                                                                                const newLines = [...lines];
+                                                                                if (direction === 'up' && index > 0) {
+                                                                                    [newLines[index], newLines[index - 1]] = [newLines[index - 1], newLines[index]];
+                                                                                } else if (direction === 'down' && index < newLines.length - 1) {
+                                                                                    [newLines[index], newLines[index + 1]] = [newLines[index + 1], newLines[index]];
+                                                                                }
+                                                                                setEditLineup(newLines.join('\n'));
+                                                                            };
+
+                                                                            return lines.map((line, idx) => {
                                                                                 const deleteLine = () => {
                                                                                     const lines = editLineup.split('\n').filter(l => l.trim());
                                                                                     lines.splice(idx, 1);
@@ -2938,7 +2940,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                             )}
                                                                                         </td>
                                                                                         <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
-                                                                                            <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all" title="Éditer">
+                                                                                            <button onClick={() => moveLine(idx, 'up')} disabled={idx === 0} className="p-1 text-gray-400 hover:text-neon-cyan transition-all disabled:opacity-20" title="Monter">
+                                                                                                <ChevronUp className="w-3.5 h-3.5" />
+                                                                                            </button>
+                                                                                            <button onClick={() => moveLine(idx, 'down')} disabled={idx === lines.length - 1} className="p-1 text-gray-400 hover:text-neon-cyan transition-all disabled:opacity-20" title="Descendre">
+                                                                                                <ChevronDown className="w-3.5 h-3.5" />
+                                                                                            </button>
+                                                                                            <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all ml-1" title="Éditer">
                                                                                                 <Edit2 className="w-3.5 h-3.5" />
                                                                                             </button>
                                                                                             <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">

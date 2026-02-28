@@ -22,10 +22,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const themeColors: Record<ThemeType, { label: string; grad: string }> = {
-        'NEWS': { label: '#FF1241', grad: '177, 18, 65' },
-        'RECAP': { label: '#6228d7', grad: '98, 40, 215' },
-        'MUSIQUE': { label: '#ee2a7b', grad: '238, 42, 123' },
-        'INTERVIEW': { label: '#00f0ff', grad: '0, 150, 200' }
+        'NEWS': { label: '#ff0033', grad: '255, 0, 51' },
+        'RECAP': { label: '#bd00ff', grad: '189, 0, 255' },
+        'MUSIQUE': { label: '#39ff14', grad: '57, 255, 20' },
+        'INTERVIEW': { label: '#00f0ff', grad: '0, 240, 255' }
     };
 
     const generateImage = async () => {
@@ -159,7 +159,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText('>>', canvas.width - 80, 1180);
+                ctx.fillText('>>', canvas.width - 80, 1320); // Positioned at bottom (outside 1:1 safe zone but user requested bottom)
                 ctx.shadowBlur = 0;
             }
 
