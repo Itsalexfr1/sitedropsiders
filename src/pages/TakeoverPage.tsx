@@ -139,7 +139,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 }
             }
 
-            return { time: startTime, endTime, artist, stage, instagram, isPast };
+            return { time: startTime, endTime, artist, stage, instagram, isPast, totalMinutes: startMinutes };
         });
     }, []);
 
@@ -208,10 +208,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
         const items = parseLineup(displayLineup || settings.lineup || '');
+        const sorted = items.sort((a, b) => (a.totalMinutes || 0) - (b.totalMinutes || 0));
         const currentTitle = channelItems[activeVideoIndex]?.title || '';
+
         // Filter items based on stage name matching current flux title
-        if (!currentTitle) return items;
-        return items.filter(item => {
+        if (!currentTitle) return sorted;
+        return sorted.filter(item => {
             const sName = (item.stage || '').toLowerCase();
             const fName = currentTitle.toLowerCase();
             if (!sName) return activeVideoIndex === 0;
@@ -1612,7 +1614,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
                                 {displayTitle}
                             </h1>
-                            {fluxCurrentArtist.artist && (
+                            {fluxCurrentArtist.artist && settings.isOnline && (
                                 <motion.div
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
@@ -1924,7 +1926,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <h3 className="text-white font-black uppercase italic tracking-wider text-[16px] lg:text-[22px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500">
                                                             {item.artist || '---'}
                                                         </h3>
-                                                        {fluxCurrentArtist.artist === item.artist && activeVideoIndex === 0 && (
+                                                        {fluxCurrentArtist.artist === item.artist && activeVideoIndex === 0 && settings.isOnline && (
                                                             <div className="px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded text-[7px] font-black text-red-500 uppercase tracking-widest animate-pulse flex items-center gap-1">
                                                                 <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
                                                                 EN DIRECT
@@ -2849,86 +2851,99 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
-                                                                        {editLineup.split('\n').filter(l => l.trim()).map((line, idx) => {
-                                                                            const deleteLine = () => {
-                                                                                const lines = editLineup.split('\n').filter(l => l.trim());
-                                                                                lines.splice(idx, 1);
-                                                                                setEditLineup(lines.join('\n'));
-                                                                            };
+                                                                        {(() => {
+                                                                            const lines = editLineup.split('\n').filter(l => l.trim());
+                                                                            return lines.sort((a, b) => {
+                                                                                const getTime = (l: string) => {
+                                                                                    const match = l.match(/\[(.*?)\]/);
+                                                                                    if (!match) return 0;
+                                                                                    const time = match[1].split('-')[0].trim();
+                                                                                    if (!time.includes(':')) return 0;
+                                                                                    const [h, m] = time.split(':').map(Number);
+                                                                                    return h * 60 + m;
+                                                                                };
+                                                                                return getTime(a) - getTime(b);
+                                                                            }).map((line, idx) => {
+                                                                                const deleteLine = () => {
+                                                                                    const lines = editLineup.split('\n').filter(l => l.trim());
+                                                                                    lines.splice(idx, 1);
+                                                                                    setEditLineup(lines.join('\n'));
+                                                                                };
 
-                                                                            const timeMatch = line.includes('|') ? line.split('|')[0] : line.match(/^\[(.*?)\]/)?.[1];
-                                                                            if (!timeMatch) return (
-                                                                                <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
-                                                                                    <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
-                                                                                    <td className="px-4 py-2 border-b border-white/5 text-right">
-                                                                                        <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
-                                                                                            <X className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
+                                                                                const timeMatch = line.includes('|') ? line.split('|')[0] : line.match(/^\[(.*?)\]/)?.[1];
+                                                                                if (!timeMatch) return (
+                                                                                    <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
+                                                                                        <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
+                                                                                        <td className="px-4 py-2 border-b border-white/5 text-right">
+                                                                                            <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
+                                                                                                <X className="w-3.5 h-3.5" />
+                                                                                            </button>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                );
 
-                                                                            const time = timeMatch.trim();
-                                                                            const rest = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : line.replace(/^\[(.*?)\]/, '').trim();
-                                                                            const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
-                                                                            const artist = parts[0] || '';
-                                                                            const stage = parts[1] || '';
-                                                                            // Direct 3rd part is Instagram now
-                                                                            const instagram = parts[2] || '';
+                                                                                const time = timeMatch.trim();
+                                                                                const rest = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : line.replace(/^\[(.*?)\]/, '').trim();
+                                                                                const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
+                                                                                const artist = parts[0] || '';
+                                                                                const stage = parts[1] || '';
+                                                                                // Direct 3rd part is Instagram now
+                                                                                const instagram = parts[2] || '';
 
-                                                                            const editOption = () => {
-                                                                                const [h, m] = time.replace('h', ':').split(':');
-                                                                                setLineupHour(h || '');
-                                                                                setLineupMinute(m || '');
-                                                                                setLineupArtist(artist.trim());
+                                                                                const editOption = () => {
+                                                                                    const [h, m] = time.replace('h', ':').split(':');
+                                                                                    setLineupHour(h || '');
+                                                                                    setLineupMinute(m || '');
+                                                                                    setLineupArtist(artist.trim());
 
-                                                                                // On essaye de matcher le stage avec les options existantes
-                                                                                const lowerStage = stage.trim().toLowerCase();
-                                                                                if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
-                                                                                else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
-                                                                                else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
-                                                                                else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
-                                                                                else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
-                                                                                else setLineupStage(stage.trim());
+                                                                                    // On essaye de matcher le stage avec les options existantes
+                                                                                    const lowerStage = stage.trim().toLowerCase();
+                                                                                    if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
+                                                                                    else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
+                                                                                    else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
+                                                                                    else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
+                                                                                    else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
+                                                                                    else setLineupStage(stage.trim());
 
-                                                                                setLineupInstagram(instagram.trim());
-                                                                                deleteLine();
-                                                                            };
+                                                                                    setLineupInstagram(instagram.trim());
+                                                                                    deleteLine();
+                                                                                };
 
-                                                                            const getStageColor = (stageName: string) => {
-                                                                                const s = stageName.toLowerCase();
-                                                                                if (s.includes('principal') || s.includes('main')) return 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10';
-                                                                                if (s.includes('1')) return 'text-neon-purple border-neon-purple/30 bg-neon-purple/10';
-                                                                                if (s.includes('2')) return 'text-neon-red border-neon-red/30 bg-neon-red/10';
-                                                                                if (s.includes('3')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
-                                                                                return 'text-gray-400 border-white/20 bg-white/5';
-                                                                            };
+                                                                                const getStageColor = (stageName: string) => {
+                                                                                    const s = stageName.toLowerCase();
+                                                                                    if (s.includes('principal') || s.includes('main')) return 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10';
+                                                                                    if (s.includes('1')) return 'text-neon-purple border-neon-purple/30 bg-neon-purple/10';
+                                                                                    if (s.includes('2')) return 'text-neon-red border-neon-red/30 bg-neon-red/10';
+                                                                                    if (s.includes('3')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+                                                                                    return 'text-gray-400 border-white/20 bg-white/5';
+                                                                                };
 
-                                                                            return (
-                                                                                <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase truncate max-w-[150px]">{artist}</td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5">
-                                                                                        {stage && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${getStageColor(stage)}`}>{stage}</span>}
-                                                                                    </td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5">
-                                                                                        {instagram && (
-                                                                                            (instagram.includes('.') || (!instagram.includes(' ') && instagram.length > 0))
-                                                                                                ? <a href={instagram.startsWith('http') ? instagram : `https://${instagram}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace(/^https?:\/\//, '')}</a>
-                                                                                                : <span className="text-[9px] text-gray-400 font-bold uppercase truncate block max-w-[120px]">{instagram}</span>
-                                                                                        )}
-                                                                                    </td>
-                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
-                                                                                        <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all" title="Éditer">
-                                                                                            <Edit2 className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                        <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
-                                                                                            <X className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                    </td>
-                                                                                </tr>
-                                                                            );
-                                                                        })}
+                                                                                return (
+                                                                                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                                                        <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
+                                                                                        <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase truncate max-w-[150px]">{artist}</td>
+                                                                                        <td className="px-4 py-2.5 border-b border-white/5">
+                                                                                            {stage && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${getStageColor(stage)}`}>{stage}</span>}
+                                                                                        </td>
+                                                                                        <td className="px-4 py-2.5 border-b border-white/5">
+                                                                                            {instagram && (
+                                                                                                (instagram.includes('.') || (!instagram.includes(' ') && instagram.length > 0))
+                                                                                                    ? <a href={instagram.startsWith('http') ? instagram : `https://${instagram}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace(/^https?:\/\//, '')}</a>
+                                                                                                    : <span className="text-[9px] text-gray-400 font-bold uppercase truncate block max-w-[120px]">{instagram}</span>
+                                                                                            )}
+                                                                                        </td>
+                                                                                        <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
+                                                                                            <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all" title="Éditer">
+                                                                                                <Edit2 className="w-3.5 h-3.5" />
+                                                                                            </button>
+                                                                                            <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
+                                                                                                <X className="w-3.5 h-3.5" />
+                                                                                            </button>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                );
+                                                                            })
+                                                                        })()}
                                                                     </tbody>
                                                                 </table>
                                                             </div>

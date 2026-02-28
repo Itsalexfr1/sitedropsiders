@@ -1047,9 +1047,6 @@ export function AdminManage() {
                     <SocialSuite
                         title={socialItem.title}
                         imageUrl={socialItem.image}
-                        type={activeTab === 'Interviews' ? 'Interview' : activeTab}
-                        category={socialItem.category || (activeTab === 'Musique' ? 'Musique' : 'News')}
-                        articleId={socialItem.id}
                         onClose={() => setSocialItem(null)}
                     />
                 )}

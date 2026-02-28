@@ -5,10 +5,7 @@ import { X, Download, Instagram, Share2, Upload, Type, Layout, Image as ImageIco
 interface SocialSuiteProps {
     title: string;
     imageUrl: string;
-    type: string;
-    category: string;
     onClose: () => void;
-    articleId: string;
 }
 
 type TemplateType = 'news_only' | 'news_swipe' | 'musique';

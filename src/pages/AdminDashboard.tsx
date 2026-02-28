@@ -1634,9 +1634,6 @@ export function AdminDashboard() {
                     <SocialSuite
                         title={selectedSocialArticle.title}
                         imageUrl={selectedSocialArticle.image}
-                        type={selectedSocialArticle.type || 'News'}
-                        category={selectedSocialArticle.category || 'News'}
-                        articleId={selectedSocialArticle.id}
                         onClose={() => setSelectedSocialArticle(null)}
                     />
                 )}
