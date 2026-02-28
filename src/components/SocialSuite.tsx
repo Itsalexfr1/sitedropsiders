@@ -57,6 +57,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     })));
     const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
     const [rotation, setRotation] = useState(0);
+    const [transitionProgress, setTransitionProgress] = useState(0); // 0 to 1 for glitches/fades
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -281,17 +282,60 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = '#fff';
                 ctx.fillText('>>', canvas.width - 80, safeBottom - 10); // Lowered Swipe indicator
             }
+
+            // 5. Apply Transition Effects (Glitch / Zoom)
+            if (transitionProgress > 0) {
+                const glitchIntensity = Math.sin(transitionProgress * Math.PI);
+
+                // Zoom Blur effect
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                ctx.globalAlpha = glitchIntensity * 0.3;
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(1 + glitchIntensity * 0.1, 1 + glitchIntensity * 0.1);
+                ctx.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+                ctx.restore();
+
+                // RGB Glitch Strips
+                if (glitchIntensity > 0.2) {
+                    for (let i = 0; i < 20; i++) {
+                        const h = Math.random() * 100 + 10;
+                        const y = Math.random() * canvas.height;
+                        const offset = (Math.random() - 0.5) * glitchIntensity * 120;
+
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.rect(0, y, canvas.width, h);
+                        ctx.clip();
+
+                        // Shift original image
+                        ctx.globalAlpha = 0.5;
+                        ctx.drawImage(canvas, offset, 0);
+
+                        // Add some noise/color
+                        ctx.globalCompositeOperation = 'screen';
+                        ctx.fillStyle = i % 2 === 0 ? `rgba(255, 0, 50, 0.1)` : `rgba(0, 255, 255, 0.1)`;
+                        ctx.fillRect(0, y, canvas.width, h);
+                        ctx.restore();
+                    }
+                }
+
+                // White Flash
+                ctx.fillStyle = `rgba(255, 255, 255, ${glitchIntensity * 0.2})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
         } catch (e) { console.error(e); }
     };
 
     useEffect(() => {
         let anim: number;
-        if (bgVideo || (theme === 'TOP 5 STYLES' && isVideoRecording)) {
+        if (bgVideo || isVideoRecording) {
             const loop = () => { generateImage(); anim = requestAnimationFrame(loop); };
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -331,13 +375,30 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         recorder.start();
 
         if (theme === 'INTRO') {
-            await new Promise(r => setTimeout(r, 10000)); // 10 seconds for Intro
+            await new Promise(r => setTimeout(r, 10000));
         } else if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
-                setCurrentPreviewIndex(i);
-                await new Promise(r => setTimeout(r, 18000)); // 18 seconds per track (total 90s)
+                if (i > 0) {
+                    const duration = 1200;
+                    const start = Date.now();
+                    let switched = false;
+                    while (Date.now() - start < duration) {
+                        const progress = (Date.now() - start) / duration;
+                        setTransitionProgress(progress);
+                        if (progress > 0.5 && !switched) {
+                            setCurrentPreviewIndex(i);
+                            switched = true;
+                        }
+                        await new Promise(r => requestAnimationFrame(r));
+                    }
+                } else {
+                    setCurrentPreviewIndex(i);
+                }
+                setTransitionProgress(0);
+                await new Promise(r => setTimeout(r, 16800));
             }
         }
+        setTransitionProgress(0); // Safety reset
         recorder.stop();
     };
 
