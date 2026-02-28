@@ -299,6 +299,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
     const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
     const [annBannerText, setAnnBannerText] = useState('');
+    const [annBannerColor, setAnnBannerColor] = useState('#ffffff');
+    const [annBannerBg, setAnnBannerBg] = useState('#0a0a0a');
     const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
     const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
 
@@ -332,6 +334,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             if (data.announcement_banner) {
                 setAnnBannerEnabled(data.announcement_banner.enabled ?? false);
                 setAnnBannerText(data.announcement_banner.text ?? '');
+                setAnnBannerColor(data.announcement_banner.color ?? '#ffffff');
+                setAnnBannerBg(data.announcement_banner.bgColor ?? '#0a0a0a');
             }
         }).catch(() => { });
     }, []);
@@ -354,8 +358,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         enabled: annBannerEnabled,
                         text: annBannerText,
                         text_en: annBannerText,
-                        color: '#ffffff',
-                        bgColor: '#0a0a0a',
+                        color: annBannerColor,
+                        bgColor: annBannerBg,
                     }
                 })
             });
@@ -2397,6 +2401,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         placeholder="Ex: DROPSIDERS LIVE — TOMORROWLAND 2026..."
                                                                         className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all"
                                                                     />
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
+                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
+                                                                            <input type="color" value={annBannerColor} onChange={(e) => setAnnBannerColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{annBannerColor}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
+                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
+                                                                            <input type="color" value={annBannerBg} onChange={(e) => setAnnBannerBg(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
+                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{annBannerBg}</span>
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                                 <button
                                                                     onClick={handleSaveAnnouncementBanner}
