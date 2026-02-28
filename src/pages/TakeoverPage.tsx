@@ -214,11 +214,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return { artist: currentItem.artist || '', instagram: currentItem.instagram || '' };
         }
 
-        // Fallback to general settings artist if on main flux
-        if (activeVideoIndex === 0) {
-            return { artist: settings.currentArtist || '', instagram: settings.artistInstagram || '' };
-        }
-
+        // No fallback — only show artist when lineup has a matching entry
         return { artist: '', instagram: '' };
     }, [currentFluxLineup, settings.currentArtist, settings.artistInstagram, currentTime, activeVideoIndex]);
 
