@@ -247,8 +247,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = safeBottom - 440; // Slightly higher to allow space
-                const startY = labelY + 160; // Increased spacing between label and text
+                const labelY = safeBottom - 420; // Original preferred label position
+                const startY = labelY + 180; // Only lowered the text for more space
                 ctx.fillStyle = activeData.color;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 80;
