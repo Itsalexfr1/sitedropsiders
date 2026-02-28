@@ -51,6 +51,8 @@
     "mainFluxName": "MAIN STAGE",
     "shopItems": "",
     "chat_enabled": true,
-    "showShop": false
+    "showShop": false,
+    "currentArtist": "RICHARD DURAND",
+    "artistInstagram": "https://www.instagram.com/richarddurand/"
   }
 }
