@@ -297,6 +297,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [, setEditArtistInstagram] = useState(settings.artistInstagram || '');
     const [localCustomCommands, setLocalCustomCommands] = useState(settings.customCommands || '');
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
+    const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
+    const [annBannerText, setAnnBannerText] = useState('');
     const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
     const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
 
@@ -322,6 +324,44 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 localStorage.setItem('user_clips', JSON.stringify(updatedClips));
             }
         }, 150); // Simule 3 secondes de capture
+    };
+
+    // Load announcement banner settings from API
+    useEffect(() => {
+        fetch('/api/settings').then(r => r.json()).then(data => {
+            if (data.announcement_banner) {
+                setAnnBannerEnabled(data.announcement_banner.enabled ?? false);
+                setAnnBannerText(data.announcement_banner.text ?? '');
+            }
+        }).catch(() => { });
+    }, []);
+
+    const handleSaveAnnouncementBanner = async () => {
+        try {
+            const password = localStorage.getItem('admin_password') || '';
+            const username = localStorage.getItem('admin_user') || 'alex';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': password,
+                    'X-Admin-Username': username,
+                    'X-Session-ID': sessionId,
+                },
+                body: JSON.stringify({
+                    announcement_banner: {
+                        enabled: annBannerEnabled,
+                        text: annBannerText,
+                        text_en: annBannerText,
+                        color: '#ffffff',
+                        bgColor: '#0a0a0a',
+                    }
+                })
+            });
+        } catch (e) {
+            console.error('Failed to save announcement banner', e);
+        }
     };
 
     // Sync with props when they change (e.g. from parent polling or settings update)
@@ -2329,6 +2369,42 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
                                                                 Affiche le logo du festival et le menu de navigation en haut de la page.
                                                             </p>
+                                                        </div>
+
+                                                        {/* Announcement Banner Control */}
+                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                            <div className="flex items-center justify-between mb-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                        <Globe className="w-4 h-4 text-neon-cyan" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-cyan">défilant (Annonces)</span></h3>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => setAnnBannerEnabled(p => !p)}
+                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${annBannerEnabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                >
+                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                                </button>
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <div className="space-y-1.5">
+                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Texte du bandeau</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={annBannerText}
+                                                                        onChange={(e) => setAnnBannerText(e.target.value)}
+                                                                        placeholder="Ex: DROPSIDERS LIVE — TOMORROWLAND 2026..."
+                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all"
+                                                                    />
+                                                                </div>
+                                                                <button
+                                                                    onClick={handleSaveAnnouncementBanner}
+                                                                    className="w-full py-2.5 bg-neon-cyan/20 border border-neon-cyan/30 hover:bg-neon-cyan hover:text-black text-neon-cyan rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                >
+                                                                    Sauvegarder le Bandeau
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
