@@ -1372,18 +1372,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div
-                            className="flex items-center gap-1.5 px-2 py-1 bg-white/5 border border-white/10 rounded-full shrink-0 backdrop-blur-md self-center lg:self-auto cursor-pointer hover:bg-white/10 transition-colors pointer-events-auto"
-                            onClick={() => setShowUsersPanel(!showUsersPanel)}
-                        >
-                            <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
-                            <div className="flex flex-col">
-                                <span className="text-[8px] font-black text-white uppercase tracking-widest leading-none">
-                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
-                                </span>
-                            </div>
-                        </div>
-
                         <button
                             onClick={() => {
                                 sessionStorage.setItem('exited_live', 'true');
@@ -1401,9 +1389,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
                 {/* Video Section */}
                 <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
-
-
-
                     <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                         {/* Stream Name Badge */}
                         {/* Redundant Stream Name Badge removed */}
@@ -1416,10 +1401,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 allowFullScreen
                             ></iframe>
                         </div>
-
-
-
-
 
                         {/* Active Poll Overlay */}
                         <AnimatePresence>
@@ -1666,7 +1647,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-4 lg:p-10 flex flex-col items-center justify-center overflow-y-auto custom-scrollbar"
+                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl z-[40] p-4 lg:p-10 flex flex-col items-center overflow-y-auto custom-scrollbar"
 
                                 >
                                     <motion.div
@@ -2050,7 +2031,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Modos <span className="text-green-500">Connectés</span></h3>
                                                             </div>
                                                             <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                {localModerators?.split(',').filter(m => m.trim() && messages.some(msg => msg.pseudo.toLowerCase() === m.trim().toLowerCase())).map(mod => (
+                                                                {localModerators?.split(',').filter(m => m.trim() && isUserOnline(m.trim())).map(mod => (
                                                                     <div key={mod} className="flex items-center justify-between group rounded-xl p-3 bg-black/40 border border-white/5 transition-colors">
                                                                         <div className="flex items-center gap-3">
                                                                             <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
@@ -2993,13 +2974,25 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <form onSubmit={handleSendMessage} className="relative group/input">
                                             <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-20 group-focus-within/input:opacity-50 blur-md rounded-2xl lg:rounded-3xl transition-all" />
                                             <div className="relative flex flex-col bg-black border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/50 shadow-2xl">
-                                                <div className="flex items-center bg-white/[0.02] border-b border-white/5 px-2">
-                                                    <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-3 transition-all ${showEmojiPicker ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}><Smile className="w-5 h-5 shadow-neon-red" /></button>
-                                                    <div className="w-[1px] h-4 bg-white/10 mx-1" />
-                                                    <button type="button" onClick={handleShazam} className={`p-3 transition-all flex items-center gap-2 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan'}`}>
-                                                        <Music2 className="w-5 h-5" />
-                                                        {shazamLoading && <span className="text-[10px] font-black uppercase tracking-widest">Identification...</span>}
-                                                    </button>
+                                                <div className="flex items-center justify-between bg-white/[0.02] border-b border-white/5 px-2">
+                                                    <div className="flex items-center">
+                                                        <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-3 transition-all ${showEmojiPicker ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}><Smile className="w-5 h-5 shadow-neon-red" /></button>
+                                                        <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                                                        <button type="button" onClick={handleShazam} className={`p-3 transition-all flex items-center gap-2 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan'}`}>
+                                                            <Music2 className="w-5 h-5" />
+                                                            {shazamLoading && <span className="text-[10px] font-black uppercase tracking-widest">Identification...</span>}
+                                                        </button>
+                                                    </div>
+
+                                                    <div
+                                                        className="flex items-center gap-1.5 px-2 py-1 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-colors"
+                                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                                    >
+                                                        <Users className="w-3 h-3 text-neon-red shadow-[0_0_8px_rgba(255,0,0,0.5)]" />
+                                                        <span className="text-[9px] font-black text-neon-red uppercase tracking-widest leading-none">
+                                                            {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center">
                                                     <input
@@ -3320,7 +3313,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
-        </div >
+        </div>
     );
 }
 
