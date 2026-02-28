@@ -73,29 +73,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, i, canvas.width, 2);
             }
 
-            // 4. Label "NEWS" or "MUSIQUE"
-            const label = isMusique ? 'MUSIQUE' : 'NEWS';
-            const labelBg = isMusique ? '#ee2a7b' : '#FF1241';
-
-            ctx.font = 'bold 80px "Inter", sans-serif';
-            const labelMetrics = ctx.measureText(label);
-            const labelWidth = labelMetrics.width + 120;
-            const labelY = canvas.height * 0.72;
-
-            ctx.fillStyle = labelBg;
-            ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            ctx.shadowBlur = 30;
-            ctx.fillRect(0, labelY - 90, labelWidth, 120);
-            ctx.shadowBlur = 0;
-
+            // 4. Custom Text Wrapping & Height Calculation
             ctx.fillStyle = '#ffffff';
-            ctx.font = '900 italic 85px "Inter", sans-serif';
-            ctx.fillText(label, 60, labelY);
-
-            // 5. Centered Custom Text (Using "Built Bold" style)
-            ctx.fillStyle = '#ffffff';
-            // Using Built Bold if available, fallback to heavy Inter
-            ctx.font = '900 italic 100px "Built Bold", "Inter", sans-serif';
+            ctx.font = '900 italic 110px "Built Bold", "Inter", sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
@@ -116,18 +96,42 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
             lines.push(currentLine.trim());
 
-            const totalHeight = lines.length * 120;
-            let startY = (canvas.height / 2) - (totalHeight / 2) + 100; // Centered vertically, offset down a bit
+            const totalHeight = lines.length * 130;
+            const startY = canvas.height - totalHeight - 120; // Position from bottom
 
+            // 5. Label "NEWS" or "MUSIQUE" (Positioned above text)
+            const label = isMusique ? 'MUSIQUE' : 'NEWS';
+            const labelBg = isMusique ? '#ee2a7b' : '#FF1241';
+            const labelY = startY - 120;
+
+            ctx.font = 'bold 80px "Inter", sans-serif';
+            const labelMetrics = ctx.measureText(label);
+            const labelWidth = labelMetrics.width + 120;
+
+            ctx.fillStyle = labelBg;
+            ctx.shadowColor = 'rgba(0,0,0,0.5)';
+            ctx.shadowBlur = 30;
+            ctx.fillRect(0, labelY - 90, labelWidth, 120);
+            ctx.shadowBlur = 0;
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 italic 85px "Inter", sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(label, 60, labelY);
+
+            // 6. Custom Text Rendering
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '900 italic 110px "Built Bold", "Inter", sans-serif';
             ctx.shadowColor = 'rgba(0,0,0,0.8)';
             ctx.shadowBlur = 20;
 
             lines.forEach((line, i) => {
-                ctx.fillText(line.toUpperCase(), canvas.width / 2, startY + (i * 120));
+                ctx.fillText(line.toUpperCase(), canvas.width / 2, startY + (i * 130));
             });
             ctx.shadowBlur = 0;
 
-            // 6. Swipe arrows (Template 3)
+            // 7. Swipe arrows (Template 3)
             if (template === 'news_swipe') {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 120px "Inter", sans-serif';
@@ -135,11 +139,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText('>>', canvas.width - 80, canvas.height - 150);
             }
 
-            // 7. Logo Top Right
-            ctx.textAlign = 'right';
-            ctx.font = '900 45px "Inter", sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.9)';
-            ctx.fillText('DROPSIDERS.EU', canvas.width - 80, 100);
+            // 8. Real Logo Top Right
+            try {
+                const logo = new Image();
+                logo.src = '/Logo.png';
+                await new Promise((resolve) => {
+                    logo.onload = resolve;
+                    logo.onerror = resolve;
+                });
+                if (logo.complete && logo.width > 0) {
+                    const logoW = 350;
+                    const logoH = (logo.height * logoW) / logo.width;
+                    ctx.drawImage(logo, canvas.width - logoW - 60, 60, logoW, logoH);
+                }
+            } catch (e) {
+                console.warn("Logo load failed, skipping");
+            }
 
         } catch (e) {
             console.error("Studio drawing error:", e);
