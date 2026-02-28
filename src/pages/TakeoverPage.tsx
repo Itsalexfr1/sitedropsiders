@@ -208,7 +208,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
         const items = parseLineup(displayLineup || settings.lineup || '');
-        const sorted = items.sort((a, b) => (a.totalMinutes || 0) - (b.totalMinutes || 0));
+        const sorted = items.sort((a, b) => {
+            if (a.isPast !== b.isPast) {
+                return a.isPast ? 1 : -1;
+            }
+            return (a.totalMinutes || 0) - (b.totalMinutes || 0);
+        });
         const currentTitle = channelItems[activeVideoIndex]?.title || '';
 
         // Filter items based on stage name matching current flux title
