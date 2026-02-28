@@ -4,8 +4,8 @@ import {
     ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload,
     Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic,
     Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram,
-    ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star, Download, Share2,
-    Copy, AlignLeft, AlignCenter, AlignRight, Palette, MapPin
+    ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star,
+    AlignLeft, AlignCenter, AlignRight, Palette, MapPin
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -484,7 +484,8 @@ export function NewsCreate() {
                     foundMusic.push({
                         id: Math.random().toString(36).substr(2, 9),
                         title: match[1].trim(),
-                        media: match[2].trim()
+                        media: match[2].trim(),
+                        playerType: match[2].includes('spotify') ? 'spotify' : match[2].includes('beatport') ? 'beatport' : 'youtube'
                     });
                 }
                 if (foundMusic.length > 0) setMusicItems(foundMusic);
@@ -1032,7 +1033,7 @@ export function NewsCreate() {
         }
     };
 
-    const updateMusicItem = (id: string, field: 'title' | 'media', value: string) => {
+    const updateMusicItem = (id: string, field: 'title' | 'media' | 'playerType', value: string) => {
         setMusicItems(musicItems.map(item => item.id === id ? { ...item, [field]: value } : item));
 
         if (field === 'media' && value && activeTab === 'Musique') {
@@ -1386,7 +1387,7 @@ ${generateSocialsHtml()}
                     setImageUrl('');
                     setYoutubeId('');
                     setYear('');
-                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '' }]);
+                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', playerType: 'spotify' }]);
                     setArtistNameLabel('');
                     setArtistSocials({
                         website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''

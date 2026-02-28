@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, Fragment } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Send, Globe, Youtube, MessageSquare, Trash2, ShieldAlert, X, Clock, Users, Shield,
@@ -555,13 +555,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
     const isFocusMode = false;
-    const [email, setEmail] = useState('');
+    const [email] = useState('');
     const [country, setCountry] = useState(() => {
         const auth = localStorage.getItem('admin_auth') === 'true';
         if (auth) return 'FR';
         return '';
     });
-    const [customCountry, setCustomCountry] = useState('');
+    const [customCountry] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [latestNews, setLatestNews] = useState<any[]>([]);
@@ -587,7 +587,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
+    const [subscribeNewsletter] = useState(false);
     const [captchaA] = useState(Math.floor(Math.random() * 10) + 1);
     const [captchaB] = useState(Math.floor(Math.random() * 10) + 1);
     const [captchaAnswer, setCaptchaAnswer] = useState('');
@@ -3689,177 +3689,178 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </motion.div>
                         )}
                     </AnimatePresence>
-                </div >
+                </div>
+            </div>
 
-                {/* Ticker Banner */}
-                {
-                    !isFocusMode && !isFullScreen && showTickerBanner && (
-                        <div
-                            className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
-                            style={{ backgroundColor: tickerBgColor }}
-                            onMouseEnter={() => {
-                                const ticker = document.getElementById('ticker-animate-container');
-                                if (ticker) ticker.style.animationPlayState = 'paused';
-                            }}
-                            onMouseLeave={() => {
-                                const ticker = document.getElementById('ticker-animate-container');
-                                if (ticker) ticker.style.animationPlayState = 'running';
-                            }}
-                        >
-                            <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-                            <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+            {/* Ticker Banner */}
+            {
+                !isFocusMode && !isFullScreen && showTickerBanner && (
+                    <div
+                        className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                        style={{ backgroundColor: tickerBgColor }}
+                        onMouseEnter={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'paused';
+                        }}
+                        onMouseLeave={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'running';
+                        }}
+                    >
+                        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                            <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                                {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
-                                    <a
-                                        key={`${news.id}-${i}`}
-                                        href={`/news/${news.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
-                                        style={{ color: tickerTextColor }}
-                                    >
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
+                        <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                            {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
+                                <a
+                                    key={`${news.id}-${i}`}
+                                    href={`/news/${news.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
+                                    style={{ color: tickerTextColor }}
+                                >
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
+                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
+                                </a>
+                            ))}
+
+                            {tickerType === 'planning' && (() => {
+                                const activeItems = currentFluxLineup.filter(item => !item.isPast);
+                                return activeItems.concat(activeItems).map((item, i) => (
+                                    <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </div>
+                                ));
+                            })()}
+
+                            {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
+                                tickerLink ? (
+                                    <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
                                     </a>
-                                ))}
-
-                                {tickerType === 'planning' && (() => {
-                                    const activeItems = currentFluxLineup.filter(item => !item.isPast);
-                                    return activeItems.concat(activeItems).map((item, i) => (
-                                        <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                            <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </div>
-                                    ));
-                                })()}
-
-                                {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
-                                    tickerLink ? (
-                                        <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </a>
-                                    ) : (
-                                        <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
-                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </div>
-                                    )
-                                ))}
-
-                                {tickerType === 'news' && latestNews.length === 0 && (
-                                    <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
-                                        CHARGEMENT DU FIL D'ACTUALITÉ...
+                                ) : (
+                                    <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
                                     </div>
-                                )}
-                            </div>
+                                )
+                            ))}
+
+                            {tickerType === 'news' && latestNews.length === 0 && (
+                                <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                    CHARGEMENT DU FIL D'ACTUALITÉ...
+                                </div>
+                            )}
                         </div>
-                    )
-                }
+                    </div>
+                )
+            }
 
-                {/* Shazam Instructions Modal */}
-                <AnimatePresence>
-                    {showShazamInfo && (
+            {/* Shazam Instructions Modal */}
+            <AnimatePresence>
+                {showShazamInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
+                        onClick={() => setShowShazamInfo(false)}
+                    >
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
-                            onClick={() => setShowShazamInfo(false)}
+                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                            className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
+                            onClick={e => e.stopPropagation()}
                         >
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                                className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                {/* Decorative elements */}
-                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
 
-                                <div className="relative p-10 lg:p-14 text-center space-y-10">
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
+                            <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
 
-                                    <div className="relative flex flex-col items-center">
-                                        <div className="relative group">
-                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
-                                            <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                                <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
-                                            </div>
-                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
-                                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
-                                            </div>
+                                <div className="relative flex flex-col items-center">
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                        <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                            <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
                                         </div>
-
-                                        <div className="mt-8">
-                                            <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
-                                                Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
-                                            </h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
+                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
                                         </div>
                                     </div>
 
-                                    <div className="space-y-3 text-left relative z-10">
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.3 }}
-                                            className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
-                                            <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
-                                                Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
-                                            </p>
-                                        </motion.div>
-                                    </div>
-
-                                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                        <button
-                                            onClick={() => { setShowShazamInfo(false); handleShazam(); }}
-                                            className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
-                                        >
-                                            Démarrer
-                                        </button>
-                                        <button
-                                            onClick={() => setShowShazamInfo(false)}
-                                            className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
-                                        >
-                                            Annuler
-                                        </button>
+                                    <div className="mt-8">
+                                        <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                            Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
+                                        </h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
                                     </div>
                                 </div>
-                            </motion.div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
-                <style>{`
+                                <div className="space-y-3 text-left relative z-10">
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.3 }}
+                                        className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                        <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                            Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                        </p>
+                                    </motion.div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                    <button
+                                        onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                        className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                    >
+                                        Démarrer
+                                    </button>
+                                    <button
+                                        onClick={() => setShowShazamInfo(false)}
+                                        className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
@@ -3872,8 +3873,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
-            </div>
-            );
+        </div>
+    );
 }
 
-            export default TakeoverPage;
+export default TakeoverPage;
