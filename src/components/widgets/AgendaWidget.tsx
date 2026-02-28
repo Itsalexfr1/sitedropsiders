@@ -16,10 +16,27 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const upcomingEvents = agendaData
+    const [takeoverSettings, setTakeoverSettings] = useState<any>(null);
+    const [takeoverEnabled, setTakeoverEnabled] = useState(false);
+
+    const scheduledTakeover = (takeoverSettings?.showInAgenda && takeoverSettings?.startDate) ? {
+        name: takeoverSettings.title || "LIVE TAKEOVER",
+        name_en: takeoverSettings.title || "LIVE TAKEOVER",
+        date: takeoverSettings.startDate,
+        endDate: takeoverSettings.endDate,
+        location: "LIVE STREAM",
+        id: "live-takeover-scheduled",
+        isLiveTakeover: true,
+        category: "LIVE",
+        image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop"
+    } : null;
+
+    const allEvents = scheduledTakeover ? [...agendaData, scheduledTakeover] : agendaData;
+
+    const upcomingEvents = allEvents
         .filter((event: any) => {
             const eventDate = new Date(event.date);
-            eventDate.setHours(0, 0, 0, 0);
+            eventDate.setHours(23, 59, 59, 999); // Inclusion search
             return eventDate >= today;
         })
         .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
@@ -27,8 +44,6 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
 
     const playHoverSound = useHoverSound();
 
-    const [takeoverEnabled, setTakeoverEnabled] = useState(false);
-    const [takeoverSettings, setTakeoverSettings] = useState<any>(null);
     const [viewersCount, setViewersCount] = useState<number>(0);
     const [currentArtist, setCurrentArtist] = useState<{ artist: string; instagram: string; stage: string } | null>(null);
 

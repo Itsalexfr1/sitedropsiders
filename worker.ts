@@ -906,6 +906,31 @@ export default {
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
+        if (path === '/api/clips' && request.method === 'GET') {
+            const CLIPS_PATH = 'src/data/clips.json';
+            const file = await fetchGitHubFile(CLIPS_PATH);
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+        }
+
+        if (path === '/api/clips/create' && request.method === 'POST') {
+            const CLIPS_PATH = 'src/data/clips.json';
+            const clip = await request.json();
+            const file = await fetchGitHubFile(CLIPS_PATH) || { content: [], sha: null };
+            const updated = [clip, ...file.content];
+            const saved = await saveGitHubFile(CLIPS_PATH, updated.slice(0, 200), `Add clip: ${clip.id}`, file.sha);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
+        if (path === '/api/clips/delete' && request.method === 'POST') {
+            const CLIPS_PATH = 'src/data/clips.json';
+            const { id } = await request.json();
+            const file = await fetchGitHubFile(CLIPS_PATH);
+            if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+            const updated = file.content.filter(c => c.id !== id);
+            const saved = await saveGitHubFile(CLIPS_PATH, updated, `Delete clip: ${id}`, file.sha);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
         if (path === '/api/shop/reorder' && request.method === 'POST') {
             const SHOP_PATH = 'src/data/shop.json';
             const { products } = await request.json();
@@ -2160,55 +2185,126 @@ export default {
         const TOKEN = env.GITHUB_TOKEN;
 
         // 1. Fetch current settings to get the lineup
-        const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/src/data/settings.json`;
-        const res = await fetch(getUrl, {
-            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
-        });
-        if (!res.ok) return;
-        const fileData = await res.json();
-        const content = JSON.parse(atob(fileData.content));
-        const lineup = content?.takeover?.lineup;
-        if (!lineup) return;
+        const res = await fetchGitHubFile(SETTINGS_PATH);
+        if (!res) return;
+        const content = res.content;
+        const fileData = { sha: res.sha };
 
-        // 2. Parse lineup and find current artists
-        const parseLineup = (text) => {
-            const lines = text.split('\n');
-            const items = [];
-            let currentStage = 'Stage Principal';
-            for (const line of lines) {
-                if (line.trim().startsWith('---')) {
-                    currentStage = line.replace(/---/g, '').trim();
-                    continue;
-                }
-                const match = line.match(/(\d{1,2}:\d{2})\s+-\s+([^(\[]+)(?:\s+\[(.*?)\])?/);
-                if (match) {
-                    items.push({ time: match[1], artist: match[2].trim(), instagram: match[3], stage: currentStage });
+        let settingsChanged = false;
+
+        // --- AUTO-SWITCH LIVE STATUS ---
+        if (content.takeover) {
+            const nowTime = Date.now();
+            const start = content.takeover.startDate ? new Date(content.takeover.startDate).getTime() : null;
+            const end = content.takeover.endDate ? new Date(content.takeover.endDate).getTime() : null;
+
+            // Auto start
+            if (start && nowTime >= start && !content.takeover.enabled) {
+                if (!end || nowTime < end) {
+                    content.takeover.enabled = true;
+                    settingsChanged = true;
                 }
             }
+
+            // Auto stop
+            if (end && nowTime >= end && content.takeover.enabled) {
+                content.takeover.enabled = false;
+                settingsChanged = true;
+            }
+        }
+
+        const lineupText = content?.takeover?.lineup;
+        if (!lineupText) {
+            if (settingsChanged) {
+                await saveGitHubFile(SETTINGS_PATH, content, 'Auto-switch live status (Scheduled)', fileData.sha);
+            }
+            return;
+        }
+
+        // --- LINEUP PARSING & CLEANUP ---
+        const parseLineup = (text: string) => {
+            const lines = text.split('\n').filter(l => l.trim());
+            const items: any[] = [];
+            const now = new Date();
+            const currentTotal = now.getHours() * 60 + now.getMinutes();
+
+            lines.forEach(line => {
+                let timeRange = '', artist = '', stage = '', instagram = '';
+                const timeMatch = line.match(/\[(.*?)\]/);
+                if (timeMatch) {
+                    timeRange = timeMatch[1];
+                    const rest = line.replace(timeMatch[0], '').trim();
+                    const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split(/-(?=\s)/).map(p => p.trim());
+                    artist = parts[0] || '';
+                    stage = parts[1] || '';
+                    instagram = parts[2] || '';
+                }
+
+                const [startTime, endTime] = timeRange.includes('-') ? timeRange.split('-').map(t => t.trim()) : [timeRange.trim(), ''];
+                let isPast = false;
+                if (endTime && endTime.includes(':')) {
+                    const [h, m] = endTime.split(':').map(Number);
+                    const endMin = h * 60 + m;
+                    const timeDiff = (currentTotal - endMin + 1440) % 1440;
+                    if (timeDiff >= 0 && timeDiff < 720) isPast = true;
+                } else if (startTime.includes(':')) {
+                    const [h, m] = startTime.split(':').map(Number);
+                    if ((currentTotal - (h * 60 + m + 90) + 1440) % 1440 < 720) isPast = true;
+                }
+                items.push({ time: startTime, endTime, artist, stage, instagram, isPast });
+            });
             return items;
         };
 
-        const items = parseLineup(lineup);
+        const lineupItems = parseLineup(lineupText);
+        const activeItems = lineupItems.filter(i => !i.isPast);
+        let lineupChanged = false;
+
+        if (activeItems.length !== lineupItems.length) {
+            content.takeover.lineup = activeItems.map(i => {
+                const timeStr = i.endTime ? `${i.time}-${i.endTime}` : i.time;
+                return `[${timeStr}] ${i.artist}${i.stage ? ' - ' + i.stage : ''}${i.instagram ? ' - ' + i.instagram : ''}`;
+            }).join('\n');
+            lineupChanged = true;
+        }
+
         const now = new Date();
         const currentTotal = now.getHours() * 60 + now.getMinutes();
-
-        const currentlyLive = items
-            .filter(i => {
+        const currentArt = activeItems
+            .filter(i => i.time && i.time.includes(':'))
+            .map(i => {
                 const [h, m] = i.time.split(':').map(Number);
-                const total = h * 60 + m;
-                // Considered live if within the last 5 minutes (to account for cron jitter)
-                return total <= currentTotal && total > currentTotal - 10;
-            });
+                return { ...i, total: h * 60 + m };
+            })
+            .sort((a, b) => b.total - a.total)
+            .find(i => i.total <= currentTotal);
+
+        if (currentArt && currentArt.artist !== content.takeover.currentArtist) {
+            content.takeover.currentArtist = currentArt.artist;
+            content.takeover.artistInstagram = currentArt.instagram || '@DROPSIDERS';
+            lineupChanged = true;
+        }
+
+        if (settingsChanged || lineupChanged) {
+            await saveGitHubFile(SETTINGS_PATH, content, 'Auto-cleanup & switch (Scheduled)', fileData.sha);
+        }
+
+        // --- NOTIFICATIONS ---
+        const currentlyLive = activeItems.filter(i => {
+            if (!i.time || !i.time.includes(':')) return false;
+            const [h, m] = i.time.split(':').map(Number);
+            const total = h * 60 + m;
+            return total <= currentTotal && total > currentTotal - 10;
+        });
 
         if (currentlyLive.length === 0) return;
 
-        // 3. Check which artists we already notified for
         const lastNotifiedRaw = await env.CHAT_KV.get('last_notified_artists');
         const lastNotified = lastNotifiedRaw ? JSON.parse(lastNotifiedRaw) : {};
         const newArtistsToNotify = [];
 
         for (const item of currentlyLive) {
-            if (!lastNotified[item.artist] || (Date.now() - lastNotified[item.artist]) > 1000 * 60 * 60 * 2) { // Notify every 2 hours max per artist
+            if (!lastNotified[item.artist] || (Date.now() - lastNotified[item.artist]) > 1000 * 60 * 60 * 2) {
                 newArtistsToNotify.push(item);
                 lastNotified[item.artist] = Date.now();
             }
@@ -2216,45 +2312,34 @@ export default {
 
         if (newArtistsToNotify.length === 0) return;
 
-        // 4. Update notified list in KV
         await env.CHAT_KV.put('last_notified_artists', JSON.stringify(lastNotified), { expirationTtl: 86400 });
 
-        // 5. Fetch all subscribers and filter by favorites
         const { keys } = await env.CHAT_KV.list({ prefix: 'push_sub_' });
-
         for (const key of keys) {
             const subDataRaw = await env.CHAT_KV.get(key.name);
             if (!subDataRaw) continue;
             const { subscription, favorites } = JSON.parse(subDataRaw);
-
             const matchingArtists = newArtistsToNotify.filter(i => favorites.includes(i.artist));
-            if (matchingArtists.length > 0) {
-                for (const artist of matchingArtists) {
-                    // Trigger Push Notification via OneSignal or direct Web Push
-                    // For now, we call a helper or log. 
-                    // In a real scenario, this is where you'd call OneSignal or sign VAPID.
-                    console.log(`Sending push to ${subscription.endpoint} for ${artist.artist}`);
 
-                    // Simple example with OneSignal (if configured)
-                    if (env.ONESIGNAL_APP_ID) {
-                        await fetch('https://onesignal.com/api/v1/notifications', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Basic ${env.ONESIGNAL_API_KEY}`
-                            },
-                            body: JSON.stringify({
-                                app_id: env.ONESIGNAL_APP_ID,
-                                contents: { "en": `${artist.artist} est en LIVE sur Dropsiders !`, "fr": `${artist.artist} est en LIVE sur Dropsiders !` },
-                                headings: { "en": "DROPSIDERS LIVE", "fr": "DROPSIDERS LIVE" },
-                                url: `https://dropsiders.fr/takeover`,
-                                include_subscription_ids: [subscription.endpoint.split('/').pop()] // OneSignal specific
-                            })
-                        });
-                    }
+            for (const artist of matchingArtists) {
+                console.log(`Sending push for ${artist.artist}`);
+                if (env.ONESIGNAL_APP_ID) {
+                    await fetch('https://onesignal.com/api/v1/notifications', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Basic ${env.ONESIGNAL_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            app_id: env.ONESIGNAL_APP_ID,
+                            contents: { "en": `${artist.artist} est en LIVE sur Dropsiders !`, "fr": `${artist.artist} est en LIVE sur Dropsiders !` },
+                            headings: { "en": "DROPSIDERS LIVE", "fr": "DROPSIDERS LIVE" },
+                            url: `https://dropsiders.fr/takeover`,
+                            include_subscription_ids: [subscription.endpoint.split('/').pop()]
+                        })
+                    });
                 }
             }
         }
     }
 }
-

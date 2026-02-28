@@ -56,6 +56,8 @@ export function AdminDashboard() {
         link: ''
     });
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
+    const [clips, setClips] = useState<any[]>([]);
+    const [isLoadingClips, setIsLoadingClips] = useState(false);
     const [isTakeoverModalOpen, setIsTakeoverModalOpen] = useState(false);
     interface TakeoverState {
         enabled: boolean;
@@ -79,6 +81,9 @@ export function AdminDashboard() {
         autoMessage: string;
         autoMessageInterval: number;
         pinnedMessage?: string;
+        showInAgenda?: boolean;
+        startDate?: string;
+        endDate?: string;
     }
 
     const [takeoverState, setTakeoverState] = useState<TakeoverState>({
@@ -102,10 +107,13 @@ export function AdminDashboard() {
         channels: '',
         autoMessage: '',
         autoMessageInterval: 60,
-        pinnedMessage: ''
+        pinnedMessage: '',
+        showInAgenda: true,
+        startDate: '',
+        endDate: ''
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
-    const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
+    const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access' | 'clips'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
 
     useEffect(() => {
@@ -335,7 +343,10 @@ export function AdminDashboard() {
                         channels: data.takeover.channels || '',
                         autoMessage: data.takeover.autoMessage || '',
                         autoMessageInterval: data.takeover.autoMessageInterval || 60,
-                        pinnedMessage: data.takeover.pinnedMessage || ''
+                        pinnedMessage: data.takeover.pinnedMessage || '',
+                        showInAgenda: data.takeover.showInAgenda !== false,
+                        startDate: data.takeover.startDate || '',
+                        endDate: data.takeover.endDate || ''
                     });
                 }
             }
@@ -368,6 +379,37 @@ export function AdminDashboard() {
             console.error('Failed to save takeover settings', e);
         } finally {
             setIsUpdatingTakeover(false);
+        }
+    };
+
+    const fetchClips = async () => {
+        setIsLoadingClips(true);
+        try {
+            const res = await fetch('/api/clips');
+            if (res.ok) {
+                const data = await res.json();
+                setClips(data);
+            }
+        } catch (err) {
+            console.error("Error fetching clips:", err);
+        } finally {
+            setIsLoadingClips(false);
+        }
+    };
+
+    const handleDeleteClip = async (id: string) => {
+        if (!window.confirm("Supprimer définitivement cet extrait ?")) return;
+        try {
+            const res = await fetch('/api/clips/delete', {
+                method: 'POST',
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            if (res.ok) {
+                setClips(prev => prev.filter((c: any) => c.id !== id));
+            }
+        } catch (err) {
+            console.error("Error deleting clip:", err);
         }
     };
 
@@ -2438,6 +2480,15 @@ export function AdminDashboard() {
                                     <button onClick={() => setTakeoverTab('bot')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'bot' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>BOT</button>
                                     <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACCÈS</button>
                                     <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÉS</button>
+                                    <button
+                                        onClick={() => {
+                                            setTakeoverTab('clips');
+                                            fetchClips();
+                                        }}
+                                        className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'clips' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        VIDÉO / CLIPS
+                                    </button>
                                 </div>
                             </div>
 
@@ -2618,6 +2669,51 @@ export function AdminDashboard() {
                                                 className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
                                                 placeholder="Nom de l'event..."
                                             />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Calendar className="w-4 h-4 text-neon-cyan" />
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de Début</label>
+                                                </div>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={takeoverState.startDate}
+                                                    onChange={(e) => setTakeoverState({ ...takeoverState, startDate: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
+                                                />
+                                            </div>
+                                            <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Calendar className="w-4 h-4 text-neon-cyan" />
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de Fin</label>
+                                                </div>
+                                                <input
+                                                    type="datetime-local"
+                                                    value={takeoverState.endDate}
+                                                    onChange={(e) => setTakeoverState({ ...takeoverState, endDate: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white focus:border-neon-cyan outline-none"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                    <LayoutDashboard className="w-4 h-4 text-neon-cyan" />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <p className="text-[11px] font-black text-white uppercase tracking-widest">Afficher dans l'Agenda</p>
+                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Widget page d'accueil</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setTakeoverState({ ...takeoverState, showInAgenda: !takeoverState.showInAgenda })}
+                                                className={`w-12 h-6 rounded-full relative transition-all ${takeoverState.showInAgenda ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
+                                            >
+                                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${takeoverState.showInAgenda ? 'right-1' : 'left-1'}`} />
+                                            </button>
                                         </div>
 
                                         <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
@@ -3158,6 +3254,93 @@ export function AdminDashboard() {
                                                     </button>
                                                 </div>
                                             ))
+                                        )}
+                                    </div>
+                                )}
+
+                                {takeoverTab === 'clips' && (
+                                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div>
+                                                <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-cyan">Clips</span></h3>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Extraits créés par la communauté</p>
+                                            </div>
+                                            <button
+                                                onClick={fetchClips}
+                                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                            >
+                                                <RotateCcw className={`w-4 h-4 ${isLoadingClips ? 'animate-spin' : ''}`} />
+                                            </button>
+                                        </div>
+
+                                        {isLoadingClips ? (
+                                            <div className="flex flex-col items-center justify-center py-20 grayscale opacity-50">
+                                                <Loader2 className="w-12 h-12 text-neon-cyan animate-spin mb-4" />
+                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-neon-cyan animate-pulse">Chargement des clips...</p>
+                                            </div>
+                                        ) : clips.length === 0 ? (
+                                            <div className="flex flex-col items-center justify-center py-20 border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02]">
+                                                <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-6 border border-white/10">
+                                                    <VideoOff className="w-8 h-8 text-gray-600" />
+                                                </div>
+                                                <p className="text-gray-500 font-black uppercase italic tracking-widest">Aucun clip pour le moment</p>
+                                                <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits créés en live apparaîtront ici</p>
+                                            </div>
+                                        ) : (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
+                                                {clips.map((clip: any) => (
+                                                    <div key={clip.id} className="bg-white/5 border border-white/10 rounded-[2rem] overflow-hidden group hover:border-neon-cyan/30 transition-all flex flex-col">
+                                                        <div className="aspect-video relative overflow-hidden">
+                                                            <img
+                                                                src={`https://img.youtube.com/vi/${clip.videoId}/maxresdefault.jpg`}
+                                                                alt={clip.title}
+                                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                                onError={(e) => (e.currentTarget.src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop')}
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
+                                                            <div className="absolute bottom-3 left-3 right-3 flex justify-between items-center">
+                                                                <div className="px-2 py-1 bg-black/80 rounded-lg border border-white/10 backdrop-blur-md">
+                                                                    <p className="text-[9px] font-black text-white">{clip.duration || '0:30'}</p>
+                                                                </div>
+                                                                <div className="px-2 py-1 bg-neon-cyan/80 rounded-lg border border-neon-cyan/30 backdrop-blur-md">
+                                                                    <p className="text-[9px] font-black text-black uppercase tracking-widest truncate max-w-[80px]">{clip.creator || 'USER'}</p>
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => window.open(`https://youtube.com/watch?v=${clip.videoId}`, '_blank')}
+                                                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                            >
+                                                                <div className="w-12 h-12 rounded-full bg-neon-cyan text-black flex items-center justify-center shadow-2xl hover:scale-110 transition-transform">
+                                                                    <Play className="w-6 h-6 fill-current" />
+                                                                </div>
+                                                            </button>
+                                                        </div>
+                                                        <div className="p-5 flex-1 flex flex-col">
+                                                            <h4 className="text-[11px] font-black text-white uppercase italic tracking-tight mb-1 truncate">{clip.title}</h4>
+                                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-4">{clip.date} • {clip.timestamp}</p>
+
+                                                            <div className="mt-auto grid grid-cols-2 gap-2">
+                                                                <a
+                                                                    href={`https://youtube.com/watch?v=${clip.videoId}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Download className="w-3 h-3" />
+                                                                    SAVE
+                                                                </a>
+                                                                <button
+                                                                    onClick={() => handleDeleteClip(clip.id)}
+                                                                    className="py-2.5 bg-red-600/10 border border-red-500/20 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                    SUPPR.
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         )}
                                     </div>
                                 )}

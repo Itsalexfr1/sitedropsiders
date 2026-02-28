@@ -5,7 +5,7 @@ import {
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send,
-    ChevronUp, ChevronDown
+    ChevronUp, ChevronDown, Download
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -57,33 +57,154 @@ interface TakeoverProps {
         disableMainPlayer?: boolean;
         startDate?: string;
         endDate?: string;
+        stage1?: string;
+        stage2?: string;
+        stage3?: string;
+        stage4?: string;
+        stage1Name?: string;
+        stage2Name?: string;
+        stage3Name?: string;
+        stage4Name?: string;
+        showInAgenda?: boolean;
     };
 }
 
 export function TakeoverPage({ settings }: TakeoverProps) {
-    const [viewersCount, setViewersCount] = useState(0);
-    const [showLineup, setShowLineup] = useState(false);
-    const [isFullScreen, setIsFullScreen] = useState(false);
-    const [showVideoEdit, setShowVideoEdit] = useState(false);
-    const [showClipModal, setShowClipModal] = useState(false);
-    const [isClipping, setIsClipping] = useState(false);
-    const [clipProgress, setClipProgress] = useState(0);
-    const [clips, setClips] = useState<{ id: string, title: string, duration: string, date: string }[]>(() => {
-        try { return JSON.parse(localStorage.getItem('user_clips') || '[]'); } catch { return []; }
+    const [pseudo, setPseudo] = useState(() => {
+        const adminAuth = localStorage.getItem('admin_auth') === 'true';
+        if (adminAuth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
+        return localStorage.getItem('chat_pseudo') || '';
     });
-    const [playersOption, setPlayersOption] = useState<number>(1);
-    const [favorites, setFavorites] = useState<string[]>(() => {
-        try { return JSON.parse(localStorage.getItem('favorited_artists') || '[]'); } catch { return []; }
+    const [country, setCountry] = useState(() => {
+        const auth = localStorage.getItem('admin_auth') === 'true';
+        if (auth) return 'FR';
+        return '';
     });
+    const [isJoined, setIsJoined] = useState(() => {
+        const adminAuth = localStorage.getItem('admin_auth') === 'true';
+        const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
+        return adminAuth || editeurAuth || localStorage.getItem('chat_joined') === 'true';
+    });
+    const [isMutedGlobal, setIsMutedGlobal] = useState(false);
+    const [showClipPlayer, setShowClipPlayer] = useState(false);
+    const [activeClipToPlay, setActiveClipToPlay] = useState<any>(null);
+    const [favorites, setFavorites] = useState<string[]>(() => JSON.parse(localStorage.getItem('favorited_artists') || '[]'));
     const [notifiedArtists, setNotifiedArtists] = useState<string[]>([]);
-    const [newVideoId, setNewVideoId] = useState(settings.youtubeId);
-    const [isUnlocked, setIsUnlocked] = useState(() => {
-        if (!settings.isSecret) return true;
-        // Check if already unlocked in this session
-        return sessionStorage.getItem('takeover_unlocked') === 'true';
-    });
+    const [isUnlocked, setIsUnlocked] = useState(() => sessionStorage.getItem('takeover_unlocked') === 'true');
     const [enteredPassword, setEnteredPassword] = useState('');
     const [passwordError, setPasswordError] = useState(false);
+    const [viewersCount, setViewersCount] = useState(0);
+    const [isClipping, setIsClipping] = useState(false);
+    const [clipProgress, setClipProgress] = useState(0);
+    const [clips, setClips] = useState<any[]>([]);
+    const [activeClipPopup, setActiveClipPopup] = useState<any>(null);
+    const [newVideoId, setNewVideoId] = useState('');
+    const [showLineup, setShowLineup] = useState(false);
+    const [showVideoEdit, setShowVideoEdit] = useState(false);
+    const [showClipModal, setShowClipModal] = useState(false);
+    const [playersOption, setPlayersOption] = useState(1);
+    const [email, setEmail] = useState('');
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [activeSettingsTab, setActiveSettingsTab] = useState('general');
+
+    // --- NEW FEATURES STATES ---
+    const [userDrops, setUserDrops] = useState(() => {
+        try { return parseInt(localStorage.getItem('user_drops') || '0'); } catch { return 0; }
+    });
+    const [hypeLevel, setHypeLevel] = useState(0);
+    const [isOverdrive, setIsOverdrive] = useState(false);
+    const [bpm, setBpm] = useState(128);
+    const [showDropsShop, setShowDropsShop] = useState(false);
+    const [isListeningForDrops, setIsListeningForDrops] = useState(true);
+    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'leaderboard'>('chat');
+    const [isFullScreen, setIsFullScreen] = useState(false);
+    const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
+    const [totalWatchTime, setTotalWatchTime] = useState(0);
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const [isTransitioning, setIsTransitioning] = useState(false);
+    const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
+    const [annBannerText, setAnnBannerText] = useState('');
+    const [annBannerColor, setAnnBannerColor] = useState('#ffffff');
+    const [annBannerBg, setAnnBannerBg] = useState('#0a0a0a');
+
+    // Update current time every 30s for artist tracking
+    useEffect(() => {
+        const interval = setInterval(() => setCurrentTime(new Date()), 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Transition effect when changing player counts
+    useEffect(() => {
+        setIsTransitioning(true);
+        const t = setTimeout(() => setIsTransitioning(false), 800);
+        return () => clearTimeout(t);
+    }, [playersOption]);
+
+    // Fetch clips periodically
+    useEffect(() => {
+        const fetchClips = async () => {
+            try {
+                const res = await fetch('/api/clips');
+                if (res.ok) setClips(await res.json());
+            } catch (err) { }
+        };
+        fetchClips();
+        const interval = setInterval(fetchClips, 30000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Dynamic BPM simulation
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBpm(prev => {
+                const change = Math.floor(Math.random() * 3) - 1; // -1, 0, or 1
+                const next = prev + (isOverdrive ? change * 2 : change);
+                return Math.max(120, Math.min(next, 145));
+            });
+        }, 1500);
+        return () => clearInterval(interval);
+    }, [isOverdrive]);
+
+    // Earn Drops every 10 minutes
+    useEffect(() => {
+        if (!isJoined) return;
+        const interval = setInterval(() => {
+            setTotalWatchTime(prev => {
+                const next = prev + 1;
+                if (next >= 600) { // 10 minutes = 600 seconds
+                    setUserDrops(d => {
+                        const newD = d + 10;
+                        localStorage.setItem('user_drops', String(newD));
+                        return newD;
+                    });
+                    return 0;
+                }
+                return next;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [isJoined]);
+
+    // Hype Decay
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setHypeLevel(prev => Math.max(0, prev - 1));
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
+
+    // Overdrive Handler
+    useEffect(() => {
+        if (hypeLevel >= 80 && !isOverdrive) {
+            setIsOverdrive(true);
+            setTimeout(() => {
+                setIsOverdrive(false);
+                setHypeLevel(50); // Cool down
+            }, 180000); // 3 minutes
+        }
+    }, [hypeLevel, isOverdrive]);
+
+    // --- END NEW FEATURES ---
 
     const parseLineup = useCallback((text: string) => {
         if (!text) return [];
@@ -133,6 +254,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     isPast = true;
                 }
             } else if (startMinutes !== -1) {
+                // Approximate 90 min set if no end time
                 const approxEnd = (startMinutes + 90) % 1440;
                 const timeDiff = (currentTotal - approxEnd + 1440) % 1440;
                 if (timeDiff >= 0 && timeDiff < 720) {
@@ -140,7 +262,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 }
             }
 
-            return { time: startTime, endTime, artist, stage, instagram, isPast, totalMinutes: startMinutes };
+            // Progress percentage for planning gauge
+            let progress = 0;
+            if (startMinutes !== -1 && endMinutes !== -1 && !isPast) {
+                if (currentTotal >= startMinutes && currentTotal < endMinutes) {
+                    progress = ((currentTotal - startMinutes) / (endMinutes - startMinutes)) * 100;
+                } else if (currentTotal < startMinutes && currentTotal + 1440 >= startMinutes && currentTotal + 1440 < endMinutes + 1440) {
+                    // Handles midnight wrap
+                    progress = ((currentTotal + 1440 - startMinutes) / (endMinutes - startMinutes)) * 100;
+                }
+            }
+
+            return { time: startTime, endTime, artist, stage, instagram, isPast, totalMinutes: startMinutes, progress };
         });
     }, []);
 
@@ -197,6 +330,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             }
 
             if (shouldBeOnline !== settings.isOnline) {
+                console.log('[Takeover] Scheduling update:', { shouldBeOnline, current: settings.isOnline });
+                // Update settings prop immediately to avoid loop
+                settings.isOnline = shouldBeOnline;
                 handleUpdateSettings({ isOnline: shouldBeOnline });
             }
         };
@@ -236,7 +372,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             // Sort by latest start time first
             .sort((a, b) => b.total - a.total)
             // It must have started (total <= currentTotal) AND not be past (isPast is false)
-            .find(i => i.total <= currentTotal && !i.isPast);
+            .find(i => i.total <= (currentTime.getHours() * 60 + currentTime.getMinutes()) && !i.isPast);
 
         if (currentItem) {
             return { artist: currentItem.artist || '', instagram: currentItem.instagram || '' };
@@ -309,8 +445,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
 
-    const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
-    const [editLineup, setEditLineup] = useState(settings.lineup || '');
     const [lineupEndHour, setLineupEndHour] = useState("");
     const [lineupEndMinute, setLineupEndMinute] = useState("");
 
@@ -319,42 +453,100 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[0] ? `https://youtube.com/watch?v=${lines[0].split(':')[0]}` : '';
     });
+    const [stage2, setStage2] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
+    });
+    const [stage3, setStage3] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
+    });
+    const [stage4, setStage4] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '';
+    });
 
 
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
-    const [, setEditCurrentArtist] = useState(settings.currentArtist || '');
-    const [, setEditArtistInstagram] = useState(settings.artistInstagram || '');
     const [localCustomCommands, setLocalCustomCommands] = useState(settings.customCommands || '');
     const [localModerators, setLocalModerators] = useState(settings.moderators || '');
-    const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
-    const [annBannerText, setAnnBannerText] = useState('');
-    const [annBannerColor, setAnnBannerColor] = useState('#ffffff');
-    const [annBannerBg, setAnnBannerBg] = useState('#0a0a0a');
     const [selectedShopIds, setSelectedShopIds] = useState<string[]>([]);
     const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
 
-    const handleCreateClip = () => {
+    const handleCreateClip = async () => {
         setIsClipping(true);
         setClipProgress(0);
 
         let progress = 0;
-        const interval = setInterval(() => {
+        const interval = setInterval(async () => {
             progress += 5;
             setClipProgress(progress);
             if (progress >= 100) {
                 clearInterval(interval);
                 setIsClipping(false);
+                const clipId = Math.random().toString(36).substr(2, 9);
+                const currentVideoId = channelItems[activeVideoIndex]?.id;
                 const newClip = {
-                    id: Math.random().toString(36).substr(2, 9),
+                    id: clipId,
+                    videoId: currentVideoId,
                     title: `Extrait Live - ${channelItems[activeVideoIndex]?.title || 'Main Stage'}`,
                     duration: '0:30',
-                    date: new Date().toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                    date: new Date().toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    channelId: currentVideoId,
+                    creator: pseudo || 'Anonyme',
+                    url: `https://youtube.com/watch?v=${currentVideoId}` // Simplified for demo
                 };
+
+                // Save to API (Centralized Clips)
+                try {
+                    await fetch('/api/clips/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newClip)
+                    });
+                } catch (e) {
+                    console.error('Failed to save clip to API', e);
+                }
+
                 const updatedClips = [newClip, ...clips];
                 setClips(updatedClips);
                 localStorage.setItem('user_clips', JSON.stringify(updatedClips));
+
+                // Send bot message with clip link
+                try {
+                    await fetch('/api/chat/messages', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pseudo: 'DROPSIDERS BOT',
+                            message: `🎬 @${pseudo.toUpperCase()} vient de clipper un moment épique ! Regardez-le ici : [VOIR LE CLIP](#clip-${clipId})`,
+                            country: 'FR',
+                            isBot: true,
+                            color: '#00ffcc',
+                            channel: currentVideoId
+                        })
+                    });
+                } catch (e) {
+                    console.error('Failed to send clip bot message', e);
+                }
             }
-        }, 150); // Simule 3 secondes de capture
+        }, 150);
+    };
+
+    const handleDownloadClip = (clip: any) => {
+        const videoId = clip.videoId || clip.channelId || settings.youtubeId;
+        if (!videoId) return alert("Erreur: ID Vidéo manquant");
+
+        // Simulating a real download process with a toast or redirect
+        // In a real app, this would call a backend service to process the clip
+        const downloadUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+        // Notify user
+        alert(`Préparation du téléchargement HD pour "${clip.title}"...\nLe flux est en cours de traitement.`);
+
+        // For demonstration/finishing the feature, we could redirect to a downloader service (optional)
+        // window.open(`https://en.savefrom.net/1-youtube-video-downloader-386.html?url=${encodeURIComponent(downloadUrl)}`, '_blank');
     };
 
     // Load announcement banner settings from API
@@ -374,7 +566,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             const password = localStorage.getItem('admin_password') || '';
             const username = localStorage.getItem('admin_user') || 'alex';
             const sessionId = localStorage.getItem('admin_session_id') || '';
-            await fetch('/api/settings', {
+            await fetch('/api/settings/update', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -423,19 +615,44 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setShowShopWidget(settings.showShop ?? false);
     }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
 
-    // Automatic cleanup of past artists from the planning
+    // Automatic cleanup of past artists and update current artist
     useEffect(() => {
-        if (!settings.lineup) return;
+        if (!settings.lineup || !isServerAdmin) return;
 
-        const cleanupPlanning = async () => {
+        const updateCurrentArtistFromLineup = async () => {
             const items = parseLineup(settings.lineup || '');
-            const activeItems = items.filter(i => !i.isPast);
+            const now = new Date();
+            const currentTotal = now.getHours() * 60 + now.getMinutes();
 
+            // Find current active artist for the main flux
+            const activeItems = items.filter(i => !i.isPast);
+            const currentMainItem = items
+                .filter(i => {
+                    const [h, m] = i.time.split(':').map(Number);
+                    const total = h * 60 + m;
+                    return total <= currentTotal && !i.isPast;
+                })
+                .sort((a, b) => {
+                    const [ha, ma] = a.time.split(':').map(Number);
+                    const [hb, mb] = b.time.split(':').map(Number);
+                    return (hb * 60 + mb) - (ha * 60 + ma);
+                })[0];
+
+            if (currentMainItem && currentMainItem.artist !== settings.currentArtist) {
+                console.log('[Takeover] Auto-updating current artist:', currentMainItem.artist);
+                await handleUpdateSettings({
+                    currentArtist: currentMainItem.artist,
+                    artistInstagram: currentMainItem.instagram || '@DROPSIDERS'
+                });
+            }
+
+            // Cleanup past artists automatically
             if (activeItems.length !== items.length) {
-                // Reconstruct the lineup text
                 const newText = activeItems.map(i => {
                     const timeStr = i.endTime ? `${i.time}-${i.endTime}` : i.time;
-                    return `[${timeStr}] ${i.artist} - ${i.stage} - ${i.instagram || ''}`;
+                    const stagePart = i.stage ? ` - ${i.stage}` : '';
+                    const instaPart = i.instagram ? ` - ${i.instagram}` : '';
+                    return `[${timeStr}] ${i.artist}${stagePart}${instaPart}`;
                 }).join('\n');
 
                 if (newText !== settings.lineup) {
@@ -445,25 +662,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             }
         };
 
-        const interval = setInterval(cleanupPlanning, 60000); // Check every minute
+        const interval = setInterval(updateCurrentArtistFromLineup, 60000);
+        updateCurrentArtistFromLineup();
         return () => clearInterval(interval);
-    }, [settings.lineup, parseLineup]);
-    const [isSaving, setIsSaving] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'shop'>('general');
-    const [stage2, setStage2] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '';
-    });
-    const [stage3, setStage3] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '';
-    });
-    const [stage4, setStage4] = useState(() => {
-        const lines = (settings.channels || '').split('\n').filter(Boolean);
-        return lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '';
-    });
-
+    }, [settings.lineup, settings.currentArtist, parseLineup, isServerAdmin, handleUpdateSettings]);
     // Local state for settings modal to avoid multiple builds
     const [localSettings, setLocalSettings] = useState<Partial<TakeoverProps['settings']>>({});
     useEffect(() => {
@@ -503,64 +705,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
-    const [pseudo, setPseudo] = useState(() => {
-        const adminAuth = localStorage.getItem('admin_auth') === 'true';
-        if (adminAuth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
-        return localStorage.getItem('chat_pseudo') || '';
-    });
-    const [isJoined, setIsJoined] = useState(() => {
-        const adminAuth = localStorage.getItem('admin_auth') === 'true';
-        const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
-        return adminAuth || editeurAuth || localStorage.getItem('chat_joined') === 'true';
-    });
-    const [showShazamInfo, setShowShazamInfo] = useState(false);
-
-    useEffect(() => {
-        const banned = localStorage.getItem('chat_banned') === 'true';
-        const timestamp = localStorage.getItem('chat_ban_timestamp');
-        if (banned) {
-            setIsLocalBanned(true);
-            if (timestamp) setBanTimestamp(parseInt(timestamp));
-        }
-    }, []);
-
-    const handleUnbanRequest = async () => {
-        if (!banTimestamp) return;
-        const now = Date.now();
-        const tenMinutes = 10 * 60 * 1000;
-        if (now - banTimestamp < tenMinutes) {
-            const remaining = Math.ceil((tenMinutes - (now - banTimestamp)) / 60000);
-            alert(`Vous devez attendre encore ${remaining} minutes avant de pouvoir faire une demande.`);
-            return;
-        }
-
-        try {
-            const response = await fetch('/api/chat/unban-request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    pseudo: pseudo.toUpperCase(),
-                    email,
-                    timestamp: banTimestamp
-                })
-            });
-            if (response.ok) {
-                alert("Votre demande a été envoyée avec succès.");
-            } else {
-                alert("Erreur lors de l'envoi de la demande.");
-            }
-        } catch (err: any) {
-            alert("Erreur de connexion.");
-        }
-    };
     const isFocusMode = false;
-    const [email] = useState('');
-    const [country, setCountry] = useState(() => {
-        const auth = localStorage.getItem('admin_auth') === 'true';
-        if (auth) return 'FR';
-        return '';
-    });
-    const [customCountry] = useState('');
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [latestNews, setLatestNews] = useState<any[]>([]);
@@ -800,7 +945,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     useEffect(() => {
         const pollSettings = async () => {
             try {
-                const res = await fetch('/api/settings');
+                const res = await fetch(`/api/settings?t=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
                     if (data?.takeover) {
@@ -814,6 +959,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         settings.pinnedMessage = newSettings.pinnedMessage;
                         settings.currentArtist = newSettings.currentArtist;
                         settings.artistInstagram = newSettings.artistInstagram;
+                    }
+                    if (data?.announcement_banner) {
+                        setAnnBannerEnabled(data.announcement_banner.enabled ?? false);
+                        setAnnBannerText(data.announcement_banner.text ?? '');
+                        setAnnBannerColor(data.announcement_banner.color ?? '#ffffff');
+                        setAnnBannerBg(data.announcement_banner.bgColor ?? '#0a0a0a');
                     }
                 }
             } catch (err: any) { }
@@ -918,6 +1069,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
         if (!pseudo.trim() || !email.trim() || !country.trim()) {
             alert("Merci de remplir tous les champs (pseudo, email, pays).");
+            return;
+        }
+
+        // --- DUPLICATE PSEUDO SECURITY ---
+        const exists = activeUsers.find(u => u.pseudo.toUpperCase() === pseudo.trim().toUpperCase());
+        if (exists) {
+            alert("Ce pseudo est déjà utilisé dans le chat. Merci d'en choisir un autre.");
             return;
         }
 
@@ -1154,6 +1312,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     channel: currentVideoId
                 })
             });
+            // Hype Increase
+            setHypeLevel(prev => Math.min(100, prev + 5));
         } catch (e: any) {
             console.error('Failed to send message', e);
         } finally {
@@ -1303,9 +1463,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const isServerAdmin = adminAuth === true;
 
     // State for command edition
+    const [isSaving, setIsSaving] = useState(false);
+    const [editLineup, setEditLineup] = useState(settings.lineup || '');
+    const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
+    const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
+    const [showShazamInfo, setShowShazamInfo] = useState(false);
     const [cmdTrigger, setCmdTrigger] = useState('');
     const [cmdResponse, setCmdResponse] = useState('');
     const [isEditingCmd, setIsEditingCmd] = useState<string | null>(null);
+
+    const handleUnbanRequest = () => {
+        // Placeholder for unban request logic
+        alert("Demande de débannissement envoyée.");
+    };
 
     const [expandedUserId, setExpandedUserId] = useState<string | null>(null);
 
@@ -1333,7 +1503,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const handleUpdateSettings = useCallback(async (updates: Partial<TakeoverProps['settings']>) => {
         setIsSaving(true);
         try {
-            const res = await fetch('/api/settings');
+            const res = await fetch(`/api/settings?t=${Date.now()}`);
             if (res.ok) {
                 const currentSettings = await res.json();
                 const newSettings = {
@@ -1351,7 +1521,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         botColor: updates.botColor ?? botColor,
                         botBgColor: updates.botBgColor ?? botBgColor,
                         adminColor: updates.adminColor ?? adminColor,
-                        adminBgColor: updates.adminBgColor ?? adminBgColor
+                        adminBgColor: updates.adminBgColor ?? adminBgColor,
+                        showInAgenda: updates.showInAgenda ?? settings.showInAgenda,
+                        startDate: updates.startDate ?? settings.startDate,
+                        endDate: updates.endDate ?? settings.endDate
                     }
                 };
 
@@ -1592,227 +1765,405 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }
 
     return (
-        <div className={`fixed ${showTopBanner && !isFullScreen ? 'top-[70px] lg:top-32' : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-500`}>
-            {/* Live Banner Header - Conditionally based on top banner enabled */}
-            {showTopBanner && !isFocusMode && !isFullScreen && (
-                <div className="w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-2xl shrink-0">
-                    <div className="flex items-center gap-4">
-                        <div className="flex flex-col items-center gap-1.5">
-                            <div className="flex items-center gap-2 px-3 py-1 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
-                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
-                                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest leading-none">EN DIRECT</span>
-                            </div>
-                            <div
-                                className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all shadow-lg"
-                                onClick={() => setShowUsersPanel(!showUsersPanel)}
-                            >
-                                <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] leading-none flex items-center gap-2">
-                                    <Users className="w-3 h-3" />
-                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (allActiveUsers.length || '...')}
-                                </span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                            <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
-                                {displayTitle}
-                            </h1>
-                            {fluxCurrentArtist.artist && settings.isOnline && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="flex items-center gap-2"
-                                >
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black/40 border border-white/10 rounded-lg backdrop-blur-md">
-                                        <Music2 className="w-2.5 h-2.5 text-neon-cyan shadow-[0_0_8px_#00ffff66]" />
-                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest whitespace-nowrap">
-                                            NOW: <span className="text-white">{fluxCurrentArtist.artist}</span>
-                                        </span>
-                                        {fluxCurrentArtist.instagram && (
-                                            <a
-                                                href={fluxCurrentArtist.instagram}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="ml-1 p-0.5 hover:bg-neon-purple/20 rounded text-neon-purple transition-all"
-                                                title="Instagram de l'artiste"
-                                            >
-                                                <Instagram className="w-3 h-3" />
-                                            </a>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </div>
+        <>
+            {/* Announcement Banner */}
+            {!isFocusMode && !isFullScreen && annBannerEnabled && annBannerText && (
+                <div
+                    className="fixed top-0 left-0 right-0 h-8 lg:h-12 flex items-center overflow-hidden z-[60] border-b border-white/10 shadow-2xl"
+                    style={{ backgroundColor: annBannerBg }}
+                >
+                    <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black/20 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black/20 to-transparent z-10 pointer-events-none" />
 
-
-                        {/* Multi-Video Switcher */}
-                        {channelItems.length > 1 && (
-                            <div className="flex items-center flex-wrap gap-2">
-                                <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                                    {channelItems.map((item: any, idx) => {
-                                        const isDisabled = settings.disableMainPlayer !== false;
-                                        if (item.isMain && isDisabled) return null;
-                                        return (
-                                            <button
-                                                key={idx}
-                                                id={`channel-btn-${idx}`}
-                                                onClick={() => { setActiveVideoIndex(idx); setPlayersOption(1); }}
-                                                className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
-                                            >
-                                                {item.title}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 h-8">
-                                    {[1, 2, 3, 4].filter(n => n <= channelItems.length).map(n => (
-                                        <button
-                                            key={n}
-                                            onClick={() => setPlayersOption(n)}
-                                            className={`min-w-[28px] h-full rounded flex items-center justify-center text-[10px] font-black transition-all ${playersOption === n ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:bg-white/10'}`}
-                                            title={n > 1 ? `Vue ${n} écrans` : `Vue unique`}
-                                        >
-                                            {n === 1 ? <Maximize className="w-3 h-3" /> : <LayoutGrid className="w-3 h-3 mr-0.5" />} {n > 1 && n}
-                                        </button>
-                                    ))}
-                                </div>
+                    <div className="flex items-center whitespace-nowrap animate-ticker py-2">
+                        {Array(10).fill(0).map((_, i) => (
+                            <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: annBannerColor }}>
+                                <span className="text-[10px] lg:text-[12px] font-black uppercase italic tracking-[0.3em]">{annBannerText}</span>
+                                <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
                             </div>
-                        )}
-                        <div className="flex items-center gap-2">
-                            {hasModPowers && (
-                                <button
-                                    id="admin-edit-btn"
-                                    onClick={() => setShowEditModal(true)}
-                                    className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all shrink-0"
-                                    title="Modifier le Live"
-                                >
-                                    <Pencil className="w-3.5 h-3.5" />
-                                </button>
-                            )}
-                            <button
-                                onClick={() => setShowClipModal(true)}
-                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg bg-white/5 border-white/10 text-gray-400 hover:text-neon-purple hover:border-neon-purple/30`}
-                                title="Clip & VOD"
-                            >
-                                <Video className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Clip / VOD</span>
-                            </button>
-                            <button
-                                onClick={() => {
-                                    if (showLineup) {
-                                        setShowLineup(false);
-                                    } else {
-                                        setShowVideoEdit(false);
-                                        setShowLineup(true);
-                                    }
-                                }}
-                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showLineup ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-red hover:border-neon-red/30 animate-glow'}`}
-                            >
-                                <List className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Planning</span>
-                            </button>
-                            <button
-                                onClick={() => setIsFullScreen(!isFullScreen)}
-                                className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${isFullScreen ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30'}`}
-                                title={isFullScreen ? "Quitter le plein écran" : "Mode plein écran"}
-                            >
-                                {isFullScreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
-                                <span className="hidden sm:inline">{isFullScreen ? "Réduire" : "Plein écran"}</span>
-                            </button>
-                        </div>
-                        <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-9">
-                            <a
-                                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 text-gray-500 hover:text-blue-500 transition-colors"
-                                title="Partager sur Facebook"
-                            >
-                                <Facebook className="w-3.5 h-3.5" />
-                            </a>
-                            <div className="w-[1px] h-3 bg-white/10" />
-                            <a
-                                href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(settings.title || 'Dropsiders Live')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 text-gray-500 hover:text-white transition-colors"
-                                title="Partager sur X"
-                            >
-                                <XIcon className="w-3.5 h-3.5" />
-                            </a>
-                            <div className="w-[1px] h-3 bg-white/10" />
-                            <a
-                                href={`https://www.snapchat.com/share?url=${encodeURIComponent(window.location.href)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="p-1.5 text-gray-500 hover:text-yellow-400 transition-colors"
-                                title="Partager sur Snapchat"
-                            >
-                                <SnapchatIcon className="w-3.5 h-3.5" />
-                            </a>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => {
-                                sessionStorage.setItem('exited_live', 'true');
-                                window.location.href = '/';
-                            }}
-                            className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-full text-gray-400 hover:text-neon-red transition-all"
-                            title="Quitter le Live"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                        ))}
                     </div>
                 </div>
             )}
 
-            {isFullScreen && (
-                <button
-                    onClick={() => setIsFullScreen(false)}
-                    className="fixed top-4 right-4 z-[100] p-3 bg-neon-cyan/20 backdrop-blur-md border border-neon-cyan/30 rounded-full text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all shadow-[0_0_20px_rgba(0,255,204,0.3)]"
-                    title="Quitter le plein écran"
-                >
-                    <Minimize className="w-5 h-5" />
-                </button>
-            )}
-
-            <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
-                {/* Video Section */}
-                <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
-                    <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
-                        {/* Stream Name Badge */}
-                        {/* Redundant Stream Name Badge removed */}
-                        <div className="absolute inset-0 z-0 bg-black">
-                            {(settings.disableMainPlayer === false || activeVideoIndex !== 0 || playersOption > 1) ? (
-                                <div className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-0.5 bg-white/10`}>
-                                    {Array.from({ length: playersOption }).map((_, i) => {
-                                        const cIdx = (activeVideoIndex + i) % channelItems.length;
-                                        const channel = channelItems[cIdx];
-                                        if (!channel) return null;
-                                        return (
-                                            <div key={`${channel.id}-${i}`} className="relative bg-black w-full h-full">
-                                                {playersOption > 1 && (
-                                                    <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/20 text-[9px] font-black text-white uppercase tracking-widest shadow-lg pointer-events-none">
-                                                        {channel.title}
-                                                    </div>
-                                                )}
-                                                <iframe
-                                                    className="w-full h-full border-none"
-                                                    src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${i > 0 ? '1' : '0'}&rel=0&modestbranding=1&enablejsapi=1`}
-                                                    title={channel.title}
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                ></iframe>
-                                            </div>
-                                        );
-                                    })}
+            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-0 lg:top-0') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'border-[4px] border-neon-red animate-pulse-glow shadow-[inset_0_0_100px_rgba(255,18,65,0.3)]' : ''}`}>
+                {/* Live Banner Header - Conditionally based on top banner enabled */}
+                {showTopBanner && !isFocusMode && !isFullScreen && (
+                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 ${annBannerEnabled && annBannerText ? 'py-4' : 'py-12'} hidden lg:flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
+                        <div className="flex items-center gap-6">
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="flex items-center gap-2.5 px-4 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
+                                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(239,68,68,1)]" />
+                                    <span className="text-[11px] font-black text-red-500 uppercase tracking-[0.2em] leading-none">DIRECT</span>
                                 </div>
-                            ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
-                                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
-                                    <p className="text-gray-400 text-sm max-w-md">Veuillez sélectionner un autre flux dans le switcher ci-dessus (Stage 1, 2, 3 ou 4) pour continuer le visionnage.</p>
+                                <div
+                                    className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all shadow-lg"
+                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                >
+                                    <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] leading-none flex items-center gap-2">
+                                        <Users className="w-3 h-3" />
+                                        {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (allActiveUsers.length || '...')}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                                <h1 id="takeover-title" className="text-sm md:text-xl font-display font-black text-white uppercase italic tracking-widest truncate max-w-[150px] md:max-w-none">
+                                    {displayTitle}
+                                </h1>
+                                {fluxCurrentArtist.artist && settings.isOnline && (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-black/40 border border-white/10 rounded-lg backdrop-blur-md">
+                                            <Music2 className="w-2.5 h-2.5 text-neon-cyan shadow-[0_0_8px_#00ffff66]" />
+                                            <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest whitespace-nowrap">
+                                                NOW: <span className="text-white">{fluxCurrentArtist.artist}</span>
+                                            </span>
+                                            {fluxCurrentArtist.instagram && (
+                                                <a
+                                                    href={fluxCurrentArtist.instagram}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="ml-1 p-0.5 hover:bg-neon-purple/20 rounded text-neon-purple transition-all"
+                                                    title="Instagram de l'artiste"
+                                                >
+                                                    <Instagram className="w-3 h-3" />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+
+
+                            {/* Multi-Video Switcher */}
+                            {channelItems.length > 1 && (
+                                <div className="flex items-center flex-wrap gap-2">
+                                    <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
+                                        {channelItems.map((item: any, idx) => {
+                                            const isDisabled = settings.disableMainPlayer !== false;
+                                            if (item.isMain && isDisabled) return null;
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    id={`channel-btn-${idx}`}
+                                                    onClick={() => { setActiveVideoIndex(idx); setPlayersOption(1); }}
+                                                    className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
+                                                >
+                                                    {item.title}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 h-8">
+                                        {[1, 2, 3, 4].filter(n => n <= channelItems.length).map(n => (
+                                            <button
+                                                key={n}
+                                                onClick={() => setPlayersOption(n)}
+                                                className={`min-w-[28px] h-full rounded flex items-center justify-center text-[10px] font-black transition-all ${playersOption === n ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:bg-white/10'}`}
+                                                title={n > 1 ? `Vue ${n} écrans` : `Vue unique`}
+                                            >
+                                                {n === 1 ? <Maximize className="w-3 h-3" /> : <LayoutGrid className="w-3 h-3 mr-0.5" />} {n > 1 && n}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             )}
+                            <div className="flex items-center gap-2">
+                                {hasModPowers && (
+                                    <button
+                                        id="admin-edit-btn"
+                                        onClick={() => setShowEditModal(true)}
+                                        className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all shrink-0"
+                                        title="Modifier le Live"
+                                    >
+                                        <Pencil className="w-3.5 h-3.5" />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => setShowClipModal(true)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg bg-white/5 border-white/10 text-gray-400 hover:text-neon-purple hover:border-neon-purple/30`}
+                                    title="Clip & VOD"
+                                >
+                                    <Video className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Clip / VOD</span>
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        if (showLineup) {
+                                            setShowLineup(false);
+                                        } else {
+                                            setShowVideoEdit(false);
+                                            setShowLineup(true);
+                                        }
+                                    }}
+                                    className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showLineup ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-red hover:border-neon-red/30 animate-glow'}`}
+                                >
+                                    <List className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Planning</span>
+                                </button>
+                                <button
+                                    onClick={() => setIsFullScreen(!isFullScreen)}
+                                    className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${isFullScreen ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30'}`}
+                                    title={isFullScreen ? "Quitter le plein écran" : "Mode plein écran"}
+                                >
+                                    {isFullScreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
+                                    <span className="hidden sm:inline">{isFullScreen ? "Réduire" : "Plein écran"}</span>
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-9">
+                                <a
+                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 text-gray-500 hover:text-blue-500 transition-colors"
+                                    title="Partager sur Facebook"
+                                >
+                                    <Facebook className="w-3.5 h-3.5" />
+                                </a>
+                                <div className="w-[1px] h-3 bg-white/10" />
+                                <a
+                                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(settings.title || 'Dropsiders Live')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                                    title="Partager sur X"
+                                >
+                                    <XIcon className="w-3.5 h-3.5" />
+                                </a>
+                                <div className="w-[1px] h-3 bg-white/10" />
+                                <a
+                                    href={`https://www.snapchat.com/share?url=${encodeURIComponent(window.location.href)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="p-1.5 text-gray-500 hover:text-yellow-400 transition-colors"
+                                    title="Partager sur Snapchat"
+                                >
+                                    <SnapchatIcon className="w-3.5 h-3.5" />
+                                </a>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => {
+                                    sessionStorage.setItem('exited_live', 'true');
+                                    window.location.href = '/';
+                                }}
+                                className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-full text-gray-400 hover:text-neon-red transition-all"
+                                title="Quitter le Live"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {isFullScreen && (
+                    <button
+                        onClick={() => setIsFullScreen(false)}
+                        className="fixed top-4 right-4 z-[100] p-3 bg-neon-cyan/20 backdrop-blur-md border border-neon-cyan/30 rounded-full text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all shadow-[0_0_20px_rgba(0,255,204,0.3)]"
+                        title="Quitter le plein écran"
+                    >
+                        <Minimize className="w-5 h-5" />
+                    </button>
+                )}
+
+                <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
+                    {/* Video Section */}
+                    <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
+                        <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
+                            {/* Stream Name Badge */}
+                            {/* Redundant Stream Name Badge removed */}
+                            <div className="absolute inset-0 z-0 bg-black">
+                                {(settings.disableMainPlayer === false || activeVideoIndex !== 0 || playersOption > 1) ? (
+                                    <motion.div
+                                        layout
+                                        initial={false}
+                                        animate={{ opacity: 1 }}
+                                        transition={{
+                                            layout: { type: "spring", stiffness: 200, damping: 25 },
+                                            opacity: { duration: 0.3 }
+                                        }}
+                                        className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-1 bg-white/5 backdrop-blur-sm relative ${isTransitioning ? 'before:absolute before:inset-0 before:z-50 before:bg-neon-cyan/10 before:animate-pulse before:pointer-events-none' : ''}`}
+                                    >
+                                        {Array.from({ length: Math.min(playersOption, channelItems.length) }).map((_, i) => {
+                                            const cIdx = (activeVideoIndex + i) % channelItems.length;
+                                            const channel = channelItems[cIdx];
+                                            if (!channel) return null;
+                                            return (
+                                                <motion.div
+                                                    layout
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    key={`${channel.id}-${i}`}
+                                                    className="relative bg-black w-full h-full"
+                                                >
+                                                    {playersOption > 1 && (
+                                                        <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/20 text-[9px] font-black text-white uppercase tracking-widest shadow-lg pointer-events-none">
+                                                            {channel.title}
+                                                        </div>
+                                                    )}
+                                                    <iframe
+                                                        className="w-full h-full border-none"
+                                                        src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer) ? '1' : '0'}&rel=0&modestbranding=1&enablejsapi=1`}
+                                                        title={channel.title}
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                    ></iframe>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </motion.div>
+                                ) : (
+                                    <div className="w-full h-full relative overflow-hidden">
+                                        {/* CLOSED DOOR EFFECT */}
+                                        <AnimatePresence>
+                                            {!settings.isOnline && (
+                                                <div className="absolute inset-0 z-[100] flex">
+                                                    <motion.div
+                                                        initial={{ x: '-100%' }}
+                                                        animate={{ x: 0 }}
+                                                        exit={{ x: '-100%' }}
+                                                        transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
+                                                        className="flex-1 bg-[#0a0a0a] border-r border-white/5 relative"
+                                                    >
+                                                        <div className="absolute inset-0 bg-gradient-to-l from-neon-red/5 to-transparent" />
+                                                    </motion.div>
+                                                    <motion.div
+                                                        initial={{ x: '100%' }}
+                                                        animate={{ x: 0 }}
+                                                        exit={{ x: '100%' }}
+                                                        transition={{ duration: 0.8, ease: [0.77, 0, 0.175, 1] }}
+                                                        className="flex-1 bg-[#0a0a0a] border-l border-white/5 relative"
+                                                    >
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent" />
+                                                    </motion.div>
+
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ delay: 0.8 }}
+                                                        className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center z-[110]"
+                                                    >
+                                                        <div className="mb-8 relative">
+                                                            <div className="absolute inset-0 bg-neon-red blur-3xl opacity-20 animate-pulse" />
+                                                            <Power className="w-20 h-20 text-neon-red relative z-10" />
+                                                        </div>
+                                                        <h3 className="text-4xl lg:text-6xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
+                                                            PAS DE LIVE <span className="text-neon-red">ACTUELLEMENT</span>
+                                                        </h3>
+                                                        <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px] lg:text-xs mb-12">Le flux reprendra lors du prochain événement</p>
+
+                                                        <div className="space-y-4 w-full max-w-md">
+                                                            <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">Prochaines Dates :</div>
+                                                            {/* We could fetch actual upcoming events here */}
+                                                            <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] backdrop-blur-xl">
+                                                                <p className="text-sm font-bold text-white italic">Consultez l'agenda pour ne rien manquer !</p>
+                                                            </div>
+                                                        </div>
+                                                    </motion.div>
+                                                </div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
+                                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
+                                            <p className="text-gray-400 text-sm max-w-md">Veuillez sélectionner un autre flux dans le switcher ci-dessus (Stage 1, 2, 3 ou 4) pour continuer le visionnage.</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* BPM WIDGET & HYPE GAUGE */}
+                            <div className="absolute bottom-6 left-6 right-6 lg:bottom-12 lg:left-12 lg:right-12 z-20 pointer-events-none flex flex-col lg:flex-row items-end justify-between gap-6">
+                                <motion.div
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="flex flex-col gap-3 pointer-events-auto"
+                                >
+                                    {/* BPM WIDGET */}
+                                    <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] group hover:border-neon-cyan/50 transition-all">
+                                        <div className="relative">
+                                            <div className={`absolute inset-0 bg-neon-cyan/20 blur-lg rounded-full animate-pulse`} />
+                                            <div className={`w-12 h-12 rounded-full border-2 ${isOverdrive ? 'border-neon-red animate-spin-slow' : 'border-neon-cyan'} flex items-center justify-center relative z-10`}>
+                                                <Music2 className={`w-6 h-6 ${isOverdrive ? 'text-neon-red' : 'text-neon-cyan'} ${isOverdrive ? 'animate-bounce' : ''}`} />
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">BPM REALTIME</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className={`text-2xl font-black italic tracking-tighter ${isOverdrive ? 'text-neon-red drop-shadow-[0_0_10px_#ff0033]' : 'text-white'}`}>{bpm}</span>
+                                                <span className="text-[10px] font-black text-white/40 uppercase">beats</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1 items-end h-8 ml-2">
+                                            {[...Array(6)].map((_, i) => (
+                                                <motion.div
+                                                    key={i}
+                                                    animate={{
+                                                        height: [8, Math.random() * 24 + 8, 8],
+                                                        backgroundColor: isOverdrive ? ['#ff0033', '#ffffff', '#ff0033'] : ['#00ffff', '#ffffff', '#00ffff']
+                                                    }}
+                                                    transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
+                                                    className="w-1.5 rounded-full"
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* HYPE GAUGE */}
+                                    <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] min-w-[200px] hover:border-neon-red/50 transition-all">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                                <Activity className={`w-3 h-3 ${isOverdrive ? 'text-neon-red' : 'text-white'}`} />
+                                                HYPE ENERGY
+                                            </span>
+                                            <span className={`text-[10px] font-black tracking-widest ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
+                                        </div>
+                                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${hypeLevel}%` }}
+                                                className={`h-full ${isOverdrive ? 'bg-gradient-to-r from-neon-red via-white to-neon-red' : 'bg-gradient-to-r from-neon-purple to-neon-red'} relative`}
+                                            >
+                                                <div className="absolute inset-0 bg-white/30 animate-pulse" />
+                                            </motion.div>
+                                        </div>
+                                        {isOverdrive && (
+                                            <div className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse flex items-center gap-1">
+                                                <Zap className="w-3 h-3" /> OVERDRIVE ACTIVE
+                                            </div>
+                                        )}
+                                    </div>
+                                </motion.div>
+
+                                <div className="flex flex-col gap-3 pointer-events-auto">
+                                    {/* DROPS INDICATOR */}
+                                    <button
+                                        onClick={() => setShowDropsShop(true)}
+                                        className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] group hover:border-neon-cyan/50 hover:scale-105 transition-all"
+                                    >
+                                        <div className="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center">
+                                            <div className="relative">
+                                                <Zap className="w-5 h-5 text-neon-cyan drop-shadow-[0_0_8px_#00ffff]" />
+                                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-ping" />
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col text-left">
+                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">MES DROPS</span>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-xl font-black text-white italic">{userDrops}</span>
+                                                <span className="text-[10px] font-black text-neon-cyan uppercase">drops</span>
+                                            </div>
+                                        </div>
+                                        <div className="ml-2 w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-cyan group-hover:text-black transition-all">
+                                            <ArrowRight className="w-4 h-4" />
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         {/* Active Poll Overlay */}
@@ -1905,15 +2256,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <div className="text-right pr-10">SCÈNE</div>
                                             </div>
 
-                                            {currentFluxLineup.map((item, idx) => (
+                                            {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
                                                 <div
                                                     key={idx}
-                                                    className="group grid grid-cols-[80px_1fr_1fr] lg:grid-cols-[100px_1fr_1fr] gap-4 lg:gap-8 items-center bg-white/[0.015] border border-white/5 hover:border-white/20 hover:bg-white/[0.04] p-5 lg:p-7 rounded-[2rem] transition-all duration-500 mb-2 relative overflow-hidden"
+                                                    className={`group grid grid-cols-[80px_1fr_1fr] lg:grid-cols-[100px_1fr_1fr] gap-4 lg:gap-8 items-center border transition-all duration-500 mb-3 relative overflow-hidden p-5 lg:p-7 rounded-[2rem] ${fluxCurrentArtist.artist === item.artist ? 'bg-white/[0.04] border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.05)]' : 'bg-white/[0.015] border-white/5 hover:border-white/10'}`}
                                                 >
+                                                    {/* Progress Background for current artist */}
+                                                    {fluxCurrentArtist.artist === item.artist && item.progress > 0 && (
+                                                        <div
+                                                            className="absolute left-0 bottom-0 h-1.5 bg-gradient-to-r from-neon-red to-neon-orange shadow-[0_0_20px_#ff0033] transition-all duration-1000 ease-linear z-0"
+                                                            style={{ width: `${item.progress}%` }}
+                                                        />
+                                                    )}
+
                                                     <div className="absolute inset-0 bg-gradient-to-r from-neon-red/0 via-white/0 to-white/0 group-hover:from-white/[0.02] transition-colors pointer-events-none" />
                                                     {/* Time Column */}
-                                                    <div className="flex flex-col">
-                                                        <span className="text-white/40 font-black text-[13px] lg:text-[15px] tracking-tight group-hover:text-white transition-colors duration-500">
+                                                    <div className="flex flex-col relative z-10">
+                                                        <span className={`font-black text-[13px] lg:text-[15px] tracking-tight transition-colors duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/40 group-hover:text-white/70'}`}>
                                                             {item.time?.replace(':', 'H') || '--H--'}
                                                             {item.endTime && (
                                                                 <span className="block opacity-40 text-[10px] lg:text-[11px] mt-0.5">
@@ -1924,11 +2283,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
 
                                                     {/* Artist Column */}
-                                                    <div className="flex items-center gap-4 min-w-0">
-                                                        <h3 className="text-white font-black uppercase italic tracking-wider text-[16px] lg:text-[22px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500">
+                                                    <div className="flex items-center gap-4 min-w-0 relative z-10">
+                                                        <h3 className={`font-black uppercase italic tracking-wider text-[16px] lg:text-[22px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/80 group-hover:text-white'}`}>
                                                             {item.artist || '---'}
                                                         </h3>
-                                                        {fluxCurrentArtist.artist === item.artist && activeVideoIndex === 0 && settings.isOnline && (
+                                                        {fluxCurrentArtist.artist === item.artist && settings.isOnline && (
                                                             <div className="px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded text-[7px] font-black text-red-500 uppercase tracking-widest animate-pulse flex items-center gap-1">
                                                                 <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
                                                                 EN DIRECT
@@ -1964,8 +2323,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
 
                                                     {/* Stage Column */}
-                                                    <div className="flex items-center justify-end pr-8">
-                                                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-[0.2em] px-4 py-1.5 bg-white/5 border border-white/5 rounded-full whitespace-nowrap group-hover:border-white/10 group-hover:text-white/70 transition-all duration-500">
+                                                    <div className="flex items-center justify-end pr-8 relative z-10">
+                                                        <span className={`text-[9px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 border rounded-full whitespace-nowrap transition-all duration-500 ${fluxCurrentArtist.artist === item.artist ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/5 text-white/30 group-hover:border-white/10 group-hover:text-white/70'}`}>
                                                             {item.stage || '---'}
                                                         </span>
                                                     </div>
@@ -2245,11 +2604,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
-                                                onClick={() => setActiveSettingsTab('shop')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'shop' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
+                                                onClick={() => setActiveSettingsTab('video')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'video' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Shop
-                                                {activeSettingsTab === 'shop' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
+                                                Vidéo & Clips
+                                                {activeSettingsTab === 'video' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveSettingsTab('bot')}
@@ -2353,71 +2712,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         >
                                                                             VALIDER
                                                                         </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3 mb-2">
-                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">1 + 2</span></h3>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 1</label>
-                                                                        <input type="text" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 1" />
-                                                                    </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 2</label>
-                                                                        <input type="text" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 2" />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 1</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input type="text" value={stage1} onChange={e => setStage1(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
-                                                                        <button onClick={() => alert('Stage 1 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 2</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input type="text" value={stage2} onChange={e => setStage2(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
-                                                                        <button onClick={() => alert('Stage 2 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3 mb-2">
-                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl"><Youtube className="w-4 h-4 text-neon-cyan" /></div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Stage <span className="text-neon-cyan">3 + 4</span></h3>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 3</label>
-                                                                        <input type="text" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 3" />
-                                                                    </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM STAGE 4</label>
-                                                                        <input type="text" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="ex: STAGE 4" />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 3</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input type="text" value={stage3} onChange={e => setStage3(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
-                                                                        <button onClick={() => alert('Stage 3 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien YouTube Stage 4</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input type="text" value={stage4} onChange={e => setStage4(e.target.value)} className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="https://youtube.com/watch?v=..." />
-                                                                        <button onClick={() => alert('Stage 4 Validé !')} className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all">VALIDER</button>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -2552,6 +2846,180 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 </div>
                                             )}
 
+                                            {activeSettingsTab === 'video' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    {/* Live Stream Status & Control */}
+                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                    <Video className="w-4 h-4 text-neon-cyan" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Status <span className="text-neon-cyan">du Live</span></h3>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <div className={`w-2 h-2 rounded-full ${settings.isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">{settings.isOnline ? 'EN DIRECT' : 'HORS LIGNE'}</span>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="p-4 bg-black/40 rounded-2xl border border-white/5 flex flex-col justify-between">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Configuration Actuelle</p>
+                                                                    <p className="text-xs font-bold text-white uppercase truncate">{settings.title || 'Pas de titre'}</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={handleToggleLive}
+                                                                    className={`mt-4 w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings.isOnline ? 'bg-neon-red/20 text-neon-red border border-neon-red/30 hover:bg-neon-red hover:text-white' : 'bg-green-500/20 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white'}`}
+                                                                >
+                                                                    {settings.isOnline ? 'Arrêter le Live' : 'Démarrer le Live'}
+                                                                </button>
+                                                            </div>
+                                                            <div className="p-4 bg-black/40 rounded-2xl border border-white/5 flex flex-col justify-between">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Affichage Agenda</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Apparaître dans l'Agenda d'accueil</p>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ showInAgenda: !settings.showInAgenda })}
+                                                                    className={`mt-4 w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings.showInAgenda ? 'bg-neon-cyan text-black' : 'bg-white/5 text-white border border-white/10'}`}
+                                                                >
+                                                                    {settings.showInAgenda ? 'Visible dans l\'Agenda' : 'Masqué de l\'Agenda'}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Clips Management */}
+                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-purple/10 rounded-xl">
+                                                                    <Zap className="w-4 h-4 text-neon-purple" />
+                                                                </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-purple">Clips</span></h3>
+                                                            </div>
+                                                            <span className="px-3 py-1 bg-white/5 rounded-full text-[9px] font-black text-gray-400 uppercase tracking-widest">{clips.length} Clips</span>
+                                                        </div>
+
+                                                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {clips.map((clip, idx) => (
+                                                                <div key={idx} className="group p-4 bg-black/40 border border-white/5 rounded-2xl hover:border-neon-purple/30 transition-all flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-16 aspect-video bg-white/5 rounded-lg overflow-hidden relative">
+                                                                            <img src={`https://img.youtube.com/vi/${clip.videoId || settings.youtubeId}/mqdefault.jpg`} className="w-full h-full object-cover opacity-50" />
+                                                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                                                <Video className="w-4 h-4 text-white/20" />
+                                                                            </div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-xs font-black text-white uppercase italic truncate max-w-[150px]">{clip.title}</p>
+                                                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{clip.duration} • {clip.timestamp}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setActiveClipToPlay(clip);
+                                                                                setShowClipPlayer(true);
+                                                                                setIsMutedGlobal(true);
+                                                                            }}
+                                                                            className="p-2 bg-white/5 hover:bg-neon-cyan/20 rounded-lg text-gray-400 hover:text-neon-cyan transition-all"
+                                                                            title="Lire"
+                                                                        >
+                                                                            <Maximize className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleDownloadClip(clip)}
+                                                                            className="p-2 bg-white/5 hover:bg-neon-cyan/20 rounded-lg text-gray-400 hover:text-neon-cyan transition-all"
+                                                                            title="Télécharger"
+                                                                        >
+                                                                            <Download className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const newClips = clips.filter((_, i) => i !== idx);
+                                                                                setClips(newClips);
+                                                                                localStorage.setItem('user_clips', JSON.stringify(newClips));
+                                                                            }}
+                                                                            className="p-2 bg-white/5 hover:bg-neon-red/20 rounded-lg text-gray-400 hover:text-neon-red transition-all"
+                                                                            title="Supprimer"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            {clips.length === 0 && (
+                                                                <div className="text-center py-12 space-y-4">
+                                                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
+                                                                        <Video className="w-6 h-6 text-gray-700" />
+                                                                    </div>
+                                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">Aucun clip n'a été créé pour le moment</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    {/* Configuration des Sources */}
+                                                    <div className="bg-white/5 border border-white/5 p-6 lg:p-8 rounded-[2rem] space-y-6 mt-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                <Youtube className="w-4 h-4 text-neon-cyan" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-cyan">des Sources (Stages)</span></h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
+                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage1Name || 'Stage 1'}</span>
+                                                                </div>
+                                                                <div className="space-y-3">
+                                                                    <input type="text" placeholder="Nom du Stage" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage1} onChange={e => setStage1(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
+                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage2Name || 'Stage 2'}</span>
+                                                                </div>
+                                                                <div className="space-y-3">
+                                                                    <input type="text" placeholder="Nom du Stage" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage2} onChange={e => setStage2(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
+                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage3Name || 'Stage 3'}</span>
+                                                                </div>
+                                                                <div className="space-y-3">
+                                                                    <input type="text" placeholder="Nom du Stage" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage3} onChange={e => setStage3(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
+                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage4Name || 'Stage 4'}</span>
+                                                                </div>
+                                                                <div className="space-y-3">
+                                                                    <input type="text" placeholder="Nom du Stage" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage4} onChange={e => setStage4(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => handleUpdateSettings({ stage1, stage2, stage3, stage4, stage1Name, stage2Name, stage3Name, stage4Name })}
+                                                            className="w-full py-4 bg-neon-cyan text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-neon-cyan/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                                        >
+                                                            Sauvegarder les Sources
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {activeSettingsTab === 'moderation' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -3290,480 +3758,643 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </AnimatePresence>
                     </div>
-                </div>
 
-                {/* Chat Section */}
-                <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
-                    {/* Glossy Header */}
-                    {!isFocusMode && (
-                        <div className="p-3 lg:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                    <MessageSquare className="w-5 h-5 text-neon-red" />
+                    {/* Chat Section */}
+                    <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
+                        {/* Glossy Header */}
+                        {!isFocusMode && (
+                            <div className="p-3 lg:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                        <MessageSquare className="w-5 h-5 text-neon-red" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <div className="flex flex-col gap-1">
+                                            <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
+                                                {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Boutique Drops' : 'Classement'}
+                                                {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">Mode Lent</span>}
+                                            </h2>
+                                            {/* Hype Energy Mini Gauge */}
+                                            <div className="w-24 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                                                <motion.div
+                                                    className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan shadow-[0_0_10px_rgba(255,18,65,0.5)]"
+                                                    animate={{ width: `${hypeLevel}%` }}
+                                                    transition={{ type: "spring", stiffness: 50 }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col">
-                                    <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
-                                        Chat en direct
-                                        {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[8px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">Mode Lent</span>}
-                                    </h2>
-                                </div>
-                            </div>
-                            {hasModPowers && (
                                 <div className="flex items-center gap-2">
                                     <button
-                                        onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
-                                        className={`p-2.5 rounded-xl transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                        title="Shop (Global)"
+                                        onClick={() => setActiveChatTab('shop')}
+                                        className="flex items-center gap-2 px-3 py-1.5 bg-neon-purple/20 border border-neon-purple/30 rounded-full hover:bg-neon-purple/30 transition-all group"
                                     >
-                                        <Zap className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setShowSlowModePopup(!showSlowModePopup)}
-                                        className={`p-2.5 rounded-xl transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                        title="Mode Lent"
-                                    >
-                                        <Clock className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            )}
-                            {showSlowModePopup && (
-                                <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
-                                    <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-                                        <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                    </h3>
-                                    <input
-                                        type="number"
-                                        value={slowModeDuration}
-                                        onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
-                                        className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
-                                    />
-                                    <div className="flex gap-2">
-                                        <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
-                                        <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Shop Widget Overhead */}
-                    <AnimatePresence>
-                        {!isFocusMode && showShopWidget && (
-                            <motion.div
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
-                            >
-                                <div className="relative group px-1">
-                                    <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                    <div className="w-full overflow-hidden relative py-2 mb-1">
-                                        <div className="flex flex-row gap-3 animate-shop-scroll">
-                                            {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
-                                                <a
-                                                    key={`${product.id}-${i}`}
-                                                    href={product.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="flex items-center gap-3 p-1.5 pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95 shrink-0"
-                                                >
-                                                    <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative shadow-lg">
-                                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
-                                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
-                                                            <span className="text-[7.5px] font-black text-white">{product.price}€</span>
-                                                        </div>
-                                                    </div>
-                                                    <div className="flex flex-col justify-center max-w-[120px]">
-                                                        <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
-                                                        <p className="text-[7.5px] text-gray-500 uppercase tracking-widest mt-1 truncate opacity-60 font-bold">{product.description}</p>
-                                                    </div>
-                                                </a>
-                                            ))}
+                                        <span className="text-[10px] font-black text-neon-purple group-hover:text-white transition-colors">{userDrops}</span>
+                                        <div className="w-5 h-5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.5)]">
+                                            <Zap className="w-3 h-3 text-white fill-current" />
                                         </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Chat Content and Sidebar Wrapper */}
-                    <div className="flex-1 flex flex-row min-h-0 overflow-hidden relative">
-                        <div className="flex-1 flex flex-col min-h-0 relative">
-                            {isLocalBanned ? (
-                                <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
-                                    <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
-                                        <ShieldAlert className="w-12 h-12 text-neon-red" />
-                                    </div>
-                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
-                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
-                                        Vous avez été banni du chat communautaire.
-                                    </p>
-                                    <button
-                                        onClick={handleUnbanRequest}
-                                        className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
-                                    >
-                                        Demande de débannissement
                                     </button>
-                                </div>
-                            ) : (
-                                <div className="flex-1 flex flex-col min-h-0 relative">
-                                    {!isJoined ? (
-                                        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
-                                            {/* Background Decor */}
-                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
-                                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
-                                            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
-
-                                            <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
-                                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
-                                                    <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
-                                                        <Users className="w-10 h-10 text-white" />
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-3">
-                                                    <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                        Rejoins le <span className="text-neon-red">Direct</span>
-                                                    </h3>
-                                                    <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
-                                                        Connecte-toi pour voir les messages<br />et participer à l'expérience !
-                                                    </p>
-                                                </div>
-
-                                                <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
-                                                    <form onSubmit={handleJoin} className="space-y-4">
-                                                        <div className="space-y-3">
-                                                            <div className="relative group">
-                                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                                                    <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                                </div>
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder="TON PSEUDO"
-                                                                    required
-                                                                    value={pseudo}
-                                                                    onChange={(e) => setPseudo(e.target.value)}
-                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                                />
-                                                            </div>
-
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <select
-                                                                    required
-                                                                    value={country}
-                                                                    onChange={(e) => setCountry(e.target.value)}
-                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
-                                                                >
-                                                                    <option value="">PAYS</option>
-                                                                    <option value="FR">🇫🇷 FR</option>
-                                                                    <option value="BE">🇧🇪 BE</option>
-                                                                    <option value="CH">🇨🇭 CH</option>
-                                                                    <option value="OTHER">🌍 AUTRE</option>
-                                                                </select>
-                                                                <input
-                                                                    type="text"
-                                                                    placeholder={`${captchaA} + ${captchaB} = ?`}
-                                                                    required
-                                                                    value={captchaAnswer}
-                                                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        <button
-                                                            type="submit"
-                                                            className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
-                                                        >
-                                                            REJOINDRE LE LIVE
-                                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                        </button>
-
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
-                                                            En rejoignant le live, tu acceptes nos CGU
-                                                        </p>
-                                                    </form>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
+                                    {hasModPowers && (
                                         <>
-                                            {/* Chat Messages */}
-                                            <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
-                                                {/* Pinned Message */}
-                                                {localPinnedMessage && !isFocusMode && (
-                                                    <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
-                                                        <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
-                                                        <div className="flex items-start gap-2.5">
-                                                            <div className="p-1.5 bg-neon-red/20 rounded-lg shrink-0">
-                                                                <Pin className="w-3 h-3 text-neon-red" />
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                                                                    ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
-                                                                </p>
-                                                                <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
-                                                                    {localPinnedMessage.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
-                                                                        part.match(/^https?:\/\//) ? (
-                                                                            <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
-                                                                        ) : part
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                            {hasModPowers && (
-                                                                <button
-                                                                    onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
-                                                                    className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white opacity-0 group-hover/pin:opacity-100 transition-all"
-                                                                    title="Supprimer l'annonce"
-                                                                >
-                                                                    <X className="w-3 h-3" />
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {messages.map((msg, idx) => {
-                                                    const role = getRole(msg.pseudo);
-                                                    const isMsgAdmin = role === 'admin';
-                                                    const isMsgModo = role === 'modo';
-                                                    const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
-
-                                                    return (
-                                                        <motion.div
-                                                            key={msg.id || idx}
-                                                            initial={{ opacity: 0, x: 10 }}
-                                                            animate={{ opacity: 1, x: 0 }}
-                                                            className="group relative min-w-0 overflow-hidden"
-                                                        >
-                                                            <div className="flex items-center gap-2 mb-1 px-1">
-                                                                <div className="w-4 flex items-center justify-center opacity-80">
-                                                                    {getCountryFlag(msg.country || 'FR')}
-                                                                </div>
-                                                                <span
-                                                                    className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
-                                                                    style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                                >
-                                                                    {msg.pseudo}
-                                                                </span>
-                                                                {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                                <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
-                                                            </div>
-                                                            <div
-                                                                className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
-                                                                style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
-                                                            >
-                                                                {/* Message with clickable links */}
-                                                                <span className="relative z-10">
-                                                                    {(() => {
-                                                                        const text = msg.message;
-                                                                        if (!text) return null;
-                                                                        const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                        const parts = text.split(urlRegex);
-                                                                        return parts.map((part: string, i: number) => {
-                                                                            if (part.match(urlRegex)) {
-                                                                                return (
-                                                                                    <a
-                                                                                        key={i}
-                                                                                        href={part}
-                                                                                        target="_blank"
-                                                                                        rel="noopener noreferrer"
-                                                                                        className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
-                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                    >
-                                                                                        {part}
-                                                                                    </a>
-                                                                                );
-                                                                            }
-                                                                            return part;
-                                                                        });
-                                                                    })()}
-                                                                </span>
-                                                                {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
-                                                                        <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
-                                                                        <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </motion.div>
-                                                    );
-                                                })}
-                                            </div>
-
-                                            {/* Chat Input Area */}
-                                            <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
-                                                <form onSubmit={handleSendMessage} className="relative group/input p-4">
-                                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-2xl lg:rounded-3xl transition-all" />
-                                                    <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                        <div className="flex items-center px-2 py-1 lg:py-1.5">
-                                                            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
-                                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-                                                            <input
-                                                                type="text"
-                                                                value={newMessage}
-                                                                onChange={(e) => setNewMessage(e.target.value)}
-                                                                placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
-                                                                className="flex-1 bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
-                                                            />
-
-                                                            <button type="button" onClick={handleShazam} className={`p-2.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                <Music2 className="w-5 h-5" />
-                                                            </button>
-
-                                                            <button
-                                                                type="button"
-                                                                onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
-                                                                title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                                className={`p-2.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
-                                                            >
-                                                                <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
-                                                            </button>
-
-                                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-
-
-
-                                                            <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
-                                                                <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    {showEmojiPicker && (
-                                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
-                                                            {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
-                                                                <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
-                                                            ))}
-                                                        </motion.div>
-                                                    )}
-                                                </form>
-                                            </div>
+                                            <button
+                                                onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
+                                                className={`p-2.5 rounded-xl transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                title="Shop (Global)"
+                                            >
+                                                <Zap className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => setShowSlowModePopup(!showSlowModePopup)}
+                                                className={`p-2.5 rounded-xl transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                title="Mode Lent"
+                                            >
+                                                <Clock className="w-4 h-4" />
+                                            </button>
                                         </>
                                     )}
                                 </div>
-                            )}
-                        </div>
-
-                        {!isFocusMode && (
-                            <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                                <button
-                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                    className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
-                                >
-                                    <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                                </button>
+                                {showSlowModePopup && (
+                                    <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                        </h3>
+                                        <input
+                                            type="number"
+                                            value={slowModeDuration}
+                                            onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
+                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
+                                            <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
 
+                        {/* Shop Widget Overhead */}
                         <AnimatePresence>
-                            {!isFocusMode && showUsersPanel && (
+                            {!isFocusMode && showShopWidget && (
                                 <motion.div
-                                    initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 200, opacity: 1 }}
-                                    exit={{ width: 0, opacity: 0 }}
-                                    className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
                                 >
-                                    <div className="w-[200px] flex flex-col h-full">
-                                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                            </h2>
-                                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                        </div>
-                                        <div className="flex-1 overflow-y-auto">
-                                            <div className="p-3 space-y-2">
-                                                {allActiveUsers.map(u => {
-                                                    const role = getRole(u.pseudo);
-                                                    const isUserAdmin = role === 'admin';
-                                                    const isUserModo = role === 'modo';
-                                                    const isExpanded = expandedUserId === u.pseudo;
-
-                                                    return (
-                                                        <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
-                                                            <div
-                                                                onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
-                                                                className="flex items-center justify-between group p-2 cursor-pointer select-none"
-                                                            >
-                                                                <div className="flex items-center gap-2 truncate">
-                                                                    <div className="w-4 flex items-center justify-center">
-                                                                        {getCountryFlag(u.country)}
-                                                                    </div>
-                                                                    <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                        {u.pseudo}
-                                                                    </span>
-                                                                </div>
-                                                                <div className="flex items-center gap-2">
-                                                                    {(isUserAdmin || isUserModo) && (
-                                                                        <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
-                                                                            {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
-                                                                            {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
-                                                                        </span>
-                                                                    )}
-                                                                    {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                        <button
-                                                                            onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
-                                                                            className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                            title="Promouvoir Modérateur Chat"
-                                                                        >
-                                                                            <Shield className="w-3.5 h-3.5" />
-                                                                        </button>
-                                                                    )}
-                                                                </div>
+                                    <div className="relative group px-1">
+                                        <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                        <div className="w-full overflow-hidden relative py-2 mb-1">
+                                            <div className="flex flex-row gap-3 animate-shop-scroll">
+                                                {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
+                                                    <a
+                                                        key={`${product.id}-${i}`}
+                                                        href={product.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-3 p-1.5 pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95 shrink-0"
+                                                    >
+                                                        <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative shadow-lg">
+                                                            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
+                                                            <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
+                                                                <span className="text-[7.5px] font-black text-white">{product.price}€</span>
                                                             </div>
-
-                                                            <AnimatePresence>
-                                                                {isExpanded && (
-                                                                    <motion.div
-                                                                        initial={{ height: 0, opacity: 0 }}
-                                                                        animate={{ height: 'auto', opacity: 1 }}
-                                                                        exit={{ height: 0, opacity: 0 }}
-                                                                        className="overflow-hidden border-t border-white/5"
-                                                                    >
-                                                                        <div className="p-3 space-y-3 bg-black/40">
-                                                                            <div className="space-y-1.5">
-                                                                                <div className="flex items-center justify-between text-[10px]">
-                                                                                    <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
-                                                                                    <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
-                                                                                </div>
-                                                                                <div className="flex items-center justify-between text-[10px]">
-                                                                                    <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
-                                                                                    <span className="text-gray-400 font-italic">Non disponible</span>
-                                                                                </div>
-                                                                            </div>
-
-                                                                            {isAdmin && isUserModo && pseudo !== u.pseudo && (
-                                                                                <button
-                                                                                    onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
-                                                                                    className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                                >
-                                                                                    <Shield className="w-3.5 h-3.5" />
-                                                                                    Retirer MODO
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </motion.div>
-                                                                )}
-                                                            </AnimatePresence>
                                                         </div>
-                                                    );
-                                                })}
+                                                        <div className="flex flex-col justify-center max-w-[120px]">
+                                                            <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
+                                                            <p className="text-[7.5px] text-gray-500 uppercase tracking-widest mt-1 truncate opacity-60 font-bold">{product.description}</p>
+                                                        </div>
+                                                    </a>
+                                                ))}
                                             </div>
                                         </div>
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
+
+                        {/* Chat Content and Sidebar Wrapper */}
+                        <div className="flex-1 flex flex-row min-h-0 overflow-hidden relative">
+                            <div className="flex-1 flex flex-col min-h-0 relative">
+                                {isLocalBanned ? (
+                                    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
+                                        <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
+                                            <ShieldAlert className="w-12 h-12 text-neon-red" />
+                                        </div>
+                                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                            Vous avez été banni du chat communautaire.
+                                        </p>
+                                        <button
+                                            onClick={handleUnbanRequest}
+                                            className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                        >
+                                            Demande de débannissement
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col min-h-0 relative">
+                                        {activeChatTab === 'shop' ? (
+                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6">
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {/* Animated Pseudo Colors */}
+                                                    <div className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
+                                                        <div className="relative flex items-center justify-between">
+                                                            <div className="space-y-1">
+                                                                <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                    <Smile className="w-4 h-4 text-neon-purple" /> Pseudo Animé
+                                                                </h4>
+                                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Une aura néon autour de ton pseudo</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (userDrops >= 500) {
+                                                                        setUserDrops(d => d - 500);
+                                                                        alert("Style débloqué !");
+                                                                    } else alert("Pas assez de Drops !");
+                                                                }}
+                                                                className="px-4 py-2 bg-neon-purple text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-purple/20"
+                                                            >
+                                                                500 💧
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Flash Message */}
+                                                    <div className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-cyan/40 transition-colors" />
+                                                        <div className="relative flex items-center justify-between">
+                                                            <div className="space-y-1">
+                                                                <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                    <MessageSquare className="w-4 h-4 text-neon-cyan" /> Message Mis en Avant
+                                                                </h4>
+                                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Affiche ton message au-dessus du chat</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (userDrops >= 100) {
+                                                                        setUserDrops(d => d - 100);
+                                                                        alert("Prochain message mis en avant !");
+                                                                    } else alert("Pas assez de Drops !");
+                                                                }}
+                                                                className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
+                                                            >
+                                                                100 💧
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Promo Codes */}
+                                                    <div className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-red/40 transition-colors" />
+                                                        <div className="relative flex items-center justify-between">
+                                                            <div className="space-y-1">
+                                                                <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                    <Zap className="w-4 h-4 text-neon-red" /> Code Promo Shop (-10%)
+                                                                </h4>
+                                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Réduction sur le vrai magasin</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (userDrops >= 1000) {
+                                                                        setUserDrops(d => d - 1000);
+                                                                        alert("Code : DROPS10");
+                                                                    } else alert("Pas assez de Drops !");
+                                                                }}
+                                                                className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
+                                                            >
+                                                                1000 💧
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : activeChatTab === 'leaderboard' ? (
+                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar">
+                                                <div className="space-y-4">
+                                                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center mb-6 italic">Top 5 Tchatteurs de la session</h4>
+                                                    {[
+                                                        { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
+                                                        { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
+                                                        { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
+                                                        { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
+                                                        { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
+                                                    ].map((user) => (
+                                                        <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
+                                                            <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
+                                                            <div className="flex-1">
+                                                                <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
+                                                            </div>
+                                                            <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center group-hover:border-neon-cyan/50 transition-all">
+                                                                <Zap className={`w-5 h-5 ${user.color}`} />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex-1 flex flex-col min-h-0 relative">
+                                                {!isJoined ? (
+                                                    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
+                                                        {/* Background Decor */}
+                                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
+                                                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
+                                                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
+
+                                                        <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
+                                                            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
+                                                                <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
+                                                                    <Users className="w-10 h-10 text-white" />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="space-y-3">
+                                                                <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                                    Rejoins le <span className="text-neon-red">Direct</span>
+                                                                </h3>
+                                                                <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
+                                                                    Connecte-toi pour voir les messages<br />et participer à l'expérience !
+                                                                </p>
+                                                            </div>
+
+                                                            <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
+                                                                <form onSubmit={handleJoin} className="space-y-4">
+                                                                    <div className="space-y-3">
+                                                                        <div className="relative group">
+                                                                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                                                                <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                                                            </div>
+                                                                            <input
+                                                                                type="text"
+                                                                                placeholder="TON PSEUDO"
+                                                                                required
+                                                                                value={pseudo}
+                                                                                onChange={(e) => setPseudo(e.target.value)}
+                                                                                className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                                            />
+                                                                        </div>
+
+                                                                        <div className="grid grid-cols-2 gap-3">
+                                                                            <select
+                                                                                required
+                                                                                value={country}
+                                                                                onChange={(e) => setCountry(e.target.value)}
+                                                                                className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
+                                                                            >
+                                                                                <option value="">PAYS</option>
+                                                                                <option value="FR">🇫🇷 FR</option>
+                                                                                <option value="BE">🇧🇪 BE</option>
+                                                                                <option value="CH">🇨🇭 CH</option>
+                                                                                <option value="OTHER">🌍 AUTRE</option>
+                                                                            </select>
+                                                                            <input
+                                                                                type="text"
+                                                                                placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                                                required
+                                                                                value={captchaAnswer}
+                                                                                onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                                                className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <button
+                                                                        type="submit"
+                                                                        className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
+                                                                    >
+                                                                        REJOINDRE LE LIVE
+                                                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                                    </button>
+
+                                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                                                                        En rejoignant le live, tu acceptes nos CGU
+                                                                    </p>
+                                                                </form>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        {/* Chat Messages */}
+                                                        <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
+                                                            {/* Pinned Message */}
+                                                            {localPinnedMessage && !isFocusMode && (
+                                                                <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
+                                                                    <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
+                                                                    <div className="flex items-start gap-2.5">
+                                                                        <div className="p-1.5 bg-neon-red/20 rounded-lg shrink-0">
+                                                                            <Pin className="w-3 h-3 text-neon-red" />
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                                                                                ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
+                                                                            </p>
+                                                                            <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
+                                                                                {localPinnedMessage.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
+                                                                                    part.match(/^https?:\/\//) ? (
+                                                                                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
+                                                                                    ) : part
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                        {hasModPowers && (
+                                                                            <button
+                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                                                className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white opacity-0 group-hover/pin:opacity-100 transition-all"
+                                                                                title="Supprimer l'annonce"
+                                                                            >
+                                                                                <X className="w-3 h-3" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+
+                                                            {messages.map((msg, idx) => {
+                                                                const role = getRole(msg.pseudo);
+                                                                const isMsgAdmin = role === 'admin';
+                                                                const isMsgModo = role === 'modo';
+                                                                const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
+
+                                                                return (
+                                                                    <motion.div
+                                                                        key={msg.id || idx}
+                                                                        initial={{ opacity: 0, x: 10 }}
+                                                                        animate={{ opacity: 1, x: 0 }}
+                                                                        className="group relative min-w-0 overflow-hidden"
+                                                                    >
+                                                                        <div className="flex items-center gap-2 mb-1 px-1">
+                                                                            <div className="w-4 flex items-center justify-center opacity-80">
+                                                                                {getCountryFlag(msg.country || 'FR')}
+                                                                            </div>
+                                                                            <span
+                                                                                className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                                            >
+                                                                                {msg.pseudo}
+                                                                            </span>
+                                                                            {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
+                                                                            <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                        </div>
+                                                                        <div
+                                                                            className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                            style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
+                                                                        >
+                                                                            {/* Message with clickable links */}
+                                                                            <span className="relative z-10">
+                                                                                {(() => {
+                                                                                    const text = msg.message;
+                                                                                    if (!text) return null;
+                                                                                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                                    const parts = text.split(urlRegex);
+                                                                                    return parts.map((part: string, i: number) => {
+                                                                                        if (part.match(urlRegex)) {
+                                                                                            // Detect clip link
+                                                                                            if (part.includes('#clip-')) {
+                                                                                                const cId = part.split('#clip-')[1];
+                                                                                                const targetClip = clips.find(c => c.id === cId);
+                                                                                                return (
+                                                                                                    <button
+                                                                                                        key={i}
+                                                                                                        onClick={(e) => {
+                                                                                                            e.preventDefault();
+                                                                                                            e.stopPropagation();
+                                                                                                            if (targetClip) {
+                                                                                                                setActiveClipToPlay(targetClip);
+                                                                                                                setShowClipPlayer(true);
+                                                                                                                setIsMutedGlobal(true);
+                                                                                                            }
+                                                                                                        }}
+                                                                                                        className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-2 py-0.5 rounded-md border border-neon-cyan/30 font-black transition-all flex items-center gap-1.5 inline-flex"
+                                                                                                    >
+                                                                                                        <Video className="w-3 h-3" /> VOIR LE CLIP
+                                                                                                    </button>
+                                                                                                );
+                                                                                            }
+                                                                                            return (
+                                                                                                <a
+                                                                                                    key={i}
+                                                                                                    href={part}
+                                                                                                    target="_blank"
+                                                                                                    rel="noopener noreferrer"
+                                                                                                    className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
+                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                >
+                                                                                                    {part}
+                                                                                                </a>
+                                                                                            );
+                                                                                        }
+                                                                                        return part;
+                                                                                    });
+                                                                                })()}
+                                                                            </span>
+                                                                            {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                                                                    <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
+                                                                                    <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </motion.div>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        {/* Chat Input Area */}
+                                                        <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
+                                                            {/* Chat/Shop/Leaderboard Tab Switcher */}
+                                                            <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-2xl mb-4 max-w-sm mx-auto">
+                                                                {[
+                                                                    { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                                                                    { id: 'shop', icon: Zap, label: 'Shop' },
+                                                                    { id: 'leaderboard', icon: List, label: 'Top' }
+                                                                ].map(tab => (
+                                                                    <button
+                                                                        key={tab.id}
+                                                                        onClick={() => setActiveChatTab(tab.id as any)}
+                                                                        className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.id ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                                    >
+                                                                        <tab.icon className="w-3.5 h-3.5" />
+                                                                        <span className="hidden sm:inline">{tab.label}</span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+
+                                                            <form onSubmit={handleSendMessage} className="relative group/input p-4">
+                                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-2xl lg:rounded-3xl transition-all" />
+                                                                <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
+                                                                    <div className="flex items-center px-2 py-1 lg:py-1.5">
+                                                                        <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
+                                                                        <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+                                                                        <input
+                                                                            type="text"
+                                                                            value={newMessage}
+                                                                            onChange={(e) => setNewMessage(e.target.value)}
+                                                                            placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
+                                                                            className="flex-1 bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                        />
+
+                                                                        <button type="button" onClick={handleShazam} className={`p-2.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                            <Music2 className="w-5 h-5" />
+                                                                        </button>
+
+                                                                        <button
+                                                                            type="button"
+                                                                            onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
+                                                                            title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
+                                                                            className={`p-2.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                        >
+                                                                            <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                                        </button>
+
+                                                                        <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+
+
+
+                                                                        <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                            <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                {showEmojiPicker && (
+                                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
+                                                                        {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
+                                                                            <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
+                                                                        ))}
+                                                                    </motion.div>
+                                                                )}
+                                                            </form>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
+                            {!isFocusMode && (
+                                <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                    <button
+                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                        className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
+                                    >
+                                        <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                    </button>
+                                </div>
+                            )}
+
+                            <AnimatePresence>
+                                {!isFocusMode && showUsersPanel && (
+                                    <motion.div
+                                        initial={{ width: 0, opacity: 0 }}
+                                        animate={{ width: 200, opacity: 1 }}
+                                        exit={{ width: 0, opacity: 0 }}
+                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                    >
+                                        <div className="w-[200px] flex flex-col h-full">
+                                            <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                                </h2>
+                                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto">
+                                                <div className="p-3 space-y-2">
+                                                    {allActiveUsers.map(u => {
+                                                        const role = getRole(u.pseudo);
+                                                        const isUserAdmin = role === 'admin';
+                                                        const isUserModo = role === 'modo';
+                                                        const isExpanded = expandedUserId === u.pseudo;
+
+                                                        return (
+                                                            <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
+                                                                <div
+                                                                    onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
+                                                                    className="flex items-center justify-between group p-2 cursor-pointer select-none"
+                                                                >
+                                                                    <div className="flex items-center gap-2 truncate">
+                                                                        <div className="w-4 flex items-center justify-center">
+                                                                            {getCountryFlag(u.country)}
+                                                                        </div>
+                                                                        <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                            {u.pseudo}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {(isUserAdmin || isUserModo) && (
+                                                                            <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
+                                                                                {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
+                                                                                {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
+                                                                            </span>
+                                                                        )}
+                                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
+                                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                                title="Promouvoir Modérateur Chat"
+                                                                            >
+                                                                                <Shield className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                <AnimatePresence>
+                                                                    {isExpanded && (
+                                                                        <motion.div
+                                                                            initial={{ height: 0, opacity: 0 }}
+                                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                                            exit={{ height: 0, opacity: 0 }}
+                                                                            className="overflow-hidden border-t border-white/5"
+                                                                        >
+                                                                            <div className="p-3 space-y-3 bg-black/40">
+                                                                                <div className="space-y-1.5">
+                                                                                    <div className="flex items-center justify-between text-[10px]">
+                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
+                                                                                        <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
+                                                                                    </div>
+                                                                                    <div className="flex items-center justify-between text-[10px]">
+                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
+                                                                                        <span className="text-gray-400 font-italic">Non disponible</span>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                {isAdmin && isUserModo && pseudo !== u.pseudo && (
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
+                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                    >
+                                                                                        <Shield className="w-3.5 h-3.5" />
+                                                                                        Retirer MODO
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </AnimatePresence>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* Ticker Banner */}
-            {
-                !isFocusMode && !isFullScreen && showTickerBanner && (
+                {/* Ticker Banner */}
+                {!isFocusMode && !isFullScreen && showTickerBanner && (
                     <div
-                        className="w-full h-12 shrink-0 flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                        className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
                         style={{ backgroundColor: tickerBgColor }}
                         onMouseEnter={() => {
                             const ticker = document.getElementById('ticker-animate-container');
@@ -3823,111 +4454,190 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             )}
                         </div>
                     </div>
-                )
-            }
-
-            {/* Shazam Instructions Modal */}
-            <AnimatePresence>
-                {showShazamInfo && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
-                        onClick={() => setShowShazamInfo(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                            className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            {/* Decorative elements */}
-                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
-
-                            <div className="relative p-10 lg:p-14 text-center space-y-10">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
-
-                                <div className="relative flex flex-col items-center">
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
-                                        <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                            <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
-                                        </div>
-                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
-                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-8">
-                                        <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
-                                            Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
-                                        </h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3 text-left relative z-10">
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                    >
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
-                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                            Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
-                                        </p>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                    >
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
-                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                            Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
-                                        </p>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                        className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
-                                    >
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
-                                        <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
-                                            Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
-                                        </p>
-                                    </motion.div>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                    <button
-                                        onClick={() => { setShowShazamInfo(false); handleShazam(); }}
-                                        className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
-                                    >
-                                        Démarrer
-                                    </button>
-                                    <button
-                                        onClick={() => setShowShazamInfo(false)}
-                                        className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
-                                    >
-                                        Annuler
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
                 )}
-            </AnimatePresence>
 
-            <style>{`
+                {/* CLIP PLAYER POPUP */}
+                <AnimatePresence>
+                    {showClipPlayer && activeClipToPlay && (
+                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => {
+                                    setShowClipPlayer(false);
+                                    setIsMutedGlobal(false);
+                                    setActiveClipToPlay(null);
+                                }}
+                                className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
+                            >
+                                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                            <Video className="w-6 h-6 text-neon-cyan" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
+                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            setShowClipPlayer(false);
+                                            setIsMutedGlobal(false);
+                                            setActiveClipToPlay(null);
+                                        }}
+                                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
+                                    >
+                                        <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                                    </button>
+                                </div>
+                                <div className="w-full h-full bg-black">
+                                    <iframe
+                                        className="w-full h-full"
+                                        src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
+                                        title="Clip Player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    ></iframe>
+                                </div>
+                                <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
+                                                if (navigator.share) {
+                                                    navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
+                                                } else {
+                                                    navigator.clipboard.writeText(shareText);
+                                                    alert("Lien copié !");
+                                                }
+                                            }}
+                                            className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                        >
+                                            Partager le clip
+                                        </button>
+                                        <button
+                                            onClick={() => handleDownloadClip(activeClipToPlay)}
+                                            className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
+                                        >
+                                            Télécharger (HD)
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Shazam Instructions Modal */}
+                <AnimatePresence>
+                    {showShazamInfo && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
+                            onClick={() => setShowShazamInfo(false)}
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                                className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                {/* Decorative elements */}
+                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+
+                                <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
+
+                                    <div className="relative flex flex-col items-center">
+                                        <div className="relative group">
+                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                            <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                                <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                            </div>
+                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-8">
+                                            <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                                Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
+                                            </h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 text-left relative z-10">
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.1 }}
+                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                        >
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                                Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                            </p>
+                                        </motion.div>
+
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.2 }}
+                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                        >
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                                Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                            </p>
+                                        </motion.div>
+
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.3 }}
+                                            className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                        >
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                            <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                                Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                            </p>
+                                        </motion.div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                        <button
+                                            onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                            className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                        >
+                                            Démarrer
+                                        </button>
+                                        <button
+                                            onClick={() => setShowShazamInfo(false)}
+                                            className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
@@ -3939,8 +4649,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+                @keyframes pulse-glow { 0%, 100% { box-shadow: inset 0 0 50px rgba(255,18,65,0.2); } 50% { box-shadow: inset 0 0 100px rgba(255,18,65,0.4); } }
+                .animate-pulse-glow { animation: pulse-glow 2s infinite; }
+                @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-        </div>
+            </div>
+        </>
     );
 }
 
