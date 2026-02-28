@@ -157,11 +157,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // 7. Swipe arrows
             if (showSwipe) {
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 45px "Inter", sans-serif'; // Further reduced size as requested
+                ctx.font = '900 italic 38px "Inter", sans-serif'; // Reduced size further
                 ctx.fillStyle = '#ffffff';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText('>>', canvas.width - 80, 1320); // Positioned at bottom (outside 1:1 safe zone but user requested bottom)
+                ctx.fillText('>>', canvas.width - 80, 1380); // Lowered closer to bottom
                 ctx.shadowBlur = 0;
             }
 
