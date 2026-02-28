@@ -13,7 +13,7 @@
     "description": "Analyse du site",
     "icon": "BarChart3",
     "link": "/admin/stats",
-    "baseColor": "#ff00ae",
+    "baseColor": "#ff7b00",
     "permission": "stats",
     "columns": 1
   },
@@ -25,7 +25,7 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages",
-    "baseColor": "orange",
+    "baseColor": "#ffb81f",
     "columns": 1
   },
   {
@@ -36,7 +36,7 @@
     "color": "border-neon-pink/20 hover:border-pink-500",
     "bg": "bg-pink-500/5",
     "permission": "news",
-    "baseColor": "pink",
+    "baseColor": "#fff700",
     "columns": 1
   },
   {
@@ -44,7 +44,7 @@
     "description": "Gérer les actualités",
     "icon": "FileText",
     "link": "/admin/manage?tab=News",
-    "baseColor": "#00ff6e",
+    "baseColor": "#37ff00",
     "permission": "publications"
   },
   {
@@ -52,7 +52,7 @@
     "description": "Gérer les reportages",
     "icon": "Video",
     "link": "/admin/manage?tab=Recaps",
-    "baseColor": "#d4ff00",
+    "baseColor": "#00ffd5",
     "permission": "publications"
   },
   {
@@ -60,7 +60,7 @@
     "description": "Gérer les dates",
     "icon": "Calendar",
     "link": "/admin/manage?tab=Agenda",
-    "baseColor": "#ff7b00",
+    "baseColor": "#0091ff",
     "permission": "publications"
   },
   {
@@ -68,7 +68,7 @@
     "description": "Gérer les articles musique",
     "icon": "Music",
     "link": "/admin/manage?tab=Musique",
-    "baseColor": "#c65381",
+    "baseColor": "#9900ff",
     "permission": "publications",
     "columns": 1
   },
@@ -80,7 +80,7 @@
     "color": "border-neon-red/20 hover:border-neon-red",
     "bg": "bg-red-500/5",
     "permission": "superadmin",
-    "baseColor": "#e100ff",
+    "baseColor": "#004cff",
     "columns": 1
   },
   {
@@ -88,7 +88,7 @@
     "description": "Gérer le shop",
     "icon": "ShoppingBag",
     "link": "/admin/shop",
-    "baseColor": "#00ffd5",
+    "baseColor": "#e100ff",
     "permission": "shop"
   },
   {
@@ -96,7 +96,7 @@
     "description": "Gérer les interviews",
     "icon": "Mic",
     "link": "/admin/manage?tab=Interviews",
-    "baseColor": "#3b6d68",
+    "baseColor": "#ff0059",
     "permission": "publications"
   },
   {
@@ -104,7 +104,7 @@
     "description": "Gérer les albums",
     "icon": "ImageIcon",
     "link": "/admin/manage?tab=Galeries",
-    "baseColor": "#ededed",
+    "baseColor": "#ff0000",
     "permission": "publications",
     "columns": 1
   },
@@ -122,7 +122,7 @@
     "description": "Studio de création",
     "icon": "Mail",
     "link": "/newsletter/studio",
-    "baseColor": "#1fc7ff",
+    "baseColor": "#000000",
     "permission": "newsletter",
     "columns": 1
   },
