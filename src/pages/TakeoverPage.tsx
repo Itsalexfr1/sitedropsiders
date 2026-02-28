@@ -3653,11 +3653,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             {!isFocusMode && showUsersPanel && (
                                 <motion.div
                                     initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 350, opacity: 1 }}
+                                    animate={{ width: 200, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
                                 >
-                                    <div className="w-[350px] flex flex-col h-full">
+                                    <div className="w-[200px] flex flex-col h-full">
                                         <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
                                             <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
                                                 <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
