@@ -71,18 +71,19 @@ interface TakeoverProps {
 }
 
 export function TakeoverPage({ settings }: TakeoverProps) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+    const adminAuth = localStorage.getItem('admin_auth') === 'true';
+    const isServerAdmin = adminAuth === true;
+
     const [pseudo, setPseudo] = useState(() => {
-        const adminAuth = localStorage.getItem('admin_auth') === 'true';
         if (adminAuth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
     });
     const [country, setCountry] = useState(() => {
-        const auth = localStorage.getItem('admin_auth') === 'true';
-        if (auth) return 'FR';
+        if (adminAuth) return 'FR';
         return '';
     });
     const [isJoined, setIsJoined] = useState(() => {
-        const adminAuth = localStorage.getItem('admin_auth') === 'true';
         const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
         return adminAuth || editeurAuth || localStorage.getItem('chat_joined') === 'true';
     });
@@ -98,13 +99,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [isClipping, setIsClipping] = useState(false);
     const [clipProgress, setClipProgress] = useState(0);
     const [clips, setClips] = useState<any[]>([]);
-    const [activeClipPopup, setActiveClipPopup] = useState<any>(null);
+    const [_activeClipPopup, _setActiveClipPopup] = useState<any>(null);
     const [newVideoId, setNewVideoId] = useState('');
     const [showLineup, setShowLineup] = useState(false);
     const [showVideoEdit, setShowVideoEdit] = useState(false);
     const [showClipModal, setShowClipModal] = useState(false);
     const [playersOption, setPlayersOption] = useState(1);
-    const [email, setEmail] = useState('');
+    const [email, _setEmail] = useState('');
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState('general');
 
@@ -115,12 +116,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [hypeLevel, setHypeLevel] = useState(0);
     const [isOverdrive, setIsOverdrive] = useState(false);
     const [bpm, setBpm] = useState(128);
-    const [showDropsShop, setShowDropsShop] = useState(false);
-    const [isListeningForDrops, setIsListeningForDrops] = useState(true);
+    const [_showDropsShop, setShowDropsShop] = useState(false);
+    const [_isListeningForDrops, _setIsListeningForDrops] = useState(true);
     const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'leaderboard'>('chat');
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
-    const [totalWatchTime, setTotalWatchTime] = useState(0);
+    const [_totalWatchTime, setTotalWatchTime] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
     const [annBannerText, setAnnBannerText] = useState('');
@@ -292,7 +293,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
             return { time: startTime, endTime, artist, stage, instagram, isPast, totalMinutes: startMinutes, progress };
         });
-    }, [currentTime]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
@@ -303,7 +305,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const isDisabled = settings.disableMainPlayer !== false;
         return isDisabled ? 1 : 0;
     });
-    const [currentTime, setCurrentTime] = useState(new Date());
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 5000); // Mise à jour toutes les 5 secondes
@@ -327,37 +328,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return items;
     }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
 
-    // Scheduling Logic
-    useEffect(() => {
-        const checkSchedule = () => {
-            if (!settings.startDate && !settings.endDate) return;
-
-            const now = new Date();
-            const start = settings.startDate ? new Date(settings.startDate) : null;
-            const end = settings.endDate ? new Date(settings.endDate) : null;
-
-            let shouldBeOnline = settings.isOnline;
-
-            if (start && end) {
-                shouldBeOnline = now >= start && now <= end;
-            } else if (start) {
-                shouldBeOnline = now >= start;
-            } else if (end) {
-                shouldBeOnline = now <= end;
-            }
-
-            if (shouldBeOnline !== settings.isOnline) {
-                console.log('[Takeover] Scheduling update:', { shouldBeOnline, current: settings.isOnline });
-                // Update settings prop immediately to avoid loop
-                settings.isOnline = shouldBeOnline;
-                handleUpdateSettings({ isOnline: shouldBeOnline });
-            }
-        };
-
-        const interval = setInterval(checkSchedule, 30000); // Check every 30s
-        checkSchedule();
-        return () => clearInterval(interval);
-    }, [settings.startDate, settings.endDate, settings.isOnline]);
 
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
@@ -374,11 +344,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         });
     }, [displayLineup, settings.lineup, activeVideoIndex, channelItems, parseLineup, currentTime]);
 
-    // Calculate current artist for the selected stage/flux
     const fluxCurrentArtist = useMemo(() => {
-        const now = new Date();
-        const currentTotal = now.getHours() * 60 + now.getMinutes();
-
         // Find match in current flux lineup where it's not past and start time is <= now
         const currentItem = [...currentFluxLineup]
             .filter(i => i.time && i.time.includes(':'))
@@ -555,11 +521,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const videoId = clip.videoId || clip.channelId || settings.youtubeId;
         if (!videoId) return alert("Erreur: ID Vidéo manquant");
 
-        // Simulating a real download process with a toast or redirect
-        // In a real app, this would call a backend service to process the clip
-        const downloadUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-        // Notify user
+        // notify user
         alert(`Préparation du téléchargement HD pour "${clip.title}"...\nLe flux est en cours de traitement.`);
 
         // For demonstration/finishing the feature, we could redirect to a downloader service (optional)
@@ -632,57 +594,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setShowShopWidget(settings.showShop ?? false);
     }, [settings.title, settings.lineup, settings.youtubeId, settings.channels, settings.showTopBanner, settings.showTickerBanner, settings.pinnedMessage, settings.currentArtist, settings.artistInstagram, settings.customCommands, settings.moderators, settings.showShop]);
 
-    // Automatic cleanup of past artists and update current artist
-    useEffect(() => {
-        if (!settings.lineup || !isServerAdmin) return;
-
-        const updateCurrentArtistFromLineup = async () => {
-            const items = parseLineup(settings.lineup || '');
-            const now = new Date();
-            const currentTotal = now.getHours() * 60 + now.getMinutes();
-
-            // Find current active artist for the main flux
-            const activeItems = items.filter(i => !i.isPast);
-            const currentMainItem = items
-                .filter(i => {
-                    const [h, m] = i.time.split(':').map(Number);
-                    const total = h * 60 + m;
-                    return total <= currentTotal && !i.isPast;
-                })
-                .sort((a, b) => {
-                    const [ha, ma] = a.time.split(':').map(Number);
-                    const [hb, mb] = b.time.split(':').map(Number);
-                    return (hb * 60 + mb) - (ha * 60 + ma);
-                })[0];
-
-            if (currentMainItem && currentMainItem.artist !== settings.currentArtist) {
-                console.log('[Takeover] Auto-updating current artist:', currentMainItem.artist);
-                await handleUpdateSettings({
-                    currentArtist: currentMainItem.artist,
-                    artistInstagram: currentMainItem.instagram || '@DROPSIDERS'
-                });
-            }
-
-            // Cleanup past artists automatically
-            if (activeItems.length !== items.length) {
-                const newText = activeItems.map(i => {
-                    const timeStr = i.endTime ? `${i.time}-${i.endTime}` : i.time;
-                    const stagePart = i.stage ? ` - ${i.stage}` : '';
-                    const instaPart = i.instagram ? ` - ${i.instagram}` : '';
-                    return `[${timeStr}] ${i.artist}${stagePart}${instaPart}`;
-                }).join('\n');
-
-                if (newText !== settings.lineup) {
-                    console.log('[Takeover] Auto-cleaning past artists from planning...');
-                    await handleUpdateSettings({ lineup: newText });
-                }
-            }
-        };
-
-        const interval = setInterval(updateCurrentArtistFromLineup, 60000);
-        updateCurrentArtistFromLineup();
-        return () => clearInterval(interval);
-    }, [settings.lineup, settings.currentArtist, parseLineup, isServerAdmin, handleUpdateSettings]);
     // Local state for settings modal to avoid multiple builds
     const [localSettings, setLocalSettings] = useState<Partial<TakeoverProps['settings']>>({});
     useEffect(() => {
@@ -718,8 +629,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[3] ? (lines[3].split(':').slice(1).join(':').trim() || 'Stage 4') : 'Stage 4';
     });
-    const [isLocalBanned, setIsLocalBanned] = useState(false);
-    const [banTimestamp, setBanTimestamp] = useState<number | null>(null);
+    const [isLocalBanned, _setIsLocalBanned] = useState(false);
+    const [_banTimestamp, _setBanTimestamp] = useState<number | null>(null);
+    const [customCountry] = useState('');
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
     const isFocusMode = false;
@@ -1019,7 +931,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const adminPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
     const hasTakeoverModoPerm = adminPermissions.includes('takeover_modo') || adminPermissions.includes('all');
 
-    const adminAuth = localStorage.getItem('admin_auth') === 'true';
     const adminUser = localStorage.getItem('admin_user')?.toUpperCase() || '';
     const isAdmin = adminAuth && (pseudo === 'DROPSIDERS' || pseudo === adminUser || pseudo === 'ADMIN');
     const isModo = settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(pseudo?.toUpperCase() || '') || hasTakeoverModoPerm || promotedModos.includes(pseudo.toUpperCase());
@@ -1478,13 +1389,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             return a.pseudo.localeCompare(b.pseudo);
         });
 
-    const isServerAdmin = adminAuth === true;
 
     // State for command edition
     const [isSaving, setIsSaving] = useState(false);
     const [editLineup, setEditLineup] = useState(settings.lineup || '');
-    const [editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
-    const [editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
+    const [_editCurrentArtist, setEditCurrentArtist] = useState(settings.currentArtist || '');
+    const [_editArtistInstagram, setEditArtistInstagram] = useState(settings.artistInstagram || '');
     const [showShazamInfo, setShowShazamInfo] = useState(false);
     const [cmdTrigger, setCmdTrigger] = useState('');
     const [cmdResponse, setCmdResponse] = useState('');
@@ -1620,6 +1530,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     }, [getAuthHeaders, editTitle, tickerType, tickerText, tickerLink, tickerBgColor, tickerTextColor, showTopBanner, showTickerBanner, botColor, botBgColor, adminColor, adminBgColor, settings]);
 
+    // Scheduling Logic
+    useEffect(() => {
+        const checkSchedule = () => {
+            if (!settings.startDate && !settings.endDate) return;
+
+            const now = new Date();
+            const start = settings.startDate ? new Date(settings.startDate) : null;
+            const end = settings.endDate ? new Date(settings.endDate) : null;
+
+            let shouldBeOnline = settings.isOnline;
+
+            if (start && end) {
+                shouldBeOnline = now >= start && now <= end;
+            } else if (start) {
+                shouldBeOnline = now >= start;
+            } else if (end) {
+                shouldBeOnline = now <= end;
+            }
+
+            if (shouldBeOnline !== settings.isOnline) {
+                console.log('[Takeover] Scheduling update:', { shouldBeOnline, current: settings.isOnline });
+                // Update settings prop immediately to avoid loop
+                settings.isOnline = shouldBeOnline;
+                handleUpdateSettings({ isOnline: shouldBeOnline });
+            }
+        };
+
+        const interval = setInterval(checkSchedule, 30000); // Check every 30s
+        checkSchedule();
+        return () => clearInterval(interval);
+    }, [settings.startDate, settings.endDate, settings.isOnline, handleUpdateSettings]);
+
     const handleToggleLive = async () => {
         const isCurrentlyOnline = settings.isOnline;
         const action = isCurrentlyOnline ? 'couper' : 'lancer';
@@ -1664,6 +1606,58 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }, 20000);
         return () => clearInterval(interval);
     }, [settings.lineup, settings.currentArtist, isServerAdmin, settings.artistInstagram, handleUpdateSettings, parseLineup]);
+
+    // Automatic cleanup of past artists and update current artist (moved here after handleUpdateSettings is declared)
+    useEffect(() => {
+        if (!settings.lineup || !isServerAdmin) return;
+
+        const updateCurrentArtistFromLineup = async () => {
+            const items = parseLineup(settings.lineup || '');
+            const now = new Date();
+            const currentTotal = now.getHours() * 60 + now.getMinutes();
+
+            // Find current active artist for the main flux
+            const activeItems = items.filter(i => !i.isPast);
+            const currentMainItem = items
+                .filter(i => {
+                    const [h, m] = i.time.split(':').map(Number);
+                    const total = h * 60 + m;
+                    return total <= currentTotal && !i.isPast;
+                })
+                .sort((a, b) => {
+                    const [ha, ma] = a.time.split(':').map(Number);
+                    const [hb, mb] = b.time.split(':').map(Number);
+                    return (hb * 60 + mb) - (ha * 60 + ma);
+                })[0];
+
+            if (currentMainItem && currentMainItem.artist !== settings.currentArtist) {
+                console.log('[Takeover] Auto-updating current artist:', currentMainItem.artist);
+                await handleUpdateSettings({
+                    currentArtist: currentMainItem.artist,
+                    artistInstagram: currentMainItem.instagram || '@DROPSIDERS'
+                });
+            }
+
+            // Cleanup past artists automatically
+            if (activeItems.length !== items.length) {
+                const newText = activeItems.map(i => {
+                    const timeStr = i.endTime ? `${i.time}-${i.endTime}` : i.time;
+                    const stagePart = i.stage ? ` - ${i.stage}` : '';
+                    const instaPart = i.instagram ? ` - ${i.instagram}` : '';
+                    return `[${timeStr}] ${i.artist}${stagePart}${instaPart}`;
+                }).join('\n');
+
+                if (newText !== settings.lineup) {
+                    console.log('[Takeover] Auto-cleaning past artists from planning...');
+                    await handleUpdateSettings({ lineup: newText });
+                }
+            }
+        };
+
+        const interval = setInterval(updateCurrentArtistFromLineup, 60000);
+        updateCurrentArtistFromLineup();
+        return () => clearInterval(interval);
+    }, [settings.lineup, settings.currentArtist, parseLineup, isServerAdmin, handleUpdateSettings]);
 
     const handleRemoveModerator = async (modPseudo: string) => {
         const currentMods = (settings.moderators || '').split(',').map(m => m.trim()).filter(m => m && m.toLowerCase() !== modPseudo.toLowerCase());
@@ -2116,7 +2110,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 <Bell className="w-4 h-4 text-neon-red" />
                                                                             </div>
                                                                             <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-1">
-                                                                                {new Date(ev.date || ev.startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'LONG' }).toUpperCase()}
+                                                                                {new Date(ev.date || ev.startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' }).toUpperCase()}
                                                                             </p>
                                                                             <h4 className="text-sm font-black text-white uppercase italic tracking-tight line-clamp-1 group-hover:text-neon-red transition-colors">{ev.title}</h4>
                                                                             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">{ev.location || 'LIVE'}</p>

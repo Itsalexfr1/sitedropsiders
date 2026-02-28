@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Video, Instagram, Calendar, Clock } from 'lucide-react';
+import { Video, Calendar, Clock } from 'lucide-react';
 
 export function ClipsPage() {
     const [clips, setClips] = useState<any[]>([]);
