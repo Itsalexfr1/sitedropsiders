@@ -35,9 +35,23 @@ export function AnnouncementBanner() {
         };
         fetchSettings();
 
-        // Check for updates every few minutes or on focus
+        // Listen for updates from other components (like TakeoverPage)
+        const handleUpdate = () => fetchSettings();
+        const handleToggle = (e: any) => {
+            if (e.detail && typeof e.detail.enabled === 'boolean') {
+                setSettings(prev => prev ? { ...prev, enabled: e.detail.enabled } : prev);
+            }
+        };
+
+        window.addEventListener('dropsiders_settings_updated', handleUpdate);
+        window.addEventListener('dropsiders_banner_toggle', handleToggle);
         window.addEventListener('focus', fetchSettings);
-        return () => window.removeEventListener('focus', fetchSettings);
+
+        return () => {
+            window.removeEventListener('dropsiders_settings_updated', handleUpdate);
+            window.removeEventListener('dropsiders_banner_toggle', handleToggle);
+            window.removeEventListener('focus', fetchSettings);
+        };
     }, []);
 
     const bannerText = settings ? (language === 'en' && settings.text_en ? settings.text_en : settings.text) : '';

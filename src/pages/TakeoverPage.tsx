@@ -392,6 +392,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                 })
             });
+            // Notify other components (like AnnouncementBanner)
+            window.dispatchEvent(new CustomEvent('dropsiders_settings_updated'));
         } catch (e: any) {
             console.error('Failed to save announcement banner', e);
         }
@@ -2490,28 +2492,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         </div>
 
-                                                        {/* Top Banner Control (Bandeau 2) */}
-                                                        <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <Activity className="w-4 h-4 text-neon-red" />
-                                                                    </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 2 <span className="text-neon-red">(Titre & Infos)</span></h3>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateLocalSetting({ showTopBanner: !showTopBanner })}
-                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTopBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
-                                                                >
-                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                                </button>
-                                                            </div>
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                                                                Affiche le logo et le menu de navigation en haut de la page.
-                                                            </p>
-                                                        </div>
-
-                                                        {/* Announcement Banner Control */}
+                                                        {/* Announcement Banner Control (Replaces Bandeau 2) */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center justify-between mb-4">
                                                                 <div className="flex items-center gap-3">
@@ -2521,7 +2502,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-cyan">défilant (Annonces)</span></h3>
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => setAnnBannerEnabled(p => !p)}
+                                                                    onClick={() => {
+                                                                        const newVal = !annBannerEnabled;
+                                                                        setAnnBannerEnabled(newVal);
+                                                                        // Dispatch for immediate local UI feedback
+                                                                        window.dispatchEvent(new CustomEvent('dropsiders_banner_toggle', { detail: { enabled: newVal } }));
+                                                                    }}
                                                                     className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${annBannerEnabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44] justify-end' : 'bg-gray-800 justify-start'}`}
                                                                 >
                                                                     <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
