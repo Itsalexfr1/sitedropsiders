@@ -36,6 +36,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [showSwipe, setShowSwipe] = useState(false);
     const [customText, setCustomText] = useState((title || '').toUpperCase());
     const [bgImage, setBgImage] = useState<string>(imageUrl);
+    const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
     const [isDownloading, setIsDownloading] = useState(false);
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
@@ -64,7 +65,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'REPLAY', grad: '189, 0, 255', color: '#bd00ff' },
+        'RECAP': { label: 'RECAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' }
     };
 
@@ -119,8 +120,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const safeTop = (canvas.height - 1080) / 2;
             const safeBottom = safeTop + 1080;
 
-            // 1. Background
-            if (img) {
+            // 1. Background (Video or Image)
+            if (bgVideo) {
+                const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
+                const x = (canvas.width - bgVideo.videoWidth * scale) / 2;
+                const y = (canvas.height - bgVideo.videoHeight * scale) / 2;
+                ctx.drawImage(bgVideo, x, y, bgVideo.videoWidth * scale, bgVideo.videoHeight * scale);
+            } else if (img) {
                 const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
                 const x = (canvas.width - img.width * scale) / 2;
                 const y = (canvas.height - img.height * scale) / 2;
@@ -252,29 +258,53 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             } else {
                 const fontSize = 85;
                 const lineHeight = fontSize * 1.2;
-                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
                 ctx.textAlign = 'center';
-                ctx.fillStyle = '#ffffff';
-                const words = customText.split(' ');
+
+                // Content splitting preserving manual line breaks
+                const paragraphs = customText.split('\n');
                 let lines: string[] = [];
-                let currentLine = '';
-                for (let word of words) {
-                    if (ctx.measureText(currentLine + word).width < canvas.width - 200) currentLine += word + ' ';
-                    else { lines.push(currentLine.trim()); currentLine = word + ' '; }
+                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
+
+                for (let para of paragraphs) {
+                    if (para.trim() === '') {
+                        lines.push(''); // Preserve empty lines
+                        continue;
+                    }
+                    const words = para.split(' ');
+                    let currentLine = '';
+                    for (let word of words) {
+                        if (ctx.measureText(currentLine + word).width < canvas.width - 200) {
+                            currentLine += word + ' ';
+                        } else {
+                            lines.push(currentLine.trim());
+                            currentLine = word + ' ';
+                        }
+                    }
+                    lines.push(currentLine.trim());
                 }
-                lines.push(currentLine.trim());
-                const totalH = lines.length * lineHeight;
-                const startY = safeBottom - 100 - (totalH / 2);
+
+                const labelY = safeTop + 150; // Place label high
+                const startY = labelY + 180; // Text starts clearly below the label
+
+                // Theme Label Box
                 ctx.fillStyle = activeData.color;
-                const labelText = theme === 'RECAP' ? 'REPLAY' : theme;
+                const labelText = ('label' in activeData) ? activeData.label : themeDataOverride()?.label || theme;
                 const labelW = ctx.measureText(labelText).width + 80;
-                ctx.fillRect((canvas.width - labelW) / 2, startY - 100, labelW, 80);
-                ctx.fillStyle = activeData.color === '#ffaa00' ? '#000' : '#fff';
+                ctx.fillRect((canvas.width - labelW) / 2, labelY - 50, labelW, 80);
+
+                // Label text - Black if it's MUSIQUE or FOCUS
+                ctx.fillStyle = (theme === 'MUSIQUE' || theme === 'FOCUS') ? '#000' : '#fff';
                 ctx.font = '900 italic 50px "Inter", sans-serif';
-                ctx.fillText(labelText, canvas.width / 2, startY - 45);
+                ctx.fillText(labelText, canvas.width / 2, labelY + 5);
+
+                // Main Content Lines
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
                 ctx.fillStyle = '#fff';
-                lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight)));
+                lines.forEach((line, i) => {
+                    if (line !== '') {
+                        ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight));
+                    }
+                });
             }
 
             // DROPSIDERS Logo
@@ -293,17 +323,43 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 38px "Inter", sans-serif';
                 ctx.fillStyle = '#fff';
-                ctx.fillText('>>', canvas.width - 80, safeBottom - 30);
+                ctx.fillText('>>', canvas.width - 80, safeBottom - 20);
             }
 
         } catch (e) { console.error(e); }
     };
 
-    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor]);
+    useEffect(() => {
+        let anim: number;
+        if (bgVideo || (theme === 'TOP 5 STYLES' && isVideoRecording)) {
+            const loop = () => {
+                generateImage();
+                anim = requestAnimationFrame(loop);
+            };
+            anim = requestAnimationFrame(loop);
+        } else {
+            generateImage();
+        }
+        return () => cancelAnimationFrame(anim);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) setBgImage(URL.createObjectURL(file));
+        if (!file) return;
+
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith('video/')) {
+            const video = document.createElement('video');
+            video.src = url;
+            video.muted = true;
+            video.loop = true;
+            video.play();
+            setBgVideo(video);
+            setBgImage('');
+        } else {
+            setBgImage(url);
+            setBgVideo(null);
+        }
     };
 
     const startVideoRecording = async () => {
@@ -432,8 +488,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger</button>
                                 </div>
                             )}
-                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-500 text-[10px] font-black uppercase hover:border-white/30 transition-all"><Upload className="w-4 h-4" /> Modifier fond</button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
+                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-500 text-[10px] font-black uppercase hover:border-white/30 transition-all"><Upload className="w-4 h-4" /> Fond Image/Vidéo</button>
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                         </div>
                     </div>
                 </div>
