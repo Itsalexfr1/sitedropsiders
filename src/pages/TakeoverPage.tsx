@@ -3285,7 +3285,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[280px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
+                <div className="flex-1 lg:w-[600px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                     {/* Glossy Header */}
                     {!isFocusMode && (
                         <div className="p-3 lg:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
@@ -3537,7 +3537,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     {getCountryFlag(msg.country || 'FR')}
                                                                 </div>
                                                                 <span
-                                                                    className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                    className="text-[12px] lg:text-[14px] font-black uppercase tracking-widest truncate min-w-0"
                                                                     style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                 >
                                                                     {msg.pseudo}
@@ -3546,7 +3546,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                             </div>
                                                             <div
-                                                                className={`p-1.5 px-2.5 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                className={`p-2 px-3 rounded-xl text-[12px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                 style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                             >
                                                                 {/* Message with clickable links */}
@@ -3665,11 +3665,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             {!isFocusMode && showUsersPanel && (
                                 <motion.div
                                     initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 160, opacity: 1 }}
+                                    animate={{ width: 240, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
                                 >
-                                    <div className="w-[160px] flex flex-col h-full">
+                                    <div className="w-[240px] flex flex-col h-full">
                                         <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
                                             <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
                                                 <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
