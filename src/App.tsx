@@ -43,7 +43,6 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
-import { FloatingTakeoverPlayer } from './components/FloatingTakeoverPlayer';
 
 function Root() {
   return (
@@ -54,7 +53,6 @@ function Root() {
         <Outlet />
       </Layout>
       <CookieConsent />
-      <FloatingTakeoverPlayer />
     </>
   );
 }
