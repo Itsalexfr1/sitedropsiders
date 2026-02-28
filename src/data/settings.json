@@ -33,7 +33,7 @@
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": false,
+    "showTickerBanner": true,
     "showInNavbar": true,
     "forceHomepage": false,
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
@@ -53,6 +53,6 @@
     "chat_enabled": true,
     "currentArtist": "COSMIC GATE",
     "artistInstagram": "https://www.instagram.com/cosmicgate/",
-    "showClosedDoors": true
+    "showClosedDoors": false
   }
 }
