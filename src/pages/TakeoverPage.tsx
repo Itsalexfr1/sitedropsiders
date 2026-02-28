@@ -136,7 +136,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     });
 
-    const [activeTab, setActiveTab] = useState<'chat' | 'artists' | 'recap' | 'shop'>('chat');
     const [activeVideoIndex, setActiveVideoIndex] = useState(0);
     const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -1257,7 +1256,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const isUserOnline = (userData: { pseudo: string; country: string }) => {
         const upseudo = (userData.pseudo || '').toLowerCase();
-        return allActiveUsers.some(u => u.toLowerCase() === upseudo);
+        return allActiveUsers.some(u => (u.pseudo || '').toLowerCase() === upseudo);
     };
 
 
@@ -1481,7 +1480,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         {/* Primary Stream (Large if alone or with 1-2 others, otherwise part of grid) */}
                                         {channelItems.map((item, idx) => {
                                             const isMain = idx === 0;
-                                            const isSecondary = idx > 0;
                                             const showInSpecialLayout = channelItems.length <= 3 && isMain;
 
                                             return (
@@ -1959,15 +1957,30 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-4">
                                                         <div className="flex items-center gap-3">
                                                             <div className="p-2 bg-neon-cyan/10 rounded-xl"><Pencil className="w-4 h-4 text-neon-cyan" /></div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">TITRE DU <span className="text-neon-cyan">LIVE</span></h3>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">CONFIG. <span className="text-neon-cyan">FLUX</span></h3>
                                                         </div>
-                                                        <input
-                                                            type="text"
-                                                            value={editTitle}
-                                                            onChange={(e) => setEditTitle(e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] font-black text-white uppercase tracking-widest outline-none focus:border-neon-cyan transition-all"
-                                                            placeholder="Titre affiché sur le site..."
-                                                        />
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">TITRE DU LIVE</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editTitle}
+                                                                    onChange={(e) => setEditTitle(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] font-black text-white uppercase tracking-widest outline-none focus:border-neon-cyan transition-all"
+                                                                    placeholder="Titre affiché sur le site..."
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX PRINCIPAL</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={editMainFluxName}
+                                                                    onChange={(e) => setEditMainFluxName(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] font-black text-neon-cyan uppercase tracking-widest outline-none focus:border-neon-cyan transition-all"
+                                                                    placeholder="DIRECT, SCÈNE MAIN..."
+                                                                />
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     {/* Programmation Automatique Section */}
                                                     <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
@@ -2345,10 +2358,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="col-span-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
                                                                 <option value="" disabled>Sélectionner un Stage</option>
                                                                 <option value="Flux Principal">Flux Principal</option>
-                                                                {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
-                                                                {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
-                                                                {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
-                                                                {stage4Name && <option value={stage4Name}>{stage4Name}</option>}
+                                                                {cameraList.slice(1).map((cam, idx) => (
+                                                                    <option key={idx} value={cam.title}>{cam.title}</option>
+                                                                ))}
                                                             </select>
                                                             <input type="text" placeholder="Lien Instagram" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="col-span-2 bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
                                                             <button onClick={appendLineup} className="col-span-5 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Ajouter au planning</button>
@@ -2404,11 +2416,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 // On essaye de matcher le stage avec les options existantes
                                                                                 const lowerStage = stage.trim().toLowerCase();
                                                                                 if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
-                                                                                else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
-                                                                                else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
-                                                                                else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
-                                                                                else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
-                                                                                else setLineupStage(stage.trim());
+                                                                                else {
+                                                                                    const stageMatch = cameraList.find(c => c.title.toLowerCase() === lowerStage);
+                                                                                    if (stageMatch) setLineupStage(stageMatch.title);
+                                                                                    else setLineupStage(stage.trim());
+                                                                                }
 
                                                                                 setLineupInstagram(instagram.trim());
                                                                                 deleteLine();
@@ -3024,23 +3036,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <button
                                                     onClick={() => {
-                                                        const fId = extractYoutubeId(fluxPrincipal);
-                                                        const s1Id = extractYoutubeId(stage1);
-                                                        const s2Id = extractYoutubeId(stage2);
-                                                        const s3Id = extractYoutubeId(stage3);
-                                                        const s4Id = extractYoutubeId(stage4);
-                                                        const newChannels = [];
-                                                        if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
-                                                        if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
-                                                        if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
-                                                        if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
+                                                        const fId = extractYoutubeId(newVideoId);
+                                                        const newChannels = cameraList.map(cam => `${extractYoutubeId(cam.id)}:${cam.title}`).join('\n');
 
                                                         handleUpdateSettings({
                                                             enabled: true,
                                                             title: editTitle,
                                                             mainFluxName: editMainFluxName,
                                                             youtubeId: fId,
-                                                            channels: newChannels.join('\n'),
+                                                            channels: newChannels,
                                                             shopItems: selectedShopIds.join(','),
                                                             tickerType,
                                                             tickerBgColor,
@@ -3072,23 +3076,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 </button>
                                                 <button
                                                     onClick={() => {
-                                                        const fId = extractYoutubeId(fluxPrincipal);
-                                                        const s1Id = extractYoutubeId(stage1);
-                                                        const s2Id = extractYoutubeId(stage2);
-                                                        const s3Id = extractYoutubeId(stage3);
-                                                        const s4Id = extractYoutubeId(stage4);
-                                                        const newChannels = [];
-                                                        if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
-                                                        if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
-                                                        if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
-                                                        if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
+                                                        const fId = extractYoutubeId(newVideoId);
+                                                        const newChannelsList = cameraList.map(cam => `${extractYoutubeId(cam.id)}:${cam.title}`).join('\n');
 
                                                         handleUpdateSettings({
                                                             title: editTitle,
                                                             mainFluxName: editMainFluxName,
                                                             lineup: editLineup,
                                                             youtubeId: fId,
-                                                            channels: newChannels.join('\n'),
+                                                            channels: newChannelsList,
                                                             shopItems: selectedShopIds.join(','),
                                                             tickerType,
                                                             tickerBgColor,
