@@ -52,7 +52,7 @@ export const uploadToCloudinary = async (
                             // If server returns explicit error, throw to catch block
                             reject(new Error(data.error || 'Upload failed'));
                         }
-                    } catch (err) {
+                    } catch (err: any) {
                         reject(err);
                     }
                 } else {
@@ -69,7 +69,7 @@ export const uploadToCloudinary = async (
 
         return serverUpload;
 
-    } catch (serverError) {
+    } catch (serverError: any) {
         console.warn('Server upload failed, switching to client-side Cloudinary fallback...', serverError);
 
         // 2. Client-Side Fallback (Direct Cloudinary)
@@ -105,7 +105,7 @@ export const uploadToCloudinary = async (
                         } else {
                             reject(new Error("Réponse Cloudinary invalide"));
                         }
-                    } catch (err) {
+                    } catch (err: any) {
                         reject(new Error("Erreur lors de l'analyse de la réponse Cloudinary"));
                     }
                 } else {

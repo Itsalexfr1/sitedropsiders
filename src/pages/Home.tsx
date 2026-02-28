@@ -24,7 +24,7 @@ export function Home() {
                     const data = await response.json();
                     setLayout(data);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to fetch home layout', err);
             }
         };
@@ -37,7 +37,7 @@ export function Home() {
                     if (data.socials) setSocials(data.socials);
                     if (data.takeover) setTakeover(data.takeover);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to fetch settings', err);
             }
         };

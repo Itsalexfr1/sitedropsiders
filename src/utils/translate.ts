@@ -21,7 +21,7 @@ export async function translateText(text: string, targetLang: string): Promise<s
         }
 
         return text;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Translation error:', error);
         return text;
     }

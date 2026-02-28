@@ -91,7 +91,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (err) {
+                } catch (err: any) {
                     errorData = { error: `Erreur ${response.status}` };
                 }
                 throw new Error(errorData.error || 'Erreur lors de la publication');
@@ -105,7 +105,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                 onClose();
             }, 1500);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving agenda item:', error);
             setStatus('error');
             setMessage(error instanceof Error ? error.message : 'Une erreur est survenue');

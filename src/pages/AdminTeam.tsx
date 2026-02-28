@@ -78,7 +78,7 @@ export function AdminTeam() {
                 const data = await response.json();
                 setMembers(data);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch team', err);
         } finally {
             setIsLoading(false);
@@ -102,7 +102,7 @@ export function AdminTeam() {
             } else {
                 setMessage('Erreur lors de la sauvegarde');
             }
-        } catch (err) {
+        } catch (err: any) {
             setMessage('Erreur réseau');
         } finally {
             setIsSaving(false);

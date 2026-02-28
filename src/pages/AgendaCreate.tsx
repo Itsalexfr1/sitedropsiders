@@ -119,7 +119,7 @@ export function AgendaCreate() {
                             setIsLiveDropsiders(item.isLiveDropsiders || false);
                         }
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.error("Failed to fetch agenda item for edit", e);
                 } finally {
                     console.log('[AgendaCreate] Fetch complete');
@@ -194,7 +194,7 @@ export function AgendaCreate() {
                         }
                     }
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Autolocation error:", error);
             } finally {
                 setIsAutoLocating(false);
@@ -260,7 +260,7 @@ export function AgendaCreate() {
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch (e: any) {
                     errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
                 }
                 throw new Error(errorData.error || 'Erreur lors de la publication');
@@ -291,7 +291,7 @@ export function AgendaCreate() {
                 setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating event:', error);
             setStatus('error');
             setMessage(error instanceof Error ? error.message : 'Une erreur est survenue');

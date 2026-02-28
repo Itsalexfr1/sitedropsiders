@@ -23,7 +23,7 @@ export function Footer() {
                     setShopPasswordProtected(data.shop_password_protected || false);
                     if (data.socials) setSocials(data.socials);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 // Keep default
             }
         };

@@ -40,7 +40,7 @@ export function AdminBanner() {
                         setBannerSize(data.announcement_banner.size || 'medium');
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error('Failed to fetch banner settings', e);
             }
         };
@@ -78,7 +78,7 @@ export function AdminBanner() {
             } else {
                 setMessage('Erreur lors de l\'enregistrement');
             }
-        } catch (e) {
+        } catch (e: any) {
             setMessage('Erreur de connexion');
         } finally {
             setIsSaving(false);

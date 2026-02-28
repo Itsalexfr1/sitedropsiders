@@ -42,7 +42,7 @@ export function AdminSpotify() {
                 } else {
                     setPlaylists(spotifyData);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 setPlaylists(spotifyData);
             }
         };
@@ -85,7 +85,7 @@ export function AdminSpotify() {
                 setStatus('error');
                 setMessage(err.error || 'Erreur lors de la sauvegarde');
             }
-        } catch (error) {
+        } catch (error: any) {
             setStatus('error');
             setMessage('Erreur de connexion');
         }

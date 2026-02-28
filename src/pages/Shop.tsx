@@ -45,7 +45,7 @@ export function Shop() {
                     });
                     setProducts(sortedProducts);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching shop data:', error);
             } finally {
                 setLoading(false);

@@ -40,7 +40,7 @@ const KitMedia = () => {
                     const data = await res.json();
                     if (data.socials) setSocials(data.socials);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Failed to fetch settings in KitMedia", e);
             }
         };
@@ -64,7 +64,7 @@ const KitMedia = () => {
                 setError(language === 'fr' ? "Code d'accès incorrect" : "Incorrect access code");
                 shakeForm();
             }
-        } catch (e) {
+        } catch (e: any) {
             // Fallback to 2026 if API fails
             if (password.toUpperCase() === '2026') {
                 setIsAuthenticated(true);

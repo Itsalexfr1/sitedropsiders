@@ -114,7 +114,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
                 setStatus('error');
                 setMessage('Erreur: ' + (data.error?.message || 'Upload échoué'));
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Upload error:', err);
             setStatus('error');
             setMessage('Erreur de connexion');

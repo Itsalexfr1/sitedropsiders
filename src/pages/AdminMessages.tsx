@@ -81,7 +81,7 @@ export function AdminMessages() {
                 const data = await res.json();
                 setMessages(Array.isArray(data) ? data.reverse() : []);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
         } finally {
             setLoading(false);

@@ -29,7 +29,7 @@ export function AnnouncementBanner() {
                         setSettings(data.announcement_banner);
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 // Keep default
             }
         };

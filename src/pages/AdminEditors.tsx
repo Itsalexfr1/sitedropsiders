@@ -169,7 +169,7 @@ export function AdminEditors() {
                 const data = await response.json();
                 setEditors(data);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch editors', err);
         } finally {
             setIsLoading(false);
@@ -198,7 +198,7 @@ export function AdminEditors() {
                 const data = await response.json();
                 showNotification(data.error || 'Erreur lors de la création', 'error');
             }
-        } catch (err) {
+        } catch (err: any) {
             showNotification('Erreur réseau', 'error');
         } finally {
             setIsSaving(false);
@@ -220,7 +220,7 @@ export function AdminEditors() {
             } else {
                 showNotification('Erreur lors de la suppression', 'error');
             }
-        } catch (err) {
+        } catch (err: any) {
             showNotification('Erreur réseau', 'error');
         }
     };
@@ -239,7 +239,7 @@ export function AdminEditors() {
                 const errorData = await res.json().catch(() => ({}));
                 showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
             }
-        } catch (err) {
+        } catch (err: any) {
             showNotification('Erreur réseau lors de la révocation', 'error');
         }
     };

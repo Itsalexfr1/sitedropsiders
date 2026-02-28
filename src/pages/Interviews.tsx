@@ -46,7 +46,7 @@ export function Interviews() {
                 fullItem.content = data.content || '';
             }
             navigate(`/news/create?type=Interview&id=${item.id}`, { state: { isEditing: true, item: fullItem } });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error fetching content:', e);
             navigate(`/news/create?type=Interview&id=${item.id}`, { state: { isEditing: true, item: item } });
         } finally {

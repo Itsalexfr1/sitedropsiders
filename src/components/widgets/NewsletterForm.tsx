@@ -68,7 +68,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
 
             // Reset success message after 5 seconds
             setTimeout(() => setStatus('idle'), 5000);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Newsletter Error:', error);
             setStatus('error');
             setErrorMessage(t('newsletter_form.error_server'));

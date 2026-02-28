@@ -59,7 +59,7 @@ export function Agenda() {
                 // API unavailable (preview/dev without worker), fallback to local JSON
                 setAgendaData(agendaDataLocal as any[]);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to fetch agenda, using local data:', error);
             setAgendaData(agendaDataLocal as any[]);
         } finally {
@@ -628,7 +628,7 @@ export function Agenda() {
                         setSelectedEvents(new Set());
                         setIsDeleting(false);
                         setItemToDelete(null);
-                    } catch (error) {
+                    } catch (error: any) {
                         console.error('Delete failed:', error);
                     }
                 }}

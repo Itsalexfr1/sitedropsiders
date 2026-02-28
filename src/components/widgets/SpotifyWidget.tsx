@@ -35,7 +35,7 @@ export function SpotifyWidget({
                 } else {
                     setPlaylists(spotifyData); // Fallback
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching playlists:', error);
                 setPlaylists(spotifyData); // Fallback
             }

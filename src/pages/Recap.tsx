@@ -43,7 +43,7 @@ export function Recap() {
                 fullItem.content = data.content || '';
             }
             navigate(`/recaps/create?id=${item.id}`, { state: { isEditing: true, item: fullItem } });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error fetching content:', e);
             navigate(`/recaps/create?id=${item.id}`, { state: { isEditing: true, item: item } });
         } finally {

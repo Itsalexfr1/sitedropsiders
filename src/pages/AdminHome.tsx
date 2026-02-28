@@ -257,7 +257,7 @@ export function AdminHome() {
                 const data = await resSets.json();
                 if (data.socials) setSocials(data.socials);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to fetch data', err);
         } finally {
             setIsLoading(false);
@@ -288,7 +288,7 @@ export function AdminHome() {
             setMessage('Configuration enregistrée avec succès !');
             setHasChanges(false);
             setTimeout(() => setMessage(''), 3000);
-        } catch (err) {
+        } catch (err: any) {
             setMessage('Erreur réseau');
         } finally {
             setIsSaving(false);

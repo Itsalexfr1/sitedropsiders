@@ -39,7 +39,7 @@ export function Unsubscribe() {
                 setStatus('error');
                 setMessage(data.error || 'Une erreur est survenue lors de la désinscription.');
             }
-        } catch (error) {
+        } catch (error: any) {
             setStatus('error');
             setMessage('Erreur de connexion au serveur.');
         } finally {

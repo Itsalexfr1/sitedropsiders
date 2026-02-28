@@ -395,7 +395,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                 })
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to save announcement banner', e);
         }
     };
@@ -550,7 +550,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             } else {
                 alert("Erreur lors de l'envoi de la demande.");
             }
-        } catch (err) {
+        } catch (err: any) {
             alert("Erreur de connexion.");
         }
     };
@@ -660,7 +660,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             if (res.ok) {
                 setIsPushEnabled(true);
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Push subscription failed:', error);
             setIsPushEnabled(false);
         }
@@ -679,7 +679,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 });
             }
             setIsPushEnabled(false);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Push unsubscription failed:', error);
         }
     };
@@ -738,7 +738,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     channel: currentVideoId
                 })
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to send bot message', e);
         }
     };
@@ -817,7 +817,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         settings.artistInstagram = newSettings.artistInstagram;
                     }
                 }
-            } catch (err) { }
+            } catch (err: any) { }
         };
 
         const interval = setInterval(pollSettings, 5000); // Sync every 5s
@@ -937,7 +937,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, name: pseudo })
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Failed to subscribe:', err);
             }
         }
@@ -1155,7 +1155,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     channel: currentVideoId
                 })
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to send message', e);
         } finally {
             setIsSending(false);
@@ -1171,7 +1171,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ id, channel: currentVideoId })
             });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to delete message', e);
         }
     };
@@ -1234,7 +1234,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     } else {
                         alert("Désolé, je n'ai pas réussi à identifier ce morceau. 😕");
                     }
-                } catch (err) {
+                } catch (err: any) {
                     console.error("Shazam API Error", err);
                     alert("Erreur de connexion au service d'identification.");
                 } finally {
@@ -1328,7 +1328,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 })
             });
             setExpandedUserId(null);
-        } catch (e) { console.error(e); }
+        } catch (e: any) { console.error(e); }
     };
 
     const handleUpdateSettings = useCallback(async (updates: Partial<TakeoverProps['settings']>) => {
@@ -1422,7 +1422,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     }
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to update settings', err);
         } finally {
             setIsSaving(false);
@@ -3290,7 +3290,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
+                <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                     {/* Glossy Header */}
                     {!isFocusMode && (
                         <div className="p-4 lg:p-7 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
@@ -3387,381 +3387,384 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         )}
                     </AnimatePresence>
 
-                    <div className="flex-1 flex flex-col min-h-0 relative">
-                        {isLocalBanned ? (
-                            <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
-                                <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
-                                    <ShieldAlert className="w-12 h-12 text-neon-red" />
-                                </div>
-                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
-                                    Vous avez été banni du chat communautaire.
-                                </p>
-                                <button
-                                    onClick={handleUnbanRequest}
-                                    className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
-                                >
-                                    Demande de débannissement
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex flex-col min-h-0 relative">
-                                {!isJoined ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
-                                        {/* Background Decor */}
-                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
-                                        <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
-                                        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
-
-                                        <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
-                                            <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
-                                                <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
-                                                    <Users className="w-10 h-10 text-white" />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-3">
-                                                <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                    Rejoins le <span className="text-neon-red">Direct</span>
-                                                </h3>
-                                                <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
-                                                    Connecte-toi pour voir les messages<br />et participer à l'expérience !
-                                                </p>
-                                            </div>
-
-                                            <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
-                                                <form onSubmit={handleJoin} className="space-y-4">
-                                                    <div className="space-y-3">
-                                                        <div className="relative group">
-                                                            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                                                <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                            </div>
-                                                            <input
-                                                                type="text"
-                                                                placeholder="TON PSEUDO"
-                                                                required
-                                                                value={pseudo}
-                                                                onChange={(e) => setPseudo(e.target.value)}
-                                                                className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                            />
-                                                        </div>
-
-                                                        <div className="grid grid-cols-2 gap-3">
-                                                            <select
-                                                                required
-                                                                value={country}
-                                                                onChange={(e) => setCountry(e.target.value)}
-                                                                className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
-                                                            >
-                                                                <option value="">PAYS</option>
-                                                                <option value="FR">🇫🇷 FR</option>
-                                                                <option value="BE">🇧🇪 BE</option>
-                                                                <option value="CH">🇨🇭 CH</option>
-                                                                <option value="OTHER">🌍 AUTRE</option>
-                                                            </select>
-                                                            <input
-                                                                type="text"
-                                                                placeholder={`${captchaA} + ${captchaB} = ?`}
-                                                                required
-                                                                value={captchaAnswer}
-                                                                onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                                className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <button
-                                                        type="submit"
-                                                        className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
-                                                    >
-                                                        REJOINDRE LE LIVE
-                                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                    </button>
-
-                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
-                                                        En rejoignant le live, tu acceptes nos CGU
-                                                    </p>
-                                                </form>
-                                            </div>
-                                        </div>
+                    {/* Chat Content and Sidebar Wrapper */}
+                    <div className="flex-1 flex flex-row min-h-0 overflow-hidden relative">
+                        <div className="flex-1 flex flex-col min-h-0 relative">
+                            {isLocalBanned ? (
+                                <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
+                                    <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
+                                        <ShieldAlert className="w-12 h-12 text-neon-red" />
                                     </div>
-                                ) : (
-                                    <>
-                                        {/* Chat Messages */}
-                                        <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
-                                            {/* Pinned Message */}
-                                            {localPinnedMessage && !isFocusMode && (
-                                                <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
-                                                    <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
-                                                    <div className="flex items-start gap-2.5">
-                                                        <div className="p-1.5 bg-neon-red/20 rounded-lg shrink-0">
-                                                            <Pin className="w-3 h-3 text-neon-red" />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <p className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                                                                ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
-                                                            </p>
-                                                            <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
-                                                                {localPinnedMessage.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
-                                                                    part.match(/^https?:\/\//) ? (
-                                                                        <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
-                                                                    ) : part
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                        {hasModPowers && (
-                                                            <button
-                                                                onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
-                                                                className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white opacity-0 group-hover/pin:opacity-100 transition-all"
-                                                                title="Supprimer l'annonce"
-                                                            >
-                                                                <X className="w-3 h-3" />
-                                                            </button>
-                                                        )}
+                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                        Vous avez été banni du chat communautaire.
+                                    </p>
+                                    <button
+                                        onClick={handleUnbanRequest}
+                                        className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                    >
+                                        Demande de débannissement
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col min-h-0 relative">
+                                    {!isJoined ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
+                                            {/* Background Decor */}
+                                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
+                                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
+                                            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
+
+                                            <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
+                                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
+                                                    <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
+                                                        <Users className="w-10 h-10 text-white" />
                                                     </div>
                                                 </div>
-                                            )}
 
-                                            {messages.map((msg, idx) => {
-                                                const role = getRole(msg.pseudo);
-                                                const isMsgAdmin = role === 'admin';
-                                                const isMsgModo = role === 'modo';
-                                                const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
+                                                <div className="space-y-3">
+                                                    <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                        Rejoins le <span className="text-neon-red">Direct</span>
+                                                    </h3>
+                                                    <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
+                                                        Connecte-toi pour voir les messages<br />et participer à l'expérience !
+                                                    </p>
+                                                </div>
 
-                                                return (
-                                                    <motion.div
-                                                        key={msg.id || idx}
-                                                        initial={{ opacity: 0, x: 10 }}
-                                                        animate={{ opacity: 1, x: 0 }}
-                                                        className="group relative"
-                                                    >
-                                                        <div className="flex items-center gap-2 mb-1 px-1">
-                                                            <div className="w-4 flex items-center justify-center opacity-80">
-                                                                {getCountryFlag(msg.country || 'FR')}
-                                                            </div>
-                                                            <span
-                                                                className="text-[11px] lg:text-[13px] font-black uppercase tracking-widest"
-                                                                style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                            >
-                                                                {msg.pseudo}
-                                                            </span>
-                                                            {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                            <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
-                                                        </div>
-                                                        <div
-                                                            className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
-                                                            style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
-                                                        >
-                                                            {/* Message with clickable links */}
-                                                            <span className="relative z-10">
-                                                                {(() => {
-                                                                    const text = msg.message;
-                                                                    if (!text) return null;
-                                                                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                    const parts = text.split(urlRegex);
-                                                                    return parts.map((part: string, i: number) => {
-                                                                        if (part.match(urlRegex)) {
-                                                                            return (
-                                                                                <a
-                                                                                    key={i}
-                                                                                    href={part}
-                                                                                    target="_blank"
-                                                                                    rel="noopener noreferrer"
-                                                                                    className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all"
-                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                >
-                                                                                    {part}
-                                                                                </a>
-                                                                            );
-                                                                        }
-                                                                        return part;
-                                                                    });
-                                                                })()}
-                                                            </span>
-                                                            {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
-                                                                    <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
-                                                                    <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
+                                                    <form onSubmit={handleJoin} className="space-y-4">
+                                                        <div className="space-y-3">
+                                                            <div className="relative group">
+                                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                                                    <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                                                 </div>
-                                                            )}
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="TON PSEUDO"
+                                                                    required
+                                                                    value={pseudo}
+                                                                    onChange={(e) => setPseudo(e.target.value)}
+                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                                />
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-3">
+                                                                <select
+                                                                    required
+                                                                    value={country}
+                                                                    onChange={(e) => setCountry(e.target.value)}
+                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
+                                                                >
+                                                                    <option value="">PAYS</option>
+                                                                    <option value="FR">🇫🇷 FR</option>
+                                                                    <option value="BE">🇧🇪 BE</option>
+                                                                    <option value="CH">🇨🇭 CH</option>
+                                                                    <option value="OTHER">🌍 AUTRE</option>
+                                                                </select>
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                                    required
+                                                                    value={captchaAnswer}
+                                                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                                />
+                                                            </div>
                                                         </div>
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </div>
-
-                                        {/* Chat Input Area */}
-                                        <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
-                                            <form onSubmit={handleSendMessage} className="relative group/input p-4">
-                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-2xl lg:rounded-3xl transition-all" />
-                                                <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                    <div className="flex items-center px-2 py-1 lg:py-1.5">
-                                                        <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
-                                                        <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-                                                        <input
-                                                            type="text"
-                                                            value={newMessage}
-                                                            onChange={(e) => setNewMessage(e.target.value)}
-                                                            placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
-                                                            className="flex-1 bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
-                                                        />
-
-                                                        <button type="button" onClick={handleShazam} className={`p-2.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                            <Music2 className="w-5 h-5" />
-                                                        </button>
 
                                                         <button
-                                                            type="button"
-                                                            onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
-                                                            title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                            className={`p-2.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                            type="submit"
+                                                            className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
                                                         >
-                                                            <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                            REJOINDRE LE LIVE
+                                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                                         </button>
 
-                                                        <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-
-                                                        <div
-                                                            className="flex items-center gap-1.5 px-3 py-2 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-all group/drops mr-1"
-                                                            onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                                        >
-                                                            <Users className="w-3.5 h-3.5 text-neon-red group-hover/drops:scale-110 transition-transform" />
-                                                            <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none drop-shadow-[0_0_5px_rgba(255,0,0,0.3)]">
-                                                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
-                                                            </span>
-                                                        </div>
-
-                                                        <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
-                                                            <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                        </button>
-                                                    </div>
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                                                            En rejoignant le live, tu acceptes nos CGU
+                                                        </p>
+                                                    </form>
                                                 </div>
-                                                {showEmojiPicker && (
-                                                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
-                                                        {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
-                                                            <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
-                                                        ))}
-                                                    </motion.div>
-                                                )}
-                                            </form>
+                                            </div>
                                         </div>
-                                    </>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {!isFocusMode && hasModPowers && (
-                        <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                            <button
-                                onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
-                            >
-                                <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                            </button>
-                        </div>
-                    )}
-
-                    <AnimatePresence>
-                        {!isFocusMode && hasModPowers && showUsersPanel && (
-                            <motion.div
-                                initial={{ width: 0, opacity: 0 }}
-                                animate={{ width: 250, opacity: 1 }}
-                                exit={{ width: 0, opacity: 0 }}
-                                className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
-                            >
-                                <div className="w-[250px] flex flex-col h-full">
-                                    <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                        <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                            <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                        </h2>
-                                        <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto">
-                                        <div className="p-3 space-y-2">
-                                            {allActiveUsers.map(u => {
-                                                const role = getRole(u.pseudo);
-                                                const isUserAdmin = role === 'admin';
-                                                const isUserModo = role === 'modo';
-                                                const isExpanded = expandedUserId === u.pseudo;
-
-                                                return (
-                                                    <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
-                                                        <div
-                                                            onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
-                                                            className="flex items-center justify-between group p-2 cursor-pointer select-none"
-                                                        >
-                                                            <div className="flex items-center gap-2 truncate">
-                                                                <div className="w-4 flex items-center justify-center">
-                                                                    {getCountryFlag(u.country)}
+                                    ) : (
+                                        <>
+                                            {/* Chat Messages */}
+                                            <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
+                                                {/* Pinned Message */}
+                                                {localPinnedMessage && !isFocusMode && (
+                                                    <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
+                                                        <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
+                                                        <div className="flex items-start gap-2.5">
+                                                            <div className="p-1.5 bg-neon-red/20 rounded-lg shrink-0">
+                                                                <Pin className="w-3 h-3 text-neon-red" />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
+                                                                    ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
+                                                                </p>
+                                                                <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
+                                                                    {localPinnedMessage.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
+                                                                        part.match(/^https?:\/\//) ? (
+                                                                            <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
+                                                                        ) : part
+                                                                    ))}
                                                                 </div>
-                                                                <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                    {u.pseudo}
+                                                            </div>
+                                                            {hasModPowers && (
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                                    className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white opacity-0 group-hover/pin:opacity-100 transition-all"
+                                                                    title="Supprimer l'annonce"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {messages.map((msg, idx) => {
+                                                    const role = getRole(msg.pseudo);
+                                                    const isMsgAdmin = role === 'admin';
+                                                    const isMsgModo = role === 'modo';
+                                                    const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
+
+                                                    return (
+                                                        <motion.div
+                                                            key={msg.id || idx}
+                                                            initial={{ opacity: 0, x: 10 }}
+                                                            animate={{ opacity: 1, x: 0 }}
+                                                            className="group relative"
+                                                        >
+                                                            <div className="flex items-center gap-2 mb-1 px-1">
+                                                                <div className="w-4 flex items-center justify-center opacity-80">
+                                                                    {getCountryFlag(msg.country || 'FR')}
+                                                                </div>
+                                                                <span
+                                                                    className="text-[11px] lg:text-[13px] font-black uppercase tracking-widest"
+                                                                    style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                                >
+                                                                    {msg.pseudo}
+                                                                </span>
+                                                                {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
+                                                                <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                            </div>
+                                                            <div
+                                                                className={`p-2 px-3 rounded-xl text-[11.5px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
+                                                            >
+                                                                {/* Message with clickable links */}
+                                                                <span className="relative z-10">
+                                                                    {(() => {
+                                                                        const text = msg.message;
+                                                                        if (!text) return null;
+                                                                        const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                        const parts = text.split(urlRegex);
+                                                                        return parts.map((part: string, i: number) => {
+                                                                            if (part.match(urlRegex)) {
+                                                                                return (
+                                                                                    <a
+                                                                                        key={i}
+                                                                                        href={part}
+                                                                                        target="_blank"
+                                                                                        rel="noopener noreferrer"
+                                                                                        className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all"
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                    >
+                                                                                        {part}
+                                                                                    </a>
+                                                                                );
+                                                                            }
+                                                                            return part;
+                                                                        });
+                                                                    })()}
+                                                                </span>
+                                                                {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                                                        <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
+                                                                        <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </motion.div>
+                                                    );
+                                                })}
+                                            </div>
+
+                                            {/* Chat Input Area */}
+                                            <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
+                                                <form onSubmit={handleSendMessage} className="relative group/input p-4">
+                                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-2xl lg:rounded-3xl transition-all" />
+                                                    <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
+                                                        <div className="flex items-center px-2 py-1 lg:py-1.5">
+                                                            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
+                                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+                                                            <input
+                                                                type="text"
+                                                                value={newMessage}
+                                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                                placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
+                                                                className="flex-1 bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                            />
+
+                                                            <button type="button" onClick={handleShazam} className={`p-2.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                <Music2 className="w-5 h-5" />
+                                                            </button>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
+                                                                title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
+                                                                className={`p-2.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                            >
+                                                                <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                            </button>
+
+                                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+
+                                                            <div
+                                                                className="flex items-center gap-1.5 px-3 py-2 rounded-full shrink-0 cursor-pointer hover:bg-white/5 transition-all group/drops mr-1"
+                                                                onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                                            >
+                                                                <Users className="w-3.5 h-3.5 text-neon-red group-hover/drops:scale-110 transition-transform" />
+                                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none drop-shadow-[0_0_5px_rgba(255,0,0,0.3)]">
+                                                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (activeUsers.length || '...')}
                                                                 </span>
                                                             </div>
-                                                            <div className="flex items-center gap-2">
-                                                                {(isUserAdmin || isUserModo) && (
-                                                                    <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
-                                                                        {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
-                                                                        {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
-                                                                    </span>
-                                                                )}
-                                                                {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                    <button
-                                                                        onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
-                                                                        className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                        title="Promouvoir Modérateur Chat"
-                                                                    >
-                                                                        <Shield className="w-3.5 h-3.5" />
-                                                                    </button>
-                                                                )}
-                                                            </div>
+
+                                                            <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                            </button>
                                                         </div>
-
-                                                        <AnimatePresence>
-                                                            {isExpanded && (
-                                                                <motion.div
-                                                                    initial={{ height: 0, opacity: 0 }}
-                                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                                    exit={{ height: 0, opacity: 0 }}
-                                                                    className="overflow-hidden border-t border-white/5"
-                                                                >
-                                                                    <div className="p-3 space-y-3 bg-black/40">
-                                                                        <div className="space-y-1.5">
-                                                                            <div className="flex items-center justify-between text-[10px]">
-                                                                                <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
-                                                                                <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
-                                                                            </div>
-                                                                            <div className="flex items-center justify-between text-[10px]">
-                                                                                <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
-                                                                                <span className="text-gray-400 font-italic">Non disponible</span>
-                                                                            </div>
-                                                                        </div>
-
-                                                                        {isAdmin && isUserModo && pseudo !== u.pseudo && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
-                                                                                className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                            >
-                                                                                <Shield className="w-3.5 h-3.5" />
-                                                                                Retirer MODO
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                </motion.div>
-                                                            )}
-                                                        </AnimatePresence>
                                                     </div>
-                                                );
-                                            })}
+                                                    {showEmojiPicker && (
+                                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
+                                                            {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
+                                                                <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
+                                                            ))}
+                                                        </motion.div>
+                                                    )}
+                                                </form>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {!isFocusMode && hasModPowers && (
+                            <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                <button
+                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                    className="absolute right-0 w-6 h-12 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-md flex items-center justify-center transition-all group z-[100]"
+                                >
+                                    <div className={`w-1.5 h-1.5 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                </button>
+                            </div>
+                        )}
+
+                        <AnimatePresence>
+                            {!isFocusMode && hasModPowers && showUsersPanel && (
+                                <motion.div
+                                    initial={{ width: 0, opacity: 0 }}
+                                    animate={{ width: 250, opacity: 1 }}
+                                    exit={{ width: 0, opacity: 0 }}
+                                    className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                >
+                                    <div className="w-[250px] flex flex-col h-full">
+                                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                            </h2>
+                                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto">
+                                            <div className="p-3 space-y-2">
+                                                {allActiveUsers.map(u => {
+                                                    const role = getRole(u.pseudo);
+                                                    const isUserAdmin = role === 'admin';
+                                                    const isUserModo = role === 'modo';
+                                                    const isExpanded = expandedUserId === u.pseudo;
+
+                                                    return (
+                                                        <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
+                                                            <div
+                                                                onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
+                                                                className="flex items-center justify-between group p-2 cursor-pointer select-none"
+                                                            >
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <div className="w-4 flex items-center justify-center">
+                                                                        {getCountryFlag(u.country)}
+                                                                    </div>
+                                                                    <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                        {u.pseudo}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {(isUserAdmin || isUserModo) && (
+                                                                        <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
+                                                                            {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
+                                                                            {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
+                                                                        </span>
+                                                                    )}
+                                                                    {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
+                                                                            className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                            title="Promouvoir Modérateur Chat"
+                                                                        >
+                                                                            <Shield className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <AnimatePresence>
+                                                                {isExpanded && (
+                                                                    <motion.div
+                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                        className="overflow-hidden border-t border-white/5"
+                                                                    >
+                                                                        <div className="p-3 space-y-3 bg-black/40">
+                                                                            <div className="space-y-1.5">
+                                                                                <div className="flex items-center justify-between text-[10px]">
+                                                                                    <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
+                                                                                    <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
+                                                                                </div>
+                                                                                <div className="flex items-center justify-between text-[10px]">
+                                                                                    <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
+                                                                                    <span className="text-gray-400 font-italic">Non disponible</span>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {isAdmin && isUserModo && pseudo !== u.pseudo && (
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
+                                                                                    className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                >
+                                                                                    <Shield className="w-3.5 h-3.5" />
+                                                                                    Retirer MODO
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                 </div>
             </div>
 
@@ -3947,6 +3950,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
         </div>
+        </div >
     );
 }
 

@@ -46,7 +46,7 @@ export function News() {
             const isItemInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video';
             const editUrl = isItemInterview ? `/news/create?type=Interview&id=${item.id}` : `/news/create?id=${item.id}`;
             navigate(editUrl, { state: { isEditing: true, item: fullItem } });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error fetching content:', e);
             const isItemInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video';
             const editUrl = isItemInterview ? `/news/create?type=Interview&id=${item.id}` : `/news/create?id=${item.id}`;

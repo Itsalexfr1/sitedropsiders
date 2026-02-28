@@ -75,7 +75,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     const data = await settingsRes.json();
                     if (data.socials) setSiteSocials(data.socials);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Error fetching data:", e);
             }
         };
@@ -171,7 +171,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error sharing:', err);
             // Fallback for desktop if navigator.share fails or is not present
             await navigator.clipboard.writeText(shareUrl);
@@ -190,7 +190,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     url: shareUrl
                 });
                 return;
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Share failed', err);
             }
         }
@@ -202,7 +202,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             setTimeout(() => setCopied(false), 3000);
             // On pourrait aussi ouvrir Instagram, mais copier le lien est plus utile pour les Stories
             window.open(`https://www.instagram.com/`, '_blank');
-        } catch (err) {
+        } catch (err: any) {
             window.open(shareLinks.instagram, '_blank');
         }
     };

@@ -192,7 +192,7 @@ export function AdminDashboard() {
             } else {
                 throw new Error('Erreur lors de l\'envoi');
             }
-        } catch (e) {
+        } catch (e: any) {
             alert('Erreur : ' + e.message);
         } finally {
             setIsSendingManualPush(false);
@@ -222,7 +222,7 @@ export function AdminDashboard() {
                     setSelectedInterviews([]);
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Error fetching interviews for selection:", e);
         }
     };
@@ -254,7 +254,7 @@ export function AdminDashboard() {
 
                 setIsInterviewModalOpen(false);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error("Error saving interview selection:", e);
         } finally {
             setIsSavingInterviews(false);
@@ -339,7 +339,7 @@ export function AdminDashboard() {
                     });
                 }
             }
-        } catch (e) { }
+        } catch (e: any) { }
     };
 
     const saveTakeoverSettings = async () => {
@@ -364,7 +364,7 @@ export function AdminDashboard() {
             if (saveRes.ok) {
                 setIsTakeoverModalOpen(false);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to save takeover settings', e);
         } finally {
             setIsUpdatingTakeover(false);
@@ -393,7 +393,7 @@ export function AdminDashboard() {
             if (saveRes.ok) {
                 setIsBannerModalOpen(false);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Failed to save banner settings', e);
         } finally {
             setIsUpdatingBanner(false);
@@ -453,7 +453,7 @@ export function AdminDashboard() {
             } else {
                 setActions(getFallbackActions());
             }
-        } catch (e) {
+        } catch (e: any) {
             setActions(getFallbackActions());
         }
     };
@@ -512,7 +512,7 @@ export function AdminDashboard() {
 
             throw new Error('API unreachable'); // Force fallback if not 401/200
 
-        } catch (err) {
+        } catch (err: any) {
             // FALLBACK LOCAL (DEV MODE)
             // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vérifie en dur ici pour débloquer
             console.log("API Login failed, trying local check...", err);
@@ -725,7 +725,7 @@ export function AdminDashboard() {
 
             setHasChanges(false);
             setEditMode(false);
-        } catch (e) {
+        } catch (e: any) {
             console.error("Error saving config:", e);
         } finally {
             setIsSaving(false);
@@ -1046,7 +1046,7 @@ export function AdminDashboard() {
                                                         const { default: news } = await import('../data/news.json');
                                                         setSocialRecentArticles(news.slice(0, 10));
                                                     }
-                                                } catch (e) {
+                                                } catch (e: any) {
                                                     console.error("Error fetching social content:", e);
                                                 } finally {
                                                     setIsLoadingSocial(false);
@@ -3112,7 +3112,7 @@ export function AdminDashboard() {
                                                                     },
                                                                     body: JSON.stringify({ pseudo: user })
                                                                 });
-                                                            } catch (e) { }
+                                                            } catch (e: any) { }
                                                         }}
                                                         className="px-4 py-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
                                                     >

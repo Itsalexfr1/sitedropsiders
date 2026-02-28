@@ -21,7 +21,7 @@ export const trackPageView = (pageId: string, type: 'article' | 'recap' | 'page'
                 // Silencieusement ignorer si l'API n'est pas encore déployée
             });
         }
-    } catch (e) {
+    } catch (e: any) {
         console.warn('Analytics tracking failed', e);
     }
 };

@@ -20,7 +20,7 @@ export function Layout({ children }: LayoutProps) {
                     const data = await res.json();
                     setBannerEnabled(data.announcement_banner?.enabled || false);
                 }
-            } catch (e) { }
+            } catch (e: any) { }
         };
         checkBanner();
     }, [location.pathname]);

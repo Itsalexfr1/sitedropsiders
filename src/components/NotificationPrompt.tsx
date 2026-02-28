@@ -40,7 +40,7 @@ export function NotificationPrompt() {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Newsletter subscription error:', err);
             }
         }
@@ -61,7 +61,7 @@ export function NotificationPrompt() {
                     setStatus('prompt');
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             setStatus('prompt');
         }
     };

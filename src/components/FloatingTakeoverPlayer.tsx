@@ -16,7 +16,7 @@ export function FloatingTakeoverPlayer() {
                     const data = await res.json();
                     setTakeover(data);
                 }
-            } catch (err) {
+            } catch (err: any) {
                 console.error(err);
             }
         };

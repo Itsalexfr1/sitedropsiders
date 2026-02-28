@@ -44,7 +44,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                         setTakeoverEnabled(isSecret ? false : !!data.takeover.isOnline);
                     }
                 }
-            } catch (err) { }
+            } catch (err: any) { }
         };
 
         fetchSettings();
@@ -66,7 +66,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                     const data = await res.json();
                     if (data?.count !== undefined) setViewersCount(data.count);
                 }
-            } catch (err) { }
+            } catch (err: any) { }
         };
         fetchViewers();
         const intv = setInterval(fetchViewers, 20000);

@@ -56,7 +56,7 @@ export function AlbumDetail() {
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error sharing:', err);
         }
     };

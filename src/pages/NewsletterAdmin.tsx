@@ -36,7 +36,7 @@ export function NewsletterAdmin() {
                     body: JSON.stringify({ email })
                 });
                 if (response.ok) successCount++;
-            } catch (e) {
+            } catch (e: any) {
                 console.error('Error deleting', email, e);
             }
         }
@@ -79,7 +79,7 @@ export function NewsletterAdmin() {
                     return;
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error loading subscribers:', error);
         }
 
@@ -103,7 +103,7 @@ export function NewsletterAdmin() {
             } else {
                 alert('Erreur lors de la désinscription');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error unsubscribing:', error);
             alert('Erreur réseau');
         }

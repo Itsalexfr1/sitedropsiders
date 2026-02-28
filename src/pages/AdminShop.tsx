@@ -118,7 +118,7 @@ export function AdminShop() {
                     const data = await productsRes.json();
                     setProducts(data);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error fetching shop data:', error);
             }
         };
@@ -148,7 +148,7 @@ export function AdminShop() {
                 setStatus('error');
                 setMessage('Erreur lors de la sauvegarde');
             }
-        } catch (error) {
+        } catch (error: any) {
             setStatus('error');
             setMessage('Erreur de connexion');
         } finally {
@@ -194,7 +194,7 @@ export function AdminShop() {
                     setTimeout(() => setStatus('idle'), 3000);
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving product:', error);
             setStatus('error');
             setMessage('Erreur lors de l\'enregistrement');
@@ -221,7 +221,7 @@ export function AdminShop() {
             if (response.ok) {
                 setProducts(products.filter(p => p.id !== id));
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error deleting product:', error);
         }
     };
@@ -261,7 +261,7 @@ export function AdminShop() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ products: newOrder })
             });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error reordering products:', error);
         }
     };

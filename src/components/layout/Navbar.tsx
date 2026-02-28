@@ -51,7 +51,7 @@ export function Navbar() {
                         setTakeoverSettings(data.takeover);
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 // Keep default
             }
         };

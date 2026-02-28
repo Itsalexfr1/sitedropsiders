@@ -259,7 +259,7 @@ export function RecapCreate() {
                         const countryName = parts[parts.length - 1];
                         setCountry(countryName);
                     }
-                } catch (error) {
+                } catch (error: any) {
                     console.error('Auto-location error:', error);
                 } finally {
                     setIsAutoLocating(false);
@@ -308,7 +308,7 @@ export function RecapCreate() {
                                     const parsedDate = new Date(dateValue);
                                     parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
                                     finalDate = parsedDate.toISOString().slice(0, 16);
-                                } catch (e) {
+                                } catch (e: any) {
                                     finalDate = dateValue.slice(0, 16);
                                 }
                             } else {
@@ -352,7 +352,7 @@ export function RecapCreate() {
                                         const parsedDate = new Date(localDateValue);
                                         parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
                                         localFinalDate = parsedDate.toISOString().slice(0, 16);
-                                    } catch (e) {
+                                    } catch (e: any) {
                                         localFinalDate = localDateValue.slice(0, 16);
                                     }
                                 } else {
@@ -388,7 +388,7 @@ export function RecapCreate() {
                             setWidgets([{ id: 'legacy-1', content: data.content }]);
                         }
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.error("Failed to fetch recap for edit", e);
                     setLoadError("Impossible de charger les données du récap.");
                 } finally {
@@ -471,7 +471,7 @@ export function RecapCreate() {
                         }
                     }
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Autolocation error:", error);
             } finally {
                 setIsAutoLocating(false);
@@ -1042,7 +1042,7 @@ export function RecapCreate() {
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch (e: any) {
                     errorData = { error: `Erreur ${response.status}: ${response.statusText} ` };
                 }
                 throw new Error(errorData.error || 'Erreur lors de la publication');
@@ -1082,7 +1082,7 @@ export function RecapCreate() {
                 setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating recap:', error);
             setStatus('error');
             setMessage(error instanceof Error ? error.message : 'Une erreur est survenue');
@@ -1107,13 +1107,13 @@ export function RecapCreate() {
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch (e: any) {
                     errorData = { error: 'Erreur lors de la suppression' };
                 }
                 setStatus('error');
                 setMessage(errorData.error || 'Erreur lors de la suppression');
             }
-        } catch (e) {
+        } catch (e: any) {
             setStatus('error');
             setMessage('Erreur de connexion');
         } finally {

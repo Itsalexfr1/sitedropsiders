@@ -16,7 +16,7 @@ export function LivePage() {
                         setTakeover(data.takeover);
                     }
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Failed to fetch live settings", e);
             } finally {
                 setLoading(false);

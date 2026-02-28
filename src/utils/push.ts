@@ -44,7 +44,7 @@ export async function subscribeUser() {
         });
 
         return subscription;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to subscribe user:', error);
         return null;
     }
@@ -68,7 +68,7 @@ export async function unsubscribeUser() {
             });
         }
         return true;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to unsubscribe user:', error);
         return false;
     }

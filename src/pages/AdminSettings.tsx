@@ -63,7 +63,7 @@ export function AdminSettings() {
                     const me = eds.find((e: any) => e.username === currentUser);
                     if (me) setAdminPassword(me.password);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error('Failed to fetch data', e);
             }
         };
@@ -113,7 +113,7 @@ export function AdminSettings() {
             } else {
                 showNotification('Erreur lors de l\'enregistrement', 'error');
             }
-        } catch (e) {
+        } catch (e: any) {
             showNotification('Erreur de connexion', 'error');
         } finally {
             setIsSaving(false);
@@ -139,7 +139,7 @@ export function AdminSettings() {
                 const errorData = await res.json().catch(() => ({}));
                 showNotification(errorData.error || 'Erreur lors de la révocation', 'error');
             }
-        } catch (e) {
+        } catch (e: any) {
             showNotification('Erreur réseau', 'error');
         } finally {
             setIsRevoking(false);

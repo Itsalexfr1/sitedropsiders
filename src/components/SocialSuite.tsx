@@ -183,7 +183,7 @@ export function SocialSuite({ title, imageUrl, type, category, onClose, articleI
                 if (ctx) drawTemplate(ctx, 1080, 1080, false);
             }
 
-        } catch (e) {
+        } catch (e: any) {
             console.error("Error generating social assets:", e);
         }
     };
@@ -218,7 +218,7 @@ export function SocialSuite({ title, imageUrl, type, category, onClose, articleI
             } else {
                 window.open('https://www.instagram.com/reels/create/', '_blank');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Error sharing:', err);
             window.open('https://www.instagram.com/', '_blank');
         }

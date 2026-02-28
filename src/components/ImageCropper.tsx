@@ -68,7 +68,7 @@ export function ImageCropper({ image, onCropComplete, onCancel, aspect }: ImageC
         try {
             const croppedImage = await getCroppedImg(image, croppedAreaPixels);
             onCropComplete(croppedImage);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
         }
     };

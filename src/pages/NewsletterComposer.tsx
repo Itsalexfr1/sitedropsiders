@@ -100,7 +100,7 @@ export function NewsletterComposer() {
                         setSelectedSubscribers(emails);
                     }
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Erreur chargement abonnés:', error);
                 // Pas de crash, juste une liste vide ou un message console
             }
@@ -389,7 +389,7 @@ export function NewsletterComposer() {
                 const err = await response.json().catch(() => ({}));
                 setAlertModal({ isOpen: true, isError: true, message: `❌ Erreur lors de l'envoi : ${err.error || response.statusText}` });
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
             setAlertModal({ isOpen: true, isError: true, message: '❌ Erreur réseau critique.' });
         } finally {

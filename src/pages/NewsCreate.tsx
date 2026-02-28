@@ -260,7 +260,7 @@ export function NewsCreate() {
                         const countryName = parts[parts.length - 1];
                         setCountry(countryName);
                     }
-                } catch (error) {
+                } catch (error: any) {
                     console.error('Auto-location error:', error);
                 } finally {
                     setIsAutoLocating(false);
@@ -357,7 +357,7 @@ export function NewsCreate() {
                     const parsedDate = new Date(dateValue);
                     parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
                     finalDate = parsedDate.toISOString().slice(0, 16);
-                } catch (e) {
+                } catch (e: any) {
                     finalDate = dateValue.slice(0, 16);
                 }
             } else {
@@ -531,7 +531,7 @@ export function NewsCreate() {
                         const localItem = (newsData as any[]).find(n => String(n.id) === String(id));
                         if (localItem) parseAndInitialize(localItem, localItem.content || '');
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.error("Failed to fetch item for edit", e);
                     setIsLoading(false);
                 }
@@ -1029,7 +1029,7 @@ export function NewsCreate() {
                     item.id === id ? { ...item, title: title } : item
                 ));
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error fetching music metadata:', error);
         }
     };
@@ -1173,13 +1173,13 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch (e: any) {
                     errorData = { error: 'Erreur lors de la suppression' };
                 }
                 setStatus('error');
                 setMessage(errorData.error || 'Erreur lors de la suppression');
             }
-        } catch (e) {
+        } catch (e: any) {
             setStatus('error');
             setMessage('Erreur de connexion');
         } finally {
@@ -1424,13 +1424,13 @@ ${generateSocialsHtml()}
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch (e: any) {
                     errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
                 }
                 setStatus('error');
                 setMessage(errorData.error || 'Erreur lors de la publication');
             }
-        } catch (e) {
+        } catch (e: any) {
             setStatus('error');
             setMessage('Erreur de connexion au serveur');
         }

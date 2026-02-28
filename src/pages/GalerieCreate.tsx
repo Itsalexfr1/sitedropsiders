@@ -103,7 +103,7 @@ export function GalerieCreate() {
                             setImageUrls(item.images?.join('\n') || '');
                         }
                     }
-                } catch (e) {
+                } catch (e: any) {
                     console.error("Failed to fetch gallery item for edit", e);
                 } finally {
                     console.log('[GalerieCreate] Fetch complete');
@@ -228,7 +228,7 @@ export function GalerieCreate() {
                 let errorData;
                 try {
                     errorData = await response.json();
-                } catch (e) {
+                } catch (e: any) {
                     errorData = { error: `Erreur ${response.status}: ${response.statusText}` };
                 }
                 throw new Error(errorData.error || 'Erreur lors de la publication');
@@ -254,7 +254,7 @@ export function GalerieCreate() {
                 setTimeout(() => navigate('/admin/manage'), 2000);
             }
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating album:', error);
             setStatus('error');
             setMessage(error instanceof Error ? error.message : 'Une erreur est survenue');

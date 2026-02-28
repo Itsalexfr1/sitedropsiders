@@ -74,7 +74,7 @@ async function fetchJson(file: string): Promise<any[]> {
         if (response.ok) {
             return await response.json();
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error(`API fetch failed for ${file}, falling back to local:`, error);
     }
     return LOCAL_DATA[file] ?? [];
@@ -106,7 +106,7 @@ export function AdminManage() {
             try {
                 const res = await fetch('/api/team');
                 if (res.ok) setTeam(await res.json());
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Error fetching team:", e);
             }
         };
@@ -199,7 +199,7 @@ export function AdminManage() {
                 });
                 if (response.ok) successCount++;
                 else failCount++;
-            } catch (e) {
+            } catch (e: any) {
                 failCount++;
             }
         }
@@ -237,7 +237,7 @@ export function AdminManage() {
                 data = await fetchJson('galerie.json');
             }
             setItems(data);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error fetching data:', error);
             setItems([]);
         } finally {
@@ -266,11 +266,11 @@ export function AdminManage() {
                 }, 1500);
             } else {
                 let errorData;
-                try { errorData = await response.json(); } catch (e) { errorData = { error: `Erreur ${response.status}` }; }
+                try { errorData = await response.json(); } catch (e: any) { errorData = { error: `Erreur ${response.status}` }; }
                 setDeleteStatus('error');
                 setMessage(errorData.error || 'Erreur lors de la suppression');
             }
-        } catch (error) {
+        } catch (error: any) {
             setDeleteStatus('error');
             setMessage('Erreur de connexion');
         }
@@ -313,7 +313,7 @@ export function AdminManage() {
             }
 
             navigate(editPath, { state: { isEditing: true, item: fullItem } });
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error fetching content for edit:', e);
             // Toujours naviguer même en cas d'erreur de chargement du contenu
             let fallbackPath = isInterview ? `/news/create?type=Interview&id=${item.id}` :
@@ -341,7 +341,7 @@ export function AdminManage() {
             if (response.ok) {
                 setItems(items.map(i => i.id === item.id ? { ...i, isFeatured: newStatus } : i));
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error toggling featured:', e);
         }
     };
@@ -362,7 +362,7 @@ export function AdminManage() {
                 setItems(items.map(i => i.id === activePhotoId ? { ...i, image: newImageUrl } : i));
                 setIsImageModalOpen(false);
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error updating photo:', e);
         } finally {
             setLoading(false);
@@ -422,7 +422,7 @@ export function AdminManage() {
             } else {
                 setMessage('Erreur lors de la sauvegarde');
             }
-        } catch (e) {
+        } catch (e: any) {
             console.error('Error saving order:', e);
             setMessage('Erreur de connexion');
         } finally {

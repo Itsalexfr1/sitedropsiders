@@ -29,7 +29,7 @@ self.addEventListener('push', (event: PushEvent) => {
         event.waitUntil(
             self.registration.showNotification(data.title || 'DROPSIDERS', options)
         );
-    } catch (e) {
+    } catch (e: any) {
         console.error('Error handling push event:', e);
     }
 });
