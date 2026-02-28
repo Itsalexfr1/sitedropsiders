@@ -34,7 +34,7 @@
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
     "showTickerBanner": true,
-    "showInNavbar": true,
+    "showInNavbar": false,
     "forceHomepage": false,
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
     "isSecret": true,
@@ -42,16 +42,6 @@
     "channels": "325m8PqVH74:Area 1\nDQHSj6cphm0:AREA 2",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "",
-    "mainFluxName": "AREA 1",
-    "shopItems": "",
-    "currentArtist": "armin van buuren f2f funk tribu",
-    "artistInstagram": "",
-    "chat_enabled": true,
-    "botColor": "#00ffcc",
-    "botBgColor": "rgba(0, 255, 204, 0.05)",
-    "adminColor": "#f99aad",
-    "adminBgColor": "rgba(255, 0, 51, 0.05)",
-    "showShop": false
+    "pinnedMessage": ""
   }
 }
