@@ -42,8 +42,10 @@ export default defineConfig({
           }
         ]
       },
-      workbox: {
+      injectManifest: {
         maximumFileSizeToCacheInBytes: 5000000,
+      },
+      workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {

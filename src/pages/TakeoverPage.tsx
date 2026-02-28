@@ -3950,7 +3950,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
             `}</style>
         </div>
-        </div >
     );
 }
 
