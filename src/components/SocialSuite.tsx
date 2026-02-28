@@ -21,6 +21,14 @@ interface Top5Item {
     spotifyUrl?: string;
 }
 
+const COLOR_PRESETS = [
+    { name: 'ROUGE', grad: '255, 0, 51', color: '#ff0033' },
+    { name: 'BLEU', grad: '0, 50, 255', color: '#0032ff' },
+    { name: 'CYAN', grad: '0, 240, 255', color: '#00f0ff' },
+    { name: 'VERT', grad: '57, 255, 20', color: '#39ff14' },
+    { name: 'ORANGE', grad: '255, 170, 0', color: '#ffaa00' },
+    { name: 'VIOLET', grad: '189, 0, 255', color: '#bd00ff' }
+];
 
 export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
@@ -31,6 +39,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
+
+    // Theme Color state
+    const [themeColor, setThemeColor] = useState<typeof COLOR_PRESETS[0] | null>(null);
 
     // For Top 5
     const [top5Items, setTop5Items] = useState<Top5Item[]>(Array.from({ length: 5 }, () => ({
@@ -47,7 +58,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const themeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
+    const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 18, 65', color: '#ff1241' },
         'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
         'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
@@ -56,6 +67,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'RECAP': { label: 'REPLAY', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' }
     };
+
+    // Tab Change Reset
+    useEffect(() => {
+        if (activeTab === 'REEL') setTheme('TOP 5 ARTISTE');
+        else setTheme('NEWS');
+        setThemeColor(null); // Reset manual color on tab change
+    }, [activeTab]);
+
+    // Update active color based on manual selection or theme default
+    const activeColor = themeColor || (themeDataOverride() || baseThemeData[theme]);
+
+    function themeDataOverride() {
+        return themeColor ? { label: theme, ...themeColor } : null;
+    }
 
     // Rotation Animation
     useEffect(() => {
@@ -71,12 +96,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         }
         return () => cancelAnimationFrame(frame);
     }, [theme, isVideoRecording]);
-
-    // Tab Change Reset
-    useEffect(() => {
-        if (activeTab === 'REEL') setTheme('TOP 5 ARTISTE');
-        else setTheme('NEWS');
-    }, [activeTab]);
 
     const generateImage = async () => {
         const canvas = canvasRef.current;
@@ -112,12 +131,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
 
             // 2. Gradients
-            const activeTheme = themeData[theme];
+            const activeData = activeColor;
             const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(0.8, `rgba(${activeTheme.grad}, 0.6)`);
-            grad.addColorStop(1, `rgba(${activeTheme.grad}, 0.9)`);
+            grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.6)`);
+            grad.addColorStop(1, `rgba(${activeData.grad}, 0.9)`);
             ctx.fillStyle = grad;
             ctx.fillRect(0, canvas.height * 0.3, canvas.width, canvas.height * 0.7);
 
@@ -129,20 +148,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             if (theme === 'INTRO') {
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
-
-                // The "Blue Tape" - Slightly tilted or irregular? Let's go with a solid stylized rectangle
                 ctx.save();
                 ctx.translate(centerX, centerY);
-
-                // Outer glow
-                ctx.shadowColor = 'rgba(0, 50, 255, 0.5)';
+                ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
                 ctx.shadowBlur = 30;
-
                 const tapeW = 900;
                 const tapeH = 260;
-
-                // Draw irregular taped edges (simplified as polygons)
-                ctx.fillStyle = '#0032ff';
+                ctx.fillStyle = activeData.color;
                 ctx.beginPath();
                 ctx.moveTo(-tapeW / 2 - 20, -tapeH / 2 + 10);
                 ctx.lineTo(tapeW / 2 + 20, -tapeH / 2 - 10);
@@ -150,50 +162,39 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.lineTo(-tapeW / 2 - 30, tapeH / 2 - 5);
                 ctx.closePath();
                 ctx.fill();
-
-                // Shiny Plastic texture (Simplified)
                 const plasticGrad = ctx.createLinearGradient(-tapeW / 2, -tapeH / 2, tapeW / 2, tapeH / 2);
                 plasticGrad.addColorStop(0, 'rgba(255,255,255,0.1)');
                 plasticGrad.addColorStop(0.5, 'rgba(0,0,0,0.1)');
                 plasticGrad.addColorStop(1, 'rgba(255,255,255,0.05)');
                 ctx.fillStyle = plasticGrad;
                 ctx.fill();
-
-                // Text
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 const fontSize = 70;
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
-
-                // Metallic effect
                 const textGrad = ctx.createLinearGradient(0, -tapeH / 2, 0, tapeH / 2);
                 textGrad.addColorStop(0, '#ffffff');
                 textGrad.addColorStop(0.4, '#e0e0e0');
                 textGrad.addColorStop(0.5, '#a0a0a0');
                 textGrad.addColorStop(0.6, '#e0e0e0');
                 textGrad.addColorStop(1, '#ffffff');
-
                 ctx.fillStyle = textGrad;
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
                 ctx.shadowBlur = 10;
-
                 const lines = customText.split('\n');
                 lines.forEach((line, i) => {
                     ctx.fillText(line.toUpperCase(), 0, (i - (lines.length - 1) / 2) * fontSize * 1.1);
                 });
-
                 ctx.restore();
 
             } else if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
                 const centerX = canvas.width / 2;
-                const centerY = safeTop + 480; // Disc slightly lower
+                const centerY = safeTop + 480;
                 const radius = 350;
-
-                // Rotating Disc (Vinyl)
                 if (img) {
                     ctx.save();
-                    ctx.shadowColor = `rgba(${activeTheme.grad}, 0.5)`;
+                    ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
                     ctx.shadowBlur = 40;
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
@@ -204,26 +205,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const scale = Math.max((radius * 2) / img.width, (radius * 2) / img.height);
                     ctx.drawImage(img, -(img.width * scale) / 2, -(img.height * scale) / 2, img.width * scale, img.height * scale);
                     ctx.restore();
-
-                    // Center hole
                     ctx.beginPath();
                     ctx.arc(centerX, centerY, 45, 0, Math.PI * 2);
                     ctx.fillStyle = '#0a0a0a';
                     ctx.fill();
-                    ctx.strokeStyle = activeTheme.color;
+                    ctx.strokeStyle = activeData.color;
                     ctx.lineWidth = 10;
                     ctx.stroke();
                 }
-
-                // Title Style - NOW BELOW THE VINYL
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 80px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
                 ctx.fillText(item.main.toUpperCase(), centerX, centerY + radius + 120);
-
-                // Rank
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 150px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
@@ -232,43 +227,34 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
                 const baseY = 1500;
-
-                // Artist Info
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 52px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
                 ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), 100, baseY);
-
-                // Streams Bar
                 const barWidth = 880;
                 const barHeight = 90;
                 const barX = 90;
                 const barY = baseY + 45;
-                ctx.fillStyle = `rgba(${activeTheme.grad}, 0.4)`;
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
                 ctx.fillRect(barX - 10, barY - 10, barWidth + 20, barHeight + 20);
-                ctx.fillStyle = activeTheme.color;
+                ctx.fillStyle = activeData.color;
                 ctx.fillRect(barX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#fff';
                 ctx.font = '900 italic 46px "Inter", sans-serif';
                 ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30, barY + 60);
-
-                // Rank
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 120px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100, canvas.height - 150);
 
             } else {
-                // PUBLICATION: NEWS, FOCUS, MUSIQUE, RECAP
                 const fontSize = 85;
                 const lineHeight = fontSize * 1.2;
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-
-                // Content splitting
                 const words = customText.split(' ');
                 let lines: string[] = [];
                 let currentLine = '';
@@ -277,26 +263,21 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                 }
                 lines.push(currentLine.trim());
-
                 const totalH = lines.length * lineHeight;
-                const startY = safeBottom - 100 - (totalH / 2); // Placed at very bottom of 1:1 safe square
-
-                // Main Label
-                ctx.fillStyle = activeTheme.color;
-                const labelText = activeTheme.label;
+                const startY = safeBottom - 100 - (totalH / 2);
+                ctx.fillStyle = activeData.color;
+                const labelText = theme === 'RECAP' ? 'REPLAY' : theme;
                 const labelW = ctx.measureText(labelText).width + 80;
                 ctx.fillRect((canvas.width - labelW) / 2, startY - 100, labelW, 80);
-                ctx.fillStyle = activeTheme.color === '#ffaa00' ? '#000' : '#fff';
+                ctx.fillStyle = activeData.color === '#ffaa00' ? '#000' : '#fff';
                 ctx.font = '900 italic 50px "Inter", sans-serif';
                 ctx.fillText(labelText, canvas.width / 2, startY - 45);
-
-                // Render Text Lines
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
                 ctx.fillStyle = '#fff';
                 lines.forEach((line, i) => ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight)));
             }
 
-            // DROPSIDERS Logo - ABSOLUTE TOP
+            // DROPSIDERS Logo
             try {
                 const logo = new Image();
                 logo.src = '/Logo.png';
@@ -318,7 +299,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         } catch (e) { console.error(e); }
     };
 
-    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation]);
+    useEffect(() => { generateImage(); }, [bgImage, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -401,17 +382,30 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     </div>
 
                     <div className="space-y-4">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur du thème</span>
+                        <div className="flex flex-wrap gap-2">
+                            {COLOR_PRESETS.map(c => (
+                                <button key={c.name} onClick={() => setThemeColor(c)} className={`w-8 h-8 rounded-lg border-2 transition-all ${themeColor?.name === c.name ? 'border-white scale-110' : 'border-transparent opacity-60'}`} style={{ backgroundColor: c.color }} title={c.name} />
+                            ))}
+                            <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all">Reset</button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
                         {theme.startsWith('TOP 5') ? (
                             <>
                                 <span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     {top5Items.map((item, i) => (
                                         <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
                                             <div className="grid grid-cols-2 gap-2 mb-2">
                                                 <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder={theme.includes('STYLES') ? "NOM DU STYLE" : "ARTISTE"} className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                                 <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder={theme.includes('STYLES') ? "DESCRIPTION" : "TITRE"} className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                                             </div>
-                                            {theme === 'TOP 5 ARTISTE' && <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />}
+                                            {theme === 'TOP 5 ARTISTE' && (
+                                                <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
+                                            )}
+                                            <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold" />
                                         </div>
                                     ))}
                                 </div>
@@ -419,7 +413,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ) : (
                             <div className="space-y-4">
                                 <span className="text-[10px] font-black text-gray-500 uppercase">Contenu</span>
-                                <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
+                                <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} placeholder="VOTRE TEXTE ICI..." className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
                             </div>
                         )}
                     </div>
