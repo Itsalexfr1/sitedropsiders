@@ -11,7 +11,7 @@
     "snapchat": ""
   },
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "",
     "title": "LIVE TAKEOVER",
     "moderators": "",
@@ -35,6 +35,6 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "off"
   }
 }
