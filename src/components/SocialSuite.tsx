@@ -371,9 +371,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = '#000';
+                ctx.fillStyle = '#FFF';
                 ctx.font = `900 italic 45px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
-                ctx.fillText(labelText, canvas.width / 2, labelY + 10);
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 5);
                 ctx.restore();
                 const parseRichText = (str: string) => {
                     const segments: { text: string; color?: string; bg?: string }[] = [];
