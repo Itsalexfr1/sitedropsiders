@@ -106,6 +106,20 @@ export function Musique() {
                 { id: 'ht-10', rank: 10, title: 'The Power', artist: 'Sound Rush', label: 'Art of Creation', url: '#', duration: '4:08' },
             ];
         }
+        if (platform === 'juno') {
+            return [
+                { id: 'jn-1', rank: 1, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:12' },
+                { id: 'jn-2', rank: 2, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:48' },
+                { id: 'jn-3', rank: 3, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:30' },
+                { id: 'jn-4', rank: 4, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:12' },
+                { id: 'jn-5', rank: 5, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:04' },
+                { id: 'jn-6', rank: 6, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:25' },
+                { id: 'jn-7', rank: 7, title: 'The Feeling', artist: 'Adam Port', label: 'Keinemusik', url: '#', duration: '4:18' },
+                { id: 'jn-8', rank: 8, title: 'Positive', artist: 'Jamback', label: 'Piv', url: '#', duration: '6:01' },
+                { id: 'jn-9', rank: 9, title: 'Make My Day', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '5:52' },
+                { id: 'jn-10', rank: 10, title: 'Just Like That', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '5:45' },
+            ];
+        }
         if (platform === '1001tracklists') {
             return [
                 { id: '1001-1', rank: 1, title: 'ALESSA.A @ TOMORROWLAND 2026', artist: 'ALESSA.A', label: 'MAINSTAGE', url: '#' },
