@@ -527,6 +527,7 @@ export function NewsCreate() {
                         id: Math.random().toString(36).substr(2, 9),
                         title: match[1].trim(),
                         media: match[2].trim(),
+                        imageUrl: '',
                         playerType: match[2].includes('spotify') ? 'spotify' : match[2].includes('beatport') ? 'beatport' : 'youtube'
                     });
                 }
@@ -1440,7 +1441,7 @@ ${generateSocialsHtml()}
                     setImageUrl('');
                     setYoutubeId('');
                     setYear('');
-                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', playerType: 'spotify' }]);
+                    setMusicItems([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
                     setArtistNameLabel('');
                     setArtistSocials({
                         website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
