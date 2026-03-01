@@ -2744,7 +2744,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 onClick={() => setActiveSettingsTab('moderation')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Sécurité & Équipe
+                                                Sécurité, Équipe & Bot
                                                 {activeSettingsTab === 'moderation' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
@@ -2768,13 +2768,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 Récompenses
                                                 {activeSettingsTab === 'rewards' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-purple" />}
                                             </button>
-                                            <button
-                                                onClick={() => setActiveSettingsTab('bot')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'bot' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                Bot
-                                                {activeSettingsTab === 'bot' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
-                                            </button>
+
                                             <button
                                                 onClick={() => setActiveSettingsTab('points')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'points' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
@@ -3563,6 +3557,220 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* --- BOT TAB CONTENT INJECTED HERE --- */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
+                                                            </label>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setIsEditingCmd(null);
+                                                                    setCmdTrigger('');
+                                                                    setCmdResponse('');
+                                                                    document.getElementById('cmd-input')?.focus();
+                                                                }}
+                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all"
+                                                            >
+                                                                <Plus className="w-3.5 h-3.5" /> Ajouter
+                                                            </button>
+                                                        </div>
+                                                        <div className="overflow-hidden border border-white/10 rounded-2xl">
+                                                            <table className="w-full text-left border-collapse">
+                                                                <thead>
+                                                                    <tr className="bg-white/5">
+                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
+                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Description</th>
+                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10 text-right">Statut</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody className="text-[10px] font-bold text-gray-300">
+                                                                    <tr className="hover:bg-white/[0.02] transition-colors group">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Liste des commandes</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right flex items-center justify-end px-4 h-[45px]">
+                                                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Système</span>
+                                                                        </td>
+                                                                    </tr>
+                                                                    {/* Custom Commands List */}
+                                                                    {(localCustomCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
+                                                                        const [trigger, ...rest] = line.split(':').map(s => s.trim());
+                                                                        const response = rest.join(':');
+                                                                        return (
+                                                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                                                <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">{trigger}</td>
+                                                                                <td className="px-4 py-3 border-b border-white/5 text-xs truncate max-w-[150px]">{response}</td>
+                                                                                <td className="px-4 py-3 border-b border-white/5 text-right">
+                                                                                    <div className="flex items-center justify-end gap-1">
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                setCmdTrigger(trigger);
+                                                                                                setCmdResponse(response);
+                                                                                                setIsEditingCmd(trigger.toLowerCase());
+                                                                                            }}
+                                                                                            className="p-1 px-2 bg-white/5 hover:bg-neon-cyan/20 rounded text-neon-cyan transition-all"
+                                                                                            title="Editer"
+                                                                                        >
+                                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button
+                                                                                            onClick={() => handleDeleteCommand(trigger)}
+                                                                                            className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all"
+                                                                                            title="Supprimer"
+                                                                                        >
+                                                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+
+                                                        {/* Add/Edit command form */}
+                                                        <div className="bg-black/40 border border-white/5 p-4 rounded-2xl space-y-3">
+                                                            <div className="flex items-center justify-between mb-1">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{isEditingCmd ? 'MODIFIER LA COMMANDE' : 'AJOUTER UNE COMMANDE'}</label>
+                                                                {isEditingCmd && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setIsEditingCmd(null);
+                                                                            setCmdTrigger('');
+                                                                            setCmdResponse('');
+                                                                        }}
+                                                                        className="text-[8px] font-black text-neon-red uppercase tracking-widest hover:underline"
+                                                                    >
+                                                                        Annuler
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                                <div className="md:col-span-1">
+                                                                    <div className="relative">
+                                                                        <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-neon-cyan" />
+                                                                        <input
+                                                                            id="cmd-input"
+                                                                            type="text"
+                                                                            value={cmdTrigger}
+                                                                            onChange={e => setCmdTrigger(e.target.value)}
+                                                                            placeholder="!ma-commande"
+                                                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-8 pr-3 text-[11px] text-white focus:border-neon-cyan outline-none font-bold tabular-nums"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="md:col-span-2 flex gap-2">
+                                                                    <input
+                                                                        type="text"
+                                                                        value={cmdResponse}
+                                                                        onChange={e => setCmdResponse(e.target.value)}
+                                                                        placeholder="Message du bot..."
+                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-[11px] text-white focus:border-neon-cyan outline-none"
+                                                                    />
+                                                                    <button
+                                                                        onClick={handleAddOrUpdateCommand}
+                                                                        disabled={!cmdTrigger.trim() || !cmdResponse.trim()}
+                                                                        className="px-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 shrink-0"
+                                                                    >
+                                                                        {isEditingCmd ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                                                                        {isEditingCmd ? 'OK' : 'Ajouter'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Ces commandes sont utilisables par tous les membres du chat.</p>
+                                                    </div>
+
+                                                    {/* Apparence Bot */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                <Pencil className="w-4 h-4 text-neon-cyan" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
+                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                                    <div className="relative group/picker">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={botColor}
+                                                                            onChange={(e) => {
+                                                                                const hex = e.target.value;
+                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
+                                                                            }}
+                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
+                                                                        />
+                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
+                                                                    </div>
+                                                                    <div className="flex flex-1 items-center gap-2">
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="ex: rgba(0, 255, 204, 0.05)"
+                                                                            value={botBgColor}
+                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
+                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                        />
+                                                                        <button
+                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
+                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
+                                                                        >
+                                                                            VALIDER
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Auto Message Management */}
+                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
+                                                        </label>
+
+                                                        <div className="space-y-4">
+                                                            <div className="space-y-2">
+                                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
+                                                                <textarea
+                                                                    value={settings.autoMessage || ''}
+                                                                    onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
+                                                                    placeholder="Message à envoyer automatiquement..."
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
+                                                                />
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
+                                                                </div>
+                                                                <div className="flex items-center gap-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        value={settings.autoMessageInterval || 60}
+                                                                        onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
+                                                                        className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
+                                                                        min="10"
+                                                                    />
+                                                                    <Clock className="w-4 h-4 text-gray-500" />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
+                                                    </div>
                                                 </div>
                                             )}
                                             {activeSettingsTab === 'planning' && (
@@ -3743,237 +3951,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-                                            {activeSettingsTab === 'bot' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
 
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
-                                                            </label>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setIsEditingCmd(null);
-                                                                    setCmdTrigger('');
-                                                                    setCmdResponse('');
-                                                                    document.getElementById('cmd-input')?.focus();
-                                                                }}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all"
-                                                            >
-                                                                <Plus className="w-3.5 h-3.5" /> Ajouter
-                                                            </button>
-                                                        </div>
-                                                        <div className="overflow-hidden border border-white/10 rounded-2xl">
-                                                            <table className="w-full text-left border-collapse">
-                                                                <thead>
-                                                                    <tr className="bg-white/5">
-                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
-                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Description</th>
-                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10 text-right">Statut</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody className="text-[10px] font-bold text-gray-300">
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors group">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Liste des commandes</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right flex items-center justify-end px-4 h-[45px]">
-                                                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Système</span>
-                                                                        </td>
-                                                                    </tr>
-                                                                    {/* Custom Commands List */}
-                                                                    {(localCustomCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
-                                                                        const [trigger, ...rest] = line.split(':').map(s => s.trim());
-                                                                        const response = rest.join(':');
-                                                                        return (
-                                                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
-                                                                                <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">{trigger}</td>
-                                                                                <td className="px-4 py-3 border-b border-white/5 text-xs truncate max-w-[150px]">{response}</td>
-                                                                                <td className="px-4 py-3 border-b border-white/5 text-right">
-                                                                                    <div className="flex items-center justify-end gap-1">
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                setCmdTrigger(trigger);
-                                                                                                setCmdResponse(response);
-                                                                                                setIsEditingCmd(trigger.toLowerCase());
-                                                                                            }}
-                                                                                            className="p-1 px-2 bg-white/5 hover:bg-neon-cyan/20 rounded text-neon-cyan transition-all"
-                                                                                            title="Editer"
-                                                                                        >
-                                                                                            <Edit2 className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={() => handleDeleteCommand(trigger)}
-                                                                                            className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all"
-                                                                                            title="Supprimer"
-                                                                                        >
-                                                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
-                                                                        );
-                                                                    })}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-
-                                                        {/* Add/Edit command form */}
-                                                        <div className="bg-black/40 border border-white/5 p-4 rounded-2xl space-y-3">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{isEditingCmd ? 'MODIFIER LA COMMANDE' : 'AJOUTER UNE COMMANDE'}</label>
-                                                                {isEditingCmd && (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setIsEditingCmd(null);
-                                                                            setCmdTrigger('');
-                                                                            setCmdResponse('');
-                                                                        }}
-                                                                        className="text-[8px] font-black text-neon-red uppercase tracking-widest hover:underline"
-                                                                    >
-                                                                        Annuler
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                                <div className="md:col-span-1">
-                                                                    <div className="relative">
-                                                                        <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-neon-cyan" />
-                                                                        <input
-                                                                            id="cmd-input"
-                                                                            type="text"
-                                                                            value={cmdTrigger}
-                                                                            onChange={e => setCmdTrigger(e.target.value)}
-                                                                            placeholder="!ma-commande"
-                                                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-8 pr-3 text-[11px] text-white focus:border-neon-cyan outline-none font-bold tabular-nums"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="md:col-span-2 flex gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={cmdResponse}
-                                                                        onChange={e => setCmdResponse(e.target.value)}
-                                                                        placeholder="Message du bot..."
-                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-[11px] text-white focus:border-neon-cyan outline-none"
-                                                                    />
-                                                                    <button
-                                                                        onClick={handleAddOrUpdateCommand}
-                                                                        disabled={!cmdTrigger.trim() || !cmdResponse.trim()}
-                                                                        className="px-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 shrink-0"
-                                                                    >
-                                                                        {isEditingCmd ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                                                                        {isEditingCmd ? 'OK' : 'Ajouter'}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Ces commandes sont utilisables par tous les membres du chat.</p>
-
-                                                        {recentShazams.length > 0 && (
-                                                            <div className="mt-8 space-y-3">
-                                                                <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] text-center italic">Dernières Identifications <span className="text-neon-cyan">Shazam</span></h4>
-                                                                <div className="flex flex-wrap justify-center gap-2">
-                                                                    {recentShazams.map((song, i) => (
-                                                                        <span key={i} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold text-gray-400">
-                                                                            {song}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-
-                                                    {/* Apparence Bot */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                <Pencil className="w-4 h-4 text-neon-cyan" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
-                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <div className="relative group/picker">
-                                                                        <input
-                                                                            type="color"
-                                                                            value={botColor}
-                                                                            onChange={(e) => {
-                                                                                const hex = e.target.value;
-                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
-                                                                            }}
-                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
-                                                                        />
-                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
-                                                                    </div>
-                                                                    <div className="flex flex-1 items-center gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            placeholder="ex: rgba(0, 255, 204, 0.05)"
-                                                                            value={botBgColor}
-                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
-                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
-                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
-                                                                        >
-                                                                            VALIDER
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Auto Message Management */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
-                                                        </label>
-
-                                                        <div className="space-y-4">
-                                                            <div className="space-y-2">
-                                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
-                                                                <textarea
-                                                                    value={settings.autoMessage || ''}
-                                                                    onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
-                                                                    placeholder="Message à envoyer automatiquement..."
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
-                                                                />
-                                                            </div>
-
-                                                            <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
-                                                                </div>
-                                                                <div className="flex items-center gap-3">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={settings.autoMessageInterval || 60}
-                                                                        onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
-                                                                        className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
-                                                                        min="10"
-                                                                    />
-                                                                    <Clock className="w-4 h-4 text-gray-500" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
-                                                    </div>
-
-                                                </div>
-                                            )}
 
                                             {activeSettingsTab === 'shop' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
