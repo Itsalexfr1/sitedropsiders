@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile, Activity,
@@ -110,7 +110,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [email, setEmail] = useState('');
     const [newsletter, setNewsletter] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeSettingsTab, setActiveSettingsTab] = useState('general');
+    const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'moderation' | 'points' | 'shop'>('general');
     const [chat_color] = useState(() => localStorage.getItem('chat_color') || '#00ffff');
 
     // --- NEW FEATURES STATES ---
@@ -245,6 +245,59 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }, 3000);
         return () => clearInterval(interval);
     }, []);
+
+    // Load YouTube API
+    useEffect(() => {
+        if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+        }
+    }, []);
+
+    // Initialize YouTube Players
+    useEffect(() => {
+        const initPlayers = () => {
+            channelItems.forEach((channel) => {
+                const elementId = `yt-player-${channel.id}`;
+                const element = document.getElementById(elementId);
+                if (element && window.YT && window.YT.Player) {
+                    try {
+                        playersRef.current[channel.id] = new window.YT.Player(elementId, {
+                            events: {
+                                onReady: (event: any) => {
+                                    const isMuted = isMutedGlobal || volume === 0;
+                                    if (isMuted) {
+                                        event.target.mute();
+                                        event.target.setVolume(0);
+                                    } else {
+                                        event.target.unMute();
+                                        event.target.setVolume(volume * 100);
+                                    }
+                                }
+                            }
+                        });
+                    } catch (e) {
+                        console.error('Error initializing YT Player', e);
+                    }
+                }
+            });
+        };
+
+        if (window.YT && window.YT.Player) {
+            initPlayers();
+        } else {
+            (window as any).onYouTubeIframeAPIReady = initPlayers;
+        }
+
+        return () => {
+            Object.values(playersRef.current).forEach(p => {
+                if (p && p.destroy) p.destroy();
+            });
+            playersRef.current = {};
+        };
+    }, [channelItems, playersOption, isJoined]); // Re-init if joined state changes to ensure players are bound
 
     // Overdrive Handler
     useEffect(() => {
@@ -638,6 +691,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     // Local state for settings modal to avoid multiple builds
     const [localSettings, setLocalSettings] = useState<Partial<TakeoverProps['settings']>>({});
     const [volume, setVolume] = useState(1);
+    const playersRef = useRef<Record<string, any>>({});
 
     useEffect(() => {
         if (showEditModal) {
@@ -2027,7 +2081,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
                     {/* Video Section */}
-                    <div className="flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden">
+                    <div className={`flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
                         <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                             {/* Stream Name Badge */}
                             {/* Redundant Stream Name Badge removed */}
@@ -2041,7 +2095,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             layout: { type: "spring", stiffness: 200, damping: 25 },
                                             opacity: { duration: 0.3 }
                                         }}
-                                        className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-1 bg-white/5 backdrop-blur-sm relative ${isTransitioning ? 'before:absolute before:inset-0 before:z-50 before:bg-neon-cyan/10 before:animate-pulse before:pointer-events-none' : ''}`}
+                                        className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-1 bg-white/5 backdrop-blur-sm relative ${isTransitioning ? 'before:absolute before:inset-0 before:z-50 before:bg-neon-cyan/10 before:animate-pulse before:pointer-events-none' : ''} ${!isJoined ? 'blur-2xl grayscale brightness-[0.3] pointer-events-none' : ''}`}
                                     >
                                         {Array.from({ length: Math.min(playersOption, channelItems.length) }).map((_, i) => {
                                             const cIdx = (activeVideoIndex + i) % channelItems.length;
@@ -2071,12 +2125,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     value={volume}
                                                                     onChange={(e) => {
                                                                         e.stopPropagation();
-                                                                        setVolume(parseFloat(e.target.value));
-                                                                        if (parseFloat(e.target.value) > 0 && isMutedGlobal) {
+                                                                        const v = parseFloat(e.target.value);
+                                                                        setVolume(v);
+                                                                        if (v > 0 && isMutedGlobal) {
                                                                             setIsMutedGlobal(false);
-                                                                        } else if (parseFloat(e.target.value) === 0 && !isMutedGlobal) {
+                                                                        } else if (v === 0 && !isMutedGlobal) {
                                                                             setIsMutedGlobal(true);
                                                                         }
+                                                                        Object.values(playersRef.current).forEach(p => {
+                                                                            if (p && p.setVolume) {
+                                                                                if (v === 0) {
+                                                                                    p.mute();
+                                                                                    p.setVolume(0);
+                                                                                } else {
+                                                                                    p.unMute();
+                                                                                    p.setVolume(v * 100);
+                                                                                }
+                                                                            }
+                                                                        });
                                                                     }}
                                                                     className="appearance-none bg-transparent w-24 h-1 -rotate-90 origin-center translate-y-[40px] [&::-webkit-slider-runnable-track]:bg-white/20 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:-mt-1 cursor-pointer focus:outline-none"
                                                                 />
@@ -2084,13 +2150,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    if (isMutedGlobal) {
-                                                                        setIsMutedGlobal(false);
-                                                                        setVolume(1);
-                                                                    } else {
-                                                                        setIsMutedGlobal(true);
-                                                                        setVolume(0);
-                                                                    }
+                                                                    const nextMute = !isMutedGlobal;
+                                                                    setIsMutedGlobal(nextMute);
+                                                                    const targetVolume = nextMute ? 0 : (volume > 0 ? volume : 1);
+                                                                    if (!nextMute && volume === 0) setVolume(1);
+
+                                                                    Object.values(playersRef.current).forEach(p => {
+                                                                        if (p && p.setVolume) {
+                                                                            if (nextMute) {
+                                                                                p.mute();
+                                                                                p.setVolume(0);
+                                                                            } else {
+                                                                                p.unMute();
+                                                                                p.setVolume(targetVolume * 100);
+                                                                            }
+                                                                        }
+                                                                    });
                                                                 }}
                                                                 className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors shadow-lg"
                                                             >
@@ -2099,6 +2174,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
 
                                                         <iframe
+                                                            id={`yt-player-${channel.id}`}
                                                             className="w-[110%] h-[110%] border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto"
                                                             src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer || volume === 0) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
                                                             title={channel.title}
@@ -2473,7 +2549,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                     {/* Artist Column */}
                                                     <div className="flex items-center gap-4 min-w-0 relative z-10">
-                                                        <h3 className={`font-black uppercase italic tracking-wider text-[16px] lg:text-[22px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/80 group-hover:text-white'}`}>
+                                                        <h3 className={`font-black uppercase italic tracking-wider text-[7px] lg:text-[10px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/80 group-hover:text-white'}`}>
                                                             {item.artist || '---'}
                                                         </h3>
                                                         {fluxCurrentArtist.artist === item.artist && settings.isOnline && (
@@ -2768,22 +2844,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 onClick={() => setActiveSettingsTab('general')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'general' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Live / Vidéo
+                                                Live / Vidéo / Bandeau
                                                 {activeSettingsTab === 'general' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveSettingsTab('ticker')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'ticker' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                Bandeau
-                                                {activeSettingsTab === 'ticker' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
-                                            </button>
-                                            <button
-                                                onClick={() => setActiveSettingsTab('moderation')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                Sécurité, Équipe & Bot
-                                                {activeSettingsTab === 'moderation' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
                                                 onClick={() => setActiveSettingsTab('planning')}
@@ -2793,107 +2855,28 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'planning' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
                                             <button
-                                                onClick={() => setActiveSettingsTab('video')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'video' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
+                                                onClick={() => setActiveSettingsTab('moderation')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'moderation' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Vidéo & Clips
-                                                {activeSettingsTab === 'video' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
+                                                Sécurité & Bot
+                                                {activeSettingsTab === 'moderation' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
-                                            <button
-                                                onClick={() => setActiveSettingsTab('rewards')}
-                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'rewards' ? 'text-neon-purple' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                Récompenses
-                                                {activeSettingsTab === 'rewards' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-purple" />}
-                                            </button>
-
                                             <button
                                                 onClick={() => setActiveSettingsTab('points')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'points' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                Points / Drops
+                                                Points / Drops & Récompenses
                                                 {activeSettingsTab === 'points' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
                                             </button>
                                         </div>
 
                                         {/* Tab Content */}
                                         <div className="flex-1 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
-                                            {activeSettingsTab === 'rewards' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-purple/10 rounded-xl">
-                                                                <Zap className="w-4 h-4 text-neon-purple" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Boutique <span className="text-neon-purple">Drops</span> (Récompenses)</h3>
-                                                        </div>
 
-                                                        <div className="space-y-4">
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
-                                                                Gérez les prix des récompenses achetables avec les Drops.
-                                                            </p>
-
-                                                            <div className="grid grid-cols-1 gap-3">
-                                                                {rewards.map((reward, ridx) => (
-                                                                    <div key={reward.id} className="flex items-center gap-4 p-4 bg-black/40 border border-white/10 rounded-2xl group hover:border-neon-purple/50 transition-all">
-                                                                        <div className="flex-1">
-                                                                            <input
-                                                                                type="text"
-                                                                                value={reward.name}
-                                                                                onChange={(e) => {
-                                                                                    const newR = [...rewards];
-                                                                                    newR[ridx].name = e.target.value;
-                                                                                    setRewards(newR);
-                                                                                }}
-                                                                                className="bg-transparent border-none p-0 text-[10px] font-black text-white uppercase tracking-widest outline-none"
-                                                                            />
-                                                                            <input
-                                                                                type="text"
-                                                                                value={reward.description}
-                                                                                onChange={(e) => {
-                                                                                    const newR = [...rewards];
-                                                                                    newR[ridx].description = e.target.value;
-                                                                                    setRewards(newR);
-                                                                                }}
-                                                                                className="bg-transparent border-none p-0 text-[8px] text-gray-600 font-bold uppercase mt-1 outline-none w-full"
-                                                                            />
-                                                                        </div>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <input
-                                                                                type="number"
-                                                                                value={reward.cost}
-                                                                                onChange={(e) => {
-                                                                                    const newR = [...rewards];
-                                                                                    newR[ridx].cost = parseInt(e.target.value) || 0;
-                                                                                    setRewards(newR);
-                                                                                }}
-                                                                                className="w-20 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-black text-white outline-none focus:border-neon-purple"
-                                                                            />
-                                                                            <span className="text-[10px] font-black text-neon-purple">💧</span>
-                                                                        </div>
-                                                                        <button
-                                                                            onClick={() => setRewards(rewards.filter((_, i) => i !== ridx))}
-                                                                            className="p-2 bg-white/5 hover:bg-neon-red/20 rounded-xl text-gray-500 hover:text-neon-red transition-all"
-                                                                        >
-                                                                            <Trash2 className="w-4 h-4" />
-                                                                        </button>
-                                                                    </div>
-                                                                ))}
-
-                                                                <button
-                                                                    onClick={() => setRewards([...rewards, { id: Date.now().toString(), name: 'NOUVELLE RÉCOMPENSE', description: 'Description...', cost: 100, icon: 'Zap' }])}
-                                                                    className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black text-gray-500 hover:text-white hover:border-white/20 transition-all"
-                                                                >
-                                                                    <Plus className="w-4 h-4" /> AJOUTER UNE RÉCOMPENSE
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
                                             {activeSettingsTab === 'general' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                        {/* Configuration Affichage */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3 mb-2">
                                                                 <div className="p-2 bg-neon-red/10 rounded-xl">
@@ -2927,201 +2910,101 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                             <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
                                                                 <div className="flex flex-col">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Effet Fermeture (Offline)</label>
-                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">{showClosedDoors || settings.showClosedDoors ? 'Activé' : 'Désactivé'}</span>
+                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Effet Fermeture</label>
+                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">Mode Portes Fermées</span>
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => handleUpdateSettings({ showClosedDoors: !(showClosedDoors || settings.showClosedDoors) })}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${(showClosedDoors || settings.showClosedDoors) ? 'bg-neon-red shadow-[0_0_15px_#ff000044]' : 'bg-gray-800'}`}
+                                                                    onClick={() => handleUpdateSettings({ showClosedDoors: !settings.showClosedDoors })}
+                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.showClosedDoors ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
                                                                 >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${(showClosedDoors || settings.showClosedDoors) ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.showClosedDoors ? 'translate-x-6' : 'translate-x-0'}`} />
                                                                 </button>
                                                             </div>
-                                                            <div className="pt-2 grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Début du Live (Optionnel)</label>
-                                                                    <input type="datetime-local" value={localSettings.startDate || ''} onChange={e => handleUpdateLocalSetting({ startDate: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] font-bold text-white outline-none focus:border-neon-red" />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Fin du Live (Optionnel)</label>
-                                                                    <input type="datetime-local" value={localSettings.endDate || ''} onChange={e => handleUpdateLocalSetting({ endDate: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] font-bold text-white outline-none focus:border-neon-red" />
-                                                                </div>
-                                                            </div>
                                                         </div>
+
+                                                        {/* Source Vidéo */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-4 lg:p-6 rounded-[2rem]">
                                                             <div className="flex items-center gap-3 mb-2">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <Youtube className="w-4 h-4 text-neon-red" />
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                    <Youtube className="w-4 h-4 text-neon-cyan" />
                                                                 </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Paramètres <span className="text-neon-red">Média</span></h3>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Sources <span className="text-neon-cyan">Vidéo</span></h3>
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">INSTAGRAM</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={editTitle}
-                                                                        onChange={(e) => setEditTitle(e.target.value)}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="TITRE DU LIVE..."
-                                                                    />
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    <input type="text" placeholder="Stage 1 Name" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
                                                                 </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">NOM DU FLUX PRINCIPAL</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={editMainFluxName}
-                                                                        onChange={(e) => setEditMainFluxName(e.target.value)}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                        placeholder="ex: MAIN STAGE..."
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Flux Principal (Lien YouTube)</label>
-                                                                    <div className="flex gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            value={fluxPrincipal}
-                                                                            onChange={(e) => setFluxPrincipal(e.target.value)}
-                                                                            className="flex-1 bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all"
-                                                                            placeholder="ex: https://youtube.com/watch?v=..."
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                alert('Lien Principal Validé !');
-                                                                            }}
-                                                                            className="px-4 bg-white/5 border border-white/10 rounded-xl text-[8px] font-black uppercase text-white hover:bg-neon-red hover:text-white transition-all"
-                                                                        >
-                                                                            VALIDER
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ stage1, stage2, stage1Name, stage2Name })}
+                                                                    className="w-full py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-cyan hover:text-black transition-all"
+                                                                >
+                                                                    Sauvegarder les Sources
+                                                                </button>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
 
-                                            {activeSettingsTab === 'ticker' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                        {/* Ticker Banner Control (Bandeau 1) */}
+                                                        {/* Bandeau Ticker */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center justify-between mb-4">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
                                                                         <Activity className="w-4 h-4 text-neon-red" />
                                                                     </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Défilant)</span></h3>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Ticker)</span></h3>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => handleUpdateLocalSetting({ showTickerBanner: !showTickerBanner })}
-                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red shadow-[0_0_15px_#ff003344] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red justify-end' : 'bg-gray-800 justify-start'}`}
                                                                 >
                                                                     <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
                                                                 </button>
                                                             </div>
-
-                                                            <div className="space-y-4">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Type de contenu</label>
-                                                                    <select
-                                                                        value={tickerType}
-                                                                        onChange={(e) => handleUpdateLocalSetting({ tickerType: e.target.value as any })}
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red cursor-pointer"
-                                                                    >
-                                                                        <option value="news">📢 Actualités automatiques</option>
-                                                                        <option value="planning">📅 Programme en cours</option>
-                                                                        <option value="custom">✍️ Texte personnalisé</option>
-                                                                    </select>
-                                                                </div>
-
-                                                                <div className="grid grid-cols-2 gap-4">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
-                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                            <input type="color" value={tickerBgColor} onChange={(e) => handleUpdateLocalSetting({ tickerBgColor: e.target.value })} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
-                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerBgColor}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
-                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                            <input type="color" value={tickerTextColor} onChange={(e) => handleUpdateLocalSetting({ tickerTextColor: e.target.value })} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
-                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{tickerTextColor}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
+                                                            <div className="space-y-3">
+                                                                <select value={tickerType} onChange={(e) => handleUpdateLocalSetting({ tickerType: e.target.value as any })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none">
+                                                                    <option value="news">Actualités</option>
+                                                                    <option value="planning">Planning</option>
+                                                                    <option value="custom">Texte Perso</option>
+                                                                </select>
                                                                 {tickerType === 'custom' && (
-                                                                    <div className="space-y-4 pt-2">
-                                                                        <div className="space-y-1.5">
-                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Votre message</label>
-                                                                            <input type="text" value={tickerText} onChange={(e) => handleUpdateLocalSetting({ tickerText: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                                    <>
+                                                                        <input type="text" value={tickerText} onChange={(e) => handleUpdateLocalSetting({ tickerText: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] text-white" placeholder="Message..." />
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <input type="color" value={tickerBgColor} onChange={(e) => handleUpdateLocalSetting({ tickerBgColor: e.target.value })} className="w-full h-8 bg-transparent border-none cursor-pointer" />
+                                                                            <input type="color" value={tickerTextColor} onChange={(e) => handleUpdateLocalSetting({ tickerTextColor: e.target.value })} className="w-full h-8 bg-transparent border-none cursor-pointer" />
                                                                         </div>
-                                                                        <div className="space-y-1.5">
-                                                                            <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Lien au clic (Optionnel)</label>
-                                                                            <input type="text" value={tickerLink} onChange={(e) => handleUpdateLocalSetting({ tickerLink: e.target.value })} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-red" placeholder="https://..." />
-                                                                        </div>
-                                                                    </div>
+                                                                    </>
                                                                 )}
                                                             </div>
                                                         </div>
 
-                                                        {/* Announcement Banner Control (Replaces Bandeau 2) */}
+                                                        {/* Bandeau Annonce */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
                                                             <div className="flex items-center justify-between mb-4">
                                                                 <div className="flex items-center gap-3">
                                                                     <div className="p-2 bg-neon-cyan/10 rounded-xl">
                                                                         <Globe className="w-4 h-4 text-neon-cyan" />
                                                                     </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-cyan">défilant (Annonces)</span></h3>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-cyan">Annonces</span></h3>
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => {
-                                                                        const newVal = !annBannerEnabled;
-                                                                        setAnnBannerEnabled(newVal);
-                                                                        // Dispatch for immediate local UI feedback
-                                                                        window.dispatchEvent(new CustomEvent('dropsiders_banner_toggle', { detail: { enabled: newVal } }));
-                                                                    }}
+                                                                    onClick={() => setAnnBannerEnabled(!annBannerEnabled)}
                                                                     className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${annBannerEnabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44] justify-end' : 'bg-gray-800 justify-start'}`}
                                                                 >
                                                                     <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
                                                                 </button>
                                                             </div>
                                                             <div className="space-y-3">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Texte du bandeau</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={annBannerText}
-                                                                        onChange={(e) => setAnnBannerText(e.target.value)}
-                                                                        placeholder="Ex: DROPSIDERS LIVE — TOMORROWLAND 2026..."
-                                                                        className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all"
-                                                                    />
+                                                                <input type="text" value={annBannerText} onChange={(e) => setAnnBannerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none" placeholder="Texte de l'annonce..." />
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    <input type="color" value={annBannerColor} onChange={(e) => setAnnBannerColor(e.target.value)} className="w-full h-8 bg-transparent border-none cursor-pointer" />
+                                                                    <input type="color" value={annBannerBg} onChange={(e) => setAnnBannerBg(e.target.value)} className="w-full h-8 bg-transparent border-none cursor-pointer" />
                                                                 </div>
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Texte</label>
-                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                            <input type="color" value={annBannerColor} onChange={(e) => setAnnBannerColor(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
-                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{annBannerColor}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="space-y-1.5">
-                                                                        <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Couleur Fond</label>
-                                                                        <div className="flex gap-2 items-center bg-black/40 border border-white/10 rounded-xl p-2 h-11">
-                                                                            <input type="color" value={annBannerBg} onChange={(e) => setAnnBannerBg(e.target.value)} className="w-10 h-7 bg-transparent border-none cursor-pointer" />
-                                                                            <span className="text-[9px] text-gray-400 font-mono uppercase truncate">{annBannerBg}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <button
-                                                                    onClick={handleSaveAnnouncementBanner}
-                                                                    className="w-full py-2.5 bg-neon-cyan/20 border border-neon-cyan/30 hover:bg-neon-cyan hover:text-black text-neon-cyan rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                >
-                                                                    Sauvegarder le Bandeau
-                                                                </button>
+                                                                <button onClick={handleSaveAnnouncementBanner} className="w-full py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-cyan hover:text-black transition-all">Sauvegarder Bandeau</button>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -3185,6 +3068,75 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                             </div>
 
+                                                            <div className="space-y-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-purple/10 rounded-xl">
+                                                                        <Trophy className="w-4 h-4 text-neon-purple" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-purple">Récompenses</span></h3>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                                                    {rewards.map((reward, i) => (
+                                                                        <div key={reward.id} className="p-4 bg-black/40 border border-white/10 rounded-2xl space-y-3 group">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <div className="p-2 bg-white/5 rounded-lg">
+                                                                                    {reward.icon === 'Smile' ? <Smile className="w-4 h-4 text-neon-purple" /> :
+                                                                                        reward.icon === 'MessageSquare' ? <MessageSquare className="w-4 h-4 text-neon-cyan" /> :
+                                                                                            <Zap className="w-4 h-4 text-neon-red" />}
+                                                                                </div>
+                                                                                <button onClick={() => {
+                                                                                    const newRewards = [...rewards];
+                                                                                    newRewards.splice(i, 1);
+                                                                                    setRewards(newRewards);
+                                                                                }} className="text-gray-600 hover:text-neon-red transition-colors opacity-0 group-hover:opacity-100">
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+                                                                            <div>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={reward.name}
+                                                                                    onChange={(e) => {
+                                                                                        const newRewards = [...rewards];
+                                                                                        newRewards[i].name = e.target.value;
+                                                                                        setRewards(newRewards);
+                                                                                    }}
+                                                                                    className="w-full bg-transparent border-none text-[11px] font-black text-white uppercase outline-none"
+                                                                                />
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={reward.description}
+                                                                                    onChange={(e) => {
+                                                                                        const newRewards = [...rewards];
+                                                                                        newRewards[i].description = e.target.value;
+                                                                                        setRewards(newRewards);
+                                                                                    }}
+                                                                                    className="w-full bg-transparent border-none text-[8px] font-bold text-gray-500 uppercase outline-none"
+                                                                                />
+                                                                            </div>
+                                                                            <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                                                                                <input
+                                                                                    type="number"
+                                                                                    value={reward.cost}
+                                                                                    onChange={(e) => {
+                                                                                        const newRewards = [...rewards];
+                                                                                        newRewards[i].cost = parseInt(e.target.value) || 0;
+                                                                                        setRewards(newRewards);
+                                                                                    }}
+                                                                                    className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-black text-neon-cyan outline-none"
+                                                                                />
+                                                                                <span className="text-[8px] font-black text-gray-600 uppercase">DROPS</span>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
+                                                                    <button onClick={() => setRewards([...rewards, { id: Math.random().toString(36).substr(2, 9), name: 'Nouveau', description: 'Description', cost: 100, icon: 'Zap' }])} className="p-4 border-2 border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-white/5 hover:border-white/20 transition-all group">
+                                                                        <Plus className="w-5 h-5 text-gray-500 group-hover:text-white transition-colors" />
+                                                                        <span className="text-[9px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest">Ajouter</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
                                                             <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl">
                                                                 <div className="flex gap-3">
                                                                     <div className="shrink-0 mt-1">
@@ -3203,180 +3155,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 </div>
                                             )}
 
-                                            {activeSettingsTab === 'video' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    {/* Live Stream Status & Control */}
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                    <Video className="w-4 h-4 text-neon-cyan" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Status <span className="text-neon-cyan">du Live</span></h3>
-                                                            </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <div className={`w-2 h-2 rounded-full ${settings.isOnline ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-                                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">{settings.isOnline ? 'EN DIRECT' : 'HORS LIGNE'}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="p-4 bg-black/40 rounded-2xl border border-white/5 flex flex-col justify-between">
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Configuration Actuelle</p>
-                                                                    <p className="text-xs font-bold text-white uppercase truncate">{settings.title || 'Pas de titre'}</p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={handleToggleLive}
-                                                                    className={`mt-4 w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings.isOnline ? 'bg-neon-red/20 text-neon-red border border-neon-red/30 hover:bg-neon-red hover:text-white' : 'bg-green-500/20 text-green-500 border border-green-500/30 hover:bg-green-500 hover:text-white'}`}
-                                                                >
-                                                                    {settings.isOnline ? 'Arrêter le Live' : 'Démarrer le Live'}
-                                                                </button>
-                                                            </div>
-                                                            <div className="p-4 bg-black/40 rounded-2xl border border-white/5 flex flex-col justify-between">
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Affichage Agenda</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Apparaître dans l'Agenda d'accueil</p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateSettings({ showInAgenda: !settings.showInAgenda })}
-                                                                    className={`mt-4 w-full py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${settings.showInAgenda ? 'bg-neon-cyan text-black' : 'bg-white/5 text-white border border-white/10'}`}
-                                                                >
-                                                                    {settings.showInAgenda ? 'Visible dans l\'Agenda' : 'Masqué de l\'Agenda'}
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Clips Management */}
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-purple/10 rounded-xl">
-                                                                    <Zap className="w-4 h-4 text-neon-purple" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-purple">Clips</span></h3>
-                                                            </div>
-                                                            <span className="px-3 py-1 bg-white/5 rounded-full text-[9px] font-black text-gray-400 uppercase tracking-widest">{clips.length} Clips</span>
-                                                        </div>
-
-                                                        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                                            {clips.map((clip, idx) => (
-                                                                <div key={idx} className="group p-4 bg-black/40 border border-white/5 rounded-2xl hover:border-neon-purple/30 transition-all flex items-center justify-between">
-                                                                    <div className="flex items-center gap-4">
-                                                                        <div className="w-16 aspect-video bg-white/5 rounded-lg overflow-hidden relative">
-                                                                            <img src={`https://img.youtube.com/vi/${clip.videoId || settings.youtubeId}/mqdefault.jpg`} className="w-full h-full object-cover opacity-50" />
-                                                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                                                <Video className="w-4 h-4 text-white/20" />
-                                                                            </div>
-                                                                        </div>
-                                                                        <div>
-                                                                            <p className="text-xs font-black text-white uppercase italic truncate max-w-[150px]">{clip.title}</p>
-                                                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{clip.duration} • {clip.timestamp}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                setActiveClipToPlay(clip);
-                                                                                setShowClipPlayer(true);
-                                                                                setIsMutedGlobal(true);
-                                                                            }}
-                                                                            className="p-2 bg-white/5 hover:bg-neon-cyan/20 rounded-lg text-gray-400 hover:text-neon-cyan transition-all"
-                                                                            title="Lire"
-                                                                        >
-                                                                            <Maximize className="w-4 h-4" />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => handleDownloadClip(clip)}
-                                                                            className="p-2 bg-white/5 hover:bg-neon-cyan/20 rounded-lg text-gray-400 hover:text-neon-cyan transition-all"
-                                                                            title="Télécharger"
-                                                                        >
-                                                                            <Download className="w-4 h-4" />
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                const newClips = clips.filter((_, i) => i !== idx);
-                                                                                setClips(newClips);
-                                                                                localStorage.setItem('user_clips', JSON.stringify(newClips));
-                                                                            }}
-                                                                            className="p-2 bg-white/5 hover:bg-neon-red/20 rounded-lg text-gray-400 hover:text-neon-red transition-all"
-                                                                            title="Supprimer"
-                                                                        >
-                                                                            <Trash2 className="w-4 h-4" />
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                            {clips.length === 0 && (
-                                                                <div className="text-center py-12 space-y-4">
-                                                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto">
-                                                                        <Video className="w-6 h-6 text-gray-700" />
-                                                                    </div>
-                                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-[0.2em]">Aucun clip n'a été créé pour le moment</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    {/* Configuration des Sources */}
-                                                    <div className="bg-white/5 border border-white/5 p-6 lg:p-8 rounded-[2rem] space-y-6 mt-6">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                <Youtube className="w-4 h-4 text-neon-cyan" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-cyan">des Sources (Stages)</span></h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
-                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage1Name || 'Stage 1'}</span>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    <input type="text" placeholder="Nom du Stage" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage1} onChange={e => setStage1(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
-                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage2Name || 'Stage 2'}</span>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    <input type="text" placeholder="Nom du Stage" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage2} onChange={e => setStage2(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
-                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage3Name || 'Stage 3'}</span>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    <input type="text" placeholder="Nom du Stage" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage3} onChange={e => setStage3(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-4 bg-black/40 border border-white/5 p-5 rounded-2xl">
-                                                                <div className="flex items-center gap-2 mb-1">
-                                                                    <div className="w-2 h-2 rounded-full bg-neon-cyan" />
-                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">{stage4Name || 'Stage 4'}</span>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    <input type="text" placeholder="Nom du Stage" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                    <input type="text" placeholder="YouTube ID ou URL" value={stage4} onChange={e => setStage4(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <button
-                                                            onClick={() => handleUpdateSettings({ stage1, stage2, stage3, stage4, stage1Name, stage2Name, stage3Name, stage4Name })}
-                                                            className="w-full py-4 bg-neon-cyan text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] shadow-lg shadow-neon-cyan/20 hover:scale-[1.02] active:scale-95 transition-all"
-                                                        >
-                                                            Sauvegarder les Sources
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            {/* Old video tab removed, merged into general */}
 
                                             {activeSettingsTab === 'moderation' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -3427,7 +3206,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 onClick={() => handleRemoveModerator(mod.trim())}
                                                                                 className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
                                                                             >
-                                                                                <Trash2 className="w-4 h-4" />
+                                                                                <Trash2 className="w-3.5 h-3.5" />
                                                                             </button>
                                                                         </div>
                                                                     ))}
@@ -4049,9 +3828,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             )}
                                         </div>
 
-                                        <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto">
+                                        <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto shrink-0">
                                             <button
-                                                onClick={() => {
+                                                onClick={async () => {
                                                     const extractYoutubeId = (url: string) => {
                                                         if (!url) return '';
                                                         const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
@@ -4070,7 +3849,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
                                                     if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
 
-                                                    handleUpdateSettings({
+                                                    await handleUpdateSettings({
                                                         ...localSettings,
                                                         title: editTitle,
                                                         mainFluxName: editMainFluxName,
@@ -4078,8 +3857,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         youtubeId: fId,
                                                         channels: newChannels.join('\n'),
                                                         shopItems: selectedShopIds.join(','),
-                                                        chat_enabled: true
+                                                        chat_enabled: true,
+                                                        pinnedMessage: localPinnedMessage,
+                                                        customCommands: localCustomCommands,
+                                                        moderators: localModerators
                                                     });
+                                                    setShowEditModal(false);
                                                 }}
                                                 disabled={isSaving}
                                                 className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
@@ -4087,11 +3870,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
                                             </button>
                                             <button
-                                                onClick={handleToggleLive}
-                                                className="py-4 bg-white/5 border border-white/5 text-neon-red text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red hover:text-white transition-all group flex items-center justify-center gap-3 relative overflow-hidden active:scale-[0.98]"
+                                                onClick={() => setShowEditModal(false)}
+                                                className="py-4 bg-white/5 border border-white/5 text-gray-500 hover:text-neon-red text-[10px] font-black uppercase tracking-[0.3em] rounded-xl transition-all"
                                             >
-                                                <Power className={`w-4 h-4 ${settings.isOnline ? 'text-neon-red' : 'text-green-500'} group-hover:text-white transition-colors`} />
-                                                {settings.isOnline ? 'Couper Live' : 'Lancer Live'}
+                                                ANNULER
                                             </button>
                                         </div>
                                     </motion.div>
@@ -4103,80 +3885,82 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     {/* Chat Section */}
                     <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
                         {/* Glossy Header */}
-                        {!isFocusMode && (
-                            <div className="p-3 lg:p-5 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
-                                <div className="flex-1 flex items-center gap-3">
-                                    <div className="w-9 h-9 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                        <MessageSquare className="w-4 h-4 text-neon-red" />
+                        {
+                            !isFocusMode && (
+                                <div className="p-1 lg:p-1 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                                    <div className="flex-1 flex items-center gap-2">
+                                        <div className="w-7 h-7 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                            <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
+                                                {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Boutique Drops' : 'Classement'}
+                                                {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
+                                            </h2>
+                                            {/* Hype Energy Mini Gauge */}
+                                            <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
+                                                <motion.div
+                                                    className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
+                                                    animate={{ width: `${hypeLevel}%` }}
+                                                    transition={{ type: "spring", stiffness: 50 }}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
-                                            {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Boutique Drops' : 'Classement'}
-                                            {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
-                                        </h2>
-                                        {/* Hype Energy Mini Gauge */}
-                                        <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
-                                            <motion.div
-                                                className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
-                                                animate={{ width: `${hypeLevel}%` }}
-                                                transition={{ type: "spring", stiffness: 50 }}
+
+                                    {/* MES DROPS - CENTERED */}
+                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                                        <button
+                                            onClick={() => setActiveChatTab(activeChatTab === 'shop' ? 'chat' : 'shop')}
+                                            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
+                                        >
+                                            <span className="text-[8px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
+                                            <div className="w-3.5 h-3.5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
+                                                <Zap className="w-2 h-2 text-white fill-current" />
+                                            </div>
+                                        </button>
+                                    </div>
+
+                                    <div className="flex-1 flex items-center justify-end gap-2">
+                                        {hasModPowers && (
+                                            <>
+                                                <button
+                                                    onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
+                                                    className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                    title="Shop (Global)"
+                                                >
+                                                    <Zap className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => setShowSlowModePopup(!showSlowModePopup)}
+                                                    className={`p-2 rounded-lg transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                    title="Mode Lent"
+                                                >
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                    {showSlowModePopup && (
+                                        <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
+                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                                <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                            </h3>
+                                            <input
+                                                type="number"
+                                                value={slowModeDuration}
+                                                onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
+                                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
                                             />
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
+                                                <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* MES DROPS - CENTERED */}
-                                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                                    <button
-                                        onClick={() => setActiveChatTab(activeChatTab === 'shop' ? 'chat' : 'shop')}
-                                        className={`flex items-center gap-2.5 px-3 py-1.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
-                                    >
-                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
-                                        <div className="w-5 h-5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
-                                            <Zap className="w-3 h-3 text-white fill-current" />
-                                        </div>
-                                    </button>
-                                </div>
-
-                                <div className="flex-1 flex items-center justify-end gap-2">
-                                    {hasModPowers && (
-                                        <>
-                                            <button
-                                                onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
-                                                className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                                title="Shop (Global)"
-                                            >
-                                                <Zap className="w-3.5 h-3.5" />
-                                            </button>
-                                            <button
-                                                onClick={() => setShowSlowModePopup(!showSlowModePopup)}
-                                                className={`p-2 rounded-lg transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                                title="Mode Lent"
-                                            >
-                                                <Clock className="w-3.5 h-3.5" />
-                                            </button>
-                                        </>
                                     )}
                                 </div>
-                                {showSlowModePopup && (
-                                    <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
-                                        <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                        </h3>
-                                        <input
-                                            type="number"
-                                            value={slowModeDuration}
-                                            onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
-                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
-                                        />
-                                        <div className="flex gap-2">
-                                            <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
-                                            <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                            )
+                        }
 
                         {/* Shop Widget Overhead */}
                         <AnimatePresence>
@@ -4381,7 +4165,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {!isJoined ? (
                                                     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
                                                         {/* Background Decor */}
-                                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
+                                                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
                                                         <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
                                                         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
 
@@ -4797,73 +4581,75 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 )}
                             </AnimatePresence>
                         </div>
-                    </div>
-                </div>
+                    </div >
+                </div >
 
                 {/* Ticker Banner */}
-                {!isFocusMode && !isFullScreen && showTickerBanner && (
-                    <div
-                        className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
-                        style={{ backgroundColor: tickerBgColor }}
-                        onMouseEnter={() => {
-                            const ticker = document.getElementById('ticker-animate-container');
-                            if (ticker) ticker.style.animationPlayState = 'paused';
-                        }}
-                        onMouseLeave={() => {
-                            const ticker = document.getElementById('ticker-animate-container');
-                            if (ticker) ticker.style.animationPlayState = 'running';
-                        }}
-                    >
-                        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-                        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                {
+                    !isFocusMode && !isFullScreen && showTickerBanner && (
+                        <div
+                            className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                            style={{ backgroundColor: tickerBgColor }}
+                            onMouseEnter={() => {
+                                const ticker = document.getElementById('ticker-animate-container');
+                                if (ticker) ticker.style.animationPlayState = 'paused';
+                            }}
+                            onMouseLeave={() => {
+                                const ticker = document.getElementById('ticker-animate-container');
+                                if (ticker) ticker.style.animationPlayState = 'running';
+                            }}
+                        >
+                            <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                            <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                        <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                            {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
-                                <a
-                                    key={`${news.id}-${i}`}
-                                    href={`/news/${news.id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
-                                    style={{ color: tickerTextColor }}
-                                >
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
-                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
-                                </a>
-                            ))}
-
-                            {tickerType === 'planning' && (() => {
-                                const activeItems = currentFluxLineup.filter(item => !item.isPast);
-                                return activeItems.concat(activeItems).map((item, i) => (
-                                    <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                        <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                    </div>
-                                ));
-                            })()}
-
-                            {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
-                                tickerLink ? (
-                                    <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                            <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                                {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
+                                    <a
+                                        key={`${news.id}-${i}`}
+                                        href={`/news/${news.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
+                                        style={{ color: tickerTextColor }}
+                                    >
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
                                     </a>
-                                ) : (
-                                    <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
-                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                    </div>
-                                )
-                            ))}
+                                ))}
 
-                            {tickerType === 'news' && latestNews.length === 0 && (
-                                <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
-                                    CHARGEMENT DU FIL D'ACTUALITÉ...
-                                </div>
-                            )}
+                                {tickerType === 'planning' && (() => {
+                                    const activeItems = currentFluxLineup.filter(item => !item.isPast);
+                                    return activeItems.concat(activeItems).map((item, i) => (
+                                        <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                            <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
+                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                        </div>
+                                    ));
+                                })()}
+
+                                {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
+                                    tickerLink ? (
+                                        <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                        </a>
+                                    ) : (
+                                        <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                        </div>
+                                    )
+                                ))}
+
+                                {tickerType === 'news' && latestNews.length === 0 && (
+                                    <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                        CHARGEMENT DU FIL D'ACTUALITÉ...
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                )}
+                    )
+                }
 
                 {/* CLIP PLAYER POPUP */}
                 <AnimatePresence>
@@ -5102,7 +4888,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            </div >
+            </div>
         </>
     );
 }
