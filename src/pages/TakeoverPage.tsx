@@ -73,6 +73,7 @@ interface TakeoverProps {
         showClosedDoors?: boolean;
         dropsAmount?: number;
         dropsIntervalMinutes?: number;
+        showExtraFlux?: boolean;
     };
     onClose?: () => void;
 }
@@ -143,7 +144,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [email, setEmail] = useState('');
     const [newsletter, setNewsletter] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [showExtraFlux, setShowExtraFlux] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'moderation' | 'points' | 'shop'>('general');
     const [chat_color] = useState(() => localStorage.getItem('chat_color') || '#00ffff');
 
@@ -256,15 +256,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal', isMain: true });
         }
         if (settings.channels) {
-            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
+            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string, index: number) => {
                 const [id, ...titleParts] = line.split(':');
                 if (id && id.trim()) {
+                    // Filter out stage 5 and 6 if showExtraFlux is disabled
+                    if ((index === 4 || index === 5) && !settings.showExtraFlux) return;
                     items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM', isMain: false });
                 }
             });
         }
         return items;
-    }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
+    }, [settings.youtubeId, settings.channels, settings.mainFluxName, settings.showExtraFlux]);
 
     // Earn Drops periodically
     useEffect(() => {
@@ -3051,12 +3053,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <StyledCheckbox
                                                                     label="Flux supplémentaires"
                                                                     sublabel="Activer les sources 5 & 6"
-                                                                    checked={showExtraFlux}
-                                                                    onChange={() => setShowExtraFlux(!showExtraFlux)}
+                                                                    checked={!!settings.showExtraFlux}
+                                                                    onChange={() => handleUpdateSettings({ showExtraFlux: !settings.showExtraFlux })}
                                                                     color="cyan"
                                                                 />
 
-                                                                {showExtraFlux && (
+                                                                {settings.showExtraFlux && (
                                                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 overflow-hidden">
                                                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Bonus (5 & 6)</p>
                                                                         <div className="grid grid-cols-2 gap-2">
