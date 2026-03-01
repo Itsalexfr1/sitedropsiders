@@ -29,6 +29,35 @@ export default {
             });
         }
 
+        // --- API: DOWNLOADER PROXY ---
+        if (path === '/api/downloader-proxy' && request.method === 'POST') {
+            const body = await request.json();
+            try {
+                const cobaltResponse = await fetch('https://api.cobalt.tools/api/json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'User-Agent': 'Cloudflare-Worker-Dropsiders'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await cobaltResponse.json();
+                return new Response(JSON.stringify(data), {
+                    status: cobaltResponse.status,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    }
+                });
+            } catch (err) {
+                return new Response(JSON.stringify({ status: 'error', text: 'Proxy error: ' + err.message }), {
+                    status: 500,
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                });
+            }
+        }
+
         // Configuration
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';

@@ -21,13 +21,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
         setResult(null);
 
         try {
-            // Using cobalt.tools API (public instance) - This is a very reliable open-source downloader
-            // NOTE: In production, it's better to use your own instance or a stable paid API.
-            const response = await fetch('https://api.cobalt.tools/api/json', {
+            // Using internal proxy to avoid CORS issues as requested by the site security
+            const response = await fetch('/api/downloader-proxy', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
                     url: url,
