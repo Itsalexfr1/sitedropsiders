@@ -107,14 +107,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
                                 value={url}
                                 onChange={(e) => setUrl(e.target.value)}
                                 placeholder="Collez le lien Instagram, TikTok, Twitter..."
-                                className="w-full bg-black/40 border border-white/10 text-white rounded-3xl py-6 pl-14 pr-48 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all outline-none text-sm md:text-base font-medium placeholder:text-gray-600"
+                                className="w-full bg-black/40 border border-white/10 text-white rounded-3xl py-6 pl-14 pr-56 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all outline-none text-sm md:text-base font-medium placeholder:text-gray-600"
                             />
 
                             {url && !loading && (
                                 <button
                                     type="button"
                                     onClick={handleClear}
-                                    className="absolute right-44 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all"
+                                    className="absolute right-48 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-20"
                                     title="Vider le champ"
                                 >
                                     <X className="w-5 h-5" />
