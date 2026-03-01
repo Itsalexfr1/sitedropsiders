@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
+import { ModerationModal } from '../components/admin/ModerationModal';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,6 +43,7 @@ export function AdminDashboard() {
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+    const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
     const [isClipsModalOpen, setIsClipsModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
@@ -540,7 +542,8 @@ export function AdminDashboard() {
         { title: "Interviews", description: "Gérer & Créer", icon: "Mic", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
         { title: "Récaps", description: "Reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
         { title: "Agenda", description: "Programmation", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
-        { title: "Galeries", description: "Albums Photos", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", link: "/admin/manage?tab=Communauté", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Modération", description: "Photos Communauté", icon: "CheckCircle2", link: "moderation", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
         { title: "Notifications", description: "Alertes Push", icon: "Bell", link: "push-notifications", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Playlists Accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
@@ -758,6 +761,7 @@ export function AdminDashboard() {
             case 'Settings2': return <Settings2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Megaphone': return <Megaphone className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Youtube': return <Youtube className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'CheckCircle2': return <CheckCircle2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -1127,9 +1131,12 @@ export function AdminDashboard() {
                                         } else if (action.title === 'Agenda') {
                                             e.preventDefault();
                                             setIsAgendaModalOpen(true);
-                                        } else if (action.title === 'Galeries') {
+                                        } else if (action.title === 'Communauté') {
                                             e.preventDefault();
                                             setIsGalerieModalOpen(true);
+                                        } else if (action.title === 'Modération') {
+                                            e.preventDefault();
+                                            setIsModerationModalOpen(true);
                                         } else if (action.title === 'Shop') {
                                             e.preventDefault();
                                             setIsShopModalOpen(true);
@@ -1841,7 +1848,7 @@ export function AdminDashboard() {
                 )}
             </AnimatePresence>
 
-            {/* Modal Galeries */}
+            {/* Modal Communauté */}
             <AnimatePresence>
                 {isGalerieModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -1856,7 +1863,7 @@ export function AdminDashboard() {
                             <div className="flex justify-between items-start mb-12">
                                 <div>
                                     <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                        Gestion <span className="text-neon-pink">Galeries</span>
+                                        Gestion <span className="text-neon-pink">Communauté</span>
                                     </h2>
                                     <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                 </div>
@@ -1884,7 +1891,7 @@ export function AdminDashboard() {
                                 </Link>
 
                                 <Link
-                                    to="/admin/manage?tab=Galeries"
+                                    to="/admin/manage?tab=Communauté"
                                     onClick={() => setIsGalerieModalOpen(false)}
                                     className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
                                 >
@@ -3698,6 +3705,11 @@ export function AdminDashboard() {
                     </div>
                 )}
             </AnimatePresence>
+
+            <ModerationModal
+                isOpen={isModerationModalOpen}
+                onClose={() => setIsModerationModalOpen(false)}
+            />
         </div>
     );
 }

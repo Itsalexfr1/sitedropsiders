@@ -100,10 +100,10 @@
     "permission": "publications"
   },
   {
-    "title": "Galeries",
+    "title": "Communauté",
     "description": "Gérer les albums",
     "icon": "ImageIcon",
-    "link": "/admin/manage?tab=Galeries",
+    "link": "/admin/manage?tab=Communauté",
     "baseColor": "#ff0000",
     "permission": "publications",
     "columns": 1

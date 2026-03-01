@@ -280,7 +280,7 @@ export function AdminStats() {
         });
 
         return {
-            content: { total: totalContent, news: actualNewsCount, interviews: interviewCount, recaps: recapCount, agenda: agendaCount, galeries: galerieCount },
+            content: { total: totalContent, news: actualNewsCount, interviews: interviewCount, recaps: recapCount, agenda: agendaCount, communaute: galerieCount },
             community: { subscribers: subCount, subscribersList: subscribers, totalVisits: realTotalVisits.toLocaleString(), countries: countryStats, topArticles },
             visits: { day: dayData, month: monthData, year: yearData }
         };
@@ -291,7 +291,7 @@ export function AdminStats() {
         { label: language === 'fr' ? 'Interviews' : 'Interviews', value: stats.content.interviews, color: 'bg-neon-purple', hex: '#8b5cf6' },
         { label: language === 'fr' ? 'Récaps' : 'Recaps', value: stats.content.recaps, color: 'bg-neon-red', hex: '#ff0033' },
         { label: language === 'fr' ? 'Agenda' : 'Agenda', value: stats.content.agenda, color: 'bg-yellow-400', hex: '#facc15' },
-        { label: language === 'fr' ? 'Galeries' : 'Galleries', value: stats.content.galeries, color: 'bg-neon-pink', hex: '#ec4899' },
+        { label: language === 'fr' ? 'Communauté' : 'Community', value: stats.content.communaute, color: 'bg-neon-pink', hex: '#ec4899' },
     ];
 
     const visitData = visitPeriod === 'day' ? stats.visits.day : visitPeriod === 'month' ? stats.visits.month : stats.visits.year;
@@ -353,7 +353,7 @@ export function AdminStats() {
                             </div>
                             <div className="flex-1 overflow-y-auto pr-4 space-y-4">
                                 {stats.community.topArticles.length > 0 ? stats.community.topArticles.map((item: any, idx: number) => {
-                                    const itemPath = item.type === 'News' ? `/news/${item.id}` : item.type === 'Recap' ? `/recaps/${item.id}` : item.type === 'Agenda' ? `/agenda/${item.id}` : item.type === 'Galerie' ? `/galeries/${item.id}` : item.type === 'Interview' ? `/interviews/${item.id}` : `/${item.id}`;
+                                    const itemPath = item.type === 'News' ? `/news/${item.id}` : item.type === 'Recap' ? `/recaps/${item.id}` : item.type === 'Agenda' ? `/agenda/${item.id}` : item.type === 'Galerie' ? `/galerie/${item.id}` : item.type === 'Interview' ? `/interviews/${item.id}` : `/${item.id}`;
                                     return (
                                         <Link key={`${item.type}-${item.id}`} to={itemPath}>
                                             <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.03 }} className="flex items-center gap-6 p-5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/10 transition-all group cursor-pointer">
@@ -445,7 +445,7 @@ export function AdminStats() {
                                         { icon: <Mic className="w-4 h-4" />, label: 'Interviews', value: stats.content.interviews, color: '#8b5cf6' },
                                         { icon: <FileText className="w-4 h-4" />, label: 'Récaps', value: stats.content.recaps, color: '#ff0033' },
                                         { icon: <Calendar className="w-4 h-4" />, label: 'Agenda', value: stats.content.agenda, color: '#facc15' },
-                                        { icon: <Image className="w-4 h-4" />, label: 'Galeries', value: stats.content.galeries, color: '#ec4899' },
+                                        { icon: <Image className="w-4 h-4" />, label: 'Communauté', value: stats.content.communaute, color: '#ec4899' },
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
                                             <div className="p-2 rounded-lg" style={{ backgroundColor: item.color + '20', color: item.color }}>{item.icon}</div>

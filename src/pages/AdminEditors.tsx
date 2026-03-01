@@ -30,7 +30,7 @@ const PERMISSION_CATEGORIES = [
             { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer tous les articles.' },
             { id: 'social_studio', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
             { id: 'agenda', label: 'Gestion Agenda', description: 'Gérer les dates et événements de la programmation.' },
-            { id: 'galeries', label: 'Gestion Galeries', description: 'Gérer les albums photos et dossiers.' }
+            { id: 'galeries', label: 'Communauté', description: 'Gérer les albums photos et les partages de la communauté.' }
         ]
     },
     {

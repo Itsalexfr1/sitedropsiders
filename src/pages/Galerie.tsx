@@ -79,17 +79,34 @@ export function Galerie() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-12"
+                className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8"
             >
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-neon-red/10 rounded-lg">
-                        <Camera className="w-6 h-6 text-neon-red" />
+                <div>
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2 bg-neon-red/10 rounded-lg">
+                            <Camera className="w-6 h-6 text-neon-red" />
+                        </div>
+                        <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
                     </div>
-                    <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
+                    <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-2 uppercase italic tracking-tighter">
+                        LA <span className="text-neon-red">COMMUNAUTÉ</span>
+                    </h1>
+                    <p className="text-gray-500 max-w-xl text-sm font-medium uppercase tracking-wider">
+                        Les meilleurs souvenirs des festivals, par vous et pour vous.
+                    </p>
                 </div>
-                <h1 className="text-4xl md:text-5xl font-display font-bold text-white mb-4 uppercase italic tracking-tighter">
-                    {t('galerie.title')}<span className="text-neon-red">{t('galerie.title_span')}</span>
-                </h1>
+
+                <motion.button
+                    whileHover={{ scale: 1.05, x: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => navigate('/communaute/partager')}
+                    className="group flex items-center gap-4 px-8 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all"
+                >
+                    Partager mes photos
+                    <div className="p-2 bg-neon-red rounded-lg group-hover:rotate-12 transition-transform">
+                        <Camera className="w-4 h-4 text-white" />
+                    </div>
+                </motion.button>
             </motion.div>
 
             {/* Category Filter */}
@@ -299,6 +316,6 @@ export function Galerie() {
                     </div>
                 )
             }
-        </div>
+        </div >
     );
 }

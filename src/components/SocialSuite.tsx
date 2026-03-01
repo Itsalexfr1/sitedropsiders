@@ -40,7 +40,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>('NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
-    const [customText, setCustomText] = useState((title || '').toUpperCase());
+    const [customText, setCustomText] = useState(title || '');
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
     const [textColor, setTextColor] = useState('#ffffff');
@@ -87,14 +87,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         const tagRegex = new RegExp(`^\\[${type}:[^\\]]+\\](.*?)\\[\\/${type}\\]$`, 'i');
         const match = selectedText.match(tagRegex);
 
+        const valueToUse = value.toUpperCase();
         let newText;
         if (match) {
-            newText = current.substring(0, start) + `[${type}:${value.toUpperCase()}]${match[1]}[/${type}]` + current.substring(end);
+            newText = current.substring(0, start) + `[${type}:${valueToUse}]${match[1]}[/${type}]` + current.substring(end);
         } else {
-            newText = current.substring(0, start) + `[${type}:${value.toUpperCase()}]${selectedText}[/${type}]` + current.substring(end);
+            newText = current.substring(0, start) + `[${type}:${valueToUse}]${selectedText}[/${type}]` + current.substring(end);
         }
 
-        setCustomText(newText.toUpperCase());
+        setCustomText(newText);
         setTimeout(() => {
             if (textAreaRef.current) {
                 textAreaRef.current.focus();
@@ -234,7 +235,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.font = `900 italic 67px "Inter", sans-serif`;
+                ctx.font = `900 italic 67px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 const textGrad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
                 textGrad.addColorStop(0, '#ffffff');
                 textGrad.addColorStop(0.4, '#e0e0e0');
@@ -244,7 +245,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = textGrad;
                 ctx.shadowColor = 'rgba(0,0,0,0.3)';
                 ctx.shadowBlur = 10;
-                ctx.fillText(text.toUpperCase(), 0, 5);
+                ctx.fillText(text, 0, 5);
                 ctx.restore();
             };
 
@@ -282,14 +283,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 // Artist & Title - Single Line Bold Italic
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 62px "Inter", sans-serif';
+                ctx.font = '900 italic 62px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
-                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), centerX + slideX, centerY + radius + 140);
+                ctx.fillText(`${item.main} - ${item.sub}`, centerX + slideX, centerY + radius + 140);
 
                 // Restore Ranking Number
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 147px "Inter", sans-serif';
+                ctx.font = '900 italic 147px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
@@ -318,20 +319,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 49px "Inter", sans-serif';
+                ctx.font = '900 italic 49px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), itemX, baseY);
+                ctx.fillText(`${item.main} - ${item.sub}`, itemX, baseY);
                 const barWidth = 880; const barHeight = 90; const barX = 90; const barY = baseY + 45;
                 ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
                 ctx.fillRect(barX - 10 + slideX, barY - 10, barWidth + 20, barHeight + 20);
                 ctx.fillStyle = activeData.color;
                 ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
-                ctx.font = '900 italic 43px "Inter", sans-serif';
+                ctx.font = '900 italic 43px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 117px "Inter", sans-serif';
+                ctx.font = '900 italic 117px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, baseY - 20);
 
@@ -340,7 +341,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'center';
                 const paragraphs = customText.split('\n');
                 let lines: string[] = [];
-                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
+                ctx.font = `900 italic ${fontSize}px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 for (let para of paragraphs) {
                     if (para.trim() === '') { lines.push(''); continue; }
                     const words = para.split(' ');
@@ -351,42 +352,98 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = safeBottom - 420;
-                const startY = labelY + 180;
-                ctx.fillStyle = activeData.color;
+                const labelY = activeTab === 'PUBLICATION' ? safeBottom - 200 : safeBottom - 320;
+                const startY = labelY + 160;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 80;
-                ctx.fillRect((canvas.width - labelW) / 2, labelY - 50, labelW, 80);
 
-                ctx.fillStyle = (theme === 'MUSIQUE' || theme === 'FOCUS') ? '#000' : '#fff';
-                ctx.font = '900 italic 47px "Inter", sans-serif';
-                ctx.fillText(labelText, canvas.width / 2, labelY + 5);
+                ctx.save();
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = activeData.color;
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 50;
+                const rectW = labelW;
+                const rectH = 80;
+                const radius = 25; // Round edges for premium look
 
-                ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#000';
+                ctx.font = `900 italic 45px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.fillText(labelText, canvas.width / 2, labelY + 10);
+                ctx.restore();
+                const parseRichText = (str: string) => {
+                    const segments: { text: string; color?: string; bg?: string }[] = [];
+                    const regex = /\[([CB]):([^\]]+)\](.*?)\[\/\1\]|([^\[]+|\[(?!([CB]):[^\]]+\]))/g;
+                    let match;
+                    while ((match = regex.exec(str)) !== null) {
+                        if (match[1]) {
+                            const type = match[1];
+                            const color = match[2];
+                            const content = match[3];
+                            segments.push({
+                                text: content,
+                                color: type === 'C' ? color : undefined,
+                                bg: type === 'B' ? color : undefined
+                            });
+                        } else if (match[4]) {
+                            segments.push({ text: match[4] });
+                        }
+                    }
+                    return segments;
+                };
+
                 const maxLines = activeTab === 'PUBLICATION' ? 8 : 10;
                 lines.slice(0, maxLines).forEach((line, i) => {
                     if (line !== '') {
                         const yPos = startY + (i * lineHeight);
-                        if (textBgColor !== 'transparent') {
-                            const textMetrics = ctx.measureText(line.toUpperCase());
-                            const padding = 20;
-                            ctx.fillStyle = textBgColor;
-                            ctx.fillRect(
-                                (canvas.width - textMetrics.width) / 2 - padding,
-                                yPos - fontSize + 10,
-                                textMetrics.width + padding * 2,
-                                fontSize + padding / 2
-                            );
-                        }
-                        ctx.fillStyle = textColor;
-                        ctx.fillText(line.toUpperCase(), canvas.width / 2, yPos);
+                        const segments = parseRichText(line);
+
+                        // Calculate total width for centering
+                        let totalWidth = 0;
+                        segments.forEach(seg => {
+                            totalWidth += ctx.measureText(seg.text).width;
+                        });
+
+                        let currentX = (canvas.width - totalWidth) / 2;
+
+                        segments.forEach(seg => {
+                            const segWidth = ctx.measureText(seg.text).width;
+
+                            // Draw segment background
+                            const effectiveBg = seg.bg || (textBgColor !== 'transparent' ? textBgColor : null);
+                            if (effectiveBg) {
+                                ctx.save();
+                                ctx.globalAlpha = 0.9;
+                                ctx.fillStyle = effectiveBg;
+                                const px = 12;
+                                const rectH = fontSize + 8;
+                                const rectW = segWidth + px;
+                                const rectX = currentX - px / 2;
+                                const rectY = yPos - fontSize + 15;
+
+                                ctx.beginPath();
+                                ctx.roundRect(rectX, rectY, rectW, rectH, 12); // Premium rounded corners
+                                ctx.fill();
+                                ctx.restore();
+                            }
+
+                            // Draw segment text
+                            ctx.fillStyle = seg.color || textColor;
+                            ctx.fillText(seg.text, currentX + segWidth / 2, yPos);
+
+                            currentX += segWidth;
+                        });
                     }
                 });
 
                 if (lines.length > maxLines) {
                     ctx.fillStyle = textColor;
                     ctx.globalAlpha = 0.3;
-                    ctx.font = '900 italic 27px "Inter", sans-serif';
+                    ctx.font = '900 italic 27px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                     ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
                     ctx.globalAlpha = 1;
                 }
@@ -440,7 +497,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             if (logoRef.current) {
                 const logo = logoRef.current;
                 const w = 320;
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                ctx.shadowBlur = 20;
                 ctx.drawImage(logo, canvas.width - w - 40, 20, w, (logo.height * w) / logo.width);
+                ctx.restore();
             }
 
             if (showSwipe) {
@@ -500,6 +561,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
         if (bgVideo) {
             try {
+                bgVideo.currentTime = 0;
+                bgVideo.loop = false;
+                bgVideo.play();
                 // If bgVideo has audio tracks, add them to our stream
                 const videoStream = (bgVideo as any).captureStream ? (bgVideo as any).captureStream() : (bgVideo as any).mozCaptureStream ? (bgVideo as any).mozCaptureStream() : null;
                 if (videoStream && videoStream.getAudioTracks().length > 0) {
@@ -553,10 +617,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 await new Promise(r => setTimeout(r, 16800));
             }
         } else {
-            // Default 60s for standard posts (News, Focus, etc.)
-            await new Promise(r => setTimeout(r, 60000));
+            // Match background video duration or default to 15s (better for social posts than 60s)
+            const duration = (bgVideo && bgVideo.duration) ? bgVideo.duration * 1000 : 15000;
+            await new Promise(r => setTimeout(r, duration));
         }
         setTransitionProgress(0); // Safety reset
+        if (bgVideo) bgVideo.loop = true; // Restore looping for preview
         recorder.stop();
     };
 
@@ -725,7 +791,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                         const t = e.target as HTMLTextAreaElement;
                                         setSelection({ start: t.selectionStart, end: t.selectionEnd });
                                     }}
-                                    onChange={e => setCustomText(e.target.value.toUpperCase())}
+                                    onChange={e => setCustomText(e.target.value)}
                                     placeholder="VOTRE TEXTE..."
                                     className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black"
                                 />

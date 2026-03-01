@@ -80,7 +80,7 @@ async function fetchJson(file: string): Promise<any[]> {
     return LOCAL_DATA[file] ?? [];
 }
 
-type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Galeries';
+type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté';
 
 export function AdminManage() {
     const [searchParams] = useSearchParams();
@@ -152,7 +152,7 @@ export function AdminManage() {
 
         // Fallback pour publications
         if (storedPermissions.includes('publications')) {
-            const editorialSubsets = ['agenda', 'galeries'];
+            const editorialSubsets = ['agenda', 'Communauté'];
             if (editorialSubsets.includes(p)) return true;
         }
 
@@ -190,7 +190,7 @@ export function AdminManage() {
         for (const id of selectedIds) {
             try {
                 const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
-                    activeTab === 'Galeries' ? '/api/galerie/delete' :
+                    activeTab === 'Communauté' ? '/api/galerie/delete' :
                         `/api/${activeTab.toLowerCase()}/delete`;
                 const response = await fetch(endpoint, {
                     method: 'POST',
@@ -233,7 +233,7 @@ export function AdminManage() {
                 data = await fetchJson('recaps.json');
             } else if (activeTab === 'Agenda') {
                 data = await fetchJson('agenda.json');
-            } else if (activeTab === 'Galeries') {
+            } else if (activeTab === 'Communauté') {
                 data = await fetchJson('galerie.json');
             }
             setItems(data);
@@ -249,7 +249,7 @@ export function AdminManage() {
         setDeleteStatus('loading');
         try {
             const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
-                activeTab === 'Galeries' ? '/api/galerie/delete' :
+                activeTab === 'Communauté' ? '/api/galerie/delete' :
                     `/api/${activeTab.toLowerCase()}/delete`;
             const response = await fetch(endpoint, {
                 method: 'POST',
@@ -285,7 +285,7 @@ export function AdminManage() {
             const contentEndpoint =
                 activeTab === 'Recaps' ? `/api/recaps/content?id=${item.id}` : `/api/news/content?id=${item.id}`;
 
-            const isContentTab = activeTab !== 'Agenda' && activeTab !== 'Galeries';
+            const isContentTab = activeTab !== 'Agenda' && activeTab !== 'Communauté';
 
             let fullItem = { ...item };
 
@@ -306,7 +306,7 @@ export function AdminManage() {
                 editPath = `/news/create?type=Musique&id=${item.id}`;
             } else if (activeTab === 'Agenda') {
                 editPath = `/agenda/create?id=${item.id}`;
-            } else if (activeTab === 'Galeries') {
+            } else if (activeTab === 'Communauté') {
                 editPath = `/galerie/create?id=${item.id}`;
             } else {
                 editPath = `/news/create?id=${item.id}`;
@@ -320,7 +320,7 @@ export function AdminManage() {
                 isMusique ? `/news/create?type=Musique&id=${item.id}` :
                     activeTab === 'Recaps' ? `/recaps/create?id=${item.id}` :
                         activeTab === 'Agenda' ? `/agenda/create?id=${item.id}` :
-                            activeTab === 'Galeries' ? `/galerie/create?id=${item.id}` :
+                            activeTab === 'Communauté' ? `/galerie/create?id=${item.id}` :
                                 `/news/create?id=${item.id}`;
             navigate(fallbackPath, { state: { isEditing: true, item: item } });
         } finally {
@@ -387,7 +387,7 @@ export function AdminManage() {
             const filename = resource === 'news' ? 'news.json' :
                 resource === 'recaps' ? 'recaps.json' :
                     resource === 'agenda' ? 'agenda.json' :
-                        activeTab === 'Galeries' ? 'galerie.json' : null;
+                        activeTab === 'Communauté' ? 'galerie.json' : null;
 
             if (!filename) return;
 
@@ -433,7 +433,7 @@ export function AdminManage() {
     const [selectedCategory, setSelectedCategory] = useState('ALL');
 
     const categories = useMemo(() => {
-        if (activeTab !== 'Galeries') return [];
+        if (activeTab !== 'Communauté') return [];
         const cats = new Set(items.map(item => item.category).filter(Boolean));
         return ['ALL', ...Array.from(cats)];
     }, [items, activeTab]);
@@ -505,7 +505,7 @@ export function AdminManage() {
         { type: 'Recaps', icon: <Video className="w-4 h-4" />, color: 'text-neon-red' },
         { type: 'Interviews', icon: <Mic className="w-4 h-4" />, color: 'text-neon-purple' },
         { type: 'Agenda', icon: <Calendar className="w-4 h-4" />, color: 'text-neon-yellow' },
-        { type: 'Galeries', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-pink' },
+        { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-pink' },
     ];
 
     return (
@@ -561,7 +561,7 @@ export function AdminManage() {
                         </button>
                         {canCreate && (
                             <Link
-                                to={activeTab === 'News' ? '/news/create' : activeTab === 'Musique' ? '/news/create?type=Musique' : activeTab === 'Recaps' ? '/recaps/create' : activeTab === 'Interviews' ? '/news/create?type=Interview' : activeTab === 'Agenda' ? '/agenda/create' : activeTab === 'Galeries' ? '/galerie/create' : '#'}
+                                to={activeTab === 'News' ? '/news/create' : activeTab === 'Musique' ? '/news/create?type=Musique' : activeTab === 'Recaps' ? '/recaps/create' : activeTab === 'Interviews' ? '/news/create?type=Interview' : activeTab === 'Agenda' ? '/agenda/create' : activeTab === 'Communauté' ? '/galerie/create' : '#'}
                                 className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
                             >
                                 <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
@@ -583,7 +583,7 @@ export function AdminManage() {
                         ))}
                     </div>
 
-                    {activeTab === 'Galeries' && categories.length > 2 && (
+                    {activeTab === 'Communauté' && categories.length > 2 && (
                         <div className="flex flex-wrap gap-2 p-2 bg-white/5 rounded-2xl border border-white/10">
                             {categories.map((cat: string) => (
                                 <button key={cat} onClick={() => setSelectedCategory(cat)} className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-neon-pink text-white shadow-lg shadow-neon-pink/20' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{cat}</button>
@@ -784,7 +784,7 @@ export function AdminManage() {
                                                             to={
                                                                 activeTab === 'Recaps' ? `/recaps/${item.id}` :
                                                                     activeTab === 'Interviews' ? `/interviews/${item.id}` :
-                                                                        activeTab === 'Galeries' ? `/galerie/${item.id}` :
+                                                                        activeTab === 'Communauté' ? `/galerie/${item.id}` :
                                                                             activeTab === 'Agenda' ? `/agenda` :
                                                                                 `/news/${item.id}`
                                                             }

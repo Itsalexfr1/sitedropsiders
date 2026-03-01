@@ -40,6 +40,7 @@ import { AdminSettings } from './pages/AdminSettings';
 import { AdminMessages } from './pages/AdminMessages';
 import { AdminBanner } from './pages/AdminBanner';
 import { Contact } from './pages/Contact';
+import { PhotoSubmission } from './pages/PhotoSubmission';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import { CookieConsent } from './components/ui/CookieConsent';
@@ -79,6 +80,7 @@ const router = createBrowserRouter([
       { path: "shop", element: <Shop /> },
       { path: "galerie", element: <Galerie /> },
       { path: "communaute", element: <Galerie /> },
+      { path: "communaute/partager", element: <PhotoSubmission /> },
       { path: "galerie/:id", element: <AlbumDetail /> },
       { path: "communaute/:id", element: <AlbumDetail /> },
       { path: "news/:id", element: <ArticleDetail /> },

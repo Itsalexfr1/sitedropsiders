@@ -47,7 +47,7 @@ export function AlbumDetail() {
         try {
             if (navigator.share) {
                 await navigator.share({
-                    title: album?.title || 'Galerie Dropsiders',
+                    title: album?.title || 'Communauté Dropsiders',
                     text: shareText,
                     url: shareUrl
                 });
