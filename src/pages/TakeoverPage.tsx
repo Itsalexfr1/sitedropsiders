@@ -70,7 +70,37 @@ interface TakeoverProps {
         dropsAmount?: number;
         dropsIntervalMinutes?: number;
     };
+    onClose: () => void;
 }
+
+const StyledCheckbox = ({ checked, onChange, label, sublabel, color = 'red' }: { checked: boolean, onChange: () => void, label: string, sublabel?: string, color?: 'red' | 'cyan' | 'green' | 'purple' | 'yellow' }) => {
+    const isRed = color === 'red';
+    const isCyan = color === 'cyan';
+    const isGreen = color === 'green';
+    const isPurple = color === 'purple';
+    const isYellow = color === 'yellow';
+
+    return (
+        <div
+            onClick={onChange}
+            className={`flex items-center justify-between p-4 bg-black/40 rounded-2xl border transition-all cursor-pointer group hover:bg-black/60 ${checked ? (isRed ? 'border-neon-red/30 bg-neon-red/5' : isCyan ? 'border-neon-cyan/30 bg-neon-cyan/5' : isGreen ? 'border-green-500/30 bg-green-500/5' : isPurple ? 'border-neon-purple/30 bg-neon-purple/5' : 'border-yellow-500/30 bg-yellow-500/5') : 'border-white/5'}`}
+        >
+            <div className="flex flex-col gap-1">
+                <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${checked ? (isRed ? 'text-neon-red' : isCyan ? 'text-neon-cyan' : isGreen ? 'text-green-500' : isPurple ? 'text-neon-purple' : 'text-yellow-500') : 'text-gray-400 group-hover:text-gray-300'}`}>
+                    {label}
+                </span>
+                {sublabel && <span className="text-[8px] text-gray-500 font-bold uppercase">{sublabel}</span>}
+            </div>
+            <div className={`w-6 h-6 rounded-lg border-2 transition-all flex items-center justify-center ${checked ? (isRed ? 'bg-neon-red border-neon-red shadow-[0_0_15px_#ff003344]' : isCyan ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_#00ffff44]' : isGreen ? 'bg-green-500 border-green-500 shadow-[0_0_15px_#22c55e44]' : isPurple ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_#bc13fe44]' : 'bg-yellow-500 border-yellow-500 shadow-[0_0_15px_#eab30844]') : 'bg-black/40 border-white/10 group-hover:border-white/20'}`}>
+                {checked && (
+                    <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </motion.svg>
+                )}
+            </div>
+        </div>
+    );
+};
 
 export function TakeoverPage({ settings }: TakeoverProps) {
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -1559,7 +1589,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         showInAgenda: updates.showInAgenda ?? settings.showInAgenda,
                         startDate: updates.startDate ?? settings.startDate,
                         endDate: updates.endDate ?? settings.endDate,
-                        showClosedDoors: updates.showClosedDoors ?? showClosedDoors
+                        showClosedDoors: updates.showClosedDoors ?? settings.showClosedDoors,
+                        isOnline: updates.showClosedDoors === true ? false : (updates.isOnline ?? settings.isOnline)
                     }
                 };
 
@@ -2189,23 +2220,27 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </motion.div>
                                 ) : (
                                     <div className="w-full h-full relative overflow-hidden">
-                                        {/* CLOSED DOOR EFFECT */}
-                                        <AnimatePresence>
-                                            {(!settings.isOnline && (showClosedDoors || settings.showClosedDoors)) && (
-                                                <div className="absolute inset-0 z-[100] flex">
+                                        {/* CLOSED DOOR EFFECT - ABSOLUTE PRIORITY */}
+                                        <AnimatePresence mode="wait">
+                                            {(showClosedDoors || settings.showClosedDoors) && (
+                                                <div className="absolute inset-0 z-[1000] flex">
                                                     {/* LEFT PANEL */}
                                                     <motion.div
                                                         initial={{ x: '-100%' }}
                                                         animate={{ x: 0 }}
                                                         exit={{ x: '-100%' }}
-                                                        transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                                                        transition={{
+                                                            duration: 1.5,
+                                                            ease: [0.77, 0, 0.175, 1],
+                                                            delay: 0 // Left door starts first for "Left to Right" feel
+                                                        }}
                                                         className="flex-1 bg-black border-r border-white/5 relative flex items-center justify-end overflow-hidden"
                                                     >
                                                         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-neon-red/10 to-transparent" />
                                                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-neon-red/10 to-transparent" />
                                                         <motion.div
                                                             initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 0.05 }}
+                                                            animate={{ opacity: 0.1 }}
                                                             className="text-[20vw] font-black text-white whitespace-nowrap -rotate-90 origin-right translate-x-12 select-none uppercase"
                                                         >
                                                             NO LIVE
@@ -2217,14 +2252,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: '100%' }}
                                                         animate={{ x: 0 }}
                                                         exit={{ x: '100%' }}
-                                                        transition={{ duration: 1.2, ease: [0.77, 0, 0.175, 1] }}
+                                                        transition={{
+                                                            duration: 1.5,
+                                                            ease: [0.77, 0, 0.175, 1],
+                                                            delay: 0.4 // Right door follows for "Left to Right" flow
+                                                        }}
                                                         className="flex-1 bg-black border-l border-white/5 relative flex items-center justify-start overflow-hidden"
                                                     >
                                                         <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-neon-red/10 to-transparent" />
                                                         <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-neon-red/10 to-transparent" />
                                                         <motion.div
                                                             initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 0.05 }}
+                                                            animate={{ opacity: 0.1 }}
                                                             className="text-[20vw] font-black text-white whitespace-nowrap rotate-90 origin-left -translate-x-12 select-none uppercase"
                                                         >
                                                             OFFLINE
@@ -2233,47 +2272,38 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                     {/* CONTENT CENTER */}
                                                     <motion.div
-                                                        initial={{ opacity: 0, y: 40 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        transition={{ delay: 1, duration: 0.8 }}
-                                                        className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-[110]"
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ delay: 1.8, duration: 0.8 }}
+                                                        className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-[1100]"
                                                     >
                                                         <div className="w-24 h-24 rounded-full bg-neon-red/10 border border-neon-red/30 flex items-center justify-center mb-10 shadow-[0_0_50px_#ff000033]">
                                                             <Power className="w-10 h-10 text-neon-red animate-pulse" />
                                                         </div>
 
                                                         <h3 className="text-4xl lg:text-7xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
-                                                            PAS DE LIVE <span className="text-neon-red">ACTUELLEMENT</span>
+                                                            LE LIVE EST <span className="text-neon-red">TERMINÉ</span>
                                                         </h3>
                                                         <p className="text-gray-500 font-bold uppercase tracking-[0.4em] text-[10px] lg:text-sm mb-16">Accès restreint • Reprise prochainement</p>
 
                                                         {upcomingLives.length > 0 && (
-                                                            <div className="w-full max-w-2xl">
+                                                            <div className="w-full max-w-2xl bg-black/40 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl">
                                                                 <div className="flex items-center gap-4 mb-8">
                                                                     <div className="h-px flex-1 bg-white/10" />
-                                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Prochainement en Live</span>
+                                                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">Prochain Live Programmé</span>
                                                                     <div className="h-px flex-1 bg-white/10" />
                                                                 </div>
 
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                                    {upcomingLives.map((ev, i) => (
-                                                                        <motion.div
-                                                                            key={ev.id}
-                                                                            initial={{ opacity: 0, y: 20 }}
-                                                                            animate={{ opacity: 1, y: 0 }}
-                                                                            transition={{ delay: 1.2 + (i * 0.1) }}
-                                                                            className="group p-4 bg-white/[0.03] border border-white/10 rounded-[2rem] hover:bg-white/[0.05] hover:border-neon-red/30 transition-all cursor-default text-left overflow-hidden relative"
-                                                                        >
-                                                                            <div className="absolute top-0 right-0 p-3 opacity-20 group-hover:opacity-100 transition-opacity">
-                                                                                <Bell className="w-4 h-4 text-neon-red" />
-                                                                            </div>
-                                                                            <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-1">
-                                                                                {new Date(ev.date || ev.startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' }).toUpperCase()}
-                                                                            </p>
-                                                                            <h4 className="text-sm font-black text-white uppercase italic tracking-tight line-clamp-1 group-hover:text-neon-red transition-colors">{ev.title}</h4>
-                                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1">{ev.location || 'LIVE'}</p>
-                                                                        </motion.div>
-                                                                    ))}
+                                                                <div className="flex flex-col items-center gap-2">
+                                                                    <p className="text-4xl md:text-6xl font-display font-black text-white uppercase italic">
+                                                                        {new Date(upcomingLives[0].date || upcomingLives[0].startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' }).toUpperCase()}
+                                                                    </p>
+                                                                    <p className="text-xl md:text-2xl font-black text-neon-cyan uppercase italic tracking-tight">
+                                                                        {upcomingLives[0].title}
+                                                                    </p>
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-2">
+                                                                        À {upcomingLives[0].time || 'Bientôt'} • {upcomingLives[0].location || 'Sur Dropsiders'}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         )}
@@ -2885,41 +2915,28 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-red">Affichage</span></h3>
                                                             </div>
-                                                            <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                <div className="flex flex-col">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Menu</label>
-                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">{settings.isOnline ? 'Online Menu Active' : 'Offline Menu Active'}</span>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.isOnline ? 'bg-green-500 shadow-[0_0_15px_#22c55e44]' : 'bg-gray-800'}`}
-                                                                >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.isOnline ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                </button>
-                                                            </div>
-                                                            <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                <div className="flex flex-col">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Flux Principal</label>
-                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">{settings.disableMainPlayer !== false ? 'Désactivé' : 'Activé'}</span>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateSettings({ disableMainPlayer: settings.disableMainPlayer === false ? true : false })}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.disableMainPlayer === false ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44]' : 'bg-gray-800'}`}
-                                                                >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.disableMainPlayer === false ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                </button>
-                                                            </div>
-                                                            <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
-                                                                <div className="flex flex-col">
-                                                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Effet Fermeture</label>
-                                                                    <span className="text-[8px] text-gray-600 font-bold uppercase">Mode Portes Fermées</span>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateSettings({ showClosedDoors: !settings.showClosedDoors })}
-                                                                    className={`w-12 h-6 rounded-full p-1 transition-all ${settings.showClosedDoors ? 'bg-neon-red shadow-[0_0_15px_#ff003344]' : 'bg-gray-800'}`}
-                                                                >
-                                                                    <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${settings.showClosedDoors ? 'translate-x-6' : 'translate-x-0'}`} />
-                                                                </button>
+                                                            <div className="grid grid-cols-1 gap-3">
+                                                                <StyledCheckbox
+                                                                    label="Live Menu Status"
+                                                                    sublabel={settings.isOnline ? 'Online Menu Active' : 'Offline Menu Active'}
+                                                                    checked={settings.isOnline}
+                                                                    onChange={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
+                                                                    color="green"
+                                                                />
+                                                                <StyledCheckbox
+                                                                    label="Flux Principal"
+                                                                    sublabel={settings.disableMainPlayer !== false ? 'Désactivé' : 'Activé'}
+                                                                    checked={settings.disableMainPlayer === false}
+                                                                    onChange={() => handleUpdateSettings({ disableMainPlayer: settings.disableMainPlayer === false ? true : false })}
+                                                                    color="cyan"
+                                                                />
+                                                                <StyledCheckbox
+                                                                    label="Effet Fermeture"
+                                                                    sublabel="Mode Portes Fermées"
+                                                                    checked={settings.showClosedDoors}
+                                                                    onChange={() => handleUpdateSettings({ showClosedDoors: !settings.showClosedDoors })}
+                                                                    color="red"
+                                                                />
                                                             </div>
                                                         </div>
 
@@ -2958,14 +2975,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </div>
                                                                     <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Ticker)</span></h3>
                                                                 </div>
-                                                                <button
-                                                                    onClick={() => handleUpdateLocalSetting({ showTickerBanner: !showTickerBanner })}
-                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${showTickerBanner ? 'bg-neon-red justify-end' : 'bg-gray-800 justify-start'}`}
-                                                                >
-                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                                </button>
                                                             </div>
                                                             <div className="space-y-3">
+                                                                <StyledCheckbox
+                                                                    label="Activer le Ticker"
+                                                                    checked={showTickerBanner}
+                                                                    onChange={() => handleUpdateLocalSetting({ showTickerBanner: !showTickerBanner })}
+                                                                    color="red"
+                                                                />
                                                                 <select value={tickerType} onChange={(e) => handleUpdateLocalSetting({ tickerType: e.target.value as any })} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none">
                                                                     <option value="news">Actualités</option>
                                                                     <option value="planning">Planning</option>
@@ -2992,14 +3009,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </div>
                                                                     <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau <span className="text-neon-cyan">Annonces</span></h3>
                                                                 </div>
-                                                                <button
-                                                                    onClick={() => setAnnBannerEnabled(!annBannerEnabled)}
-                                                                    className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${annBannerEnabled ? 'bg-neon-cyan shadow-[0_0_15px_#00ffff44] justify-end' : 'bg-gray-800 justify-start'}`}
-                                                                >
-                                                                    <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                                </button>
                                                             </div>
                                                             <div className="space-y-3">
+                                                                <StyledCheckbox
+                                                                    label="Activer les Annonces"
+                                                                    checked={annBannerEnabled}
+                                                                    onChange={() => setAnnBannerEnabled(!annBannerEnabled)}
+                                                                    color="cyan"
+                                                                />
                                                                 <input type="text" value={annBannerText} onChange={(e) => setAnnBannerText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none" placeholder="Texte de l'annonce..." />
                                                                 <div className="grid grid-cols-2 gap-2">
                                                                     <input type="color" value={annBannerColor} onChange={(e) => setAnnBannerColor(e.target.value)} className="w-full h-8 bg-transparent border-none cursor-pointer" />

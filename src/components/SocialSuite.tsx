@@ -131,8 +131,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
 
             const activeData = activeColor;
-            // Shrink gradient even more (Request 6)
-            const gradStart = canvas.height * 0.8;
+            // Shrunk gradient for Top 5 (Request 6), restored for others
+            const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
+                ? canvas.height * 0.8
+                : canvas.height * 0.5;
+
             const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
@@ -254,7 +257,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
             } else {
-                const fontSize = activeTab === 'PUBLICATION' ? 80 : 85; const lineHeight = fontSize * 1.2;
+                const fontSize = activeTab === 'PUBLICATION' ? 76 : 81; const lineHeight = fontSize * 1.2;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.split('\n');
                 let lines: string[] = [];
@@ -281,12 +284,21 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.font = '900 italic 50px "Inter", sans-serif';
                 ctx.fillText(labelText, canvas.width / 2, labelY + 5);
 
-                // Main Content Lines
+                // Main Content Lines - Strictly limited for 1:1 format (Request 2)
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
                 ctx.fillStyle = '#fff';
-                lines.forEach((line, i) => {
-                    if (line !== '') ctx.fillText(line, canvas.width / 2, startY + (i * lineHeight));
+                // Max lines that fit in 1:1 safe area (roughly 1080px from top, subtract start pos)
+                const maxLines = activeTab === 'PUBLICATION' ? 8 : 10;
+                lines.slice(0, maxLines).forEach((line, i) => {
+                    if (line !== '') ctx.fillText(line.toUpperCase(), canvas.width / 2, startY + (i * lineHeight));
                 });
+
+                if (lines.length > maxLines) {
+                    // Visual indicator that text was clipped
+                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                    ctx.font = '900 italic 30px "Inter", sans-serif';
+                    ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
+                }
             }
 
             try {

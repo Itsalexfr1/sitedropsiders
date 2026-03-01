@@ -3128,10 +3128,15 @@ ${generateSocialsHtml()}
                 /* Line wrapping for editor (Request 1) & Font reduction (Request 2) */
                 .visual-editor-content p {
                     max-width: 800px;
+                    aspect-ratio: 1/1;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
                     margin-left: auto !important;
                     margin-right: auto !important;
-                    font-size: 14px !important; /* Reduced for more words */
-                    line-height: 1.5 !important;
+                    font-size: 11px !important; /* Reduced even more (Request 3) */
+                    line-height: 1.4 !important;
+                    overflow: hidden;
                 }
                 /* Mobile Scroll fix (Request 8) */
                 body, html {
