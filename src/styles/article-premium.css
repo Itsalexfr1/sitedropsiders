@@ -126,15 +126,17 @@
 }
 
 .article-body-premium p {
-    font-size: 1.125rem;
-    line-height: 1.8;
-    margin-bottom: 45px !important;
+    font-size: 0.95rem; /* Reduced from 1.125rem */
+    line-height: 1.6; /* Reduced from 1.8 */
+    margin-bottom: 35px !important; /* Reduced from 45px */
     color: #d1d5db;
     font-weight: 300;
     text-align: center !important;
     clear: both !important;
     display: block;
     width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 /* Headings should also be centered by default in articles */

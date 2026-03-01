@@ -63,7 +63,7 @@ export function Navbar() {
         { name: t('nav.recaps'), path: '/recaps' },
         { name: t('nav.agenda'), path: '/agenda' },
         { name: t('nav.galerie'), path: '/galerie' },
-        { name: 'Clips', path: '/clips' },
+
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),

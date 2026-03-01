@@ -60,6 +60,7 @@ export function Footer() {
         { label: t('nav.recaps'), path: '/recaps' },
         { label: t('nav.interviews'), path: '/interviews' },
         { label: t('nav.galerie'), path: '/galerie' },
+        { label: 'Clips', path: '/clips' },
         ...(shopEnabled && !shopPasswordProtected ? [{ label: t('nav.shop'), path: '/shop' }] : []),
         { label: t('nav.team'), path: '/team' },
         { label: t('footer.contact'), path: '/contact' }

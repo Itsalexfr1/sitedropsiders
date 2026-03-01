@@ -131,13 +131,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
 
             const activeData = activeColor;
-            const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
+            // Shrink gradient even more (Request 6)
+            const gradStart = canvas.height * 0.8;
+            const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
             grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.6)`);
-            grad.addColorStop(1, `rgba(${activeData.grad}, 0.9)`);
+            grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.7)`);
+            grad.addColorStop(1, `rgba(${activeData.grad}, 1)`);
             ctx.fillStyle = grad;
-            ctx.fillRect(0, canvas.height * 0.3, canvas.width, canvas.height * 0.7);
+            ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
 
             ctx.fillStyle = 'rgba(0,0,0,0.1)';
             for (let i = 0; i < canvas.height; i += 6) ctx.fillRect(0, i, canvas.width, 2);
@@ -299,7 +301,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 38px "Inter", sans-serif';
                 ctx.fillStyle = '#fff';
-                ctx.fillText('>>', canvas.width - 80, safeBottom - 5); // Absolute bottom
+                // Lower Swipe icon even more (Request 4)
+                ctx.fillText('>>', canvas.width - 80, canvas.height - 25);
             }
 
             // 5. Apply Transition Effects (Glitch / Zoom)
@@ -480,7 +483,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         )}
                     </div>
 
-                    {activeTab === 'REEL' && theme === 'INTRO' && (
+                    {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
                         <div className="space-y-4">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
                             <div className="flex flex-wrap gap-2">
@@ -488,13 +491,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <button
                                         key={s.name}
                                         onClick={() => setThemeColor(s)}
-                                        className={`px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all border-2 ${themeColor?.name === s.name ? 'bg-white text-black border-white' : 'bg-white/5 text-gray-400 border-white/5 hover:border-white/20'}`}
-                                        style={themeColor?.name === s.name ? {} : { color: s.color }}
+                                        className={`px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all border-2 ${themeColor?.name === s.name ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 hover:border-white/30'}`}
+                                        style={themeColor?.name === s.name ? {} : { borderColor: `rgba(${s.grad}, 0.3)`, color: s.color }}
                                     >
                                         {s.name}
                                     </button>
                                 ))}
-                                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all underline underline-offset-4">Reset</button>
+                                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all underline underline-offset-4 decoration-neon-red">Reset</button>
                             </div>
                         </div>
                     )}
@@ -527,9 +530,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     </div>
 
                     <div className="space-y-4 mt-auto">
-                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer" onClick={() => setShowSwipe(!showSwipe)}>
-                            <div className="flex items-center gap-3"><Layout className="w-4 h-4 text-gray-500" /><span className="text-[10px] font-black text-white uppercase">Swipe</span></div>
-                            <div className={`w-8 h-4 rounded-full relative ${showSwipe ? 'bg-neon-red' : 'bg-gray-800'}`}><div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-all ${showSwipe ? 'right-0.5' : 'left-0.5'}`} /></div>
+                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
+                            <div className="flex items-center gap-3"><Layout className="w-4 h-4 text-gray-500" /><span className="text-[10px] font-black text-white uppercase">Afficher Swipe</span></div>
+                            <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                {showSwipe && (
+                                    <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </motion.svg>
+                                )}
+                            </div>
                         </div>
                         <div className="space-y-2">
                             {activeTab === 'REEL' ? (

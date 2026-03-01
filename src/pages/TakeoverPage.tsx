@@ -5,7 +5,7 @@ import {
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, Download, VolumeX, Volume2
+    ChevronUp, ChevronDown, VolumeX, Volume2
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -215,6 +215,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return () => clearInterval(interval);
     }, [isOverdrive]);
 
+    // Dynamic Video List with Titles
+    const channelItems = useMemo(() => {
+        const items = [];
+        if (settings.youtubeId) {
+            items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal', isMain: true });
+        }
+        if (settings.channels) {
+            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
+                const [id, ...titleParts] = line.split(':');
+                if (id && id.trim()) {
+                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM', isMain: false });
+                }
+            });
+        }
+        return items;
+    }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
+
     // Earn Drops periodically
     useEffect(() => {
         if (!isJoined) return;
@@ -248,7 +265,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     // Load YouTube API
     useEffect(() => {
-        if (!window.YT) {
+        if (!(window as any).YT) {
             const tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
             const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -262,9 +279,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             channelItems.forEach((channel) => {
                 const elementId = `yt-player-${channel.id}`;
                 const element = document.getElementById(elementId);
-                if (element && window.YT && window.YT.Player) {
+                if (element && (window as any).YT && (window as any).YT.Player) {
                     try {
-                        playersRef.current[channel.id] = new window.YT.Player(elementId, {
+                        playersRef.current[channel.id] = new (window as any).YT.Player(elementId, {
                             events: {
                                 onReady: (event: any) => {
                                     const isMuted = isMutedGlobal || volume === 0;
@@ -285,7 +302,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             });
         };
 
-        if (window.YT && window.YT.Player) {
+        if ((window as any).YT && (window as any).YT.Player) {
             initPlayers();
         } else {
             (window as any).onYouTubeIframeAPIReady = initPlayers;
@@ -297,7 +314,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             });
             playersRef.current = {};
         };
-    }, [channelItems, playersOption, isJoined]); // Re-init if joined state changes to ensure players are bound
+    }, [playersOption, isJoined]); // Re-init if joined state changes to ensure players are bound
 
     // Overdrive Handler
     useEffect(() => {
@@ -386,7 +403,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
-    const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName || 'MAIN STAGE');
+    const [editMainFluxName] = useState(settings.mainFluxName || 'MAIN STAGE');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
     const [activeVideoIndex, setActiveVideoIndex] = useState(() => {
         // Deactivate main flux by default (if disableMainPlayer is true or undefined)
@@ -398,24 +415,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const timer = setInterval(() => setCurrentTime(new Date()), 5000); // Mise à jour toutes les 5 secondes
         return () => clearInterval(timer);
     }, []);
-
-    // Dynamic Video List with Titles
-    const channelItems = useMemo(() => {
-        const items = [];
-        if (settings.youtubeId) {
-            items.push({ id: settings.youtubeId.trim(), title: settings.mainFluxName || 'Flux Principal', isMain: true });
-        }
-        if (settings.channels) {
-            settings.channels.split('\n').filter((l: string) => l.trim()).forEach((line: string) => {
-                const [id, ...titleParts] = line.split(':');
-                if (id && id.trim()) {
-                    items.push({ id: id.trim(), title: titleParts.join(':').trim() || 'CAM', isMain: false });
-                }
-            });
-        }
-        return items;
-    }, [settings.youtubeId, settings.channels, settings.mainFluxName]);
-
 
     // Memoized filtered lineup based on selected flux
     const currentFluxLineup = useMemo(() => {
@@ -718,11 +717,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[1] ? (lines[1].split(':').slice(1).join(':').trim() || 'Stage 2') : 'Stage 2';
     });
-    const [stage3Name, setStage3Name] = useState(() => {
+    const [stage3Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[2] ? (lines[2].split(':').slice(1).join(':').trim() || 'Stage 3') : 'Stage 3';
     });
-    const [stage4Name, setStage4Name] = useState(() => {
+    const [stage4Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[3] ? (lines[3].split(':').slice(1).join(':').trim() || 'Stage 4') : 'Stage 4';
     });
@@ -1669,12 +1668,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return () => clearInterval(interval);
     }, [settings.startDate, settings.endDate, settings.isOnline, handleUpdateSettings]);
 
+    /*
     const handleToggleLive = async () => {
         const isCurrentlyOnline = settings.isOnline;
         const action = isCurrentlyOnline ? 'couper' : 'lancer';
         if (!window.confirm(`Voulez-vous vraiment ${action} le LIVE ?`)) return;
         handleUpdateSettings({ isOnline: !isCurrentlyOnline });
     };
+    */
 
 
 

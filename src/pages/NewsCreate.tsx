@@ -104,6 +104,50 @@ const getAuthorTextStyle = (username: string) => {
     return { color };
 };
 
+// Helper component for styled checkboxes (Request 7)
+function StyledCheckbox({ checked, onChange, label, sublabel, icon: Icon, colorClass = "neon-red" }: { checked: boolean, onChange: (val: boolean) => void, label: string, sublabel?: string, icon?: any, colorClass?: string }) {
+    const isRed = colorClass === "neon-red";
+    const isCyan = colorClass === "neon-cyan";
+    const isPurple = colorClass === "neon-purple";
+    const isGreen = colorClass === "neon-green";
+    const isYellow = colorClass === "neon-yellow";
+
+    const colorMap: any = {
+        'neon-red': 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]',
+        'neon-cyan': 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,255,243,0.4)]',
+        'neon-purple': 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(189,0,255,0.4)]',
+        'neon-green': 'bg-neon-green border-neon-green shadow-[0_0_15px_rgba(57,255,20,0.4)]',
+        'neon-yellow': 'bg-neon-yellow border-neon-yellow shadow-[0_0_15px_rgba(255,240,31,0.4)]',
+    };
+
+    const textColorMap: any = {
+        'neon-red': 'text-neon-red',
+        'neon-cyan': 'text-neon-cyan',
+        'neon-purple': 'text-neon-purple',
+        'neon-green': 'text-neon-green',
+        'neon-yellow': 'text-neon-yellow',
+    };
+
+    return (
+        <div
+            className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border ${checked ? 'bg-white/[0.03]' : 'bg-black/20 border-white/5 hover:bg-white/[0.05] hover:border-white/10'}`}
+            style={checked ? { borderColor: isRed ? 'rgba(255,18,65,0.3)' : isCyan ? 'rgba(0,255,243,0.3)' : 'rgba(255,255,255,0.2)' } : {}}
+            onClick={() => onChange(!checked)}
+        >
+            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${checked ? colorMap[colorClass] || colorMap['neon-red'] : 'bg-black/40 border-white/10'}`}>
+                {checked && <Check className="w-4 h-4 text-white" strokeWidth={4} />}
+            </div>
+            <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                    {Icon && <Icon className={`w-3 h-3 ${checked ? textColorMap[colorClass] || textColorMap['neon-red'] : 'text-gray-500'}`} />}
+                    <span className={`text-[10px] font-black uppercase tracking-widest transition-colors ${checked ? 'text-white' : 'text-gray-500'}`}>{label}</span>
+                </div>
+                {sublabel && <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">{sublabel}</span>}
+            </div>
+        </div>
+    );
+}
+
 // Helper component to fix caret jumping in contentEditable
 function VisualEditor({ content, onChange, className, widgetId, onFocus }: { content: string, onChange: (html: string) => void, className: string, widgetId: string, onFocus?: (e: any) => void }) {
     const editorRef = useRef<HTMLDivElement>(null);
@@ -1517,18 +1561,13 @@ ${generateSocialsHtml()}
                                 <span className="hidden md:inline">SUPPRIMER</span>
                             </button>
                         )}
-                        <button
-                            type="button"
-                            onClick={() => setIsFeatured(!isFeatured)}
-                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border ${isFeatured
-                                ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.2)]'
-                                : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:border-white/20'
-                                }`}
-                        >
-                            <Star className={`w-4 h-4 ${isFeatured ? 'fill-current' : ''}`} />
-                            <span className="hidden md:inline">{isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}</span>
-                            <span className="md:hidden">UNE</span>
-                        </button>
+                        <StyledCheckbox
+                            checked={isFeatured}
+                            onChange={setIsFeatured}
+                            label={isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}
+                            icon={Star}
+                            colorClass="neon-yellow"
+                        />
                     </div>
                 </div>
 
@@ -1690,31 +1729,14 @@ ${generateSocialsHtml()}
                                 })}
                             </div>
 
-                            <div
-                                className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition-all border ${isAuthorConfirmed
-                                    ? 'bg-neon-cyan/5 border-neon-cyan/30'
-                                    : 'bg-white/5 border-white/10 hover:bg-white/[0.07] hover:border-white/20 animate-pulse'
-                                    }`}
-                                onClick={() => setIsAuthorConfirmed(!isAuthorConfirmed)}
-                            >
-                                <button
-                                    type="button"
-                                    className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${isAuthorConfirmed
-                                        ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.3)]'
-                                        : 'bg-black/40 border-white/20'
-                                        }`}
-                                >
-                                    {isAuthorConfirmed && <Check className="w-4 h-4 text-black" />}
-                                </button>
-                                <div className="flex flex-col">
-                                    <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isAuthorConfirmed ? 'text-white' : 'text-gray-400'}`}>
-                                        Confirmer l'Éditeur
-                                    </span>
-                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                        Je certifie que <span className="font-black" style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span> est bien l'auteur de ce contenu
-                                    </span>
-                                </div>
-                            </div>
+                            <StyledCheckbox
+                                checked={isAuthorConfirmed}
+                                onChange={setIsAuthorConfirmed}
+                                label="Confirmer l'Éditeur"
+                                sublabel={`Je certifie que ${author} est bien l'auteur de ce contenu`}
+                                icon={CheckCircle2}
+                                colorClass="neon-cyan"
+                            />
                         </div>
 
 
@@ -1890,16 +1912,12 @@ ${generateSocialsHtml()}
                                             {type === 'Interview' && interviewSubtype === 'video' && <span className="text-neon-red">*</span>}
                                         </label>
                                         <div className="flex items-center gap-3">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-wider">Activer :</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowVideo(!showVideo)}
-                                                    className={`w-10 h-5 rounded-full relative transition-colors ${showVideo ? 'bg-neon-red' : 'bg-gray-800'}`}
-                                                >
-                                                    <div className={`absolute top-1 w-3 h-3 rounded-full bg-white transition-all ${showVideo ? 'right-1' : 'left-1'}`} />
-                                                </button>
-                                            </div>
+                                            <StyledCheckbox
+                                                checked={showVideo}
+                                                onChange={setShowVideo}
+                                                label="Activer"
+                                                colorClass="neon-red"
+                                            />
                                             {youtubeId && (
                                                 <button
                                                     type="button"
@@ -2981,21 +2999,23 @@ ${generateSocialsHtml()}
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <button
-                                    onClick={() => setSendPush(true)}
-                                    type="button"
-                                    className={`py-4 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border ${sendPush === true ? 'bg-neon-red border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                >
-                                    Oui, notifier ✅
-                                </button>
-                                <button
-                                    onClick={() => setSendPush(false)}
-                                    type="button"
-                                    className={`py-4 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all border ${sendPush === false ? 'bg-white/10 border-white/20 text-white shadow-xl' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                >
-                                    Non, pas de push ❌
-                                </button>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <StyledCheckbox
+                                    checked={sendPush === true}
+                                    onChange={(val) => setSendPush(val ? true : null)}
+                                    label="OUI, NOTIFIER"
+                                    sublabel="Alerte immédiate Mobile"
+                                    icon={Bell}
+                                    colorClass="neon-red"
+                                />
+                                <StyledCheckbox
+                                    checked={sendPush === false}
+                                    onChange={(val) => setSendPush(val ? false : null)}
+                                    label="NON, PAS DE PUSH"
+                                    sublabel="Publication silencieuse"
+                                    icon={X}
+                                    colorClass="white"
+                                />
                             </div>
                             {sendPush === null && (
                                 <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-neon-red/10 rounded-lg border border-neon-red/20 animate-pulse">
@@ -3054,7 +3074,7 @@ ${generateSocialsHtml()}
                     </div>
 
                 </div>
-            </div >
+            </div>
             <style>{`
                 .admin-editor-container .w-md-editor {
                     border: 1px solid rgba(255,255,255,0.1) !important;
@@ -3107,6 +3127,23 @@ ${generateSocialsHtml()}
                     color: #00fff3;
                     text-decoration: underline;
                     pointer-events: none; /* Prevent navigation during edit */
+                }
+                /* Line wrapping for editor (Request 1) & Font reduction (Request 2) */
+                .visual-editor-content p {
+                    max-width: 800px;
+                    margin-left: auto !important;
+                    margin-right: auto !important;
+                    font-size: 14px !important; /* Reduced for more words */
+                    line-height: 1.5 !important;
+                }
+                /* Mobile Scroll fix (Request 8) */
+                body, html {
+                    overflow-x: hidden;
+                    -webkit-overflow-scrolling: touch;
+                }
+                .admin-editor-container {
+                    -webkit-overflow-scrolling: touch;
+                    touch-action: pan-y;
                 }
             `}</style>
             {/* Media Selection Modal */}
@@ -3708,7 +3745,7 @@ ${generateSocialsHtml()}
                 onCancel={() => blocker.reset?.()}
                 accentColor="neon-red"
             />
-        </div >
+        </div>
     );
 }
 
