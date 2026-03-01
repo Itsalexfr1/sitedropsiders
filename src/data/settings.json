@@ -33,7 +33,7 @@
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": true,
+    "showTickerBanner": false,
     "showInNavbar": true,
     "forceHomepage": false,
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
