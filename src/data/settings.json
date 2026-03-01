@@ -11,10 +11,30 @@
     "snapchat": ""
   },
   "takeover": {
-    "enabled": false,
-    "status": "off",
-    "title": "LIVE TAKEOVER",
+    "enabled": true,
     "youtubeId": "",
-    "mainFluxName": "MAIN STAGE"
+    "title": "LIVE TAKEOVER",
+    "moderators": "",
+    "lineup": "",
+    "tickerType": "news",
+    "tickerText": "",
+    "tickerLink": "",
+    "tickerBgColor": "#000000",
+    "tickerTextColor": "#ffffff",
+    "showTopBanner": true,
+    "showTickerBanner": false,
+    "showInNavbar": true,
+    "forceHomepage": true,
+    "customCommands": "",
+    "isSecret": false,
+    "password": "2026",
+    "channels": "",
+    "autoMessage": "",
+    "autoMessageInterval": 60,
+    "pinnedMessage": "",
+    "showInAgenda": true,
+    "startDate": "",
+    "endDate": "",
+    "status": "edit"
   }
 }
