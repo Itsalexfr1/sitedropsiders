@@ -70,7 +70,7 @@ interface TakeoverProps {
         dropsAmount?: number;
         dropsIntervalMinutes?: number;
     };
-    onClose: () => void;
+    onClose?: () => void;
 }
 
 const StyledCheckbox = ({ checked, onChange, label, sublabel, color = 'red' }: { checked: boolean, onChange: () => void, label: string, sublabel?: string, color?: 'red' | 'cyan' | 'green' | 'purple' | 'yellow' }) => {
@@ -78,7 +78,6 @@ const StyledCheckbox = ({ checked, onChange, label, sublabel, color = 'red' }: {
     const isCyan = color === 'cyan';
     const isGreen = color === 'green';
     const isPurple = color === 'purple';
-    const isYellow = color === 'yellow';
 
     return (
         <div
@@ -2919,7 +2918,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <StyledCheckbox
                                                                     label="Live Menu Status"
                                                                     sublabel={settings.isOnline ? 'Online Menu Active' : 'Offline Menu Active'}
-                                                                    checked={settings.isOnline}
+                                                                    checked={!!settings.isOnline}
                                                                     onChange={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
                                                                     color="green"
                                                                 />
@@ -2933,7 +2932,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <StyledCheckbox
                                                                     label="Effet Fermeture"
                                                                     sublabel="Mode Portes Fermées"
-                                                                    checked={settings.showClosedDoors}
+                                                                    checked={!!settings.showClosedDoors}
                                                                     onChange={() => handleUpdateSettings({ showClosedDoors: !settings.showClosedDoors })}
                                                                     color="red"
                                                                 />
@@ -2979,7 +2978,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             <div className="space-y-3">
                                                                 <StyledCheckbox
                                                                     label="Activer le Ticker"
-                                                                    checked={showTickerBanner}
+                                                                    checked={!!showTickerBanner}
                                                                     onChange={() => handleUpdateLocalSetting({ showTickerBanner: !showTickerBanner })}
                                                                     color="red"
                                                                 />
