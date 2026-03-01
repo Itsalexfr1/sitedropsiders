@@ -54,6 +54,8 @@
     "currentArtist": "ARMIN VAN BUUREN",
     "artistInstagram": "https://www.instagram.com/arminvanbuuren/",
     "showClosedDoors": false,
-    "isOnline": true
+    "isOnline": true,
+    "dropsAmount": 150,
+    "dropsIntervalMinutes": 5
   }
 }
