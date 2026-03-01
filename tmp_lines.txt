@@ -1,0 +1,7 @@
+                                    <Link
+                                        to="/live"
+                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                    >
+                                        <Youtube className="w-4 h-4" />
+                                        Accès Live
+                                    </Link>

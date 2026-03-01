@@ -24,52 +24,44 @@ const PERMISSION_CATEGORIES = [
         ]
     },
     {
-        id: 'actions',
-        label: "Droits d'Actions(Global)",
+        id: 'editorial',
+        label: 'Contenu & Médias',
         permissions: [
-            { id: 'create', label: 'Créer', description: 'Autoriser la création de nouveaux éléments.' },
-            { id: 'edit', label: 'Modifier', description: 'Autoriser la modification des éléments existants.' },
-            { id: 'delete', label: 'Supprimer', description: "Autoriser la suppression définitive d'éléments." }
+            { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer tous les articles.' },
+            { id: 'social_studio', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
+            { id: 'agenda', label: 'Gestion Agenda', description: 'Gérer les dates et événements de la programmation.' },
+            { id: 'galeries', label: 'Gestion Galeries', description: 'Gérer les albums photos et dossiers.' }
         ]
     },
     {
-        id: 'editorial',
-        label: 'Contenu Éditorial',
+        id: 'live_takeover',
+        label: 'Live Takeover',
         permissions: [
-            { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer tous les articles.' },
-            { id: 'news', label: 'Gestion News', description: 'Accéder uniquement à la rubrique actualités.' },
-            { id: 'recaps', label: 'Gestion Récaps', description: 'Accéder uniquement à la rubrique reportages/récaps.' },
-            { id: 'agenda', label: 'Gestion Agenda', description: 'Gérer uniquement les dates et événements.' },
-            { id: 'galeries', label: 'Gestion Galeries', description: 'Gérer uniquement les albums photos.' }
+            { id: 'takeover_full', label: 'Configuration Live', description: 'Accès complet aux réglages du Live (Playlist, Ticker, Planning).' },
+            { id: 'takeover_modo', label: 'Modération Chat', description: 'Autorise la modération (suppression, ban, pin) sur le chat.' },
+            { id: 'audio_rooms', label: 'Salons Audio', description: 'Gérer la création et la suppression des salons audio vocaux.' },
+            { id: 'hype_drops', label: 'Hype & Drops', description: 'Gérer les jauges de Hype Energy et les intervalles de Drops.' },
+            { id: 'shazam', label: 'Gestion Shazam', description: 'Gérer les informations Shazam et les liens streaming.' },
+            { id: 'clips', label: 'Gestion des Clips', description: 'Voir et supprimer les clips générés par les viewers.' }
         ]
     },
     {
         id: 'communication',
-        label: 'Communication',
+        label: 'Communication & Push',
         permissions: [
-            { id: 'messages', label: 'Messagerie & Contact', description: 'Accéder à la messagerie du site.' },
-            { id: 'send_messages', label: 'Envoi de messages', description: 'Autoriser la réponse et l\'envoi de nouveaux emails.' },
-            { id: 'newsletter', label: 'Newsletters', description: 'Créer et envoyer des campagnes mail.' }
-        ]
-    },
-    {
-        id: 'tools',
-        label: 'Outils & Dashboard',
-        permissions: [
-            {
-                id: 'banner', label: "Bandeau d'annonce", description: 'Gérer le message défilant du site.'
-            },
-            { id: 'spotify', label: 'Playlists Spotify', description: "Gérer les playlists de la page d'accueil." },
-            { id: 'team', label: 'Gestion Team', description: 'Gérer les membres de la Dream Team.' },
-            { id: 'takeover_modo', label: 'Modérateur Live Takeover', description: 'Autorise la modération (suppression, ban) sur le chat du Live Takeover.' }
+            { id: 'notifications', label: 'Notifications Push', description: 'Envoyer des notifications officielles sur les téléphones.' },
+            { id: 'messages', label: 'Messagerie & Newsletter', description: 'Accéder aux emails reçus et envoyer des campagnes.' },
+            { id: 'banner', label: "Bandeau d'annonce", description: 'Gérer le message d\'alerte global du site.' }
         ]
     },
     {
         id: 'business',
-        label: 'Business & Analyse',
+        label: 'Business & Team',
         permissions: [
-            { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et analyses.' },
-            { id: 'shop', label: 'Boutique (Shop)', description: 'Gérer les produits et les ventes.' }
+            { id: 'shop', label: 'Drops Shop (Boutique)', description: 'Gérer les produits, les stocks et les ventes.' },
+            { id: 'team', label: 'Dream Team', description: 'Gérer les membres de l\'équipe et leurs profils.' },
+            { id: 'spotify', label: 'Playlists Spotify', description: "Gérer les playlists de la page d'accueil." },
+            { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et analyses détaillées.' }
         ]
     }
 ];

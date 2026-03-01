@@ -796,6 +796,64 @@ export default {
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        // --- API: AUDIO ROOMS ---
+        if (path === '/api/audio/create' && request.method === 'POST') {
+            const body = await request.json();
+            const { name, host, channel } = body;
+            if (!name || !host) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+            const roomId = Math.random().toString(36).substr(2, 6).toUpperCase();
+            const roomData = { id: roomId, name, host, channel, created: Date.now(), members: 1 };
+
+            if (env.CHAT_KV) {
+                // Store room details
+                await env.CHAT_KV.put(`audio_room_${roomId}`, JSON.stringify(roomData), { expirationTtl: 14400 });
+                // Add to active rooms list for the channel
+                const listKey = `audio_rooms_${channel || 'general'}`;
+                const rawList = await env.CHAT_KV.get(listKey);
+                const list = rawList ? JSON.parse(rawList) : [];
+                list.push(roomData);
+                // Clean up old rooms in list (older than 4h)
+                const now = Date.now();
+                const filtered = list.filter(r => (now - r.created) < 14400000);
+                await env.CHAT_KV.put(listKey, JSON.stringify(filtered), { expirationTtl: 14400 });
+            }
+            return new Response(JSON.stringify(roomData), { status: 200, headers });
+        }
+
+        if (path === '/api/audio/rooms' && request.method === 'GET') {
+            const channel = url.searchParams.get('channel') || 'general';
+            if (env.CHAT_KV) {
+                const listKey = `audio_rooms_${channel}`;
+                const rawList = (await env.CHAT_KV.get(listKey)) || '[]';
+                const list: any[] = JSON.parse(rawList);
+                const now = Date.now();
+                const filtered = list.filter(r => (now - (r.created || 0)) < 14400000);
+                return new Response(JSON.stringify(filtered), { status: 200, headers });
+            }
+            return new Response(JSON.stringify([]), { status: 200, headers });
+        }
+
+        if (path === '/api/audio/join' && (request.method === 'POST' || request.method === 'GET')) {
+            const roomId = url.searchParams.get('id');
+            const channel = url.searchParams.get('channel') || 'general';
+            if (!roomId) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+
+            if (env.CHAT_KV) {
+                const listKey = `audio_rooms_${channel}`;
+                const rawList = (await env.CHAT_KV.get(listKey)) || '[]';
+                const list: any[] = JSON.parse(rawList);
+                const idx = list.findIndex(r => r.id === roomId.toUpperCase());
+                if (idx !== -1) {
+                    list[idx].members = (list[idx].members || 1) + 1;
+                    await env.CHAT_KV.put(listKey, JSON.stringify(list), { expirationTtl: 14400 });
+                    return new Response(JSON.stringify({ success: true, room: list[idx] }), { status: 200, headers });
+                }
+                return new Response(JSON.stringify({ error: 'Room not found' }), { status: 404, headers });
+            }
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
         // --- API: SETTINGS MANAGEMENT ---
 
         if (path === '/api/settings' && request.method === 'GET') {

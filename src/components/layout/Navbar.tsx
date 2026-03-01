@@ -67,7 +67,7 @@ export function Navbar() {
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
-        ...(takeoverEnabled && ((takeoverSettings as any)?.status === 'live' || isAdmin) && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
+        ...((takeoverEnabled || isAdmin) && ((takeoverSettings as any)?.status === 'live' || (takeoverSettings as any)?.status === 'edit' || isAdmin) && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
             name: 'LIVE',
             path: '/live',
             icon: Video,

@@ -497,17 +497,27 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-3xl">
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] w-full max-w-6xl h-[90vh] rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row">
 
-                <div className="w-full lg:w-[400px] border-r border-white/10 p-8 flex flex-col gap-8 overflow-y-auto custom-scrollbar">
+                {/* Preview Section - Moved to top on mobile */}
+                <div className="w-full lg:flex-1 bg-[#020202] py-6 px-4 flex flex-col items-center justify-center relative overflow-hidden h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-l border-white/10 order-first lg:order-last">
+                    <div className="h-full w-full max-w-[320px] lg:max-w-[450px] relative">
+                        <div className="w-full h-full bg-[#111] rounded-[20px] lg:rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
+                            <canvas ref={canvasRef} className="w-full h-full object-contain" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Controls Sidebar */}
+                <div className="w-full lg:w-[400px] border-r border-white/10 p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 overflow-y-auto custom-scrollbar h-[50vh] lg:h-full">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h2 className="text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
+                            <h2 className="text-xl lg:text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
                         </div>
-                        <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all"><X className="w-5 h-5" /></button>
+                        <button onClick={onClose} className="p-2 lg:p-3 bg-white/5 hover:bg-white/10 rounded-xl lg:rounded-2xl text-white transition-all"><X className="w-5 h-5" /></button>
                     </div>
 
                     <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
                         <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-4 h-4" /> REEL</button>
-                        <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-4 h-4" /> PUBLICATION</button>
+                        <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-4 h-4" /> POST</button>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
@@ -525,6 +535,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RECAP</button>
                             </>
                         )}
+                    </div>
+
+                    {/* Background Selection Section - Moved Up for priority */}
+                    <div className="space-y-3">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
+                        <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                            <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />
+                            {bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
+                        </button>
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                     </div>
 
                     {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
@@ -607,13 +627,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             </>
                         ) : (
                             <div className="space-y-4">
-                                <span className="text-[10px] font-black text-gray-500 uppercase">Contenu</span>
-                                <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} placeholder="VOTRE TEXTE..." className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none" />
+                                <span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>
+                                <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} placeholder="VOTRE TEXTE..." className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black" />
                             </div>
                         )}
                     </div>
 
-                    <div className="space-y-4 mt-auto">
+                    <div className="space-y-4 mt-auto pb-8">
                         <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
                             <div className="flex items-center gap-3"><Layout className="w-4 h-4 text-gray-500" /><span className="text-[10px] font-black text-white uppercase">Afficher Swipe</span></div>
                             <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
@@ -633,16 +653,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger</button>
                                 </div>
                             )}
-                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-500 text-[10px] font-black uppercase hover:border-white/30 transition-all"><Upload className="w-4 h-4" /> Fond Image/Vidéo</button>
-                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex-1 bg-[#020202] py-8 px-4 flex flex-col items-center justify-center relative overflow-hidden">
-                    <div className="h-full w-full max-w-[450px] relative">
-                        <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
-                            <canvas ref={canvasRef} className="w-full h-full object-contain" />
                         </div>
                     </div>
                 </div>

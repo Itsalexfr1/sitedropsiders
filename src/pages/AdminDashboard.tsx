@@ -393,6 +393,20 @@ export function AdminDashboard() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify(newSettings)
             });
+
+            if (status === 'live') {
+                try {
+                    // Determine channel - usually 'takeover' or current stream
+                    const channel = takeoverState.youtubeId || 'takeover';
+                    await apiFetch('/api/chat/clear', {
+                        method: 'POST',
+                        headers: getAuthHeaders(),
+                        body: JSON.stringify({ channel })
+                    });
+                } catch (e) {
+                    console.error('Failed to clear chat on live start', e);
+                }
+            }
         } catch (e: any) {
             console.error('Failed to update live status', e);
         } finally {
@@ -520,20 +534,21 @@ export function AdminDashboard() {
 
     const getFallbackActions = () => [
         { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Social Studio", description: "Vidéos & Stories", icon: "Instagram", link: "social-studio", color: "border-neon-pink/20 hover:border-pink-500", bg: "bg-pink-500/5", permission: "news", baseColor: "pink", columns: 1 },
-        { title: "News", description: "Gérer les actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "news", baseColor: "blue", columns: 1 },
-        { title: "Musique", description: "Gérer les articles musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
+        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", link: "social-studio", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
+        { title: "News", description: "Actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
+        { title: "Musique", description: "Articles Musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
         { title: "Interviews", description: "Gérer & Créer", icon: "Mic", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Récaps", description: "Gérer les reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "recaps", baseColor: "red", columns: 1 },
-        { title: "Agenda", description: "Gérer les dates", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
-        { title: "Galeries", description: "Gérer les albums", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Statistiques", description: "Analyse du site", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Playlists accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
-        { title: "Shop", description: "Gérer le shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Studio de création", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "newsletter", baseColor: "green", columns: 1 },
-        { title: "Notifications", description: "Gérer les pushs", icon: "Bell", link: "push-notifications", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-red-500/5", permission: "superadmin", baseColor: "red", columns: 1 },
-        { title: "Team", description: "La Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "superadmin", baseColor: "blue", columns: 2 },
-        { title: "MESSAGERIE & CONTACT", description: "Accès Messagerie & Contact", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 }
+        { title: "Récaps", description: "Reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        { title: "Galeries", description: "Albums Photos", icon: "ImageIcon", link: "/admin/manage?tab=Galeries", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", link: "push-notifications", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
+        { title: "Spotify", description: "Playlists Accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
+        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "Team", description: "Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "takeover_modo", baseColor: "red", columns: 2 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -709,8 +724,14 @@ export function AdminDashboard() {
 
         // Si l'utilisateur possède 'publications', il a accès par défaut aux sous-sections éditoriales
         if (storedPermissions.includes('publications')) {
-            const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries'];
+            const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries', 'social_studio'];
             if (editorialSubsets.includes(p)) return true;
+        }
+
+        // Accès complet au Live Takeover par défaut si on a takeover_full
+        if (storedPermissions.includes('takeover_full')) {
+            const liveSubsets = ['takeover_modo', 'clips', 'audio_rooms', 'hype_drops', 'shazam'];
+            if (liveSubsets.includes(p)) return true;
         }
 
         return false;
@@ -900,7 +921,7 @@ export function AdminDashboard() {
                                 Actualiser
                             </button>
                             {/* Boutons Admin : Bandeau et Takeover */}
-                            {isAdminAcc && (
+                            {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
                                 <>
                                     <button
                                         onClick={() => setIsBannerModalOpen(true)}
@@ -915,6 +936,13 @@ export function AdminDashboard() {
                                     >
                                         <Video className="w-4 h-4" />
                                         Gestion Clips
+                                    </button>
+                                    <button
+                                        onClick={() => setIsTakeoverModalOpen(true)}
+                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-neon-red`}
+                                    >
+                                        <Settings2 className="w-4 h-4" />
+                                        Réglages
                                     </button>
                                     <Link
                                         to="/live"
@@ -1120,7 +1148,7 @@ export function AdminDashboard() {
                                             setIsSettingsModalOpen(true);
                                         } else if (action.title === 'LIVE / TAKEOVER') {
                                             e.preventDefault();
-                                            navigate('/live');
+                                            setIsTakeoverModalOpen(true);
                                         } else if (action.title === 'Notifications') {
                                             e.preventDefault();
                                             setIsNotificationModalOpen(true);

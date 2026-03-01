@@ -5,7 +5,7 @@ import {
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3
+    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -74,6 +74,13 @@ interface TakeoverProps {
         dropsAmount?: number;
         dropsIntervalMinutes?: number;
         showExtraFlux?: boolean;
+        hypeLimit?: number;
+        currentShazam?: {
+            title: string;
+            artist: string;
+            image: string;
+            spotify: string;
+        };
     };
     onClose?: () => void;
 }
@@ -109,15 +116,14 @@ const StyledCheckbox = ({ checked, onChange, label, sublabel, color = 'red' }: {
 export function TakeoverPage({ settings }: TakeoverProps) {
     const [currentTime, setCurrentTime] = useState(new Date());
     const adminAuth = localStorage.getItem('admin_auth') === 'true';
-    const isServerAdmin = adminAuth === true;
+    const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
+    const isServerAdmin = adminAuth === true || editeurAuth === true;
 
     const [pseudo, setPseudo] = useState(() => {
         if (adminAuth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
     });
-    const [country, setCountry] = useState(() => {
-        return '';
-    });
+    const [country, setCountry] = useState(''); // Explicitly empty (Request 8)
     const [isJoined, setIsJoined] = useState(() => {
         const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
         return adminAuth || editeurAuth || localStorage.getItem('chat_joined') === 'true';
@@ -177,7 +183,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const triviaPool = [
         { category: "MUSIQUE", question: "Quel DJ a popularisé la French Touch dans le monde entier ?", options: ["Daft Punk", "David Guetta", "DJ Snake", "Justice"], correct: 0 },
         { category: "FESTIVAL", question: "Dans quel pays se déroule le légendaire festival Tomorrowland ?", options: ["Pays-Bas", "Allemagne", "Belgique", "Croatie"], correct: 2 },
-        { category: "CULTURE", question: "En quelle année s'est déroulée la première rave officielle en Europe ?", options: ["1988", "1994", "2000", "1982"], correct: 0 }
+        { category: "CULTURE", question: "En quelle année s'est déroulée la première rave officielle en Europe ?", options: ["1988", "1994", "2000", "1982"], correct: 0 },
+        { category: "DJ", question: "Qui est le DJ masqué célèbre pour sa tête de guimauve ?", options: ["Marshmello", "Deadmau5", "Angerfist", "Malaa"], correct: 0 },
+        { category: "FESTIVAL", question: "Quel festival français se déroule chaque été au Barcarès ?", options: ["Tomorrowland Winter", "Electrobeach (EMF)", "Ultra", "Dour"], correct: 1 },
+        { category: "TECHNO", question: "Quelle ville est considérée comme le berceau de la musique Techno ?", options: ["Berlin", "Détroit", "Chicago", "Londres"], correct: 1 },
+        { category: "ARTISTE", question: "Lequel de ces artistes est l'ambassadeur de Dropsiders ?", options: ["Malaa", "Vladimir Cauchemar", "Dropsiders Official", "Timmy Trumpet"], correct: 2 }
     ];
 
     const [showBlindTest, setShowBlindTest] = useState(false);
@@ -188,7 +198,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [bpm, setBpm] = useState(128);
     const [_showDropsShop] = useState(false);
     const [_isListeningForDrops, _setIsListeningForDrops] = useState(true);
-    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'leaderboard' | 'audio'>('chat');
+    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'drops-shop' | 'leaderboard' | 'audio' | 'hype'>('chat');
+    const [chatCountryFilter, setChatCountryFilter] = useState('ALL');
+    const [forceScroll, setForceScroll] = useState(false);
+    const isFirstJoinFetch = useRef(true);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [_totalWatchTime, setTotalWatchTime] = useState(0);
@@ -199,6 +212,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [annBannerBg, setAnnBannerBg] = useState('#0a0a0a');
     const [showClosedDoors, setShowClosedDoors] = useState(false);
     const [upcomingLives, setUpcomingLives] = useState<any[]>([]);
+    const [showBPM, setShowBPM] = useState(true);
+    const [showPollModal, setShowPollModal] = useState(false);
+    const [votedPollIds, setVotedPollIds] = useState<string[]>([]);
+    const [isSyncingBPM, setIsSyncingBPM] = useState(false);
+    const audioContextRef = useRef<AudioContext | null>(null);
+    const analyserRef = useRef<AnalyserNode | null>(null);
+    const bpmStreamRef = useRef<MediaStream | null>(null);
+    const [lastPollResult, setLastPollResult] = useState<{ question: string, winner: string, percentage: number } | null>(null);
 
 
 
@@ -830,6 +851,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [isSlowMode, setIsSlowMode] = useState(false);
     const [activePoll, setActivePoll] = useState<{ question: string, options: string[], id: number } | null>(null);
     const [shazamLoading, setShazamLoading] = useState(false);
+    const [audioRooms, setAudioRooms] = useState<any[]>([]);
+    const [audioRoomCode, setAudioRoomCode] = useState("");
+    const [currentAudioRoom, setCurrentAudioRoom] = useState<any | null>(null);
 
     const [slowModeDuration, setSlowModeDuration] = useState(2);
     const [showSlowModePopup, setShowSlowModePopup] = useState(false);
@@ -983,7 +1007,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-    // Fetch messages from server every 3 seconds
+    // Fetch audio rooms
+    useEffect(() => {
+        if (activeChatTab === 'audio') {
+            const fetchRooms = () => {
+                fetch(`/api/audio/rooms?channel=${currentVideoId}`)
+                    .then(res => res.json())
+                    .then(data => setAudioRooms(Array.isArray(data) ? data : []))
+                    .catch(() => { });
+            };
+            fetchRooms();
+            const interval = setInterval(fetchRooms, 10000);
+            return () => clearInterval(interval);
+        }
+    }, [activeChatTab, currentVideoId]);
+
+    // Fetch messages from server每 3 seconds
     useEffect(() => {
         const fetchMessages = () => {
             fetch(`/api/chat/messages?channel=${currentVideoId}`)
@@ -1011,8 +1050,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         const chatContainer = document.getElementById('chat-messages');
                         if (chatContainer) {
                             const isAtBottom = chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < 100;
-                            if (isAtBottom) {
-                                setTimeout(() => { chatContainer.scrollTop = chatContainer.scrollHeight; }, 50);
+                            if (isAtBottom || isFirstJoinFetch.current || forceScroll) {
+                                setTimeout(() => {
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                    isFirstJoinFetch.current = false;
+                                    setForceScroll(false);
+                                }, 50);
                             }
                         }
                     }
@@ -1205,6 +1248,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 channel: currentVideoId
             })
         });
+
+        // Trigger auto-scroll for first view
+        setForceScroll(true);
+    };
+    const handleJoinAudioRoom = async (roomId: string) => {
+        if (!roomId || !pseudo) return;
+        try {
+            const res = await fetch(`/api/audio/join?id=${roomId.toUpperCase()}&channel=${currentVideoId}`, { method: 'POST' });
+            if (res.ok) {
+                const data = await res.json();
+                setCurrentAudioRoom(data.room || { id: roomId.toUpperCase(), name: roomId.toUpperCase(), members: 1 });
+            } else {
+                alert("Salon introuvable ou erreur lors de la connexion.");
+            }
+        } catch (e) { alert("Erreur serveur."); }
     };
 
     const appendLineup = () => {
@@ -1224,7 +1282,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setLineupArtist(""); setLineupStage(""); setLineupInstagram("");
     };
 
-    const handleSendPoll = () => {
+    const handleStartPoll = () => {
         if (!pollQuestion) return;
         let msg = `📊 SONDAGE : ${pollQuestion}\n`;
         msg += pollOptions.filter(o => o.trim()).map((o, i) => `${i + 1}. ${o}`).join('\n');
@@ -1259,6 +1317,30 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const password = localStorage.getItem('admin_password') || '';
         const username = localStorage.getItem('admin_user') || 'alex';
         const sessionId = localStorage.getItem('admin_session_id') || '';
+
+        // Calculate results before stopping
+        const pollTakers = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim()));
+        const uniquePollTakers = pollTakers.filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
+        const totalVotes = uniquePollTakers.length;
+
+        if (totalVotes > 0 && activePoll) {
+            let maxVotes = 0;
+            let winnerIdx = 0;
+            activePoll.options.forEach((_, i) => {
+                const optVotes = uniquePollTakers.filter(m => m.message.trim() === String(i + 1)).length;
+                if (optVotes > maxVotes) {
+                    maxVotes = optVotes;
+                    winnerIdx = i;
+                }
+            });
+            const percentage = Math.round((maxVotes / totalVotes) * 100);
+            setLastPollResult({
+                question: activePoll.question,
+                winner: activePoll.options[winnerIdx],
+                percentage
+            });
+            setTimeout(() => setLastPollResult(null), 10000); // Hide after 10s
+        }
 
         // Optional: you can just send a flag message or delete the message
         await fetch('/api/chat/messages', {
@@ -1301,20 +1383,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             if (serverCommands.includes(cmd)) return;
 
             if (cmd === '!artiste') {
-                const lineup = parseLineup(settings.lineup || '');
-                const current = [...lineup].filter(i => i.isPast).pop();
-                const artistName = settings.currentArtist || current?.artist || "Aucun artiste annoncé";
-                response = `🎤 L'artiste en live actuellement : ${artistName.toUpperCase()} ! 🔥`;
-            } else if (cmd === '!blindtest' && adminAuth) {
+                const artist = fluxCurrentArtist.artist || settings.currentArtist || "Aucun artiste annoncé";
+                response = `🎤 Artiste actuel : ${artist.toUpperCase()} ! 🔥`;
+            } else if (cmd === '!festival') {
+                response = `🎪 Festival : ${settings.title.toUpperCase()} ! 🔥`;
+            } else if (cmd === '!blindtest' && hasModPowers) {
                 const randomQuest = triviaPool[Math.floor(Math.random() * triviaPool.length)];
                 setBlindTestState(randomQuest);
                 setShowBlindTest(true);
                 response = `🕹️ QUIZ : ${randomQuest.category} ! Préparez-vous !`;
             } else if (cmd === '!instagram' || cmd === '!insta') {
-                const lineup = parseLineup(settings.lineup || '');
-                const current = [...lineup].filter(i => i.isPast).pop();
-                const insta = current?.instagram || settings.artistInstagram || "@DROPSIDERS";
+                const insta = fluxCurrentArtist.instagram || settings.artistInstagram || "@DROPSIDERS";
                 response = `📸 Instagram de l'artiste : ${insta} ! ✨`;
+            } else if (cmd === '!sondage' && hasModPowers) {
+                setShowPollModal(true);
+                response = "📊 Ouverture du panneau de gestion des sondages...";
+            } else if (cmd.startsWith('!give') && isAdmin) {
+                const parts = command.split(' ');
+                if (parts.length >= 3) {
+                    const targetPseudo = parts[1].replace('@', '').toUpperCase();
+                    const amount = parseInt(parts[2]);
+                    if (!isNaN(amount)) {
+                        // For the admin who sends it, we also trigger a visual or just the bot message
+                        response = `💎 DON DE DROPS : @${targetPseudo} vient de recevoir ${amount} Drops de la part de l'administration ! ⚡`;
+                    }
+                }
             } else if (cmd === '!shop' || cmd === '!boutique') {
                 response = "🛒 Retrouvez toute notre collection sur la boutique officielle : https://dropsiders.com/shop ! ✨";
             } else if (cmd === '!clip') {
@@ -1392,7 +1485,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         message: `🚫 @${pseudo.toUpperCase()}, les liens ne sont autorisés que pour les modérateurs et administrateurs.`,
                         country: 'FR',
                         isBot: true,
-                        color: '#00ffcc'
+                        color: '#00ffcc',
+                        channel: currentVideoId
                     })
                 });
             }, 500);
@@ -1417,7 +1511,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 })
             });
             // Hype Increase
-            setHypeLevel(prev => Math.min(100, prev + 5));
+            setHypeLevel(prev => {
+                const limit = settings.hypeLimit || 50;
+                const increase = Math.ceil(100 / limit);
+                return Math.min(100, prev + increase);
+            });
         } catch (e: any) {
             console.error('Failed to send message', e);
         } finally {
@@ -1442,9 +1540,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const handleClearChat = async () => {
         if (!confirm('Voulez-vous vraiment vider le chat ? Cette action est irréversible.')) return;
         try {
-            const res = await fetch(`/api/chat/messages/clear?channel=${currentVideoId}`, {
+            const res = await fetch('/api/chat/clear', {
                 method: 'POST',
-                headers: getAuthHeaders()
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ channel: currentVideoId })
             });
             if (res.ok) {
                 setMessages([]);
@@ -1500,13 +1599,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     const data = await res.json();
 
                     if (data.status === 'success' && data.result) {
-                        setShazamResult({
+                        const newShazam = {
                             title: data.result.title,
                             artist: data.result.artist,
                             image: data.result.spotify?.album?.images?.[0]?.url || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=crop",
                             spotify: data.result.spotify?.external_urls?.spotify || "https://open.spotify.com"
-                        });
+                        };
+                        setShazamResult(newShazam);
                         setShowShazamNotify(true);
+
+                        // If moderator, save globally
+                        if (hasModPowers) {
+                            handleUpdateSettings({ currentShazam: newShazam });
+                        }
 
                         // Auto hide after 12s
                         setTimeout(() => setShowShazamNotify(false), 12000);
@@ -1537,6 +1642,97 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
+    const handleSyncBPM = async () => {
+        if (isSyncingBPM) {
+            setIsSyncingBPM(false);
+            if (bpmStreamRef.current) {
+                bpmStreamRef.current.getTracks().forEach(track => track.stop());
+            }
+            if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+                audioContextRef.current.close();
+            }
+            return;
+        }
+
+        try {
+            if (!navigator.mediaDevices || !(navigator.mediaDevices as any).getDisplayMedia) {
+                return alert("Votre navigateur ne supporte pas la capture audio.");
+            }
+
+            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+                video: true,
+                audio: true,
+                selfBrowserSurface: 'include'
+            });
+
+            const audioTrack = stream.getAudioTracks()[0];
+            if (!audioTrack) {
+                stream.getTracks().forEach((t: any) => t.stop());
+                return alert("Veuillez activer 'Partager l'audio' pour synchroniser le BPM.");
+            }
+
+            stream.getVideoTracks().forEach((t: any) => t.stop());
+
+            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const source = ctx.createMediaStreamSource(new MediaStream([audioTrack]));
+            const analyser = ctx.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            audioContextRef.current = ctx;
+            analyserRef.current = analyser;
+            bpmStreamRef.current = stream;
+            setIsSyncingBPM(true);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            let lastPeakTime = Date.now();
+            let peaks: number[] = [];
+
+            const detectBPM = () => {
+                if (!analyserRef.current) return;
+                analyser.getByteFrequencyData(dataArray);
+
+                const bassValue = dataArray[0] + dataArray[1] + dataArray[2];
+                const threshold = 220;
+
+                if (bassValue > threshold) {
+                    const now = Date.now();
+                    const diff = now - lastPeakTime;
+                    if (diff > 300 && diff < 1200) {
+                        peaks.push(60000 / diff);
+                        if (peaks.length > 5) peaks.shift();
+                        const avg = Math.round(peaks.reduce((a, b) => a + b, 0) / peaks.length);
+                        if (avg > 60 && avg < 190) {
+                            setBpm(avg);
+                        }
+                        lastPeakTime = now;
+                    }
+                }
+                if (bpmStreamRef.current?.active) requestAnimationFrame(detectBPM);
+                else setIsSyncingBPM(false);
+            };
+
+            detectBPM();
+
+        } catch (err) {
+            console.error(err);
+            setIsSyncingBPM(false);
+        }
+    };
+
+    // Cleanup audio context on unmount
+    useEffect(() => {
+        return () => {
+            if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+                audioContextRef.current.close();
+            }
+            if (bpmStreamRef.current) {
+                bpmStreamRef.current.getTracks().forEach(track => track.stop());
+            }
+        };
+    }, []);
+
     const handlePromote = async (name: string) => {
         if (!promotedModos.includes(name.toUpperCase())) {
             const newModos = [...promotedModos, name.toUpperCase()];
@@ -1559,7 +1755,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     message: `🛡️ @${name.toUpperCase()} a été promu modérateur du chat par un administrateur !`,
                     country: 'FR',
                     isBot: true,
-                    color: '#00ffcc'
+                    color: '#00ffcc',
+                    channel: currentVideoId
                 })
             });
         }
@@ -1612,7 +1809,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     message: `⚠️ @${name.toUpperCase()} n'est plus modérateur.`,
                     country: 'FR',
                     isBot: true,
-                    color: '#00ffcc'
+                    color: '#00ffcc',
+                    channel: currentVideoId
                 })
             });
             setExpandedUserId(null);
@@ -2081,7 +2279,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 )}
 
                 {/* Live Banner Header - Conditionally based on top banner enabled */}
-                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.isOnline || isServerAdmin)) && (
+                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
                     <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-8 md:py-10 flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
                         <div className="flex items-center gap-6">
                             <div className="flex flex-col items-center gap-2">
@@ -2103,18 +2301,31 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <h1 id="takeover-title" className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-widest truncate leading-tight">
                                     {displayTitle}
                                 </h1>
-                                {fluxCurrentArtist.artist && settings.isOnline && (
+                                {settings.isOnline && (
                                     <motion.div
                                         initial={{ opacity: 0, y: -5 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        className="flex items-center gap-2 mt-0.5"
+                                        className="flex flex-wrap items-center gap-2 mt-0.5"
                                     >
                                         <div className="flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full backdrop-blur-md">
                                             <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
                                             <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] whitespace-nowrap">
-                                                NOW: <span className="text-neon-cyan">{fluxCurrentArtist.artist.toUpperCase()}</span>
+                                                NOW: <span className="text-neon-cyan">{fluxCurrentArtist.artist ? fluxCurrentArtist.artist.toUpperCase() : 'LIVE'}</span>
                                             </span>
                                         </div>
+                                        {settings.currentShazam && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="flex items-center gap-2 px-3 py-1 bg-neon-purple/20 border border-neon-purple/30 rounded-full backdrop-blur-md cursor-pointer hover:bg-neon-purple/30 transition-all"
+                                                onClick={() => window.open(settings.currentShazam!.spotify, '_blank')}
+                                            >
+                                                <Music2 className="w-3 h-3 text-neon-purple" />
+                                                <span className="text-[9px] font-black text-white uppercase tracking-widest truncate max-w-[150px]">
+                                                    {settings.currentShazam!.artist} - {settings.currentShazam!.title}
+                                                </span>
+                                            </motion.div>
+                                        )}
                                     </motion.div>
                                 )}
                             </div>
@@ -2131,7 +2342,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <button
                                                     key={idx}
                                                     id={`channel-btn-${idx}`}
-                                                    onClick={() => { setActiveVideoIndex(idx); setPlayersOption(1); }}
+                                                    onClick={() => {
+                                                        if (activeVideoIndex === idx) return;
+                                                        setIsTransitioning(true);
+                                                        setTimeout(() => {
+                                                            setActiveVideoIndex(idx);
+                                                            setPlayersOption(1);
+                                                            setTimeout(() => setIsTransitioning(false), 500);
+                                                        }, 150);
+                                                    }}
                                                     className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
                                                 >
                                                     {item.title}
@@ -2259,117 +2478,137 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             {/* Stream Name Badge */}
                             {/* Redundant Stream Name Badge removed */}
                             <div className="absolute inset-0 z-0 bg-black">
-                                {(settings.disableMainPlayer === false || activeVideoIndex !== 0 || playersOption > 1) ? (
-                                    <motion.div
-                                        layout
-                                        initial={false}
-                                        animate={{ opacity: 1 }}
-                                        transition={{
-                                            layout: { type: "spring", stiffness: 200, damping: 25 },
-                                            opacity: { duration: 0.3 }
-                                        }}
-                                        className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-1 bg-white/5 backdrop-blur-sm relative ${isTransitioning ? 'before:absolute before:inset-0 before:z-50 before:bg-neon-cyan/10 before:animate-pulse before:pointer-events-none' : ''} ${!isJoined ? 'blur-2xl grayscale brightness-[0.3] pointer-events-none' : ''}`}
-                                    >
-                                        {Array.from({ length: Math.min(playersOption, channelItems.length) }).map((_, i) => {
-                                            const cIdx = (activeVideoIndex + i) % channelItems.length;
-                                            const channel = channelItems[cIdx];
-                                            if (!channel) return null;
-                                            return (
-                                                <motion.div
-                                                    layout
-                                                    initial={{ opacity: 0, scale: 0.9 }}
-                                                    animate={{ opacity: 1, scale: 1 }}
-                                                    key={`${channel.id}-${i}`}
-                                                    className="relative bg-black w-full h-full"
-                                                >
-                                                    {playersOption > 1 && (
-                                                        <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/20 text-[9px] font-black text-white uppercase tracking-widest shadow-lg pointer-events-none">
-                                                            {channel.title}
-                                                        </div>
-                                                    )}
-                                                    <div className="w-full h-full overflow-hidden relative">
-                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-center gap-2 group/volume hidden sm:flex pointer-events-auto">
-                                                            <div className="h-0 opacity-0 group-hover/volume:h-32 group-hover/volume:opacity-100 transition-all duration-300 bg-black/60 backdrop-blur-md rounded-full w-8 flex flex-col items-center justify-end py-3 overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                                                                <input
-                                                                    type="range"
-                                                                    min="0"
-                                                                    max="1"
-                                                                    step="0.01"
-                                                                    value={volume}
-                                                                    onChange={(e) => {
-                                                                        e.stopPropagation();
-                                                                        const v = parseFloat(e.target.value);
-                                                                        setVolume(v);
-                                                                        if (v > 0 && isMutedGlobal) {
-                                                                            setIsMutedGlobal(false);
-                                                                        } else if (v === 0 && !isMutedGlobal) {
-                                                                            setIsMutedGlobal(true);
-                                                                        }
-                                                                        Object.values(playersRef.current).forEach(p => {
-                                                                            if (p && p.setVolume) {
-                                                                                if (v === 0) {
-                                                                                    p.mute();
-                                                                                    p.setVolume(0);
-                                                                                } else {
-                                                                                    p.unMute();
-                                                                                    p.setVolume(v * 100);
-                                                                                }
-                                                                            }
-                                                                        });
-                                                                    }}
-                                                                    className="appearance-none bg-transparent w-24 h-1 -rotate-90 origin-center translate-y-[40px] [&::-webkit-slider-runnable-track]:bg-white/20 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:-mt-1 cursor-pointer focus:outline-none"
-                                                                />
+                                <AnimatePresence mode="wait">
+                                    {(settings.disableMainPlayer === false || activeVideoIndex !== 0 || playersOption > 1) ? (
+                                        <motion.div
+                                            key={`view-mode-${playersOption}-${activeVideoIndex}`}
+                                            initial={{ opacity: 0, filter: 'blur(20px) brightness(2)' }}
+                                            animate={{ opacity: 1, filter: 'blur(0px) brightness(1)' }}
+                                            exit={{ opacity: 0, filter: 'blur(20px) brightness(2)' }}
+                                            transition={{ duration: 0.5, ease: "easeOut" }}
+                                            className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-1 bg-white/5 backdrop-blur-sm relative ${isTransitioning ? 'before:absolute before:inset-0 before:z-50 before:bg-neon-cyan/20 before:animate-pulse before:pointer-events-none' : ''} ${!isJoined ? 'blur-2xl grayscale brightness-[0.3] pointer-events-none' : ''}`}
+                                        >
+                                            {Array.from({ length: Math.min(playersOption, channelItems.length) }).map((_, i) => {
+                                                const cIdx = playersOption === 1 ? (activeVideoIndex + i) % channelItems.length : i;
+                                                const channel = channelItems[cIdx];
+                                                if (!channel) return null;
+                                                return (
+                                                    <motion.div
+                                                        layout
+                                                        initial={{ opacity: 0, scale: 0.9 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        key={`${channel.id}-${i}`}
+                                                        className="relative bg-black w-full h-full"
+                                                    >
+                                                        {playersOption > 1 && (
+                                                            <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/20 text-[9px] font-black text-white uppercase tracking-widest shadow-lg pointer-events-none">
+                                                                {channel.title}
                                                             </div>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    const nextMute = !isMutedGlobal;
-                                                                    setIsMutedGlobal(nextMute);
-                                                                    const targetVolume = nextMute ? 0 : (volume > 0 ? volume : 1);
-                                                                    if (!nextMute && volume === 0) setVolume(1);
-
-                                                                    Object.values(playersRef.current).forEach(p => {
-                                                                        if (p && p.setVolume) {
-                                                                            if (nextMute) {
-                                                                                p.mute();
-                                                                                p.setVolume(0);
-                                                                            } else {
-                                                                                p.unMute();
-                                                                                p.setVolume(targetVolume * 100);
+                                                        )}
+                                                        <div className="w-full h-full overflow-hidden relative">
+                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-center gap-2 group/volume hidden sm:flex pointer-events-auto">
+                                                                <div className="h-0 opacity-0 group-hover/volume:h-32 group-hover/volume:opacity-100 transition-all duration-300 bg-black/60 backdrop-blur-md rounded-full w-8 flex flex-col items-center justify-end py-3 overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                                                                    <input
+                                                                        type="range"
+                                                                        min="0"
+                                                                        max="1"
+                                                                        step="0.01"
+                                                                        value={volume}
+                                                                        onChange={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const v = parseFloat(e.target.value);
+                                                                            setVolume(v);
+                                                                            if (v > 0 && isMutedGlobal) {
+                                                                                setIsMutedGlobal(false);
+                                                                            } else if (v === 0 && !isMutedGlobal) {
+                                                                                setIsMutedGlobal(true);
                                                                             }
-                                                                        }
-                                                                    });
-                                                                }}
-                                                                className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors shadow-lg"
-                                                            >
-                                                                {isMutedGlobal || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                                                            </button>
+                                                                            Object.values(playersRef.current).forEach(p => {
+                                                                                if (p && p.setVolume) {
+                                                                                    if (v === 0) {
+                                                                                        p.mute();
+                                                                                        p.setVolume(0);
+                                                                                    } else {
+                                                                                        p.unMute();
+                                                                                        p.setVolume(v * 100);
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        }}
+                                                                        className="appearance-none bg-transparent w-24 h-1 -rotate-90 origin-center translate-y-[40px] [&::-webkit-slider-runnable-track]:bg-white/20 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:-mt-1 cursor-pointer focus:outline-none"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex flex-col gap-2">
+                                                                    <select
+                                                                        className="w-16 h-8 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg text-[10px] font-black text-white outline-none cursor-pointer hover:bg-white/10 transition-colors"
+                                                                        defaultValue="1080p"
+                                                                        onChange={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const quality = e.target.value;
+                                                                            Object.values(playersRef.current).forEach(p => {
+                                                                                if (p && p.setPlaybackQuality) p.setPlaybackQuality(quality);
+                                                                            });
+                                                                        }}
+                                                                    >
+                                                                        <option value="auto">Auto</option>
+                                                                        <option value="hd1080">1080p</option>
+                                                                        <option value="hd720">720p</option>
+                                                                        <option value="large">480p</option>
+                                                                        <option value="medium">360p</option>
+                                                                        <option value="small">240p</option>
+                                                                    </select>
+                                                                    <button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation();
+                                                                            const nextMute = !isMutedGlobal;
+                                                                            setIsMutedGlobal(nextMute);
+                                                                            const targetVolume = nextMute ? 0 : (volume > 0 ? volume : 1);
+                                                                            if (!nextMute && volume === 0) setVolume(1);
+
+                                                                            Object.values(playersRef.current).forEach(p => {
+                                                                                if (p && p.setVolume) {
+                                                                                    if (nextMute) {
+                                                                                        p.mute();
+                                                                                        p.setVolume(0);
+                                                                                    } else {
+                                                                                        p.unMute();
+                                                                                        p.setVolume(targetVolume * 100);
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        }}
+                                                                        className="w-16 h-10 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors shadow-lg"
+                                                                    >
+                                                                        {isMutedGlobal || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            <iframe
+                                                                id={`yt-player-${channel.id}`}
+                                                                className="w-full h-full border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto scale-[1.12]"
+                                                                src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer || volume === 0) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
+                                                                title={channel.title}
+                                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                allowFullScreen
+                                                            ></iframe>
                                                         </div>
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </motion.div>
+                                    ) : (
+                                        <div className="w-full h-full relative overflow-hidden">
+                                            {/* Removed redundant offline view inside video container as it is now full-page blanket */}
+                                            {/* Removed Door Effect */}
 
-                                                        <iframe
-                                                            id={`yt-player-${channel.id}`}
-                                                            className="w-full h-full border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto scale-[1.12]"
-                                                            src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer || volume === 0) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
-                                                            title={channel.title}
-                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                            allowFullScreen
-                                                        ></iframe>
-                                                    </div>
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </motion.div>
-                                ) : (
-                                    <div className="w-full h-full relative overflow-hidden">
-                                        {/* Removed redundant offline view inside video container as it is now full-page blanket */}
-                                        {/* Removed Door Effect */}
-
-                                        <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
-                                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
-                                            <p className="text-gray-400 text-sm max-w-md">Veuillez sélectionner un autre flux dans le switcher ci-dessus (Stage 1, 2, 3 ou 4) pour continuer le visionnage.</p>
+                                            <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
+                                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
+                                                <p className="text-gray-400 text-sm max-w-md">Veuillez sélectionner un autre flux dans le switcher ci-dessus (Stage 1, 2, 3 ou 4) pour continuer le visionnage.</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </AnimatePresence>
                             </div>
 
                             {/* BPM WIDGET & HYPE GAUGE */}
@@ -2380,36 +2619,57 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     className="flex flex-col gap-3 pointer-events-auto"
                                 >
                                     {/* BPM WIDGET */}
-                                    <div className={`bg-black/60 backdrop-blur-xl border ${isOverdrive ? 'border-neon-red/50 shadow-[0_0_40px_rgba(255,0,51,0.2)]' : 'border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]'} rounded-2xl p-4 flex items-center gap-4 transition-all group overflow-hidden relative`}>
-                                        {isOverdrive && <div className="absolute inset-0 bg-neon-red/5 animate-pulse pointer-events-none" />}
-                                        <div className="relative">
-                                            <div className={`absolute inset-0 ${isOverdrive ? 'bg-neon-red/20' : 'bg-neon-cyan/20'} blur-lg rounded-full animate-pulse`} />
-                                            <div className={`w-12 h-12 rounded-full border-2 ${isOverdrive ? 'border-neon-red animate-spin-slow' : 'border-neon-cyan'} flex items-center justify-center relative z-10`}>
-                                                <Music2 className={`w-6 h-6 ${isOverdrive ? 'text-neon-red' : 'text-neon-cyan'} ${isOverdrive ? 'animate-bounce' : ''} drop-shadow-[0_0_8px_currentColor]`} />
+                                    {showBPM ? (
+                                        <div className={`p-4 rounded-3xl backdrop-blur-3xl border-2 transition-all flex items-center gap-6 shadow-2xl relative overflow-hidden group/bpm ${isOverdrive ? 'bg-black/80 border-neon-red/50 shadow-neon-red/20' : 'bg-black/60 border-white/20'}`}>
+                                            <div className="flex flex-col relative z-20">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">BPM ANALYZER</span>
+                                                    <div className="flex items-baseline gap-1">
+                                                        <span className={`text-3xl font-black italic tracking-tighter ${isOverdrive ? 'text-neon-red drop-shadow-[0_0_15px_#ff0033]' : 'text-white'}`}>{bpm}</span>
+                                                        <span className="text-[10px] font-black text-white/40 uppercase">bpm</span>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => setShowBPM(false)}
+                                                    className="absolute -top-2 -right-2 p-1.5 hover:bg-white/10 rounded-full transition-colors opacity-0 group-hover/bpm:opacity-100"
+                                                    title="Masquer le BPM"
+                                                >
+                                                    <X className="w-3 h-3 text-gray-400 hover:text-white" />
+                                                </button>
                                             </div>
-                                        </div>
-                                        <div className="flex flex-col relative z-20">
-                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">BPM ANALYZER</span>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className={`text-3xl font-black italic tracking-tighter ${isOverdrive ? 'text-neon-red drop-shadow-[0_0_15px_#ff0033]' : 'text-white'}`}>{bpm}</span>
-                                                <span className="text-[10px] font-black text-white/40 uppercase">bpm</span>
+                                            <div className="flex gap-1 items-end h-8 ml-2 relative z-20">
+                                                {[...Array(8)].map((_, i) => (
+                                                    <motion.div
+                                                        key={i}
+                                                        animate={{
+                                                            height: isOverdrive ? [15, 32, 12, 28, 10] : [10, 20, 8, 24, 12],
+                                                        }}
+                                                        transition={{
+                                                            duration: 0.2, // Faster pulse
+                                                            repeat: Infinity,
+                                                            delay: i * 0.05
+                                                        }}
+                                                        className={`w-1.5 rounded-full ${isOverdrive ? 'bg-gradient-to-t from-neon-red to-white shadow-[0_0_10px_#ff0033]' : 'bg-gradient-to-t from-neon-cyan to-white shadow-[0_0_10px_#00ffff44]'}`}
+                                                    />
+                                                ))}
                                             </div>
+                                            <button
+                                                onClick={handleSyncBPM}
+                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border ${isSyncingBPM ? 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan animate-pulse shadow-[0_0_15px_#00ffff44]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30 hover:scale-105'}`}
+                                                title={isSyncingBPM ? "Désactiver la synchronisation" : "Synchroniser avec le son du live"}
+                                            >
+                                                <Mic className={`w-5 h-5 ${isSyncingBPM ? 'animate-bounce' : ''}`} />
+                                            </button>
                                         </div>
-                                        <div className="flex gap-1 items-end h-8 ml-2 relative z-20">
-                                            {[...Array(8)].map((_, i) => (
-                                                <motion.div
-                                                    key={i}
-                                                    animate={{
-                                                        height: [8, Math.random() * 24 + 12, 8],
-                                                        scaleY: [1, 1.2, 1],
-                                                        backgroundColor: isOverdrive ? ['#ff0033', '#ffffff', '#ff0033'] : ['#00ffff', '#ffffff', '#00ffff']
-                                                    }}
-                                                    transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.05 }}
-                                                    className="w-1.5 rounded-full"
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => setShowBPM(true)}
+                                            className="p-3 bg-black/60 backdrop-blur-xl border border-white/20 rounded-2xl text-white/40 hover:text-neon-cyan transition-all hover:border-neon-cyan/40 shadow-xl group"
+                                            title="Afficher le BPM"
+                                        >
+                                            <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                        </button>
+                                    )}
 
                                     {/* HYPE GAUGE */}
                                     <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] min-w-[200px] hover:border-neon-red/50 transition-all">
@@ -2507,66 +2767,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         )}
                                     </AnimatePresence>
                                 </motion.div>
-
-
                             </div>
                         </div>
-
-                        {/* Active Poll Overlay */}
-                        <AnimatePresence>
-                            {!isFocusMode && activePoll && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    className="absolute bottom-24 lg:bottom-16 left-4 lg:left-8 z-30 w-[250px] lg:w-[320px] bg-black/80 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl"
-                                >
-                                    <h3 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-widest mb-3 flex items-center gap-2">
-                                        <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                        Sondage en cours
-                                    </h3>
-                                    <p className="text-[11px] font-bold text-white mb-4">{activePoll.question}</p>
-                                    <div className="space-y-2">
-                                        {activePoll.options.map((opt, i) => {
-                                            const totalVotes = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim())).length;
-                                            const optVotes = messages.filter(m => m.message.trim() === String(i + 1)).length;
-                                            const percentage = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
-
-                                            return (
-                                                <button
-                                                    key={i}
-                                                    onClick={async () => {
-                                                        if (!isJoined) return alert("Rejoignez le chat pour voter !");
-                                                        setNewMessage(String(i + 1));
-                                                        // Auto send vote
-                                                        await fetch('/api/chat/messages', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({
-                                                                pseudo: pseudo.toUpperCase(),
-                                                                country: country || 'FR',
-                                                                message: String(i + 1),
-                                                                color: userColor
-                                                            })
-                                                        });
-                                                        setNewMessage('');
-                                                    }}
-                                                    className="w-full relative h-10 group/vote bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden flex items-center px-4 border border-white/5 hover:border-neon-red/30 transition-all duration-300"
-                                                >
-                                                    <div className="absolute left-0 top-0 bottom-0 bg-neon-red/20 transition-all duration-700 ease-out" style={{ width: `${percentage}%` }} />
-                                                    <span className="relative z-10 text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-3">
-                                                        <span className="w-5 h-5 flex items-center justify-center bg-black/40 rounded-md text-gray-400 group-hover/vote:text-neon-red transition-colors">{i + 1}</span>
-                                                        {opt}
-                                                    </span>
-                                                    <span className="relative z-10 text-[11px] font-black text-neon-red ml-auto drop-shadow-[0_0_5px_rgba(255,0,51,0.5)]">{percentage}%</span>
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                    <p className="text-[7px] text-gray-400 uppercase tracking-widest mt-3 text-center">Répondez avec le chiffre - Ex: 1</p>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
 
                         {/* Mini Planning Widget */}
                         <AnimatePresence>
@@ -2969,7 +3171,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                             <div className="grid grid-cols-1 gap-3">
                                                                 <button
-                                                                    onClick={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
+                                                                    onClick={async () => {
+                                                                        const newStatus = !settings.isOnline;
+                                                                        if (newStatus) {
+                                                                            // Auto-clear chat when live starts
+                                                                            try {
+                                                                                await fetch(`/api/chat/messages/clear?channel=${currentVideoId}`, {
+                                                                                    method: 'POST',
+                                                                                    headers: getAuthHeaders()
+                                                                                });
+                                                                                setMessages([]);
+                                                                            } catch (e) { }
+                                                                        }
+                                                                        handleUpdateSettings({ isOnline: newStatus });
+                                                                    }}
                                                                     className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-lg ${settings.isOnline ? 'bg-neon-red text-white shadow-neon-red/20' : 'bg-neon-cyan text-black shadow-neon-cyan/20'}`}
                                                                 >
                                                                     {settings.isOnline ? (
@@ -3194,6 +3409,43 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         </div>
                                                                     </div>
                                                                 </div>
+                                                            </div>
+
+                                                            <div className="bg-black/40 border border-white/5 rounded-3xl p-6 space-y-4">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="w-10 h-10 bg-neon-purple/10 border border-neon-purple/20 rounded-xl flex items-center justify-center">
+                                                                        <Zap className="w-5 h-5 text-neon-purple" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="text-[11px] font-black text-white uppercase italic tracking-tighter">Paramètres Hype Energy</h3>
+                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">Configuration du mode Overdrive</p>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-end">
+                                                                    <div className="space-y-2">
+                                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Hype Messages Per Minute</label>
+                                                                        <div className="relative group">
+                                                                            <input
+                                                                                type="number"
+                                                                                placeholder="Ex: 50"
+                                                                                value={localSettings.hypeLimit || 50}
+                                                                                onChange={(e) => handleUpdateLocalSetting({ hypeLimit: parseInt(e.target.value) || 50 })}
+                                                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs font-black text-white outline-none focus:border-neon-purple transition-all"
+                                                                            />
+                                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-[8px] font-black text-gray-600 uppercase">MSG/MIN</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ hypeLimit: localSettings.hypeLimit })}
+                                                                        className="h-11 px-6 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-purple hover:text-white transition-all shadow-lg shadow-neon-purple/10"
+                                                                    >
+                                                                        Appliquer le seuil
+                                                                    </button>
+                                                                </div>
+                                                                <p className="text-[8px] text-gray-600 font-bold uppercase leading-relaxed max-w-2xl">
+                                                                    Définit combien de messages par minute sont nécessaires pour atteindre 100% de hype. Plus le seuil est bas, plus il est facile de déclencher l'Overdrive.
+                                                                </p>
                                                             </div>
 
                                                             <div className="space-y-6">
@@ -4046,11 +4298,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
                                         <div className="flex flex-col">
                                             <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
-                                                {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Boutique Drops' : 'Classement'}
+                                                {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Shop Officiel' : activeChatTab === 'drops-shop' ? 'Boutique Drops' : 'Classement'}
                                                 {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
                                             </h2>
                                             {/* Hype Energy Mini Gauge */}
-                                            <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
+                                            <div
+                                                className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1 cursor-pointer hover:border-white/20 transition-all"
+                                                onClick={() => setActiveChatTab('hype')}
+                                                title="Voir Hype Energy"
+                                            >
                                                 <motion.div
                                                     className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
                                                     animate={{ width: `${hypeLevel}%` }}
@@ -4063,8 +4319,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     {/* MES DROPS - CENTERED */}
                                     <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                                         <button
-                                            onClick={() => setActiveChatTab(activeChatTab === 'shop' ? 'chat' : 'shop')}
-                                            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
+                                            onClick={() => setActiveChatTab(activeChatTab === 'drops-shop' ? 'chat' : 'drops-shop')}
+                                            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'drops-shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
                                         >
                                             <span className="text-[8px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
                                             <div className="w-3.5 h-3.5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
@@ -4076,6 +4332,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="flex-1 flex items-center justify-end gap-2">
                                         {hasModPowers && (
                                             <>
+                                                <select
+                                                    value={chatCountryFilter}
+                                                    onChange={(e) => setChatCountryFilter(e.target.value)}
+                                                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-black text-white outline-none focus:border-neon-cyan transition-all appearance-none cursor-pointer hover:bg-white/5"
+                                                >
+                                                    <option value="ALL">TOUS LES PAYS</option>
+                                                    <option value="FR">FRANCE 🇫🇷</option>
+                                                    <option value="BE">BELGIQUE 🇧🇪</option>
+                                                    <option value="CH">SUISSE 🇨🇭</option>
+                                                    <option value="CA">CANADA 🇨🇦</option>
+                                                    <option value="OTHER">AUTRES 🌍</option>
+                                                </select>
                                                 <button
                                                     onClick={handleClearChat}
                                                     className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-[0_0_10px_rgba(255,18,65,0.2)]"
@@ -4097,6 +4365,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 >
                                                     <Clock className="w-3.5 h-3.5" />
                                                 </button>
+                                                {activePoll && (
+                                                    <button
+                                                        onClick={handleStopPoll}
+                                                        className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-lg animate-pulse"
+                                                        title="Arrêter le sondage"
+                                                    >
+                                                        <XIcon className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
                                             </>
                                         )}
                                     </div>
@@ -4120,6 +4397,98 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </div>
                             )
                         }
+
+                        {/* Poll Overlay - Top Center of Chat */}
+                        <AnimatePresence>
+                            {!isFocusMode && activePoll && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                    className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[320px] bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl overflow-hidden"
+                                >
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-red animate-pulse" />
+                                    <h3 className="text-[10px] font-black text-white uppercase italic tracking-widest mb-3 flex items-center justify-between">
+                                        <span className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                            Sondage En Cours
+                                        </span>
+                                        {hasModPowers && <button onClick={handleStopPoll} className="text-neon-red hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                    </h3>
+                                    <p className="text-[11px] font-bold text-white mb-4 drop-shadow-sm">{activePoll.question}</p>
+                                    <div className="space-y-2">
+                                        {activePoll.options.map((opt, i) => {
+                                            const pollTakers = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim()));
+                                            const uniquePollTakers = pollTakers.filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
+                                            const totalVotes = uniquePollTakers.length;
+                                            const optVotes = uniquePollTakers.filter(m => m.message.trim() === String(i + 1)).length;
+                                            const percentage = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+
+                                            return (
+                                                <button
+                                                    key={i}
+                                                    onClick={async () => {
+                                                        if (!isJoined) return alert("Rejoignez le chat pour voter !");
+                                                        if (votedPollIds.includes(activePoll.id)) return alert("Déjà voté !");
+
+                                                        setVotedPollIds(prev => [...prev, activePoll.id]);
+                                                        await fetch('/api/chat/messages', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify({
+                                                                pseudo: pseudo.toUpperCase(),
+                                                                country: country || 'FR',
+                                                                message: String(i + 1),
+                                                                color: userColor,
+                                                                channel: currentVideoId
+                                                            })
+                                                        });
+                                                    }}
+                                                    className="w-full relative h-10 group/vote bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden flex items-center px-4 border border-white/5 hover:border-neon-red/30 transition-all duration-300"
+                                                >
+                                                    <motion.div
+                                                        className="absolute left-0 top-0 bottom-0 bg-neon-red/20"
+                                                        initial={{ width: 0 }}
+                                                        animate={{ width: `${percentage}%` }}
+                                                        transition={{ duration: 0.8, ease: "easeOut" }}
+                                                    />
+                                                    <span className="relative z-10 text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-3">
+                                                        <span className="w-5 h-5 flex items-center justify-center bg-black/40 rounded-md text-gray-400 group-hover/vote:text-neon-red transition-colors font-mono">{i + 1}</span>
+                                                        {opt}
+                                                    </span>
+                                                    <span className="relative z-10 text-[11px] font-black text-neon-red ml-auto drop-shadow-[0_0_8px_rgba(255,0,51,0.6)] font-mono">{percentage}%</span>
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                    <p className="text-[7px] text-gray-500 uppercase tracking-[0.2em] mt-3 text-center border-t border-white/5 pt-2">Tapez le chiffre dans le chat ou cliquez</p>
+                                </motion.div>
+                            )}
+
+                            {/* Winning Result Overlay */}
+                            {!isFocusMode && lastPollResult && !activePoll && (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.8, y: -20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                                    className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[320px] bg-neon-cyan/10 backdrop-blur-2xl border border-neon-cyan/40 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,255,255,0.2)] text-center"
+                                >
+                                    <div className="absolute inset-0 bg-gradient-to-b from-neon-cyan/5 to-transparent pointer-none" />
+                                    <Trophy className="w-8 h-8 text-neon-cyan mx-auto mb-3 animate-bounce" />
+                                    <h3 className="text-[9px] font-black text-neon-cyan uppercase tracking-[0.3em] mb-2 drop-shadow-[0_0_10px_#00ffff]">Résultat Vainqueur</h3>
+                                    <p className="text-[10px] text-gray-400 uppercase mb-4 px-2 italic">{lastPollResult.question}</p>
+                                    <div className="relative inline-block">
+                                        <div className="absolute inset-0 blur-xl bg-neon-cyan/30 animate-pulse" />
+                                        <h4 className="relative text-xl font-black text-white uppercase tracking-wider drop-shadow-[0_0_15px_#fff]">
+                                            {lastPollResult.winner}
+                                        </h4>
+                                    </div>
+                                    <div className="mt-4 text-[11px] font-black text-neon-cyan font-mono drop-shadow-[0_0_5px_#00ffff]">
+                                        {lastPollResult.percentage}% DES VOTES
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
 
                         {/* Shop Widget Overhead */}
                         <AnimatePresence>
@@ -4182,19 +4551,41 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </div>
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+                                        {/* Tab Switcher - Persistent at Top */}
+                                        <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-4 relative z-20 shrink-0">
+                                            {[
+                                                { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                                                { id: 'hype', icon: Activity, label: 'Hype' },
+                                                { id: 'audio', icon: Mic, label: 'Audio' },
+                                                { id: 'shop', icon: ShoppingBag, label: 'Shop' },
+                                                { id: 'leaderboard', icon: Trophy, label: 'Top' },
+                                                ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops' }] : [])
+                                            ].map(tab => (
+                                                <button
+                                                    key={tab.id}
+                                                    onClick={() => setActiveChatTab(tab.id as any)}
+                                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                >
+                                                    <tab.icon className="w-3.5 h-3.5" />
+                                                    <span className="hidden sm:inline">{tab.label}</span>
+                                                    {activeChatTab === tab.id && (
+                                                        <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+
                                         <AnimatePresence mode="wait">
-                                            {activeChatTab === 'shop' ? (
+                                            {activeChatTab === 'drops-shop' ? (
                                                 <motion.div
-                                                    key="shop-view"
+                                                    key="drops-shop-view"
                                                     initial={{ x: 50, opacity: 0 }}
                                                     animate={{ x: 0, opacity: 1 }}
                                                     exit={{ x: -50, opacity: 0 }}
                                                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                                                     className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
                                                 >
-                                                    <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
-                                                        <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
-                                                    </button>
+                                                    {/* Drops Shop Content */}
                                                     <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
                                                         <div className="absolute inset-0 bg-neon-purple/5 blur-3xl rounded-full translate-y-12" />
                                                         <Zap className="w-12 h-12 text-neon-purple mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#9333ea]" />
@@ -4238,6 +4629,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         ))}
                                                     </div>
                                                 </motion.div>
+                                            ) : activeChatTab === 'shop' ? (
+                                                <motion.div
+                                                    key="real-shop-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 flex flex-col min-h-0 bg-black"
+                                                >
+                                                    <iframe
+                                                        src="/shop"
+                                                        className="flex-1 w-full border-none"
+                                                        title="Dropsiders Shop"
+                                                    ></iframe>
+                                                </motion.div>
                                             ) : activeChatTab === 'leaderboard' ? (
                                                 <motion.div
                                                     key="leaderboard-view"
@@ -4247,10 +4653,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                                                     className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24"
                                                 >
-                                                    <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
-                                                        <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
-                                                    </button>
-                                                    {/* PODIUM */}
+                                                    {/* Leaderboard Podium */}
                                                     <div className="flex items-end justify-center gap-2 pt-10 pb-6">
                                                         <div className="flex flex-col items-center gap-2">
                                                             <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
@@ -4293,6 +4696,73 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         ))}
                                                     </div>
                                                 </motion.div>
+                                            ) : activeChatTab === 'hype' ? (
+                                                <motion.div
+                                                    key="hype-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
+                                                >
+                                                    {/* Hype Energy Full Page View */}
+                                                    <div className="bg-gradient-to-br from-neon-purple/20 via-black to-neon-red/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
+                                                        <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
+                                                        <div className="relative flex flex-col items-center text-center">
+                                                            <div className={`w-20 h-20 rounded-full border-2 ${isOverdrive ? 'border-neon-red animate-pulse shadow-[0_0_50px_#ff0033]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-6`}>
+                                                                <Activity className={`w-10 h-10 ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`} />
+                                                            </div>
+                                                            <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Hype Energy</h4>
+                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-8">Niveau actuel de l'ambiance</p>
+
+                                                            <div className="w-full max-w-sm space-y-6">
+                                                                <div className="flex items-center justify-between px-2">
+                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Atmosphère</span>
+                                                                    <span className={`text-2xl font-black italic ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`}>{hypeLevel}%</span>
+                                                                </div>
+                                                                <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                                                                    <motion.div
+                                                                        className={`h-full rounded-full ${isOverdrive ? 'bg-gradient-to-r from-neon-red via-white to-neon-red' : 'bg-gradient-to-r from-neon-purple to-neon-red'}`}
+                                                                        animate={{ width: `${hypeLevel}%` }}
+                                                                    />
+                                                                </div>
+                                                                {isOverdrive && (
+                                                                    <div className="py-2 px-4 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
+                                                                        OVERDRIVE ACTIF - X2 DROPS
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
+                                                            <Music2 className="w-6 h-6 text-neon-cyan mb-2" />
+                                                            <span className="text-[8px] font-black text-gray-500 uppercase mb-1">BPM Actuel</span>
+                                                            <span className="text-xl font-black text-white italic">{bpm}</span>
+                                                        </div>
+                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
+                                                            <Zap className="w-6 h-6 text-neon-purple mb-2" />
+                                                            <span className="text-[8px] font-black text-gray-500 uppercase mb-1">Score Overdrive</span>
+                                                            <span className="text-xl font-black text-white italic">{(hypeLevel * 1.5).toFixed(0)}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+                                                        <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Comment augmenter la hype ?</h5>
+                                                        <ul className="space-y-3">
+                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Envoie des messages dans le chat
+                                                            </li>
+                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Utilise des émojis et réactions
+                                                            </li>
+                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-red" /> Crée des clips de tes moments favoris
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </motion.div>
                                             ) : activeChatTab === 'audio' ? (
                                                 <motion.div
                                                     key="audio-view"
@@ -4302,45 +4772,156 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                                                     className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24"
                                                 >
-                                                    <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
-                                                        <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
-                                                    </button>
-                                                    <div className="flex flex-col items-center justify-center text-center py-6">
-                                                        <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
-                                                            <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
-                                                        </div>
-                                                        <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
-                                                        <div className="w-full space-y-4">
-                                                            <button className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group">
-                                                                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
-                                                            </button>
-                                                            <div className="relative">
-                                                                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                                                    <Hash className="w-4 h-4 text-gray-500" />
+                                                    {currentAudioRoom ? (
+                                                        <div className="flex flex-col items-center justify-center text-center py-10 h-full">
+                                                            <div className="relative mb-8">
+                                                                <div className="w-24 h-24 bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(0,255,255,0.2)]">
+                                                                    <div className="absolute inset-0 bg-neon-cyan/20 rounded-full animate-ping opacity-20" />
+                                                                    <Mic className="w-10 h-10 text-neon-cyan" />
                                                                 </div>
-                                                                <input type="text" placeholder="CODE DU SALON..." className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700" />
+                                                                <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-lg border border-white/20 shadow-lg">
+                                                                    EN DIRECT
+                                                                </div>
                                                             </div>
-                                                            <button className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all">REJOINDRE</button>
-                                                        </div>
-                                                        <div className="mt-12 w-full text-left">
-                                                            <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                <Users className="w-3.5 h-3.5" /> Salons Publics
-                                                            </h5>
-                                                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.08] cursor-pointer">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                                                        <Headphones className="w-4 h-4 text-neon-cyan" />
+
+                                                            <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 select-none">
+                                                                {currentAudioRoom.name}
+                                                            </h4>
+                                                            <p className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.3em] mb-8">
+                                                                Salon ID: {currentAudioRoom.id}
+                                                            </p>
+
+                                                            <div className="w-full max-w-xs space-y-4">
+                                                                <div className="p-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center overflow-hidden">
+                                                                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentAudioRoom.host}`} alt="Host" className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                        <div className="text-left">
+                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Hôte</p>
+                                                                            <p className="text-[10px] text-white font-black uppercase">{currentAudioRoom.host}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="text-left">
-                                                                        <p className="text-[11px] font-black text-white uppercase italic tracking-widest">General Voice 01</p>
-                                                                        <p className="text-[9px] text-neon-cyan font-bold flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-neon-cyan animate-ping" /> 12 CONNECTÉS</p>
+                                                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                                                        <Users className="w-3 h-3 text-neon-cyan" />
+                                                                        <span className="text-[9px] font-black text-white uppercase">{currentAudioRoom.members}</span>
                                                                     </div>
                                                                 </div>
-                                                                <ArrowRight className="w-4 h-4 text-gray-600 group-hover:text-white transition-all group-hover:translate-x-1" />
+
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
+                                                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                            <Volume2 className="w-5 h-5 text-gray-400 group-hover:text-neon-cyan" />
+                                                                        </div>
+                                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Volume</span>
+                                                                    </button>
+                                                                    <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
+                                                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                            <MicOff className="w-5 h-5 text-gray-400 group-hover:text-neon-red" />
+                                                                        </div>
+                                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Muet</span>
+                                                                    </button>
+                                                                </div>
+
+                                                                <button
+                                                                    onClick={() => setCurrentAudioRoom(null)}
+                                                                    className="w-full py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/10 mt-4 h-14 flex items-center justify-center gap-3"
+                                                                >
+                                                                    <LogOut className="w-4 h-4" /> QUITTER LE SALON
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="mt-auto pt-8">
+                                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em] animate-pulse">
+                                                                    Connexion audio sécurisée par Dropsiders V2
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                    </div>
+                                                    ) : (
+                                                        <>
+                                                            {/* Audio Watch Party Content */}
+                                                            <div className="flex flex-col items-center justify-center text-center py-6">
+                                                                <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
+                                                                    <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
+                                                                </div>
+                                                                <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
+                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
+                                                                <div className="w-full space-y-4">
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            const roomName = prompt("Nom du salon :", `${pseudo.toUpperCase()}'S ROOM`);
+                                                                            if (!roomName) return;
+                                                                            try {
+                                                                                const res = await fetch('/api/audio/create', {
+                                                                                    method: 'POST',
+                                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                                    body: JSON.stringify({ name: roomName, host: pseudo, channel: currentVideoId })
+                                                                                });
+                                                                                if (res.ok) {
+                                                                                    const data = await res.json();
+                                                                                    setCurrentAudioRoom(data);
+                                                                                } else alert("Erreur lors de la création du salon.");
+                                                                            } catch (e) { alert("Erreur serveur."); }
+                                                                        }}
+                                                                        className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group"
+                                                                    >
+                                                                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
+                                                                    </button>
+                                                                    <div className="relative">
+                                                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                                                            <Hash className="w-4 h-4 text-gray-500" />
+                                                                        </div>
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="CODE DU SALON..."
+                                                                            value={audioRoomCode}
+                                                                            onChange={(e) => setAudioRoomCode(e.target.value)}
+                                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
+                                                                        />
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleJoinAudioRoom(audioRoomCode)}
+                                                                        className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                                                                    >
+                                                                        REJOINDRE
+                                                                    </button>
+                                                                </div>
+                                                                <div className="mt-12 w-full text-left">
+                                                                    <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                        <Users className="w-3.5 h-3.5" /> Salons Publics
+                                                                    </h5>
+                                                                    <div className="space-y-3">
+                                                                        {audioRooms.length > 0 ? (
+                                                                            audioRooms.map((room) => (
+                                                                                <div key={room.id} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.15] cursor-pointer">
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                                                                            <Headphones className="w-4 h-4 text-neon-cyan" />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <h6 className="text-[10px] font-black text-white uppercase">{room.name}</h6>
+                                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase">{room.host.toUpperCase()} • {room.members} VIEWERS</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleJoinAudioRoom(room.id); }}
+                                                                                        className="text-[8px] font-black text-neon-cyan uppercase tracking-widest bg-neon-cyan/10 px-3 py-1.5 rounded-lg border border-neon-cyan/20 group-hover:bg-neon-cyan group-hover:text-black transition-all"
+                                                                                    >
+                                                                                        REJOINDRE
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="p-8 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
+                                                                                <MicOff className="w-6 h-6 opacity-30" />
+                                                                                <span className="text-[8px] font-black uppercase tracking-widest">Aucun salon actif</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
                                                 </motion.div>
                                             ) : (
                                                 <motion.div
@@ -4424,9 +5005,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     required
                                                                                     value={country}
                                                                                     onChange={(e) => setCountry(e.target.value)}
+                                                                                    autoComplete="off"
                                                                                     className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
                                                                                 >
-                                                                                    <option value="">PAYS</option>
+                                                                                    <option value="" disabled>PAYS</option>
                                                                                     <option value="FR">🇫🇷 FR</option>
                                                                                     <option value="BE">🇧🇪 BE</option>
                                                                                     <option value="CH">🇨🇭 CH</option>
@@ -4460,151 +5042,99 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     ) : (
                                                         <>
-                                                            {/* Tab Switcher - Now at Top */}
-                                                            <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-4 relative z-20 shrink-0">
-                                                                {[
-                                                                    { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                                                                    { id: 'audio', icon: Mic, label: 'Audio' },
-                                                                    { id: 'shop', icon: Zap, label: 'Shop' },
-                                                                    { id: 'leaderboard', icon: Trophy, label: 'Top' }
-                                                                ].map(tab => (
-                                                                    <button
-                                                                        key={tab.id}
-                                                                        onClick={() => setActiveChatTab(tab.id as any)}
-                                                                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                                                    >
-                                                                        <tab.icon className="w-3.5 h-3.5" />
-                                                                        <span className="hidden sm:inline">{tab.label}</span>
-                                                                        {activeChatTab === tab.id && (
-                                                                            <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
-                                                                        )}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-
+                                                            {/* Tab Switcher - Logic moved and integrated above AnimatePresence */}
                                                             {/* Chat Messages */}
                                                             <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
-                                                                {/* Pinned Message */}
-                                                                {localPinnedMessage && !isFocusMode && (
-                                                                    <div className="sticky top-0 z-30 mb-3 bg-neon-red/10 border border-red-500/20 backdrop-blur-2xl rounded-2xl p-2.5 shadow-[0_0_30px_rgba(255,0,51,0.15)] relative overflow-hidden group/pin mt-1">
-                                                                        <div className="absolute top-0 left-0 w-1 h-full bg-neon-red" />
-                                                                        <div className="flex items-start gap-2.5">
-                                                                            <div className="p-1.5 bg-neon-red/20 rounded-lg shrink-0">
-                                                                                <Pin className="w-3 h-3 text-neon-red" />
-                                                                            </div>
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <p className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] mb-1 flex items-center gap-2">
-                                                                                    ANNOUNCE <span className="w-1 h-1 rounded-full bg-neon-red animate-pulse shadow-[0_0_5px_#ff0000]" />
-                                                                                </p>
-                                                                                <div className="text-[11px] font-bold text-white/90 leading-tight pr-6">
-                                                                                    {localPinnedMessage.split(/(https?:\/\/[^\s]+)/g).map((part: string, i: number) => (
-                                                                                        part.match(/^https?:\/\//) ? (
-                                                                                            <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan hover:underline break-all">{part}</a>
-                                                                                        ) : part
-                                                                                    ))}
-                                                                                </div>
-                                                                            </div>
-                                                                            {hasModPowers && (
-                                                                                <button
-                                                                                    onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
-                                                                                    className="absolute top-2 right-2 p-1 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white opacity-0 group-hover/pin:opacity-100 transition-all"
-                                                                                    title="Supprimer l'annonce"
-                                                                                >
-                                                                                    <X className="w-3 h-3" />
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                )}
+                                                                {messages
+                                                                    .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
+                                                                    .map((msg, idx) => {
+                                                                        const role = getRole(msg.pseudo);
+                                                                        const isMsgAdmin = role === 'admin';
+                                                                        const isMsgModo = role === 'modo';
+                                                                        const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
 
-                                                                {messages.map((msg, idx) => {
-                                                                    const role = getRole(msg.pseudo);
-                                                                    const isMsgAdmin = role === 'admin';
-                                                                    const isMsgModo = role === 'modo';
-                                                                    const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
-
-                                                                    return (
-                                                                        <motion.div
-                                                                            key={msg.id || idx}
-                                                                            initial={{ opacity: 0, x: 10 }}
-                                                                            animate={{ opacity: 1, x: 0 }}
-                                                                            className="group relative min-w-0 overflow-hidden"
-                                                                        >
-                                                                            <div className="flex items-center gap-2 mb-1 px-1">
-                                                                                <div className="w-4 flex items-center justify-center opacity-80">
-                                                                                    {getCountryFlag(msg.country || 'FR')}
-                                                                                </div>
-                                                                                <span
-                                                                                    className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
-                                                                                    style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                                                >
-                                                                                    {msg.pseudo}
-                                                                                </span>
-                                                                                {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                                                <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
-                                                                            </div>
-                                                                            <div
-                                                                                className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
-                                                                                style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
+                                                                        return (
+                                                                            <motion.div
+                                                                                key={msg.id || idx}
+                                                                                initial={{ opacity: 0, x: 10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                className="group relative min-w-0 overflow-hidden"
                                                                             >
-                                                                                {/* Message with clickable links */}
-                                                                                <span className="relative z-10">
-                                                                                    {(() => {
-                                                                                        const text = msg.message;
-                                                                                        if (!text) return null;
-                                                                                        const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                                        const parts = text.split(urlRegex);
-                                                                                        return parts.map((part: string, i: number) => {
-                                                                                            if (part.match(urlRegex)) {
-                                                                                                // Detect clip link
-                                                                                                if (part.includes('#clip-')) {
-                                                                                                    const cId = part.split('#clip-')[1];
-                                                                                                    const targetClip = clips.find(c => c.id === cId);
+                                                                                <div className="flex items-center gap-2 mb-1 px-1">
+                                                                                    <div className="w-4 flex items-center justify-center opacity-80">
+                                                                                        {getCountryFlag(msg.country || 'FR')}
+                                                                                    </div>
+                                                                                    <span
+                                                                                        className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                        style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                                                    >
+                                                                                        {msg.pseudo}
+                                                                                    </span>
+                                                                                    {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
+                                                                                    <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                                </div>
+                                                                                <div
+                                                                                    className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                                    style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
+                                                                                >
+                                                                                    {/* Message with clickable links */}
+                                                                                    <span className="relative z-10">
+                                                                                        {(() => {
+                                                                                            const text = msg.message;
+                                                                                            if (!text) return null;
+                                                                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                                            const parts = text.split(urlRegex);
+                                                                                            return parts.map((part: string, i: number) => {
+                                                                                                if (part.match(urlRegex)) {
+                                                                                                    // Detect clip link
+                                                                                                    if (part.includes('#clip-')) {
+                                                                                                        const cId = part.split('#clip-')[1];
+                                                                                                        const targetClip = clips.find(c => c.id === cId);
+                                                                                                        return (
+                                                                                                            <button
+                                                                                                                key={i}
+                                                                                                                onClick={(e) => {
+                                                                                                                    e.preventDefault();
+                                                                                                                    e.stopPropagation();
+                                                                                                                    if (targetClip) {
+                                                                                                                        setActiveClipToPlay(targetClip);
+                                                                                                                        setShowClipPlayer(true);
+                                                                                                                        setIsMutedGlobal(true);
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                                className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-2 py-0.5 rounded-md border border-neon-cyan/30 font-black transition-all flex items-center gap-1.5 inline-flex"
+                                                                                                            >
+                                                                                                                <Video className="w-3 h-3" /> VOIR LE CLIP
+                                                                                                            </button>
+                                                                                                        );
+                                                                                                    }
                                                                                                     return (
-                                                                                                        <button
+                                                                                                        <a
                                                                                                             key={i}
-                                                                                                            onClick={(e) => {
-                                                                                                                e.preventDefault();
-                                                                                                                e.stopPropagation();
-                                                                                                                if (targetClip) {
-                                                                                                                    setActiveClipToPlay(targetClip);
-                                                                                                                    setShowClipPlayer(true);
-                                                                                                                    setIsMutedGlobal(true);
-                                                                                                                }
-                                                                                                            }}
-                                                                                                            className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-2 py-0.5 rounded-md border border-neon-cyan/30 font-black transition-all flex items-center gap-1.5 inline-flex"
+                                                                                                            href={part}
+                                                                                                            target="_blank"
+                                                                                                            rel="noopener noreferrer"
+                                                                                                            className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
+                                                                                                            onClick={(e) => e.stopPropagation()}
                                                                                                         >
-                                                                                                            <Video className="w-3 h-3" /> VOIR LE CLIP
-                                                                                                        </button>
+                                                                                                            {part}
+                                                                                                        </a>
                                                                                                     );
                                                                                                 }
-                                                                                                return (
-                                                                                                    <a
-                                                                                                        key={i}
-                                                                                                        href={part}
-                                                                                                        target="_blank"
-                                                                                                        rel="noopener noreferrer"
-                                                                                                        className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
-                                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                                    >
-                                                                                                        {part}
-                                                                                                    </a>
-                                                                                                );
-                                                                                            }
-                                                                                            return part;
-                                                                                        });
-                                                                                    })()}
-                                                                                </span>
-                                                                                {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
-                                                                                        <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
-                                                                                        <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        </motion.div>
-                                                                    );
-                                                                })}
+                                                                                                return part;
+                                                                                            });
+                                                                                        })()}
+                                                                                    </span>
+                                                                                    {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                                                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
+                                                                                            <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        );
+                                                                    })}
                                                             </div>
 
                                                             {/* Chat Input Area */}
@@ -4663,7 +5193,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </AnimatePresence>
                                     </div>
                                 )}
-                            </div>
+                            </div >
 
                             {!isFocusMode && (
                                 <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
@@ -4775,258 +5305,377 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 )}
                             </AnimatePresence>
                         </div>
-                    </div >
-                </div >
+                    </div>
+                </div>
+            </div>
 
-                {/* Ticker Banner */}
-                {
-                    !isFocusMode && !isFullScreen && showTickerBanner && (
-                        <div
-                            className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
-                            style={{ backgroundColor: tickerBgColor }}
-                            onMouseEnter={() => {
-                                const ticker = document.getElementById('ticker-animate-container');
-                                if (ticker) ticker.style.animationPlayState = 'paused';
-                            }}
-                            onMouseLeave={() => {
-                                const ticker = document.getElementById('ticker-animate-container');
-                                if (ticker) ticker.style.animationPlayState = 'running';
-                            }}
-                        >
-                            <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-                            <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+            {/* Ticker Banner */}
+            {
+                !isFocusMode && !isFullScreen && showTickerBanner && (
+                    <div
+                        className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                        style={{ backgroundColor: tickerBgColor }}
+                        onMouseEnter={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'paused';
+                        }}
+                        onMouseLeave={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'running';
+                        }}
+                    >
+                        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
 
-                            <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                                {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
-                                    <a
-                                        key={`${news.id}-${i}`}
-                                        href={`/news/${news.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
-                                        style={{ color: tickerTextColor }}
-                                    >
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
+                        <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                            {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
+                                <a
+                                    key={`${news.id}-${i}`}
+                                    href={`/news/${news.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
+                                    style={{ color: tickerTextColor }}
+                                >
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
+                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
+                                </a>
+                            ))}
+
+                            {tickerType === 'planning' && (() => {
+                                const activeItems = currentFluxLineup.filter(item => !item.isPast);
+                                return activeItems.concat(activeItems).map((item, i) => (
+                                    <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </div>
+                                ));
+                            })()}
+
+                            {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
+                                tickerLink ? (
+                                    <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
                                     </a>
-                                ))}
-
-                                {tickerType === 'planning' && (() => {
-                                    const activeItems = currentFluxLineup.filter(item => !item.isPast);
-                                    return activeItems.concat(activeItems).map((item, i) => (
-                                        <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                            <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </div>
-                                    ));
-                                })()}
-
-                                {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
-                                    tickerLink ? (
-                                        <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </a>
-                                    ) : (
-                                        <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
-                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </div>
-                                    )
-                                ))}
-
-                                {tickerType === 'news' && latestNews.length === 0 && (
-                                    <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
-                                        CHARGEMENT DU FIL D'ACTUALITÉ...
+                                ) : (
+                                    <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
                                     </div>
-                                )}
-                            </div>
+                                )
+                            ))}
+
+                            {tickerType === 'news' && latestNews.length === 0 && (
+                                <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                    CHARGEMENT DU FIL D'ACTUALITÉ...
+                                </div>
+                            )}
                         </div>
-                    )
-                }
+                    </div>
+                )
+            }
 
-                {/* CLIP PLAYER POPUP */}
-                <AnimatePresence>
-                    {showClipPlayer && activeClipToPlay && (
-                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => {
-                                    setShowClipPlayer(false);
-                                    setIsMutedGlobal(false);
-                                    setActiveClipToPlay(null);
-                                }}
-                                className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
-                            />
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                                className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
-                            >
-                                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                            <Video className="w-6 h-6 text-neon-cyan" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
-                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => {
-                                            setShowClipPlayer(false);
-                                            setIsMutedGlobal(false);
-                                            setActiveClipToPlay(null);
-                                        }}
-                                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
-                                    >
-                                        <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                                    </button>
-                                </div>
-                                <div className="w-full h-full bg-black">
-                                    <iframe
-                                        className="w-full h-full"
-                                        src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
-                                        title="Clip Player"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                </div>
-                                <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="flex items-center gap-4">
-                                        <button
-                                            onClick={() => {
-                                                const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
-                                                if (navigator.share) {
-                                                    navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
-                                                } else {
-                                                    navigator.clipboard.writeText(shareText);
-                                                    alert("Lien copié !");
-                                                }
-                                            }}
-                                            className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
-                                        >
-                                            Partager le clip
-                                        </button>
-                                        <button
-                                            onClick={() => handleDownloadClip(activeClipToPlay)}
-                                            className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
-                                        >
-                                            Télécharger (HD)
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-
-                {/* Shazam Instructions Modal */}
-                <AnimatePresence>
-                    {showShazamInfo && (
+            {/* CLIP PLAYER POPUP */}
+            <AnimatePresence>
+                {showClipPlayer && activeClipToPlay && (
+                    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
-                            onClick={() => setShowShazamInfo(false)}
+                            onClick={() => {
+                                setShowClipPlayer(false);
+                                setIsMutedGlobal(false);
+                                setActiveClipToPlay(null);
+                            }}
+                            className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
                         >
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                                className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                {/* Decorative elements */}
-                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
-
-                                <div className="relative p-10 lg:p-14 text-center space-y-10">
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
-
-                                    <div className="relative flex flex-col items-center">
-                                        <div className="relative group">
-                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
-                                            <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                                <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
-                                            </div>
-                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
-                                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-8">
-                                            <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
-                                                Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
-                                            </h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
-                                        </div>
+                            <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                        <Video className="w-6 h-6 text-neon-cyan" />
                                     </div>
-
-                                    <div className="space-y-3 text-left relative z-10">
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.3 }}
-                                            className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
-                                            <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
-                                                Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
-                                            </p>
-                                        </motion.div>
-                                    </div>
-
-                                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                        <button
-                                            onClick={() => { setShowShazamInfo(false); handleShazam(); }}
-                                            className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
-                                        >
-                                            Démarrer
-                                        </button>
-                                        <button
-                                            onClick={() => setShowShazamInfo(false)}
-                                            className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
-                                        >
-                                            Annuler
-                                        </button>
+                                    <div className="flex flex-col">
+                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
+                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
                                     </div>
                                 </div>
-                            </motion.div>
+                                <button
+                                    onClick={() => {
+                                        setShowClipPlayer(false);
+                                        setIsMutedGlobal(false);
+                                        setActiveClipToPlay(null);
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
+                                >
+                                    <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                                </button>
+                            </div>
+                            <div className="w-full h-full bg-black">
+                                <iframe
+                                    className="w-full h-full"
+                                    src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
+                                    title="Clip Player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
+                                            if (navigator.share) {
+                                                navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
+                                            } else {
+                                                navigator.clipboard.writeText(shareText);
+                                                alert("Lien copié !");
+                                            }
+                                        }}
+                                        className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                    >
+                                        Partager le clip
+                                    </button>
+                                    <button
+                                        onClick={() => handleDownloadClip(activeClipToPlay)}
+                                        className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
+                                    >
+                                        Télécharger (HD)
+                                    </button>
+                                </div>
+                            </div>
                         </motion.div>
-                    )}
-                </AnimatePresence>
+                    </div>
+                )}
+            </AnimatePresence>
 
-                <style>{`
+            {/* Shazam Instructions Modal */}
+            <AnimatePresence>
+                {showShazamInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
+                        onClick={() => setShowShazamInfo(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                            className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+
+                            <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
+
+                                <div className="relative flex flex-col items-center">
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                        <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                            <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                        </div>
+                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8">
+                                        <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                            Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
+                                        </h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 text-left relative z-10">
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.3 }}
+                                        className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                        <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                            Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                        </p>
+                                    </motion.div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                    <button
+                                        onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                        className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                    >
+                                        Démarrer
+                                    </button>
+                                    <button
+                                        onClick={() => setShowShazamInfo(false)}
+                                        className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {showPollModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            className="w-full max-w-lg bg-black/60 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(255,18,65,0.15)]"
+                        >
+                            <div className="p-8 space-y-8">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center">
+                                            <BarChart3 className="w-6 h-6 text-neon-red shadow-[0_0_10px_#ff1241]" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Gestion du Sondage</h2>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Créez et contrôlez les votes en direct</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowPollModal(false)}
+                                        className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {activePoll ? (
+                                    <div className="space-y-6">
+                                        <div className="p-6 bg-white/5 border border-neon-red/20 rounded-3xl space-y-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">Sondage Actif</span>
+                                            </div>
+                                            <h3 className="text-lg font-black text-white tracking-tight leading-snug">{activePoll.question}</h3>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {activePoll.options.map((opt, i) => (
+                                                    <div key={i} className="p-3 bg-black/40 border border-white/5 rounded-2xl">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-[9px] font-black text-gray-500 uppercase">{i + 1}. {opt}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => { handleStopPoll(); setShowPollModal(false); }}
+                                            className="w-full py-5 bg-neon-red text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center gap-3"
+                                        >
+                                            <Trash2 className="w-5 h-5" /> ARRÊTER LE SONDAGE
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Question du sondage</label>
+                                                <input
+                                                    type="text"
+                                                    value={pollQuestion}
+                                                    onChange={(e) => setPollQuestion(e.target.value)}
+                                                    placeholder="VOTRE QUESTION ICI..."
+                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-700"
+                                                />
+                                            </div>
+                                            <div className="space-y-3">
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Options de réponse</label>
+                                                {pollOptions.map((opt, i) => (
+                                                    <div key={i} className="relative flex items-center">
+                                                        <div className="absolute left-6 text-[10px] font-black text-neon-red">{i + 1}</div>
+                                                        <input
+                                                            type="text"
+                                                            value={opt}
+                                                            onChange={(e) => {
+                                                                const newOpts = [...pollOptions];
+                                                                newOpts[i] = e.target.value;
+                                                                setPollOptions(newOpts);
+                                                            }}
+                                                            placeholder={`OPTION ${i + 1}...`}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xs font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-700"
+                                                        />
+                                                        {pollOptions.length > 2 && (
+                                                            <button
+                                                                onClick={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
+                                                                className="absolute right-4 text-gray-600 hover:text-neon-red transition-colors"
+                                                            >
+                                                                <X className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                                {pollOptions.length < 5 && (
+                                                    <button
+                                                        onClick={() => setPollOptions([...pollOptions, ""])}
+                                                        className="flex items-center gap-2 text-[9px] font-black text-neon-cyan uppercase tracking-widest ml-4 hover:translate-x-1 transition-transform"
+                                                    >
+                                                        <Plus className="w-4 h-4" /> Ajouter une option
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => { handleStartPoll(); setShowPollModal(false); }}
+                                            className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-cyan/20 flex items-center justify-center gap-3"
+                                        >
+                                            <Zap className="w-5 h-5 group-hover:rotate-90 transition-transform" /> LANCER LE SONDAGE
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
@@ -5082,9 +5731,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            </div >
-        </>
-    );
+        </div >
+    </div >
+</>
+);
 }
 
 export default TakeoverPage;
