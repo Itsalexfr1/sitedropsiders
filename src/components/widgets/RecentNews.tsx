@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import newsData from '../../data/news.json';
+import newsDataStatic from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
@@ -11,6 +11,24 @@ import { translateText } from '../../utils/translate';
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
+    const [newsData, setNewsData] = useState<any[]>(newsDataStatic);
+
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const response = await fetch('/api/news');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (Array.isArray(data) && data.length > 0) {
+                        setNewsData(data);
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to fetch news for recent widget:', err);
+            }
+        };
+        fetchNews();
+    }, []);
 
     const recentNews = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
@@ -35,7 +53,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 return cat.includes('news') || cat.includes('musique') || cat.includes('music');
             })
             .slice(0, 8);
-    }, []);
+    }, [newsData]);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
 

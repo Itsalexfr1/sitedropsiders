@@ -42,6 +42,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [customText, setCustomText] = useState((title || '').toUpperCase());
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
+    const [textColor, setTextColor] = useState('#ffffff');
+    const [textBgColor, setTextBgColor] = useState('transparent');
     const [isDownloading, setIsDownloading] = useState(false);
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
@@ -63,6 +65,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const logoRef = useRef<HTMLImageElement | null>(null);
+
+    // Initial load for logo
+    useEffect(() => {
+        const logo = new Image();
+        logo.src = '/Logo.png';
+        logo.crossOrigin = "anonymous";
+        logo.onload = () => { logoRef.current = logo; };
+    }, []);
 
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 230, 0', color: '#ffe600' }, // Unique Yellow/Gold
@@ -187,7 +198,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.font = `900 italic 70px "Inter", sans-serif`;
+                ctx.font = `900 italic 67px "Inter", sans-serif`;
                 const textGrad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
                 textGrad.addColorStop(0, '#ffffff');
                 textGrad.addColorStop(0.4, '#e0e0e0');
@@ -235,14 +246,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 // Artist & Title - Single Line Bold Italic
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 65px "Inter", sans-serif';
+                ctx.font = '900 italic 62px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
                 ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), centerX + slideX, centerY + radius + 140);
 
                 // Restore Ranking Number
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 150px "Inter", sans-serif';
+                ctx.font = '900 italic 147px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
@@ -271,7 +282,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 52px "Inter", sans-serif';
+                ctx.font = '900 italic 49px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
                 ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), itemX, baseY);
@@ -281,15 +292,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = activeData.color;
                 ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
-                ctx.font = '900 italic 46px "Inter", sans-serif';
+                ctx.font = '900 italic 43px "Inter", sans-serif';
                 ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 120px "Inter", sans-serif';
+                ctx.font = '900 italic 117px "Inter", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.1)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
 
             } else {
-                const fontSize = activeTab === 'PUBLICATION' ? 76 : 81; const lineHeight = fontSize * 1.2;
+                const fontSize = activeTab === 'PUBLICATION' ? 73 : 78; const lineHeight = fontSize * 1.2;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.split('\n');
                 let lines: string[] = [];
@@ -304,50 +315,48 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = safeBottom - 420; // Original preferred label position
-                const startY = labelY + 180; // Only lowered the text for more space
+                const labelY = safeBottom - 420;
+                const startY = labelY + 180;
                 ctx.fillStyle = activeData.color;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 80;
                 ctx.fillRect((canvas.width - labelW) / 2, labelY - 50, labelW, 80);
 
-                // Text color inside label: black for specific light themes
                 ctx.fillStyle = (theme === 'MUSIQUE' || theme === 'FOCUS') ? '#000' : '#fff';
-                ctx.font = '900 italic 50px "Inter", sans-serif';
+                ctx.font = '900 italic 47px "Inter", sans-serif';
                 ctx.fillText(labelText, canvas.width / 2, labelY + 5);
 
-                // Main Content Lines - Strictly limited for 1:1 format (Request 2)
                 ctx.font = `900 italic ${fontSize}px "Inter", sans-serif`;
-                ctx.fillStyle = '#fff';
-                // Max lines that fit in 1:1 safe area (roughly 1080px from top, subtract start pos)
                 const maxLines = activeTab === 'PUBLICATION' ? 8 : 10;
                 lines.slice(0, maxLines).forEach((line, i) => {
-                    if (line !== '') ctx.fillText(line.toUpperCase(), canvas.width / 2, startY + (i * lineHeight));
+                    if (line !== '') {
+                        const yPos = startY + (i * lineHeight);
+                        if (textBgColor !== 'transparent') {
+                            const textMetrics = ctx.measureText(line.toUpperCase());
+                            const padding = 20;
+                            ctx.fillStyle = textBgColor;
+                            ctx.fillRect(
+                                (canvas.width - textMetrics.width) / 2 - padding,
+                                yPos - fontSize + 10,
+                                textMetrics.width + padding * 2,
+                                fontSize + padding / 2
+                            );
+                        }
+                        ctx.fillStyle = textColor;
+                        ctx.fillText(line.toUpperCase(), canvas.width / 2, yPos);
+                    }
                 });
 
                 if (lines.length > maxLines) {
-                    // Visual indicator that text was clipped
-                    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                    ctx.font = '900 italic 30px "Inter", sans-serif';
+                    ctx.fillStyle = textColor;
+                    ctx.globalAlpha = 0.3;
+                    ctx.font = '900 italic 27px "Inter", sans-serif';
                     ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
+                    ctx.globalAlpha = 1;
                 }
             }
 
-            try {
-                const logo = new Image(); logo.src = '/Logo.png';
-                await new Promise(r => { logo.onload = r; logo.onerror = r; });
-                if (logo.complete && logo.width > 0) {
-                    const w = 320; ctx.drawImage(logo, canvas.width - w - 40, 40, w, (logo.height * w) / logo.width);
-                }
-            } catch { }
-
-            if (showSwipe) {
-                ctx.textAlign = 'right';
-                ctx.font = '900 italic 38px "Inter", sans-serif';
-                ctx.fillStyle = '#fff';
-                // Lower Swipe icon even more (Request 4)
-                ctx.fillText('>>', canvas.width - 80, canvas.height - 25);
-            }
+            // Logic removed here to be drawn at the end as overlay
 
             // 5. Apply Transition Effects (Glitch / Zoom)
             if (transitionProgress > 0) {
@@ -391,6 +400,25 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
+            // --- FINAL OVERLAYS (Logo & Swipe) ---
+            if (logoRef.current) {
+                const logo = logoRef.current;
+                const w = 320;
+                ctx.drawImage(logo, canvas.width - w - 40, 20, w, (logo.height * w) / logo.width);
+            }
+
+            if (showSwipe) {
+                ctx.save();
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'bottom';
+                ctx.font = '900 italic 45px "Inter", sans-serif';
+                ctx.fillStyle = '#fff';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 10;
+                ctx.fillText('>>', canvas.width - 40, canvas.height - 10);
+                ctx.restore();
+            }
+
         } catch (e) { console.error(e); }
     };
 
@@ -431,8 +459,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
         const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
 
-        const stream = canvas.captureStream(60);
-        const recorder = new MediaRecorder(stream, {
+        const canvasStream = canvas.captureStream(60);
+        let combinedStream = canvasStream;
+
+        if (bgVideo) {
+            try {
+                // If bgVideo has audio tracks, add them to our stream
+                const videoStream = (bgVideo as any).captureStream ? (bgVideo as any).captureStream() : (bgVideo as any).mozCaptureStream ? (bgVideo as any).mozCaptureStream() : null;
+                if (videoStream && videoStream.getAudioTracks().length > 0) {
+                    const audioTrack = videoStream.getAudioTracks()[0];
+                    combinedStream = new MediaStream([...canvasStream.getTracks(), audioTrack]);
+                }
+            } catch (e) {
+                console.error("Could not capture audio from video", e);
+            }
+        }
+
+        const recorder = new MediaRecorder(combinedStream, {
             mimeType,
             videoBitsPerSecond: 12000000 // 12Mbps for pro quality
         });
@@ -473,6 +516,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 setTransitionProgress(0);
                 await new Promise(r => setTimeout(r, 16800));
             }
+        } else {
+            // Default 15s for standard posts (News, Focus, etc.)
+            await new Promise(r => setTimeout(r, 15000));
         }
         setTransitionProgress(0); // Safety reset
         recorder.stop();
@@ -629,6 +675,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <div className="space-y-4">
                                 <span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>
                                 <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} placeholder="VOTRE TEXTE..." className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black" />
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black text-gray-500 uppercase">Couleur Texte</label>
+                                        <div className="flex gap-2 items-center">
+                                            <input type="color" value={textColor} onChange={e => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                                            <span className="text-[10px] font-mono text-white/50">{textColor}</span>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black text-gray-500 uppercase">Fond Texte</label>
+                                        <div className="flex gap-2 items-center">
+                                            <input type="color" value={textBgColor === 'transparent' ? '#000000' : textBgColor} onChange={e => setTextBgColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                                            <button onClick={() => setTextBgColor('transparent')} className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>Aucun</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>
@@ -648,9 +711,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             {activeTab === 'REEL' ? (
                                 <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}><Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE...' : `Générer Vidéo ${theme}`}</button>
                             ) : (
-                                <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger</button>
+                                <div className="space-y-2">
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
+                                        <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger</button>
+                                    </div>
+                                    <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}><Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE...' : `Générer Vidéo ${theme}`}</button>
                                 </div>
                             )}
                         </div>
