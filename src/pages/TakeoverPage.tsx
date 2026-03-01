@@ -143,6 +143,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [email, setEmail] = useState('');
     const [newsletter, setNewsletter] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showExtraFlux, setShowExtraFlux] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'moderation' | 'points' | 'shop'>('general');
     const [chat_color] = useState(() => localStorage.getItem('chat_color') || '#00ffff');
 
@@ -1057,13 +1058,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return () => clearInterval(interval);
     }, [settings]);
 
-    // Ouvre automatiquement les paramètres pour les admins/modos quand les portes se ferment
-    useEffect(() => {
-        if (showClosedDoors && hasModPowers && !showEditModal) {
-            setShowEditModal(true);
-            setActiveSettingsTab('general');
-        }
-    }, [showClosedDoors, hasModPowers, showEditModal]);
 
     const getCountryFlag = (c: string) => {
         if (!c) return <Globe className="w-3.5 h-3.5 text-gray-500" />;
@@ -1096,6 +1090,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const isAdmin = adminAuth && (pseudo === 'DROPSIDERS' || pseudo === adminUser || pseudo === 'ADMIN');
     const isModo = settings.moderators?.split(',').map(s => s.trim().toUpperCase()).includes(pseudo?.toUpperCase() || '') || hasTakeoverModoPerm || promotedModos.includes(pseudo.toUpperCase());
     const hasModPowers = isAdmin || isModo;
+
+    // Ouvre automatiquement les paramètres pour les admins/modos quand les portes se ferment
+    useEffect(() => {
+        if (showClosedDoors && hasModPowers && !showEditModal) {
+            setShowEditModal(true);
+            setActiveSettingsTab('general');
+        }
+    }, [showClosedDoors, hasModPowers, showEditModal]);
 
     const getRole = (name: string) => {
         if (name === 'DROPSIDERS' || name === adminUser) return 'admin';
@@ -1614,7 +1616,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 };
 
                 // Auto-generate channels string if stages are being updated
-                if (updates.stage1 !== undefined || updates.stage1Name !== undefined) {
+                const isStageUpdate =
+                    updates.stage1 !== undefined || updates.stage1Name !== undefined ||
+                    updates.stage2 !== undefined || updates.stage2Name !== undefined ||
+                    updates.stage3 !== undefined || updates.stage3Name !== undefined ||
+                    updates.stage4 !== undefined || updates.stage4Name !== undefined ||
+                    updates.stage5 !== undefined || updates.stage5Name !== undefined ||
+                    updates.stage6 !== undefined || updates.stage6Name !== undefined;
+
+                if (isStageUpdate) {
                     const st1 = updates.stage1 ?? stage1;
                     const st2 = updates.stage2 ?? stage2;
                     const st3 = updates.stage3 ?? stage3;
@@ -2068,7 +2078,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         })}
                                     </div>
                                     <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 h-8">
-                                        {[1, 2, 3, 4].filter(n => n <= channelItems.length).map(n => (
+                                        {[1, 2, 3, 4, 5, 6].filter(n => n <= channelItems.length).map(n => (
                                             <button
                                                 key={n}
                                                 onClick={() => setPlayersOption(n)}
@@ -3017,21 +3027,47 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Sources <span className="text-neon-cyan">Vidéo</span></h3>
                                                             </div>
-                                                            <div className="space-y-3">
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <input type="text" placeholder="Stage 1 Name" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="Stage 3 Name" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="YouTube ID" value={stage3} onChange={e => setStage3(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="Stage 4 Name" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="YouTube ID" value={stage4} onChange={e => setStage4(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="Stage 5 Name" value={stage5Name} onChange={e => setStage5Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="YouTube ID" value={stage5} onChange={e => setStage5(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="Stage 6 Name" value={stage6Name} onChange={e => setStage6Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                    <input type="text" placeholder="YouTube ID" value={stage6} onChange={e => setStage6(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                            <div className="space-y-4">
+                                                                <div className="space-y-2">
+                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Principaux (1 & 2)</p>
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        <input type="text" placeholder="Stage 1 Name" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    </div>
                                                                 </div>
+
+                                                                <div className="space-y-2">
+                                                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Secondaires (3 & 4)</p>
+                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                        <input type="text" placeholder="Stage 3 Name" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <input type="text" placeholder="YouTube ID" value={stage3} onChange={e => setStage3(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <input type="text" placeholder="Stage 4 Name" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <input type="text" placeholder="YouTube ID" value={stage4} onChange={e => setStage4(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <StyledCheckbox
+                                                                    label="Flux supplémentaires"
+                                                                    sublabel="Activer les sources 5 & 6"
+                                                                    checked={showExtraFlux}
+                                                                    onChange={() => setShowExtraFlux(!showExtraFlux)}
+                                                                    color="cyan"
+                                                                />
+
+                                                                {showExtraFlux && (
+                                                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 overflow-hidden">
+                                                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Bonus (5 & 6)</p>
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            <input type="text" placeholder="Stage 5 Name" value={stage5Name} onChange={e => setStage5Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <input type="text" placeholder="YouTube ID" value={stage5} onChange={e => setStage5(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <input type="text" placeholder="Stage 6 Name" value={stage6Name} onChange={e => setStage6Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <input type="text" placeholder="YouTube ID" value={stage6} onChange={e => setStage6(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+
                                                                 <button
                                                                     onClick={() => handleUpdateSettings({
                                                                         stage1, stage2, stage3, stage4, stage5, stage6,
@@ -3977,11 +4013,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </motion.div>
                                 </motion.div>
                             )}
-                        </AnimatePresence>
-                    </div>
+                        </AnimatePresence >
+                    </div >
 
                     {/* Chat Section */}
-                    <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]">
+                    < div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
                         {/* Glossy Header */}
                         {
                             !isFocusMode && (
@@ -4986,7 +5022,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            </div>
+            </div >
         </>
     );
 }
