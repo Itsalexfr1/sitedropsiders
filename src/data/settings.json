@@ -54,7 +54,7 @@
     "currentArtist": "RICHARD DURAND",
     "artistInstagram": "https://www.instagram.com/richarddurand/",
     "showClosedDoors": false,
-    "isOnline": false,
+    "isOnline": true,
     "dropsAmount": 150,
     "dropsIntervalMinutes": 5
   }
