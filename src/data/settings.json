@@ -53,7 +53,7 @@
     "chat_enabled": true,
     "currentArtist": "nifra",
     "artistInstagram": "https://www.instagram.com/djnifra/",
-    "showClosedDoors": true,
+    "showClosedDoors": false,
     "isOnline": false,
     "dropsAmount": 150,
     "dropsIntervalMinutes": 5,
