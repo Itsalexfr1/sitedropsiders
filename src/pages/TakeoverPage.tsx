@@ -5,8 +5,10 @@ import {
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff
+    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download
 } from 'lucide-react';
+import { GlitchTransition } from '../components/ui/GlitchTransition';
+import { Downloader } from './Downloader';
 
 const XIcon = ({ className }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -203,6 +205,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [forceScroll, setForceScroll] = useState(false);
     const isFirstJoinFetch = useRef(true);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [showDownloader, setShowDownloader] = useState(false);
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [_totalWatchTime, setTotalWatchTime] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -2373,16 +2376,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </div>
                             )}
                             <div className="flex items-center gap-2">
-                                {hasModPowers && (
-                                    <button
-                                        id="admin-edit-btn"
-                                        onClick={() => setShowEditModal(!showEditModal)}
-                                        className="p-1.5 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-lg text-gray-400 hover:text-neon-red transition-all shrink-0"
-                                        title="Modifier le Live"
-                                    >
-                                        <Pencil className="w-3.5 h-3.5" />
-                                    </button>
-                                )}
+
                                 <button
                                     onClick={() => setShowClipModal(!showClipModal)}
                                     className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showClipModal ? 'bg-neon-purple text-white border-neon-purple' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-purple hover:border-neon-purple/30'}`}
@@ -2391,6 +2385,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <Video className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Clip / VOD</span>
                                 </button>
+                                {hasModPowers && (
+                                    <button
+                                        onClick={() => setShowDownloader(true)}
+                                        className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showDownloader ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30'}`}
+                                        title="Social Downloader"
+                                    >
+                                        <Download className="w-3.5 h-3.5" />
+                                        <span className="hidden sm:inline">Downloader</span>
+                                    </button>
+                                )}
                                 <button
                                     onClick={() => {
                                         if (showLineup) {
@@ -4332,18 +4336,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="flex-1 flex items-center justify-end gap-2">
                                         {hasModPowers && (
                                             <>
-                                                <select
-                                                    value={chatCountryFilter}
-                                                    onChange={(e) => setChatCountryFilter(e.target.value)}
-                                                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-black text-white outline-none focus:border-neon-cyan transition-all appearance-none cursor-pointer hover:bg-white/5"
-                                                >
-                                                    <option value="ALL">TOUS LES PAYS</option>
-                                                    <option value="FR">FRANCE 🇫🇷</option>
-                                                    <option value="BE">BELGIQUE 🇧🇪</option>
-                                                    <option value="CH">SUISSE 🇨🇭</option>
-                                                    <option value="CA">CANADA 🇨🇦</option>
-                                                    <option value="OTHER">AUTRES 🌍</option>
-                                                </select>
+
                                                 <button
                                                     onClick={handleClearChat}
                                                     className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-[0_0_10px_rgba(255,18,65,0.2)]"
@@ -4374,6 +4367,27 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         <XIcon className="w-3.5 h-3.5" />
                                                     </button>
                                                 )}
+                                                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                                                <select
+                                                    value={chatCountryFilter}
+                                                    onChange={(e) => setChatCountryFilter(e.target.value)}
+                                                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-black text-white outline-none focus:border-neon-cyan transition-all appearance-none cursor-pointer hover:bg-white/5"
+                                                >
+                                                    <option value="ALL">🌐 FILTRE</option>
+                                                    <option value="FR">🇫🇷 FR</option>
+                                                    <option value="BE">🇧🇪 BE</option>
+                                                    <option value="CH">🇨🇭 CH</option>
+                                                    <option value="CA">🇨🇦 CA</option>
+                                                    <option value="OTHER">🌍 AUTRE</option>
+                                                </select>
+                                                <button
+                                                    id="admin-edit-btn"
+                                                    onClick={() => setShowEditModal(!showEditModal)}
+                                                    className="p-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/20 hover:border-neon-red text-neon-red hover:text-white rounded-lg transition-all shadow-[0_0_15px_rgba(255,0,51,0.2)]"
+                                                    title="Administration"
+                                                >
+                                                    <Shield className="w-3.5 h-3.5" />
+                                                </button>
                                             </>
                                         )}
                                     </div>
@@ -4576,626 +4590,628 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             ))}
                                         </div>
 
-                                        <AnimatePresence mode="wait">
-                                            {activeChatTab === 'drops-shop' ? (
-                                                <motion.div
-                                                    key="drops-shop-view"
-                                                    initial={{ x: 50, opacity: 0 }}
-                                                    animate={{ x: 0, opacity: 1 }}
-                                                    exit={{ x: -50, opacity: 0 }}
-                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
-                                                >
-                                                    {/* Drops Shop Content */}
-                                                    <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
-                                                        <div className="absolute inset-0 bg-neon-purple/5 blur-3xl rounded-full translate-y-12" />
-                                                        <Zap className="w-12 h-12 text-neon-purple mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#9333ea]" />
-                                                        <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Drops Shop</h4>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                                            Ton Solde : <strong className="text-neon-cyan">{userDrops} 💧</strong>
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 gap-4">
-                                                        {rewards.map(reward => (
-                                                            <div key={reward.id} className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
-                                                                <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
-                                                                <div className="relative flex items-center justify-between">
-                                                                    <div className="space-y-1">
-                                                                        <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                            {reward.icon === 'Smile' ? <Smile className="w-4 h-4 text-neon-purple" /> :
-                                                                                reward.icon === 'MessageSquare' ? <MessageSquare className="w-4 h-4 text-neon-cyan" /> :
-                                                                                    <Zap className="w-4 h-4 text-neon-red" />} {reward.name}
-                                                                        </h4>
-                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{reward.description}</p>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (!confirm(`Confirmer l'achat de "${reward.name}" pour ${reward.cost} Drops ?`)) return;
-                                                                            if (userDrops >= reward.cost) {
-                                                                                setUserDrops(d => d - reward.cost);
-                                                                                if (reward.id === 'pin') {
-                                                                                    setPendingUserPin(true);
-                                                                                    setActiveChatTab('chat');
-                                                                                }
-                                                                                alert(`Récompense "${reward.name}" activée !`);
-                                                                            } else alert("Pas assez de Drops !");
-                                                                        }}
-                                                                        className={`px-4 py-2 text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg ${reward.cost >= 1000 ? 'bg-neon-red' : reward.cost >= 500 ? 'bg-neon-purple' : 'bg-neon-cyan text-black'}`}
-                                                                    >
-                                                                        {reward.cost} 💧
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            ) : activeChatTab === 'shop' ? (
-                                                <motion.div
-                                                    key="real-shop-view"
-                                                    initial={{ x: 50, opacity: 0 }}
-                                                    animate={{ x: 0, opacity: 1 }}
-                                                    exit={{ x: -50, opacity: 0 }}
-                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                    className="flex-1 flex flex-col min-h-0 bg-black"
-                                                >
-                                                    <iframe
-                                                        src="/shop"
-                                                        className="flex-1 w-full border-none"
-                                                        title="Dropsiders Shop"
-                                                    ></iframe>
-                                                </motion.div>
-                                            ) : activeChatTab === 'leaderboard' ? (
-                                                <motion.div
-                                                    key="leaderboard-view"
-                                                    initial={{ x: 50, opacity: 0 }}
-                                                    animate={{ x: 0, opacity: 1 }}
-                                                    exit={{ x: -50, opacity: 0 }}
-                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24"
-                                                >
-                                                    {/* Leaderboard Podium */}
-                                                    <div className="flex items-end justify-center gap-2 pt-10 pb-6">
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
-                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-gray-400" /></div>
-                                                                <span className="text-[10px] font-black text-white/50">#2</span>
-                                                            </div>
-                                                            <div className="h-16 w-16 bg-gradient-to-t from-gray-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">DROPS_FAN</span></div>
-                                                        </div>
-                                                        <div className="flex flex-col items-center gap-2 -translate-y-4">
-                                                            <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
-                                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2"><Crown className="w-7 h-7 text-yellow-500 animate-bounce" /></div>
-                                                                <span className="text-xs font-black text-yellow-500">🏆</span>
-                                                            </div>
-                                                            <div className="h-24 w-20 bg-gradient-to-t from-yellow-400/20 to-transparent border-x border-t border-yellow-400/20 rounded-t-2xl flex flex-col items-center justify-end p-2"><span className="text-[9px] font-black text-white truncate w-full text-center">ALEXFR</span></div>
-                                                        </div>
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center relative">
-                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-orange-400" /></div>
-                                                                <span className="text-[10px] font-black text-white/50">#3</span>
-                                                            </div>
-                                                            <div className="h-12 w-16 bg-gradient-to-t from-orange-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">TECHNO...</span></div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-4">
-                                                        {[
-                                                            { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
-                                                            { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
-                                                            { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
-                                                            { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
-                                                            { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
-                                                        ].map((user) => (
-                                                            <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
-                                                                <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
-                                                                <div className="flex-1">
-                                                                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
-                                                                </div>
-                                                                <Zap className={`w-5 h-5 ${user.color}`} />
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            ) : activeChatTab === 'hype' ? (
-                                                <motion.div
-                                                    key="hype-view"
-                                                    initial={{ x: 50, opacity: 0 }}
-                                                    animate={{ x: 0, opacity: 1 }}
-                                                    exit={{ x: -50, opacity: 0 }}
-                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
-                                                >
-                                                    {/* Hype Energy Full Page View */}
-                                                    <div className="bg-gradient-to-br from-neon-purple/20 via-black to-neon-red/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
-                                                        <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
-                                                        <div className="relative flex flex-col items-center text-center">
-                                                            <div className={`w-20 h-20 rounded-full border-2 ${isOverdrive ? 'border-neon-red animate-pulse shadow-[0_0_50px_#ff0033]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-6`}>
-                                                                <Activity className={`w-10 h-10 ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`} />
-                                                            </div>
-                                                            <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Hype Energy</h4>
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-8">Niveau actuel de l'ambiance</p>
-
-                                                            <div className="w-full max-w-sm space-y-6">
-                                                                <div className="flex items-center justify-between px-2">
-                                                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Atmosphère</span>
-                                                                    <span className={`text-2xl font-black italic ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`}>{hypeLevel}%</span>
-                                                                </div>
-                                                                <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
-                                                                    <motion.div
-                                                                        className={`h-full rounded-full ${isOverdrive ? 'bg-gradient-to-r from-neon-red via-white to-neon-red' : 'bg-gradient-to-r from-neon-purple to-neon-red'}`}
-                                                                        animate={{ width: `${hypeLevel}%` }}
-                                                                    />
-                                                                </div>
-                                                                {isOverdrive && (
-                                                                    <div className="py-2 px-4 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
-                                                                        OVERDRIVE ACTIF - X2 DROPS
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
-                                                            <Music2 className="w-6 h-6 text-neon-cyan mb-2" />
-                                                            <span className="text-[8px] font-black text-gray-500 uppercase mb-1">BPM Actuel</span>
-                                                            <span className="text-xl font-black text-white italic">{bpm}</span>
-                                                        </div>
-                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
-                                                            <Zap className="w-6 h-6 text-neon-purple mb-2" />
-                                                            <span className="text-[8px] font-black text-gray-500 uppercase mb-1">Score Overdrive</span>
-                                                            <span className="text-xl font-black text-white italic">{(hypeLevel * 1.5).toFixed(0)}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-                                                        <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Comment augmenter la hype ?</h5>
-                                                        <ul className="space-y-3">
-                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Envoie des messages dans le chat
-                                                            </li>
-                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Utilise des émojis et réactions
-                                                            </li>
-                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-red" /> Crée des clips de tes moments favoris
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </motion.div>
-                                            ) : activeChatTab === 'audio' ? (
-                                                <motion.div
-                                                    key="audio-view"
-                                                    initial={{ x: 50, opacity: 0 }}
-                                                    animate={{ x: 0, opacity: 1 }}
-                                                    exit={{ x: -50, opacity: 0 }}
-                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24"
-                                                >
-                                                    {currentAudioRoom ? (
-                                                        <div className="flex flex-col items-center justify-center text-center py-10 h-full">
-                                                            <div className="relative mb-8">
-                                                                <div className="w-24 h-24 bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(0,255,255,0.2)]">
-                                                                    <div className="absolute inset-0 bg-neon-cyan/20 rounded-full animate-ping opacity-20" />
-                                                                    <Mic className="w-10 h-10 text-neon-cyan" />
-                                                                </div>
-                                                                <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-lg border border-white/20 shadow-lg">
-                                                                    EN DIRECT
-                                                                </div>
-                                                            </div>
-
-                                                            <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 select-none">
-                                                                {currentAudioRoom.name}
-                                                            </h4>
-                                                            <p className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.3em] mb-8">
-                                                                Salon ID: {currentAudioRoom.id}
+                                        <div className="relative flex-1 flex flex-col min-h-0">
+                                            <GlitchTransition trigger={activeChatTab} />
+                                            <AnimatePresence mode="wait">
+                                                {activeChatTab === 'drops-shop' ? (
+                                                    <motion.div
+                                                        key="drops-shop-view"
+                                                        initial={{ x: 50, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -50, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
+                                                    >
+                                                        {/* Drops Shop Content */}
+                                                        <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+                                                            <div className="absolute inset-0 bg-neon-purple/5 blur-3xl rounded-full translate-y-12" />
+                                                            <Zap className="w-12 h-12 text-neon-purple mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#9333ea]" />
+                                                            <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Drops Shop</h4>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                                                Ton Solde : <strong className="text-neon-cyan">{userDrops} 💧</strong>
                                                             </p>
+                                                        </div>
 
-                                                            <div className="w-full max-w-xs space-y-4">
-                                                                <div className="p-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center overflow-hidden">
-                                                                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentAudioRoom.host}`} alt="Host" className="w-full h-full object-cover" />
+                                                        <div className="grid grid-cols-1 gap-4">
+                                                            {rewards.map(reward => (
+                                                                <div key={reward.id} className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
+                                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
+                                                                    <div className="relative flex items-center justify-between">
+                                                                        <div className="space-y-1">
+                                                                            <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                                {reward.icon === 'Smile' ? <Smile className="w-4 h-4 text-neon-purple" /> :
+                                                                                    reward.icon === 'MessageSquare' ? <MessageSquare className="w-4 h-4 text-neon-cyan" /> :
+                                                                                        <Zap className="w-4 h-4 text-neon-red" />} {reward.name}
+                                                                            </h4>
+                                                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{reward.description}</p>
                                                                         </div>
-                                                                        <div className="text-left">
-                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Hôte</p>
-                                                                            <p className="text-[10px] text-white font-black uppercase">{currentAudioRoom.host}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                                                                        <Users className="w-3 h-3 text-neon-cyan" />
-                                                                        <span className="text-[9px] font-black text-white uppercase">{currentAudioRoom.members}</span>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                if (!confirm(`Confirmer l'achat de "${reward.name}" pour ${reward.cost} Drops ?`)) return;
+                                                                                if (userDrops >= reward.cost) {
+                                                                                    setUserDrops(d => d - reward.cost);
+                                                                                    if (reward.id === 'pin') {
+                                                                                        setPendingUserPin(true);
+                                                                                        setActiveChatTab('chat');
+                                                                                    }
+                                                                                    alert(`Récompense "${reward.name}" activée !`);
+                                                                                } else alert("Pas assez de Drops !");
+                                                                            }}
+                                                                            className={`px-4 py-2 text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg ${reward.cost >= 1000 ? 'bg-neon-red' : reward.cost >= 500 ? 'bg-neon-purple' : 'bg-neon-cyan text-black'}`}
+                                                                        >
+                                                                            {reward.cost} 💧
+                                                                        </button>
                                                                     </div>
                                                                 </div>
-
-                                                                <div className="grid grid-cols-2 gap-3">
-                                                                    <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
-                                                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                                            <Volume2 className="w-5 h-5 text-gray-400 group-hover:text-neon-cyan" />
-                                                                        </div>
-                                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Volume</span>
-                                                                    </button>
-                                                                    <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
-                                                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                                            <MicOff className="w-5 h-5 text-gray-400 group-hover:text-neon-red" />
-                                                                        </div>
-                                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Muet</span>
-                                                                    </button>
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                ) : activeChatTab === 'shop' ? (
+                                                    <motion.div
+                                                        key="real-shop-view"
+                                                        initial={{ x: 50, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -50, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                        className="flex-1 flex flex-col min-h-0 bg-black"
+                                                    >
+                                                        <iframe
+                                                            src="/shop"
+                                                            className="flex-1 w-full border-none"
+                                                            title="Dropsiders Shop"
+                                                        ></iframe>
+                                                    </motion.div>
+                                                ) : activeChatTab === 'leaderboard' ? (
+                                                    <motion.div
+                                                        key="leaderboard-view"
+                                                        initial={{ x: 50, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -50, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24"
+                                                    >
+                                                        {/* Leaderboard Podium */}
+                                                        <div className="flex items-end justify-center gap-2 pt-10 pb-6">
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
+                                                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-gray-400" /></div>
+                                                                    <span className="text-[10px] font-black text-white/50">#2</span>
                                                                 </div>
-
-                                                                <button
-                                                                    onClick={() => setCurrentAudioRoom(null)}
-                                                                    className="w-full py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/10 mt-4 h-14 flex items-center justify-center gap-3"
-                                                                >
-                                                                    <LogOut className="w-4 h-4" /> QUITTER LE SALON
-                                                                </button>
+                                                                <div className="h-16 w-16 bg-gradient-to-t from-gray-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">DROPS_FAN</span></div>
                                                             </div>
-
-                                                            <div className="mt-auto pt-8">
-                                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em] animate-pulse">
-                                                                    Connexion audio sécurisée par Dropsiders V2
-                                                                </p>
+                                                            <div className="flex flex-col items-center gap-2 -translate-y-4">
+                                                                <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+                                                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2"><Crown className="w-7 h-7 text-yellow-500 animate-bounce" /></div>
+                                                                    <span className="text-xs font-black text-yellow-500">🏆</span>
+                                                                </div>
+                                                                <div className="h-24 w-20 bg-gradient-to-t from-yellow-400/20 to-transparent border-x border-t border-yellow-400/20 rounded-t-2xl flex flex-col items-center justify-end p-2"><span className="text-[9px] font-black text-white truncate w-full text-center">ALEXFR</span></div>
+                                                            </div>
+                                                            <div className="flex flex-col items-center gap-2">
+                                                                <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center relative">
+                                                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-orange-400" /></div>
+                                                                    <span className="text-[10px] font-black text-white/50">#3</span>
+                                                                </div>
+                                                                <div className="h-12 w-16 bg-gradient-to-t from-orange-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">TECHNO...</span></div>
                                                             </div>
                                                         </div>
-                                                    ) : (
-                                                        <>
-                                                            {/* Audio Watch Party Content */}
-                                                            <div className="flex flex-col items-center justify-center text-center py-6">
-                                                                <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
-                                                                    <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
+                                                        <div className="space-y-4">
+                                                            {[
+                                                                { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
+                                                                { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
+                                                                { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
+                                                                { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
+                                                                { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
+                                                            ].map((user) => (
+                                                                <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
+                                                                    <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
+                                                                    <div className="flex-1">
+                                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
+                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
+                                                                    </div>
+                                                                    <Zap className={`w-5 h-5 ${user.color}`} />
                                                                 </div>
-                                                                <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
-                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
-                                                                <div className="w-full space-y-4">
-                                                                    <button
-                                                                        onClick={async () => {
-                                                                            const roomName = prompt("Nom du salon :", `${pseudo.toUpperCase()}'S ROOM`);
-                                                                            if (!roomName) return;
-                                                                            try {
-                                                                                const res = await fetch('/api/audio/create', {
-                                                                                    method: 'POST',
-                                                                                    headers: { 'Content-Type': 'application/json' },
-                                                                                    body: JSON.stringify({ name: roomName, host: pseudo, channel: currentVideoId })
-                                                                                });
-                                                                                if (res.ok) {
-                                                                                    const data = await res.json();
-                                                                                    setCurrentAudioRoom(data);
-                                                                                } else alert("Erreur lors de la création du salon.");
-                                                                            } catch (e) { alert("Erreur serveur."); }
-                                                                        }}
-                                                                        className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group"
-                                                                    >
-                                                                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
-                                                                    </button>
-                                                                    <div className="relative">
-                                                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                                                            <Hash className="w-4 h-4 text-gray-500" />
-                                                                        </div>
-                                                                        <input
-                                                                            type="text"
-                                                                            placeholder="CODE DU SALON..."
-                                                                            value={audioRoomCode}
-                                                                            onChange={(e) => setAudioRoomCode(e.target.value)}
-                                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                ) : activeChatTab === 'hype' ? (
+                                                    <motion.div
+                                                        key="hype-view"
+                                                        initial={{ x: 50, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -50, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
+                                                    >
+                                                        {/* Hype Energy Full Page View */}
+                                                        <div className="bg-gradient-to-br from-neon-purple/20 via-black to-neon-red/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
+                                                            <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
+                                                            <div className="relative flex flex-col items-center text-center">
+                                                                <div className={`w-20 h-20 rounded-full border-2 ${isOverdrive ? 'border-neon-red animate-pulse shadow-[0_0_50px_#ff0033]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-6`}>
+                                                                    <Activity className={`w-10 h-10 ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`} />
+                                                                </div>
+                                                                <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Hype Energy</h4>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-8">Niveau actuel de l'ambiance</p>
+
+                                                                <div className="w-full max-w-sm space-y-6">
+                                                                    <div className="flex items-center justify-between px-2">
+                                                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Atmosphère</span>
+                                                                        <span className={`text-2xl font-black italic ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`}>{hypeLevel}%</span>
+                                                                    </div>
+                                                                    <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
+                                                                        <motion.div
+                                                                            className={`h-full rounded-full ${isOverdrive ? 'bg-gradient-to-r from-neon-red via-white to-neon-red' : 'bg-gradient-to-r from-neon-purple to-neon-red'}`}
+                                                                            animate={{ width: `${hypeLevel}%` }}
                                                                         />
                                                                     </div>
-                                                                    <button
-                                                                        onClick={() => handleJoinAudioRoom(audioRoomCode)}
-                                                                        className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
-                                                                    >
-                                                                        REJOINDRE
-                                                                    </button>
-                                                                </div>
-                                                                <div className="mt-12 w-full text-left">
-                                                                    <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                        <Users className="w-3.5 h-3.5" /> Salons Publics
-                                                                    </h5>
-                                                                    <div className="space-y-3">
-                                                                        {audioRooms.length > 0 ? (
-                                                                            audioRooms.map((room) => (
-                                                                                <div key={room.id} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.15] cursor-pointer">
-                                                                                    <div className="flex items-center gap-3">
-                                                                                        <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                                                                            <Headphones className="w-4 h-4 text-neon-cyan" />
-                                                                                        </div>
-                                                                                        <div>
-                                                                                            <h6 className="text-[10px] font-black text-white uppercase">{room.name}</h6>
-                                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase">{room.host.toUpperCase()} • {room.members} VIEWERS</p>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleJoinAudioRoom(room.id); }}
-                                                                                        className="text-[8px] font-black text-neon-cyan uppercase tracking-widest bg-neon-cyan/10 px-3 py-1.5 rounded-lg border border-neon-cyan/20 group-hover:bg-neon-cyan group-hover:text-black transition-all"
-                                                                                    >
-                                                                                        REJOINDRE
-                                                                                    </button>
-                                                                                </div>
-                                                                            ))
-                                                                        ) : (
-                                                                            <div className="p-8 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
-                                                                                <MicOff className="w-6 h-6 opacity-30" />
-                                                                                <span className="text-[8px] font-black uppercase tracking-widest">Aucun salon actif</span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </motion.div>
-                                            ) : (
-                                                <motion.div
-                                                    key="chat-view"
-                                                    initial={{ x: 100, opacity: 0 }}
-                                                    animate={{ x: 0, opacity: 1 }}
-                                                    exit={{ x: -100, opacity: 0 }}
-                                                    transition={{ type: "spring", damping: 30, stiffness: 200 }}
-                                                    id="default-chat-view"
-                                                    className="flex-1 flex flex-col min-h-0 relative"
-                                                >
-                                                    {!isJoined ? (
-                                                        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
-                                                            {/* Background Decor */}
-                                                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
-                                                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
-                                                            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
-
-                                                            <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
-                                                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
-                                                                    <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
-                                                                        <Users className="w-10 h-10 text-white" />
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="space-y-3">
-                                                                    <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                                        Rejoins le <span className="text-neon-red">Direct</span>
-                                                                    </h3>
-                                                                    <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
-                                                                        Connecte-toi pour voir les messages<br />et participer à l'expérience !
-                                                                    </p>
-                                                                </div>
-
-                                                                <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
-                                                                    <form onSubmit={handleJoin} className="space-y-4">
-                                                                        <div className="space-y-3">
-                                                                            <div className="relative group">
-                                                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                                                                    <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                                                </div>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    placeholder="TON PSEUDO"
-                                                                                    required
-                                                                                    value={pseudo}
-                                                                                    onChange={(e) => setPseudo(e.target.value)}
-                                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                                                />
-                                                                            </div>
-
-                                                                            <div className="relative group">
-                                                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                                                                    <Mail className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                                                </div>
-                                                                                <input
-                                                                                    type="email"
-                                                                                    placeholder="TON EMAIL"
-                                                                                    required
-                                                                                    value={email}
-                                                                                    onChange={(e) => setEmail(e.target.value)}
-                                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                                                />
-                                                                            </div>
-
-                                                                            <div className="flex items-center gap-3 px-4 py-3 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                                                                <input
-                                                                                    type="checkbox"
-                                                                                    id="newsletter"
-                                                                                    checked={newsletter}
-                                                                                    onChange={(e) => setNewsletter(e.target.checked)}
-                                                                                    className="w-5 h-5 accent-neon-red cursor-pointer"
-                                                                                />
-                                                                                <label htmlFor="newsletter" className="text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer select-none">
-                                                                                    Recevoir la Newsletter & les actus (LINE UP...)
-                                                                                </label>
-                                                                            </div>
-
-                                                                            <div className="grid grid-cols-2 gap-3">
-                                                                                <select
-                                                                                    required
-                                                                                    value={country}
-                                                                                    onChange={(e) => setCountry(e.target.value)}
-                                                                                    autoComplete="off"
-                                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
-                                                                                >
-                                                                                    <option value="" disabled>PAYS</option>
-                                                                                    <option value="FR">🇫🇷 FR</option>
-                                                                                    <option value="BE">🇧🇪 BE</option>
-                                                                                    <option value="CH">🇨🇭 CH</option>
-                                                                                    <option value="OTHER">🌍 AUTRE</option>
-                                                                                </select>
-                                                                                <input
-                                                                                    type="text"
-                                                                                    placeholder={`${captchaA} + ${captchaB} = ?`}
-                                                                                    required
-                                                                                    value={captchaAnswer}
-                                                                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
-                                                                                />
-                                                                            </div>
+                                                                    {isOverdrive && (
+                                                                        <div className="py-2 px-4 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
+                                                                            OVERDRIVE ACTIF - X2 DROPS
                                                                         </div>
-
-                                                                        <button
-                                                                            type="submit"
-                                                                            className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
-                                                                        >
-                                                                            REJOINDRE LE LIVE
-                                                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                                        </button>
-
-                                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
-                                                                            En rejoignant le live, tu acceptes nos CGU
-                                                                        </p>
-                                                                    </form>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    ) : (
-                                                        <>
-                                                            {/* Tab Switcher - Logic moved and integrated above AnimatePresence */}
-                                                            {/* Chat Messages */}
-                                                            <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
-                                                                {messages
-                                                                    .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
-                                                                    .map((msg, idx) => {
-                                                                        const role = getRole(msg.pseudo);
-                                                                        const isMsgAdmin = role === 'admin';
-                                                                        const isMsgModo = role === 'modo';
-                                                                        const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
 
-                                                                        return (
-                                                                            <motion.div
-                                                                                key={msg.id || idx}
-                                                                                initial={{ opacity: 0, x: 10 }}
-                                                                                animate={{ opacity: 1, x: 0 }}
-                                                                                className="group relative min-w-0 overflow-hidden"
-                                                                            >
-                                                                                <div className="flex items-center gap-2 mb-1 px-1">
-                                                                                    <div className="w-4 flex items-center justify-center opacity-80">
-                                                                                        {getCountryFlag(msg.country || 'FR')}
-                                                                                    </div>
-                                                                                    <span
-                                                                                        className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
-                                                                                        style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                                                    >
-                                                                                        {msg.pseudo}
-                                                                                    </span>
-                                                                                    {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                                                    <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
-                                                                                </div>
-                                                                                <div
-                                                                                    className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
-                                                                                    style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
-                                                                                >
-                                                                                    {/* Message with clickable links */}
-                                                                                    <span className="relative z-10">
-                                                                                        {(() => {
-                                                                                            const text = msg.message;
-                                                                                            if (!text) return null;
-                                                                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                                            const parts = text.split(urlRegex);
-                                                                                            return parts.map((part: string, i: number) => {
-                                                                                                if (part.match(urlRegex)) {
-                                                                                                    // Detect clip link
-                                                                                                    if (part.includes('#clip-')) {
-                                                                                                        const cId = part.split('#clip-')[1];
-                                                                                                        const targetClip = clips.find(c => c.id === cId);
-                                                                                                        return (
-                                                                                                            <button
-                                                                                                                key={i}
-                                                                                                                onClick={(e) => {
-                                                                                                                    e.preventDefault();
-                                                                                                                    e.stopPropagation();
-                                                                                                                    if (targetClip) {
-                                                                                                                        setActiveClipToPlay(targetClip);
-                                                                                                                        setShowClipPlayer(true);
-                                                                                                                        setIsMutedGlobal(true);
-                                                                                                                    }
-                                                                                                                }}
-                                                                                                                className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-2 py-0.5 rounded-md border border-neon-cyan/30 font-black transition-all flex items-center gap-1.5 inline-flex"
-                                                                                                            >
-                                                                                                                <Video className="w-3 h-3" /> VOIR LE CLIP
-                                                                                                            </button>
-                                                                                                        );
-                                                                                                    }
-                                                                                                    return (
-                                                                                                        <a
-                                                                                                            key={i}
-                                                                                                            href={part}
-                                                                                                            target="_blank"
-                                                                                                            rel="noopener noreferrer"
-                                                                                                            className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
-                                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                                        >
-                                                                                                            {part}
-                                                                                                        </a>
-                                                                                                    );
-                                                                                                }
-                                                                                                return part;
-                                                                                            });
-                                                                                        })()}
-                                                                                    </span>
-                                                                                    {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                                        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
-                                                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
-                                                                                            <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </div>
-                                                                            </motion.div>
-                                                                        );
-                                                                    })}
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
+                                                                <Music2 className="w-6 h-6 text-neon-cyan mb-2" />
+                                                                <span className="text-[8px] font-black text-gray-500 uppercase mb-1">BPM Actuel</span>
+                                                                <span className="text-xl font-black text-white italic">{bpm}</span>
                                                             </div>
+                                                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
+                                                                <Zap className="w-6 h-6 text-neon-purple mb-2" />
+                                                                <span className="text-[8px] font-black text-gray-500 uppercase mb-1">Score Overdrive</span>
+                                                                <span className="text-xl font-black text-white italic">{(hypeLevel * 1.5).toFixed(0)}</span>
+                                                            </div>
+                                                        </div>
 
-                                                            {/* Chat Input Area */}
-                                                            <div className="p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
-                                                                <form onSubmit={handleSendMessage} className="relative group/input px-2 py-1">
-                                                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
-                                                                    <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                                        <div className="flex items-center px-2 py-0.5 lg:py-1">
-                                                                            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
-                                                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                                                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
+                                                            <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Comment augmenter la hype ?</h5>
+                                                            <ul className="space-y-3">
+                                                                <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Envoie des messages dans le chat
+                                                                </li>
+                                                                <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Utilise des émojis et réactions
+                                                                </li>
+                                                                <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-red" /> Crée des clips de tes moments favoris
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </motion.div>
+                                                ) : activeChatTab === 'audio' ? (
+                                                    <motion.div
+                                                        key="audio-view"
+                                                        initial={{ x: 50, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -50, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24"
+                                                    >
+                                                        {currentAudioRoom ? (
+                                                            <div className="flex flex-col items-center justify-center text-center py-10 h-full">
+                                                                <div className="relative mb-8">
+                                                                    <div className="w-24 h-24 bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(0,255,255,0.2)]">
+                                                                        <div className="absolute inset-0 bg-neon-cyan/20 rounded-full animate-ping opacity-20" />
+                                                                        <Mic className="w-10 h-10 text-neon-cyan" />
+                                                                    </div>
+                                                                    <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-lg border border-white/20 shadow-lg">
+                                                                        EN DIRECT
+                                                                    </div>
+                                                                </div>
 
-                                                                            <input
-                                                                                type="text"
-                                                                                value={newMessage}
-                                                                                onChange={(e) => setNewMessage(e.target.value)}
-                                                                                placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
-                                                                                className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
-                                                                            />
+                                                                <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 select-none">
+                                                                    {currentAudioRoom.name}
+                                                                </h4>
+                                                                <p className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.3em] mb-8">
+                                                                    Salon ID: {currentAudioRoom.id}
+                                                                </p>
 
-                                                                            <button type="button" onClick={handleShazam} className={`p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                                <Music2 className="w-5 h-5" />
-                                                                            </button>
-
-                                                                            <button
-                                                                                type="button"
-                                                                                onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
-                                                                                title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                                                className={`p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
-                                                                            >
-                                                                                <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
-                                                                            </button>
-
-                                                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
-
-
-
-
-                                                                            <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
-                                                                                <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                                            </button>
+                                                                <div className="w-full max-w-xs space-y-4">
+                                                                    <div className="p-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center overflow-hidden">
+                                                                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentAudioRoom.host}`} alt="Host" className="w-full h-full object-cover" />
+                                                                            </div>
+                                                                            <div className="text-left">
+                                                                                <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Hôte</p>
+                                                                                <p className="text-[10px] text-white font-black uppercase">{currentAudioRoom.host}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                                                            <Users className="w-3 h-3 text-neon-cyan" />
+                                                                            <span className="text-[9px] font-black text-white uppercase">{currentAudioRoom.members}</span>
                                                                         </div>
                                                                     </div>
-                                                                    {showEmojiPicker && (
-                                                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
-                                                                            {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
-                                                                                <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
-                                                                            ))}
-                                                                        </motion.div>
-                                                                    )}
-                                                                </form>
+
+                                                                    <div className="grid grid-cols-2 gap-3">
+                                                                        <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
+                                                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                                <Volume2 className="w-5 h-5 text-gray-400 group-hover:text-neon-cyan" />
+                                                                            </div>
+                                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Volume</span>
+                                                                        </button>
+                                                                        <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
+                                                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                                <MicOff className="w-5 h-5 text-gray-400 group-hover:text-neon-red" />
+                                                                            </div>
+                                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Muet</span>
+                                                                        </button>
+                                                                    </div>
+
+                                                                    <button
+                                                                        onClick={() => setCurrentAudioRoom(null)}
+                                                                        className="w-full py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/10 mt-4 h-14 flex items-center justify-center gap-3"
+                                                                    >
+                                                                        <LogOut className="w-4 h-4" /> QUITTER LE SALON
+                                                                    </button>
+                                                                </div>
+
+                                                                <div className="mt-auto pt-8">
+                                                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em] animate-pulse">
+                                                                        Connexion audio sécurisée par Dropsiders V2
+                                                                    </p>
+                                                                </div>
                                                             </div>
-                                                        </>
-                                                    )}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                                                        ) : (
+                                                            <>
+                                                                {/* Audio Watch Party Content */}
+                                                                <div className="flex flex-col items-center justify-center text-center py-6">
+                                                                    <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
+                                                                        <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
+                                                                    </div>
+                                                                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
+                                                                    <div className="w-full space-y-4">
+                                                                        <button
+                                                                            onClick={async () => {
+                                                                                const roomName = prompt("Nom du salon :", `${pseudo.toUpperCase()}'S ROOM`);
+                                                                                if (!roomName) return;
+                                                                                try {
+                                                                                    const res = await fetch('/api/audio/create', {
+                                                                                        method: 'POST',
+                                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                                        body: JSON.stringify({ name: roomName, host: pseudo, channel: currentVideoId })
+                                                                                    });
+                                                                                    if (res.ok) {
+                                                                                        const data = await res.json();
+                                                                                        setCurrentAudioRoom(data);
+                                                                                    } else alert("Erreur lors de la création du salon.");
+                                                                                } catch (e) { alert("Erreur serveur."); }
+                                                                            }}
+                                                                            className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group"
+                                                                        >
+                                                                            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
+                                                                        </button>
+                                                                        <div className="relative">
+                                                                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                                                                <Hash className="w-4 h-4 text-gray-500" />
+                                                                            </div>
+                                                                            <input
+                                                                                type="text"
+                                                                                placeholder="CODE DU SALON..."
+                                                                                value={audioRoomCode}
+                                                                                onChange={(e) => setAudioRoomCode(e.target.value)}
+                                                                                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
+                                                                            />
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => handleJoinAudioRoom(audioRoomCode)}
+                                                                            className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                                                                        >
+                                                                            REJOINDRE
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="mt-12 w-full text-left">
+                                                                        <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                            <Users className="w-3.5 h-3.5" /> Salons Publics
+                                                                        </h5>
+                                                                        <div className="space-y-3">
+                                                                            {audioRooms.length > 0 ? (
+                                                                                audioRooms.map((room) => (
+                                                                                    <div key={room.id} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.15] cursor-pointer">
+                                                                                        <div className="flex items-center gap-3">
+                                                                                            <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                                                                                <Headphones className="w-4 h-4 text-neon-cyan" />
+                                                                                            </div>
+                                                                                            <div>
+                                                                                                <h6 className="text-[10px] font-black text-white uppercase">{room.name}</h6>
+                                                                                                <p className="text-[8px] text-gray-500 font-bold uppercase">{room.host.toUpperCase()} • {room.members} VIEWERS</p>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); handleJoinAudioRoom(room.id); }}
+                                                                                            className="text-[8px] font-black text-neon-cyan uppercase tracking-widest bg-neon-cyan/10 px-3 py-1.5 rounded-lg border border-neon-cyan/20 group-hover:bg-neon-cyan group-hover:text-black transition-all"
+                                                                                        >
+                                                                                            REJOINDRE
+                                                                                        </button>
+                                                                                    </div>
+                                                                                ))
+                                                                            ) : (
+                                                                                <div className="p-8 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
+                                                                                    <MicOff className="w-6 h-6 opacity-30" />
+                                                                                    <span className="text-[8px] font-black uppercase tracking-widest">Aucun salon actif</span>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </motion.div>
+                                                ) : (
+                                                    <motion.div
+                                                        key="chat-view"
+                                                        initial={{ x: 100, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -100, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+                                                        id="default-chat-view"
+                                                        className="flex-1 flex flex-col min-h-0 relative"
+                                                    >
+                                                        {!isJoined ? (
+                                                            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
+                                                                {/* Background Decor */}
+                                                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
+                                                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
+                                                                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
+
+                                                                <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
+                                                                    <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
+                                                                        <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
+                                                                            <Users className="w-10 h-10 text-white" />
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="space-y-3">
+                                                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                                            Rejoins le <span className="text-neon-red">Direct</span>
+                                                                        </h3>
+                                                                        <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
+                                                                            Connecte-toi pour voir les messages<br />et participer à l'expérience !
+                                                                        </p>
+                                                                    </div>
+
+                                                                    <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
+                                                                        <form onSubmit={handleJoin} className="space-y-4">
+                                                                            <div className="space-y-3">
+                                                                                <div className="relative group">
+                                                                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                                                                        <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                                                                    </div>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        placeholder="TON PSEUDO"
+                                                                                        required
+                                                                                        value={pseudo}
+                                                                                        onChange={(e) => setPseudo(e.target.value)}
+                                                                                        className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                                                    />
+                                                                                </div>
+
+                                                                                <div className="relative group">
+                                                                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                                                                        <Mail className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                                                                    </div>
+                                                                                    <input
+                                                                                        type="email"
+                                                                                        placeholder="TON EMAIL"
+                                                                                        required
+                                                                                        value={email}
+                                                                                        onChange={(e) => setEmail(e.target.value)}
+                                                                                        className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                                                    />
+                                                                                </div>
+
+                                                                                <div className="flex items-center gap-3 px-4 py-3 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                                                    <input
+                                                                                        type="checkbox"
+                                                                                        id="newsletter"
+                                                                                        checked={newsletter}
+                                                                                        onChange={(e) => setNewsletter(e.target.checked)}
+                                                                                        className="w-5 h-5 accent-neon-red cursor-pointer"
+                                                                                    />
+                                                                                    <label htmlFor="newsletter" className="text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer select-none">
+                                                                                        Recevoir la Newsletter & les actus (LINE UP...)
+                                                                                    </label>
+                                                                                </div>
+
+                                                                                <div className="grid grid-cols-2 gap-3">
+                                                                                    <select
+                                                                                        required
+                                                                                        value={country}
+                                                                                        onChange={(e) => setCountry(e.target.value)}
+                                                                                        autoComplete="off"
+                                                                                        className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
+                                                                                    >
+                                                                                        <option value="" disabled>PAYS</option>
+                                                                                        <option value="FR">🇫🇷 FR</option>
+                                                                                        <option value="BE">🇧🇪 BE</option>
+                                                                                        <option value="CH">🇨🇭 CH</option>
+                                                                                        <option value="OTHER">🌍 AUTRE</option>
+                                                                                    </select>
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                                                        required
+                                                                                        value={captchaAnswer}
+                                                                                        onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                                                        className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                                                    />
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <button
+                                                                                type="submit"
+                                                                                className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
+                                                                            >
+                                                                                REJOINDRE LE LIVE
+                                                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                                            </button>
+
+                                                                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                                                                                En rejoignant le live, tu acceptes nos CGU
+                                                                            </p>
+                                                                        </form>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                {/* Tab Switcher - Logic moved and integrated above AnimatePresence */}
+                                                                {/* Chat Messages */}
+                                                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
+                                                                    {messages
+                                                                        .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
+                                                                        .map((msg, idx) => {
+                                                                            const role = getRole(msg.pseudo);
+                                                                            const isMsgAdmin = role === 'admin';
+                                                                            const isMsgModo = role === 'modo';
+                                                                            const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
+
+                                                                            return (
+                                                                                <motion.div
+                                                                                    key={msg.id || idx}
+                                                                                    initial={{ opacity: 0, x: 10 }}
+                                                                                    animate={{ opacity: 1, x: 0 }}
+                                                                                    className="group relative min-w-0 overflow-hidden"
+                                                                                >
+                                                                                    <div className="flex items-center gap-2 mb-1 px-1">
+                                                                                        <div className="w-4 flex items-center justify-center opacity-80">
+                                                                                            {getCountryFlag(msg.country || 'FR')}
+                                                                                        </div>
+                                                                                        <span
+                                                                                            className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                            style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
+                                                                                        >
+                                                                                            {msg.pseudo}
+                                                                                        </span>
+                                                                                        {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
+                                                                                        <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                                    </div>
+                                                                                    <div
+                                                                                        className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                                        style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
+                                                                                    >
+                                                                                        {/* Message with clickable links */}
+                                                                                        <span className="relative z-10">
+                                                                                            {(() => {
+                                                                                                const text = msg.message;
+                                                                                                if (!text) return null;
+                                                                                                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                                                const parts = text.split(urlRegex);
+                                                                                                return parts.map((part: string, i: number) => {
+                                                                                                    if (part.match(urlRegex)) {
+                                                                                                        // Detect clip link
+                                                                                                        if (part.includes('#clip-')) {
+                                                                                                            const cId = part.split('#clip-')[1];
+                                                                                                            const targetClip = clips.find(c => c.id === cId);
+                                                                                                            return (
+                                                                                                                <button
+                                                                                                                    key={i}
+                                                                                                                    onClick={(e) => {
+                                                                                                                        e.preventDefault();
+                                                                                                                        e.stopPropagation();
+                                                                                                                        if (targetClip) {
+                                                                                                                            setActiveClipToPlay(targetClip);
+                                                                                                                            setShowClipPlayer(true);
+                                                                                                                            setIsMutedGlobal(true);
+                                                                                                                        }
+                                                                                                                    }}
+                                                                                                                    className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-2 py-0.5 rounded-md border border-neon-cyan/30 font-black transition-all flex items-center gap-1.5 inline-flex"
+                                                                                                                >
+                                                                                                                    <Video className="w-3 h-3" /> VOIR LE CLIP
+                                                                                                                </button>
+                                                                                                            );
+                                                                                                        }
+                                                                                                        return (
+                                                                                                            <a
+                                                                                                                key={i}
+                                                                                                                href={part}
+                                                                                                                target="_blank"
+                                                                                                                rel="noopener noreferrer"
+                                                                                                                className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
+                                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                            >
+                                                                                                                {part}
+                                                                                                            </a>
+                                                                                                        );
+                                                                                                    }
+                                                                                                    return part;
+                                                                                                });
+                                                                                            })()}
+                                                                                        </span>
+                                                                                        {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                                                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
+                                                                                                <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
+                                                                                                <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </motion.div>
+                                                                            );
+                                                                        })}
+                                                                </div>
+
+                                                                {/* Chat Input Area */}
+                                                                <div className="p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
+                                                                    <form onSubmit={handleSendMessage} className="relative group/input px-2 py-1">
+                                                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
+                                                                        <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
+                                                                            <div className="flex items-center px-2 py-0.5 lg:py-1">
+                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
+                                                                                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={newMessage}
+                                                                                    onChange={(e) => setNewMessage(e.target.value)}
+                                                                                    placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
+                                                                                    className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                                />
+
+                                                                                <button type="button" onClick={handleShazam} className={`p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                                    <Music2 className="w-5 h-5" />
+                                                                                </button>
+
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
+                                                                                    title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
+                                                                                    className={`p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                                >
+                                                                                    <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                                                </button>
+
+                                                                                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+
+
+
+
+                                                                                <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                                    <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                        {showEmojiPicker && (
+                                                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
+                                                                                {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
+                                                                                    <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
+                                                                                ))}
+                                                                            </motion.div>
+                                                                        )}
+                                                                    </form>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
                                     </div>
                                 )}
-                            </div >
-
+                            </div>
                             {!isFocusMode && (
                                 <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
                                     <button
@@ -5732,6 +5748,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
+            {/* Downloader Popup */}
+            <AnimatePresence>
+                {showDownloader && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-[#111] border border-white/10 rounded-[40px] w-full max-w-4xl max-h-[90vh] overflow-y-auto relative p-2"
+                        >
+                            <button
+                                onClick={() => setShowDownloader(false)}
+                                className="absolute top-8 right-8 z-50 p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-400 hover:text-white transition-all focus:outline-none"
+                            >
+                                <XIcon className="w-5 h-5 transition-transform hover:rotate-90 text-gray-500" />
+                            </button>
+                            <Downloader isPopup={true} />
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </>
     );
 }

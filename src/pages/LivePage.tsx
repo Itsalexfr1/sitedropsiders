@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { TakeoverPage } from './TakeoverPage';
 import { apiFetch } from '../utils/auth';
+import { EqualizerLoader } from '../components/ui/EqualizerLoader';
 
 export function LivePage() {
     const [takeover, setTakeover] = useState<any>(null);
@@ -30,8 +31,9 @@ export function LivePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-neon-red"></div>
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+                <EqualizerLoader count={8} />
+                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">Syncing with satellite...</p>
             </div>
         );
     }

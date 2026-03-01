@@ -60,10 +60,10 @@ export function Navbar() {
 
     const navItems = [
         { name: t('nav.news'), path: '/news' },
+        { name: t('nav.music'), path: '/musique' },
         { name: t('nav.recaps'), path: '/recaps' },
         { name: t('nav.agenda'), path: '/agenda' },
-        { name: t('nav.galerie'), path: '/galerie' },
-
+        { name: t('nav.communaute'), path: '/communaute' },
         { name: t('nav.interviews'), path: '/interviews' },
         { name: t('nav.team'), path: '/team' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
@@ -76,7 +76,6 @@ export function Navbar() {
                 sessionStorage.removeItem('exited_live');
             }
         }] : []),
-        ...(isAdmin ? [{ name: 'Admin', path: '/admin', icon: Shield }] : []),
     ];
 
     const toggleTheme = () => {
@@ -247,6 +246,19 @@ export function Navbar() {
                             </button>
                         </div>
 
+                        {isAdmin && (
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onMouseEnter={playHoverSound}
+                                onClick={() => navigate('/admin')}
+                                className="p-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-gray-400 hover:text-neon-red hover:border-neon-red/30 transition-all shadow-lg"
+                                title="Administration"
+                            >
+                                <Shield className="w-4 h-4" />
+                            </motion.button>
+                        )}
+
                         {/* Mobile Menu Button */}
                         <div className="md:hidden">
                             <button
@@ -295,9 +307,9 @@ export function Navbar() {
                                                 if (searchQuery) setSearchQuery('');
                                                 else setIsSearchOpen(false);
                                             }}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors"
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-white/10 rounded-full transition-colors group/clear"
                                         >
-                                            <X className="w-4 h-4 text-gray-500" />
+                                            <X className="w-4 h-4 text-white hover:text-neon-red transition-colors" />
                                         </button>
                                     </div>
 

@@ -9,6 +9,7 @@ import { Interviews } from './pages/Interviews';
 import { Team } from './pages/Team';
 import { Shop } from './pages/Shop';
 import { Galerie } from './pages/Galerie';
+import { Musique } from './pages/Musique';
 import { AlbumDetail } from './pages/AlbumDetail';
 import { ArticleDetail } from './pages/ArticleDetail';
 import { RecapDetail } from './pages/RecapDetail';
@@ -45,12 +46,14 @@ import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { NotificationPrompt } from './components/NotificationPrompt';
+import { CustomCursor } from './components/ui/CustomCursor';
 
 function Root() {
   return (
     <>
       <ScrollToTop />
       <GoogleAdSense />
+      <CustomCursor />
       <Layout>
         <Outlet />
       </Layout>
@@ -66,6 +69,7 @@ const router = createBrowserRouter([
     element: <Root />,
     children: [
       { index: true, element: <Home /> },
+      { path: "musique", element: <Musique /> },
       { path: "live", element: <LivePage /> },
       { path: "news", element: <News /> },
       { path: "agenda", element: <Agenda /> },
@@ -74,7 +78,9 @@ const router = createBrowserRouter([
       { path: "team", element: <Team /> },
       { path: "shop", element: <Shop /> },
       { path: "galerie", element: <Galerie /> },
+      { path: "communaute", element: <Galerie /> },
       { path: "galerie/:id", element: <AlbumDetail /> },
+      { path: "communaute/:id", element: <AlbumDetail /> },
       { path: "news/:id", element: <ArticleDetail /> },
       { path: "interviews/:id", element: <ArticleDetail /> },
       { path: "recaps/:id", element: <RecapDetail /> },

@@ -548,7 +548,7 @@ export function AdminDashboard() {
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
         { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
         { title: "Team", description: "Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
-        { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "takeover_modo", baseColor: "red", columns: 2 }
+        { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", link: "/live", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "takeover_modo", baseColor: "red", columns: 2 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -1147,8 +1147,8 @@ export function AdminDashboard() {
                                             e.preventDefault();
                                             setIsSettingsModalOpen(true);
                                         } else if (action.title === 'LIVE / TAKEOVER') {
-                                            e.preventDefault();
-                                            setIsTakeoverModalOpen(true);
+                                            // Redirection direct vers le live
+                                            navigate('/live');
                                         } else if (action.title === 'Notifications') {
                                             e.preventDefault();
                                             setIsNotificationModalOpen(true);

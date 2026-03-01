@@ -1,18 +1,18 @@
 
 export type TranslationKey =
-    | 'nav.news' | 'nav.recaps' | 'nav.galerie' | 'nav.interviews' | 'nav.agenda' | 'nav.team' | 'nav.shop' | 'nav.contact'
+    | 'nav.news' | 'nav.recaps' | 'nav.communaute' | 'nav.music' | 'nav.interviews' | 'nav.agenda' | 'nav.team' | 'nav.shop' | 'nav.contact'
     | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.legal' | 'footer.admin' | 'footer.rights'
     | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.all_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_full_agenda' | 'home.agenda' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge' | 'home.all_events'
     | 'news.badge' | 'news.title' | 'news.title_span' | 'news.subtitle' | 'news.no_news'
     | 'recaps.badge' | 'recaps.title' | 'recaps.title_span' | 'recaps.subtitle' | 'recaps.no_recaps'
     | 'interviews.badge' | 'interviews.title' | 'interviews.title_span' | 'interviews.read_more' | 'interviews.no_interviews' | 'interviews.no_interviews_subtitle'
     | 'team.title' | 'team.join_title' | 'team.join_desc' | 'team.contact_btn'
-    | 'galerie.badge' | 'galerie.title' | 'galerie.title_span' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_portraits' | 'galerie.filter_others'
+    | 'communaute.badge' | 'communaute.title' | 'communaute.title_span' | 'communaute.filter_by' | 'communaute.view_album' | 'communaute.no_albums' | 'communaute.photos_suffix' | 'communaute.filter_all' | 'communaute.filter_festivals' | 'communaute.filter_clubs' | 'communaute.filter_concerts' | 'communaute.filter_portraits' | 'communaute.filter_others'
     | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results' | 'common.photo' | 'common.gallery_alt' | 'common.min_read'
     | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results' | 'agenda.infos_tickets' | 'agenda.no_events_selection' | 'agenda.loading'
     | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.video_subtitle' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.other_interviews' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
     | 'recap_detail.not_found_title' | 'recap_detail.not_found_btn' | 'recap_detail.back_to_recaps' | 'recap_detail.video_available' | 'recap_detail.video_title' | 'recap_detail.gallery_expand' | 'recap_detail.related_title' | 'recap_detail.view_all_recaps'
-    | 'album_detail.not_found_title' | 'album_detail.back_to_galerie' | 'album_detail.share_btn' | 'album_detail.default_category'
+    | 'album_detail.not_found_title' | 'album_detail.back_to_communaute' | 'album_detail.share_btn' | 'album_detail.default_category'
     | 'home.playlists_title' | 'home.follow' | 'recaps.no_recaps_subtitle'
     | 'newsletter.hero.badge' | 'newsletter.hero.title' | 'newsletter.hero.title_span' | 'newsletter.hero.desc' | 'newsletter.stats.subscribers' | 'newsletter.stats.frequency' | 'newsletter.stats.coverage' | 'newsletter.form.title' | 'newsletter.form.subtitle' | 'newsletter.benefits.title' | 'newsletter.benefits.subtitle' | 'newsletter.benefits.exclusive_news' | 'newsletter.benefits.exclusive_news_desc' | 'newsletter.benefits.recaps' | 'newsletter.benefits.recaps_desc' | 'newsletter.benefits.alerts' | 'newsletter.benefits.alerts_desc' | 'newsletter.benefits.content' | 'newsletter.benefits.content_desc' | 'newsletter.community.title' | 'newsletter.community.desc' | 'newsletter.community.free' | 'newsletter.community.no_spam' | 'newsletter.community.easy_unsubscribe'
     | 'newsletter_form.email_label' | 'newsletter_form.email_placeholder' | 'newsletter_form.first_name_label' | 'newsletter_form.first_name_placeholder' | 'newsletter_form.last_name_label' | 'newsletter_form.last_name_placeholder' | 'newsletter_form.submit_btn' | 'newsletter_form.submitting_btn' | 'newsletter_form.success_msg' | 'newsletter_form.error_required' | 'newsletter_form.error_invalid' | 'newsletter_form.error_server' | 'newsletter_form.privacy_notice' | 'newsletter_form.privacy_link'
@@ -21,7 +21,7 @@ export type TranslationKey =
     | 'nav.explore_styles' | 'recap.newsletter_title' | 'agenda.no_desc' | 'agenda.book_tickets'
     | 'contact.title' | 'contact.title_span' | 'contact.subtitle' | 'contact.name' | 'contact.email' | 'contact.subject' | 'contact.subject_placeholder' | 'contact.message' | 'contact.message_placeholder' | 'contact.send' | 'contact.sending' | 'contact.success' | 'contact.error_fields' | 'contact.error_send' | 'contact.subject_question' | 'contact.subject_suggestion' | 'contact.subject_partnership' | 'contact.subject_recruitment'
     | 'contact.name_placeholder' | 'contact.email_placeholder'
-    | 'interviews.title_prefix' | 'recaps.title_prefix' | 'galerie.title_prefix' | 'news.title_prefix'
+    | 'interviews.title_prefix' | 'recaps.title_prefix' | 'communaute.title_prefix' | 'news.title_prefix'
     | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage'
     | 'article_reader.play' | 'article_reader.stop' | 'article_reader.playing';
 
@@ -33,7 +33,8 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'article_detail.next': { fr: 'Suivant', en: 'Next' },
     'nav.news': { fr: 'News', en: 'News' },
     'nav.recaps': { fr: 'Récaps', en: 'Recaps' },
-    'nav.galerie': { fr: 'Galeries', en: 'Galleries' },
+    'nav.communaute': { fr: 'Communauté', en: 'Community' },
+    'nav.music': { fr: 'Musique', en: 'Music' },
     'nav.interviews': { fr: 'Interviews', en: 'Interviews' },
     'nav.agenda': { fr: 'Agenda', en: 'Agenda' },
     'nav.team': { fr: 'Team', en: 'Team' },
@@ -111,20 +112,20 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'team.join_desc': { fr: 'Vous êtes passionné par la musique électronique et les festivals ? Vous aimez écrire, photographier ou filmer ? On recherche toujours de nouveaux talents pour agrandir l\'équipe.', en: 'Are you passionate about electronic music and festivals? Do you enjoy writing, photography, or filming? We are always looking for new talents to grow the team.' },
     'team.contact_btn': { fr: 'Nous Contacter', en: 'Contact Us' },
 
-    'galerie.badge': { fr: 'Photos & Albums', en: 'Photos & Albums' },
-    'galerie.title': { fr: 'LES ', en: 'THE ' },
-    'galerie.title_span': { fr: 'GALERIES', en: 'GALLERIES' },
-    'galerie.title_prefix': { fr: 'LES ', en: 'THE ' },
-    'galerie.filter_by': { fr: 'Filtrer par :', en: 'Filter by:' },
-    'galerie.view_album': { fr: 'VOIR L\'ALBUM', en: 'VIEW ALBUM' },
-    'galerie.no_albums': { fr: 'Aucun album trouvé', en: 'No album found' },
-    'galerie.photos_suffix': { fr: 'Photos', en: 'Photos' },
-    'galerie.filter_all': { fr: 'TOUT', en: 'ALL' },
-    'galerie.filter_festivals': { fr: 'FESTIVALS', en: 'FESTIVALS' },
-    'galerie.filter_clubs': { fr: 'CLUBS & EVENTS', en: 'CLUBS & EVENTS' },
-    'galerie.filter_concerts': { fr: 'CONCERTS', en: 'CONCERTS' },
-    'galerie.filter_portraits': { fr: 'PORTRAITS', en: 'PORTRAITS' },
-    'galerie.filter_others': { fr: 'OTHERS', en: 'OTHERS' },
+    'communaute.badge': { fr: 'Photos & Albums', en: 'Photos & Albums' },
+    'communaute.title': { fr: 'LA ', en: 'THE ' },
+    'communaute.title_span': { fr: 'COMMUNAUTÉ', en: 'COMMUNITY' },
+    'communaute.title_prefix': { fr: 'LA ', en: 'THE ' },
+    'communaute.filter_by': { fr: 'Filtrer par :', en: 'Filter by:' },
+    'communaute.view_album': { fr: 'VOIR L\'ALBUM', en: 'VIEW ALBUM' },
+    'communaute.no_albums': { fr: 'Aucun album trouvé', en: 'No album found' },
+    'communaute.photos_suffix': { fr: 'Photos', en: 'Photos' },
+    'communaute.filter_all': { fr: 'TOUT', en: 'ALL' },
+    'communaute.filter_festivals': { fr: 'FESTIVALS', en: 'FESTIVALS' },
+    'communaute.filter_clubs': { fr: 'CLUBS & EVENTS', en: 'CLUBS & EVENTS' },
+    'communaute.filter_concerts': { fr: 'CONCERTS', en: 'CONCERTS' },
+    'communaute.filter_portraits': { fr: 'PORTRAITS', en: 'PORTRAITS' },
+    'communaute.filter_others': { fr: 'OTHERS', en: 'OTHERS' },
 
     'common.read_more': { fr: 'Lire la suite', en: 'Read more' },
     'common.by': { fr: 'Par', en: 'By' },
@@ -178,7 +179,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'recap_detail.view_all_recaps': { fr: 'Voir tous les récaps', en: 'View all recaps' },
 
     'album_detail.not_found_title': { fr: 'Album introuvable', en: 'Album not found' },
-    'album_detail.back_to_galerie': { fr: 'Retour à la galerie', en: 'Back to gallery' },
+    'album_detail.back_to_communaute': { fr: 'Retour à la communauté', en: 'Back to community' },
     'album_detail.share_btn': { fr: 'PARTAGER L\'ALBUM', en: 'SHARE ALBUM' },
     'album_detail.default_category': { fr: 'Album Photo', en: 'Photo Album' },
 
