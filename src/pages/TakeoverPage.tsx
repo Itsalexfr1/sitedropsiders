@@ -4596,9 +4596,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
 
                                                         {/* Chat Input Area */}
-                                                        <div className="p-4 lg:p-6 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
+                                                        <div className="p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
                                                             {/* Chat/Shop/Leaderboard/Audio Tab Switcher */}
-                                                            <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-2xl mb-4 max-w-md mx-auto">
+                                                            <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-2 max-w-md mx-auto">
                                                                 {[
                                                                     { id: 'chat', icon: MessageSquare, label: 'Chat' },
                                                                     { id: 'audio', icon: Mic, label: 'Audio' },
@@ -4608,7 +4608,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <button
                                                                         key={tab.id}
                                                                         onClick={() => setActiveChatTab(activeChatTab === tab.id ? 'chat' : tab.id as any)}
-                                                                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[8px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.id ? 'bg-white text-black shadow-lg scale-[1.05]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.id ? 'bg-white text-black shadow-lg scale-[1.05]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                                                     >
                                                                         <tab.icon className="w-3.5 h-3.5" />
                                                                         <span className="hidden sm:inline">{tab.label}</span>
@@ -4616,10 +4616,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 ))}
                                                             </div>
 
-                                                            <form onSubmit={handleSendMessage} className="relative group/input p-4">
-                                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-2xl lg:rounded-3xl transition-all" />
-                                                                <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl lg:rounded-3xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                                    <div className="flex items-center px-2 py-1 lg:py-1.5">
+                                                            <form onSubmit={handleSendMessage} className="relative group/input px-2 py-1">
+                                                                <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
+                                                                <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
+                                                                    <div className="flex items-center px-2 py-0.5 lg:py-1">
                                                                         <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
                                                                         <div className="w-[1px] h-4 bg-white/10 mx-1" />
 
@@ -4628,10 +4628,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             value={newMessage}
                                                                             onChange={(e) => setNewMessage(e.target.value)}
                                                                             placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
-                                                                            className="flex-1 bg-transparent px-3 py-3 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                            className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
                                                                         />
 
-                                                                        <button type="button" onClick={handleShazam} className={`p-2.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                        <button type="button" onClick={handleShazam} className={`p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
                                                                             <Music2 className="w-5 h-5" />
                                                                         </button>
 
@@ -4639,7 +4639,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             type="button"
                                                                             onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
                                                                             title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                                            className={`p-2.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                            className={`p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
                                                                         >
                                                                             <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
                                                                         </button>
@@ -4649,7 +4649,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-                                                                        <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-3 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                        <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
                                                                             <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
                                                                         </button>
                                                                     </div>
