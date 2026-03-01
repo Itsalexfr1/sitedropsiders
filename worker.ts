@@ -32,30 +32,42 @@ export default {
         // --- API: DOWNLOADER PROXY ---
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
-            try {
-                const cobaltResponse = await fetch('https://api.cobalt.tools/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-                    },
-                    body: JSON.stringify(body)
-                });
-                const data = await cobaltResponse.json();
-                return new Response(JSON.stringify(data), {
-                    status: cobaltResponse.status,
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*'
+
+            // Try different stable instances if the primary fails
+            const instances = ['https://api.cobalt.tools/', 'https://cobalt.im/'];
+            let lastError = null;
+
+            for (const instance of instances) {
+                try {
+                    const cobaltResponse = await fetch(instance, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                        },
+                        body: JSON.stringify(body)
+                    });
+
+                    if (cobaltResponse.ok) {
+                        const data = await cobaltResponse.json();
+                        return new Response(JSON.stringify(data), {
+                            status: 200,
+                            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                        });
+                    } else {
+                        const errData = await cobaltResponse.json().catch(() => ({}));
+                        lastError = errData.text || errData.message || `HTTP ${cobaltResponse.status}`;
                     }
-                });
-            } catch (err) {
-                return new Response(JSON.stringify({ status: 'error', text: 'Proxy error: ' + err.message }), {
-                    status: 500,
-                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-                });
+                } catch (err) {
+                    lastError = err.message;
+                }
             }
+
+            return new Response(JSON.stringify({ status: 'error', text: 'Service de téléchargement surchargé ou indisponible. Veuillez réessayer. (' + lastError + ')' }), {
+                status: 500,
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
         }
 
         // Configuration
