@@ -23,7 +23,8 @@ export type TranslationKey =
     | 'contact.name_placeholder' | 'contact.email_placeholder'
     | 'interviews.title_prefix' | 'recaps.title_prefix' | 'communaute.title_prefix' | 'news.title_prefix'
     | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage'
-    | 'article_reader.play' | 'article_reader.stop' | 'article_reader.playing';
+    | 'article_reader.play' | 'article_reader.stop' | 'article_reader.playing'
+    | 'galerie.badge' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_portraits' | 'galerie.filter_others';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copié !', en: 'Link copied!' },
@@ -274,5 +275,16 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'cookies.manage': { fr: 'Gérer', en: 'Manage' },
     'article_reader.play': { fr: "ÉCOUTER L'ARTICLE", en: 'LISTEN TO ARTICLE' },
     'article_reader.stop': { fr: 'ARRÊTER LA LECTURE', en: 'STOP READING' },
-    'article_reader.playing': { fr: 'LECTURE EN COURS...', en: 'READING...' }
+    'article_reader.playing': { fr: 'LECTURE EN COURS...', en: 'READING...' },
+    'galerie.badge': { fr: 'Photos & Albums', en: 'Photos & Albums' },
+    'galerie.filter_by': { fr: 'Filtrer par :', en: 'Filter by:' },
+    'galerie.view_album': { fr: 'VOIR L\'ALBUM', en: 'VIEW ALBUM' },
+    'galerie.no_albums': { fr: 'Aucun album trouvé', en: 'No album found' },
+    'galerie.photos_suffix': { fr: 'Photos', en: 'Photos' },
+    'galerie.filter_all': { fr: 'TOUT', en: 'ALL' },
+    'galerie.filter_festivals': { fr: 'FESTIVALS', en: 'FESTIVALS' },
+    'galerie.filter_clubs': { fr: 'CLUBS & EVENTS', en: 'CLUBS & EVENTS' },
+    'galerie.filter_concerts': { fr: 'CONCERTS', en: 'CONCERTS' },
+    'galerie.filter_portraits': { fr: 'PORTRAITS', en: 'PORTRAITS' },
+    'galerie.filter_others': { fr: 'AUTRES', en: 'OTHERS' }
 };

@@ -24,12 +24,12 @@ export function Galerie() {
     }, []);
 
     const CATEGORIES = [
-        { id: 'ALL', label: t('galerie.filter_all') },
-        { id: 'FESTIVALS', label: t('galerie.filter_festivals') },
-        { id: 'CLUBS & EVENTS', label: t('galerie.filter_clubs') },
-        { id: 'CONCERTS', label: t('galerie.filter_concerts') },
-        { id: 'PORTRAITS', label: t('galerie.filter_portraits') },
-        { id: 'OTHERS', label: t('galerie.filter_others') }
+        { id: 'ALL', label: t('communaute.filter_all') },
+        { id: 'FESTIVALS', label: t('communaute.filter_festivals') },
+        { id: 'CLUBS & EVENTS', label: t('communaute.filter_clubs') },
+        { id: 'CONCERTS', label: t('communaute.filter_concerts') },
+        { id: 'PORTRAITS', label: t('communaute.filter_portraits') },
+        { id: 'OTHERS', label: t('communaute.filter_others') }
     ];
 
     const filteredAlbums = useMemo(() => {
@@ -90,7 +90,7 @@ export function Galerie() {
                         <div className="p-2 bg-neon-red/10 rounded-lg">
                             <Camera className="w-6 h-6 text-neon-red" />
                         </div>
-                        <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('galerie.badge')}</span>
+                        <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('communaute.badge')}</span>
                     </div>
                     <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-2 uppercase italic tracking-tighter">
                         LA <span className="text-neon-red">COMMUNAUTÉ</span>
@@ -133,7 +133,7 @@ export function Galerie() {
             <div className="flex flex-wrap items-center gap-4 mb-12">
                 <div className="flex items-center gap-2 text-gray-500 mr-2">
                     <Filter className="w-4 h-4" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('communaute.filter_by')}</span>
                 </div>
                 {CATEGORIES.map((cat) => (
                     <motion.button
@@ -249,7 +249,7 @@ export function Galerie() {
                                                             {album.category}
                                                         </span>
                                                         <span className="text-[10px] font-black text-white/40 tracking-widest uppercase">
-                                                            {album.images.length}+ {t('galerie.photos_suffix').toUpperCase()}
+                                                            {album.images.length}+ {t('communaute.photos_suffix').toUpperCase()}
                                                         </span>
                                                     </div>
 
@@ -263,7 +263,7 @@ export function Galerie() {
                                                             <span className="text-[10px] font-bold uppercase tracking-widest">{album.date}</span>
                                                         </div>
                                                         <div className="flex items-center gap-1.5 text-white font-black text-[10px] uppercase tracking-widest">
-                                                            {t('galerie.view_album')} <ArrowRight className="w-4 h-4" />
+                                                            {t('communaute.view_album')} <ArrowRight className="w-4 h-4" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -273,7 +273,7 @@ export function Galerie() {
                                 ))
                             ) : (
                                 <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
-                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('galerie.no_albums')}</p>
+                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('communaute.no_albums')}</p>
                                 </div>
                             )}
                         </motion.div>

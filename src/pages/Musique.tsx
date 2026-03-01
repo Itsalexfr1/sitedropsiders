@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Disc, ExternalLink, ListMusic, TrendingUp, Zap, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
@@ -13,6 +13,7 @@ interface Track {
     url: string;
     preview?: string;
     duration?: string;
+    embedUrl?: string; // New field for iframe player
 }
 
 interface TracklistContent {
@@ -20,6 +21,7 @@ interface TracklistContent {
     title: string;
     artist: string;
     tracks: { title: string; artist: string; time?: string }[];
+    embedUrl?: string;
 }
 
 const TRACKLIST_MOCK: Record<string, TracklistContent> = {
@@ -27,6 +29,7 @@ const TRACKLIST_MOCK: Record<string, TracklistContent> = {
         id: '1001-1',
         title: 'ALESSA.A @ TOMORROWLAND 2026',
         artist: 'ALESSA.A',
+        embedUrl: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=%2Ftomorrowland%2Falessa-a-tomorrowland-belgium-2023-weekend-2%2F',
         tracks: [
             { title: 'Innerbloom', artist: 'RÜFÜS DU SOL', time: '00:00' },
             { title: 'The Feeling', artist: 'Adam Port & Stryv', time: '04:20' },
@@ -43,6 +46,7 @@ export function Musique() {
     const [playingTrack, setPlayingTrack] = useState<Track | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedTracklist, setSelectedTracklist] = useState<TracklistContent | null>(null);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
         setIsLoading(true);
@@ -51,85 +55,100 @@ export function Musique() {
     }, [activeTab]);
 
     useEffect(() => {
-        if (playingTrack) setIsPlaying(true);
-        else setIsPlaying(false);
+        if (playingTrack && !playingTrack.embedUrl) {
+            setIsPlaying(true);
+            if (audioRef.current) {
+                audioRef.current.src = playingTrack.preview || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+                audioRef.current.play().catch(e => console.log("Audio play blocked by browser", e));
+            }
+        }
     }, [playingTrack]);
+
+    useEffect(() => {
+        if (audioRef.current && !playingTrack?.embedUrl) {
+            if (isPlaying) audioRef.current.play().catch(() => { });
+            else audioRef.current.pause();
+        }
+    }, [isPlaying]);
 
     const platforms = [
         { id: 'beatport', name: 'Beatport Top 10', icon: Music, color: '#39ff14' },
         { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
         { id: 'hardtunes', name: 'Hardtunes Top 10', icon: Zap, color: '#ff00ff' },
         { id: 'juno', name: 'Juno Download Top 10', icon: ListMusic, color: '#00f0ff' },
-        { id: '1001tracklists', name: '1001Tracklists', icon: TrendingUp, color: '#ff0033' },
+        { id: '1001tracklists', name: 'Most Viewed Tracklists', icon: TrendingUp, color: '#ff0033' },
     ];
 
     const getMockData = (platform: string): Track[] => {
+        // Sample preview URL for testing
+        const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+
         if (platform === 'beatport') {
             return [
-                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42' },
-                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '6:12' },
-                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: 'Filth on Acid', url: '#', duration: '7:01' },
-                { id: 'bp-4', rank: 4, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Insomniac Records', url: '#', duration: '5:23' },
-                { id: 'bp-5', rank: 5, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: 'Sink or Swim', url: '#', duration: '5:30' },
-                { id: 'bp-6', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '6:04' },
-                { id: 'bp-7', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'HITS HARD', url: '#', duration: '5:15' },
-                { id: 'bp-8', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'Sony Music', url: '#', duration: '4:52' },
-                { id: 'bp-9', rank: 9, title: 'Never Alone (Extended Mix)', artist: 'Odd Mob, Lizzy Land', label: 'Tinted Records', url: '#', duration: '5:38' },
-                { id: 'bp-10', rank: 10, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Arkade', url: '#', duration: '6:21' },
+                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42', preview: samplePreview, embedUrl: 'https://player.beatport.com/?id=18654321&type=track' },
+                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '6:12', preview: samplePreview },
+                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: 'Filth on Acid', url: '#', duration: '7:01', preview: samplePreview },
+                { id: 'bp-4', rank: 4, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Insomniac Records', url: '#', duration: '5:23', preview: samplePreview },
+                { id: 'bp-5', rank: 5, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: 'Sink or Swim', url: '#', duration: '5:30', preview: samplePreview },
+                { id: 'bp-6', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '6:04', preview: samplePreview },
+                { id: 'bp-7', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'HITS HARD', url: '#', duration: '5:15', preview: samplePreview },
+                { id: 'bp-8', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'Sony Music', url: '#', duration: '4:52', preview: samplePreview },
+                { id: 'bp-9', rank: 9, title: 'Never Alone (Extended Mix)', artist: 'Odd Mob, Lizzy Land', label: 'Tinted Records', url: '#', duration: '5:38', preview: samplePreview },
+                { id: 'bp-10', rank: 10, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Arkade', url: '#', duration: '6:21', preview: samplePreview },
             ];
         }
         if (platform === 'traxsource') {
             return [
-                { id: 'ts-1', rank: 1, title: 'No Hesitating (Max Dean Remix)', artist: 'Joe Rolét', label: 'Solid Grooves', url: '#', duration: '6:30' },
-                { id: 'ts-2', rank: 2, title: 'Positive (Extended Mix)', artist: 'Jamback', label: 'Piv', url: '#', duration: '5:55' },
-                { id: 'ts-3', rank: 3, title: 'The Feeling', artist: 'Adam Port, Stryv', label: 'Keinemusik', url: '#', duration: '4:20' },
-                { id: 'ts-4', rank: 4, title: 'Move', artist: 'Keinemusik', label: 'Keinemusik', url: '#', duration: '7:15' },
-                { id: 'ts-5', rank: 5, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:45' },
-                { id: 'ts-6', rank: 6, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:02' },
-                { id: 'ts-7', rank: 7, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:33' },
-                { id: 'ts-8', rank: 8, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:45' },
-                { id: 'ts-9', rank: 9, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:18' },
-                { id: 'ts-10', rank: 10, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:50' },
+                { id: 'ts-1', rank: 1, title: 'No Hesitating (Max Dean Remix)', artist: 'Joe Rolét', label: 'Solid Grooves', url: '#', duration: '6:30', preview: samplePreview },
+                { id: 'ts-2', rank: 2, title: 'Positive (Extended Mix)', artist: 'Jamback', label: 'Piv', url: '#', duration: '5:55', preview: samplePreview },
+                { id: 'ts-3', rank: 3, title: 'The Feeling', artist: 'Adam Port, Stryv', label: 'Keinemusik', url: '#', duration: '4:20', preview: samplePreview },
+                { id: 'ts-4', rank: 4, title: 'Move', artist: 'Keinemusik', label: 'Keinemusik', url: '#', duration: '7:15', preview: samplePreview },
+                { id: 'ts-5', rank: 5, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:45', preview: samplePreview },
+                { id: 'ts-6', rank: 6, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:02', preview: samplePreview },
+                { id: 'ts-7', rank: 7, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:33', preview: samplePreview },
+                { id: 'ts-8', rank: 8, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:45', preview: samplePreview },
+                { id: 'ts-9', rank: 9, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:18', preview: samplePreview },
+                { id: 'ts-10', rank: 10, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:50', preview: samplePreview },
             ];
         }
         if (platform === 'hardtunes') {
             return [
-                { id: 'ht-1', rank: 1, title: 'Bigger Than Hardcore', artist: 'Angerfist', label: 'Masters of Hardcore', url: '#', duration: '4:15' },
-                { id: 'ht-2', rank: 2, title: 'Darkside', artist: 'Sefa', label: 'Sefa Music', url: '#', duration: '3:58' },
-                { id: 'ht-3', rank: 3, title: 'Warriors', artist: 'Miss K8', label: 'Masters of Hardcore', url: '#', duration: '4:05' },
-                { id: 'ht-4', rank: 4, title: 'Legacy', artist: 'Mad Dog', label: 'Dogfight Records', url: '#', duration: '4:22' },
-                { id: 'ht-5', rank: 5, title: 'Fallen Angel', artist: 'N-Vitral', label: 'Masters of Hardcore', url: '#', duration: '4:10' },
-                { id: 'ht-6', rank: 6, title: 'Psycho', artist: 'Dr. Peacock', label: 'Peacock Records', url: '#', duration: '3:45' },
-                { id: 'ht-7', rank: 7, title: 'Domination', artist: 'Deadly Guns', label: 'Blacklist', url: '#', duration: '4:30' },
-                { id: 'ht-8', rank: 8, title: 'Rebirth', artist: 'D-Sturb', label: 'End of Line', url: '#', duration: '4:02' },
-                { id: 'ht-9', rank: 9, title: 'Hyperdrive', artist: 'Sub Zero Project', label: 'Dirty Workz', url: '#', duration: '3:55' },
-                { id: 'ht-10', rank: 10, title: 'The Power', artist: 'Sound Rush', label: 'Art of Creation', url: '#', duration: '4:08' },
+                { id: 'ht-1', rank: 1, title: 'Bigger Than Hardcore', artist: 'Angerfist', label: 'Masters of Hardcore', url: '#', duration: '4:15', embedUrl: 'https://www.hardtunes.com/embed/track/angerfist-bigger-than-hardcore' },
+                { id: 'ht-2', rank: 2, title: 'Darkside', artist: 'Sefa', label: 'Sefa Music', url: '#', duration: '3:58', preview: samplePreview },
+                { id: 'ht-3', rank: 3, title: 'Warriors', artist: 'Miss K8', label: 'Masters of Hardcore', url: '#', duration: '4:05', preview: samplePreview },
+                { id: 'ht-4', rank: 4, title: 'Legacy', artist: 'Mad Dog', label: 'Dogfight Records', url: '#', duration: '4:22', preview: samplePreview },
+                { id: 'ht-5', rank: 5, title: 'Fallen Angel', artist: 'N-Vitral', label: 'Masters of Hardcore', url: '#', duration: '4:10', preview: samplePreview },
+                { id: 'ht-6', rank: 6, title: 'Psycho', artist: 'Dr. Peacock', label: 'Peacock Records', url: '#', duration: '3:45', preview: samplePreview },
+                { id: 'ht-7', rank: 7, title: 'Domination', artist: 'Deadly Guns', label: 'Blacklist', url: '#', duration: '4:30', preview: samplePreview },
+                { id: 'ht-8', rank: 8, title: 'Rebirth', artist: 'D-Sturb', label: 'End of Line', url: '#', duration: '4:02', preview: samplePreview },
+                { id: 'ht-9', rank: 9, title: 'Hyperdrive', artist: 'Sub Zero Project', label: 'Dirty Workz', url: '#', duration: '3:55', preview: samplePreview },
+                { id: 'ht-10', rank: 10, title: 'The Power', artist: 'Sound Rush', label: 'Art of Creation', url: '#', duration: '4:08', preview: samplePreview },
             ];
         }
         if (platform === 'juno') {
             return [
-                { id: 'jn-1', rank: 1, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:12' },
-                { id: 'jn-2', rank: 2, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:48' },
-                { id: 'jn-3', rank: 3, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:30' },
-                { id: 'jn-4', rank: 4, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:12' },
-                { id: 'jn-5', rank: 5, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:04' },
-                { id: 'jn-6', rank: 6, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:25' },
-                { id: 'jn-7', rank: 7, title: 'The Feeling', artist: 'Adam Port', label: 'Keinemusik', url: '#', duration: '4:18' },
-                { id: 'jn-8', rank: 8, title: 'Positive', artist: 'Jamback', label: 'Piv', url: '#', duration: '6:01' },
-                { id: 'jn-9', rank: 9, title: 'Make My Day', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '5:52' },
-                { id: 'jn-10', rank: 10, title: 'Just Like That', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '5:45' },
+                { id: 'jn-1', rank: 1, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:12', preview: samplePreview },
+                { id: 'jn-2', rank: 2, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:48', preview: samplePreview },
+                { id: 'jn-3', rank: 3, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:30', preview: samplePreview },
+                { id: 'jn-4', rank: 4, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:12', preview: samplePreview },
+                { id: 'jn-5', rank: 5, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:04', preview: samplePreview },
+                { id: 'jn-6', rank: 6, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:25', preview: samplePreview },
+                { id: 'jn-7', rank: 7, title: 'The Feeling', artist: 'Adam Port', label: 'Keinemusik', url: '#', duration: '4:18', preview: samplePreview },
+                { id: 'jn-8', rank: 8, title: 'Positive', artist: 'Jamback', label: 'Piv', url: '#', duration: '6:01', preview: samplePreview },
+                { id: 'jn-9', rank: 9, title: 'Make My Day', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '5:52', preview: samplePreview },
+                { id: 'jn-10', rank: 10, title: 'Just Like That', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '5:45', preview: samplePreview },
             ];
         }
         if (platform === '1001tracklists') {
             return [
-                { id: '1001-1', rank: 1, title: 'ALESSA.A @ TOMORROWLAND 2026', artist: 'ALESSA.A', label: 'MAINSTAGE', url: '#' },
+                { id: '1001-1', rank: 1, title: 'ALESSA.A @ TOMORROWLAND 2026', artist: 'ALESSA.A', label: 'MAINSTAGE', url: '#', embedUrl: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&feed=%2Ftomorrowland%2Falessa-a-tomorrowland-belgium-2023-weekend-2%2F' },
                 { id: '1001-2', rank: 2, title: 'DAVID GUETTA @ ULTRA MIAMI 2026', artist: 'DAVID GUETTA', label: 'MAIN STAGE', url: '#' },
                 { id: '1001-3', rank: 3, title: 'FISHER @ COACHELLA 2026', artist: 'FISHER', label: 'OUTDOOR STAGE', url: '#' },
                 { id: '1001-4', rank: 4, title: 'ANYMA @ SPHERE LAS VEGAS', artist: 'ANYMA', label: 'AFTERLIFE', url: '#' },
                 { id: '1001-5', rank: 5, title: 'CHARLOTTE DE WITTE @ AWAKENINGS', artist: 'CHARLOTTE DE WITTE', label: 'KNTXT', url: '#' },
                 { id: '1001-6', rank: 6, title: 'VINTAGE CULTURE @ HI IBIZA', artist: 'VINTAGE CULTURE', label: 'THEATRE', url: '#' },
                 { id: '1001-7', rank: 7, title: 'FRED AGAIN.. @ READING 2026', artist: 'FRED AGAIN..', label: 'MAIN STAGE', url: '#' },
-                { id: '1001-8', rank: 8, title: 'MAU P @ SPACE MIAMI', artist: 'MAU P', label: 'TERRACE', url: '#' },
+                { id: '1001-8', rank: 8, title: 'MAU P @ SPACE MIAMI', label: 'TERRACE', url: '#' },
                 { id: '1001-9', rank: 9, title: 'DOM DOLLA @ PARLOUX', artist: 'DOM DOLLA', label: 'CLUB', url: '#' },
                 { id: '1001-10', rank: 10, title: 'CARL COX @ RESISTANCE', artist: 'CARL COX', label: 'MEGASTRUCTURE', url: '#' },
             ];
@@ -137,10 +156,11 @@ export function Musique() {
         return Array.from({ length: 10 }, (_, i) => ({
             id: `${platform}-${i}`,
             rank: i + 1,
-            title: i === 0 ? 'What You Want' : `Electronic Anthem #${i + 1}`,
-            artist: i === 0 ? 'Justice, Angèle' : `Producer ${i + 1}`,
-            label: `Record Label ${i + 1}`,
-            url: '#'
+            title: `Track #${i + 1}`,
+            artist: `Producer ${i + 1}`,
+            label: `Record Label`,
+            url: '#',
+            preview: samplePreview
         }));
     };
 
@@ -150,9 +170,9 @@ export function Musique() {
                 id: track.id,
                 title: track.title,
                 artist: track.artist,
+                embedUrl: track.embedUrl,
                 tracks: [
                     { title: 'Intro (Live Edit)', artist: track.artist, time: '00:00' },
-                    { title: 'New ID (Original Mix)', artist: 'Unknown', time: '05:40' },
                     { title: 'Electronic Anthem', artist: 'Dropsiders Favorite', time: '10:15' }
                 ]
             });
@@ -163,6 +183,7 @@ export function Musique() {
 
     return (
         <div className="min-h-screen pt-32 pb-20 px-4 md:px-12 xl:px-16 2xl:px-24 bg-[#050505]">
+            <audio ref={audioRef} onEnded={() => setIsPlaying(false)} />
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -310,62 +331,80 @@ export function Musique() {
                         initial={{ opacity: 0, y: 100 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 100 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[90%] md:w-[600px] z-[200]"
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[95%] md:w-[700px] z-[200]"
                     >
-                        <div className="relative bg-black border-2 border-white/10 rounded-3xl p-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden group">
+                        <div className="relative bg-black border-2 border-white/10 rounded-3xl p-4 md:p-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden group">
                             {/* Player BG Glow */}
                             <div className="absolute inset-0 bg-neon-red/5" />
 
-                            <div className="relative flex items-center gap-6">
-                                <div className="w-20 h-20 bg-neon-red rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(255,17,17,0.3)] animate-spin-slow">
-                                    <Disc className="w-10 h-10 text-white" />
+                            {/* Header Player */}
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Studio Player 2026</span>
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-[9px] font-black text-neon-red uppercase tracking-widest animate-pulse">
-                                            Now Previewing • Top Chart
-                                        </span>
-                                        <button onClick={() => setPlayingTrack(null)} className="text-gray-500 hover:text-white transition-colors">
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <h4 className="text-lg font-black text-white uppercase italic tracking-tight truncate">
-                                        {playingTrack.title}
-                                    </h4>
-                                    <p className="text-[11px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-4">
-                                        {playingTrack.artist}
-                                    </p>
+                                <button onClick={() => setPlayingTrack(null)} className="text-gray-500 hover:text-white transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
 
-                                    {/* Progress Bar */}
-                                    <div className="space-y-2">
-                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                            <motion.div
-                                                className="h-full bg-neon-red"
-                                                initial={{ width: "0%" }}
-                                                animate={{ width: "65%" }}
-                                                transition={{ duration: 30, repeat: Infinity }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-[8px] font-bold text-gray-500">
-                                            <span>01:45</span>
-                                            <span>{playingTrack.duration || '05:30'}</span>
-                                        </div>
+                            <div className="relative flex flex-col md:flex-row items-center gap-6">
+                                {playingTrack.embedUrl ? (
+                                    <div className="w-full h-[120px] rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+                                        <iframe
+                                            src={playingTrack.embedUrl}
+                                            width="100%"
+                                            height="100%"
+                                            frameBorder="0"
+                                            allow="autoplay"
+                                            className="grayscale hover:grayscale-0 transition-all duration-700"
+                                        ></iframe>
                                     </div>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        onClick={() => setIsPlaying(!isPlaying)}
-                                        className="p-4 bg-white text-black rounded-2xl shadow-xl"
-                                    >
-                                        {isPlaying ? (
-                                            <Pause className="w-6 h-6 fill-black" />
-                                        ) : (
-                                            <Play className="w-6 h-6 fill-black" />
-                                        )}
-                                    </motion.button>
-                                </div>
+                                ) : (
+                                    <>
+                                        <div className="w-20 h-20 bg-neon-red rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(255,17,17,0.3)] animate-spin-slow">
+                                            <Disc className="w-10 h-10 text-white" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-lg font-black text-white uppercase italic tracking-tight truncate">
+                                                {playingTrack.title}
+                                            </h4>
+                                            <p className="text-[11px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-4">
+                                                {playingTrack.artist}
+                                            </p>
+
+                                            {/* Progress Bar */}
+                                            <div className="space-y-2">
+                                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                    <motion.div
+                                                        className="h-full bg-neon-red"
+                                                        initial={{ width: "0%" }}
+                                                        animate={{ width: isPlaying ? "100%" : "0%" }}
+                                                        transition={{ duration: 30, ease: "linear" }}
+                                                    />
+                                                </div>
+                                                <div className="flex justify-between text-[8px] font-bold text-gray-500">
+                                                    <span>LIVE PREVIEW</span>
+                                                    <span>{playingTrack.duration || '05:30'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-2">
+                                            <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() => setIsPlaying(!isPlaying)}
+                                                className="p-4 bg-white text-black rounded-2xl shadow-xl"
+                                            >
+                                                {isPlaying ? (
+                                                    <Pause className="w-6 h-6 fill-black" />
+                                                ) : (
+                                                    <Play className="w-6 h-6 fill-black" />
+                                                )}
+                                            </motion.button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -412,6 +451,12 @@ export function Musique() {
 
                             {/* Tracks Area */}
                             <div className="p-8 md:p-12 h-[450px] overflow-y-auto custom-scrollbar">
+                                {selectedTracklist.embedUrl && (
+                                    <div className="mb-8 rounded-3xl overflow-hidden border border-white/10 bg-black">
+                                        <iframe width="100%" height="120" src={selectedTracklist.embedUrl} frameBorder="0"></iframe>
+                                    </div>
+                                )}
+
                                 <div className="space-y-6">
                                     {selectedTracklist.tracks.map((t, idx) => (
                                         <motion.div
