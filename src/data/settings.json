@@ -53,7 +53,7 @@
     "chat_enabled": true,
     "currentArtist": "RICHARD DURAND",
     "artistInstagram": "https://www.instagram.com/richarddurand/",
-    "showClosedDoors": false,
+    "showClosedDoors": true,
     "isOnline": true,
     "dropsAmount": 150,
     "dropsIntervalMinutes": 5
