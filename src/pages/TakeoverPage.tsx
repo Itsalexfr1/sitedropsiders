@@ -1053,9 +1053,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             } catch (err: any) { }
         };
 
-        const interval = setInterval(pollSettings, 5000); // Sync every 5s
+        const interval = setInterval(pollSettings, 3000); // Polling plus rapide (3s) pour le temps réel
         return () => clearInterval(interval);
     }, [settings]);
+
+    // Ouvre automatiquement les paramètres pour les admins/modos quand les portes se ferment
+    useEffect(() => {
+        if (showClosedDoors && hasModPowers && !showEditModal) {
+            setShowEditModal(true);
+            setActiveSettingsTab('general');
+        }
+    }, [showClosedDoors, hasModPowers, showEditModal]);
 
     const getCountryFlag = (c: string) => {
         if (!c) return <Globe className="w-3.5 h-3.5 text-gray-500" />;
@@ -2284,7 +2292,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         {/* CLOSED DOOR EFFECT - ABSOLUTE PRIORITY */}
                                         <AnimatePresence mode="wait">
                                             {(showClosedDoors || settings.showClosedDoors) && (
-                                                <div className="absolute inset-0 z-[1000] flex">
+                                                <div className="absolute inset-0 z-[2000] flex">
                                                     {/* LEFT PANEL */}
                                                     <motion.div
                                                         initial={{ x: '-100%' }}
@@ -2993,10 +3001,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 />
                                                                 <StyledCheckbox
                                                                     label="Effet Fermeture"
-                                                                    sublabel="Mode Portes Fermées"
+                                                                    sublabel={settings.showClosedDoors ? "Portes Fermées (Mode Hors-Live)" : "Portes Ouvertes (Mode Live)"}
                                                                     checked={!!settings.showClosedDoors}
                                                                     onChange={() => handleUpdateSettings({ showClosedDoors: !settings.showClosedDoors })}
-                                                                    color="red"
+                                                                    color={settings.showClosedDoors ? 'red' : 'green'}
                                                                 />
                                                             </div>
                                                         </div>
