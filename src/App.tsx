@@ -39,6 +39,7 @@ import { AdminSettings } from './pages/AdminSettings';
 import { AdminMessages } from './pages/AdminMessages';
 import { AdminBanner } from './pages/AdminBanner';
 import { Contact } from './pages/Contact';
+import { Downloader } from './pages/Downloader';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import { CookieConsent } from './components/ui/CookieConsent';
@@ -85,6 +86,7 @@ const router = createBrowserRouter([
       { path: "kit-media", element: <KitMedia /> },
       { path: "clips", element: <ClipsPage /> },
       { path: "contact", element: <Contact /> },
+      { path: "downloader", element: <Downloader /> },
 
       // Admin Routes
       { path: "admin", element: <AdminDashboard /> },

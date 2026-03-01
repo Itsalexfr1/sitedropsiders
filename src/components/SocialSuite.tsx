@@ -259,7 +259,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
-                const baseY = 1500;
+                const baseY = 1540;
                 const itemX = 100 + slideX;
 
                 if (item.photo) {
@@ -296,8 +296,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 117px "Inter", sans-serif';
-                ctx.fillStyle = 'rgba(255,255,255,0.1)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
+                ctx.fillStyle = 'rgba(255,255,255,0.15)';
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, baseY - 20);
 
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 73 : 78; const lineHeight = fontSize * 1.2;
