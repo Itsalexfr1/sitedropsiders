@@ -86,6 +86,7 @@ export function AdminDashboard() {
         showInAgenda?: boolean;
         startDate?: string;
         endDate?: string;
+        status?: 'off' | 'edit' | 'live';
     }
 
     const [takeoverState, setTakeoverState] = useState<TakeoverState>({
@@ -112,7 +113,8 @@ export function AdminDashboard() {
         pinnedMessage: '',
         showInAgenda: true,
         startDate: '',
-        endDate: ''
+        endDate: '',
+        status: 'off'
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access' | 'clips'>('general');
@@ -331,7 +333,8 @@ export function AdminDashboard() {
                         pinnedMessage: data.takeover.pinnedMessage || '',
                         showInAgenda: data.takeover.showInAgenda !== false,
                         startDate: data.takeover.startDate || '',
-                        endDate: data.takeover.endDate || ''
+                        endDate: data.takeover.endDate || '',
+                        status: data.takeover.status || (data.takeover.enabled ? 'live' : 'off')
                     });
                 }
             }
@@ -362,6 +365,36 @@ export function AdminDashboard() {
             }
         } catch (e: any) {
             console.error('Failed to save takeover settings', e);
+        } finally {
+            setIsUpdatingTakeover(false);
+        }
+    };
+
+    const updateLiveStatus = async (status: 'off' | 'edit' | 'live') => {
+        setIsUpdatingTakeover(true);
+        try {
+            const newState = {
+                ...takeoverState,
+                status,
+                enabled: status !== 'off'
+            };
+            setTakeoverState(newState);
+
+            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
+            const data = res.ok ? await res.json() : {};
+
+            const newSettings = {
+                ...data,
+                takeover: newState
+            };
+
+            await apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(newSettings)
+            });
+        } catch (e: any) {
+            console.error('Failed to update live status', e);
         } finally {
             setIsUpdatingTakeover(false);
         }
@@ -890,6 +923,31 @@ export function AdminDashboard() {
                                         <Youtube className="w-4 h-4" />
                                         Accès Live
                                     </Link>
+
+                                    {/* Live Status Controls */}
+                                    <div className="flex bg-black/40 border border-white/10 rounded-full p-1 ml-2">
+                                        <button
+                                            onClick={() => updateLiveStatus('off')}
+                                            disabled={isUpdatingTakeover}
+                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'off' || !takeoverState.enabled ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            OFF
+                                        </button>
+                                        <button
+                                            onClick={() => updateLiveStatus('edit')}
+                                            disabled={isUpdatingTakeover}
+                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            ÉDITION
+                                        </button>
+                                        <button
+                                            onClick={() => updateLiveStatus('live')}
+                                            disabled={isUpdatingTakeover}
+                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'live' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            ON AIR
+                                        </button>
+                                    </div>
                                 </>
                             )}
                         </div>

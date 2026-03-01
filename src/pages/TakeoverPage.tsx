@@ -5,7 +5,7 @@ import {
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, VolumeX, Volume2
+    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff
 } from 'lucide-react';
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -116,7 +116,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return localStorage.getItem('chat_pseudo') || '';
     });
     const [country, setCountry] = useState(() => {
-        if (adminAuth) return 'FR';
         return '';
     });
     const [isJoined, setIsJoined] = useState(() => {
@@ -146,6 +145,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'moderation' | 'points' | 'shop'>('general');
     const [chat_color] = useState(() => localStorage.getItem('chat_color') || '#00ffff');
+    const [activeVideoIndex, setActiveVideoIndex] = useState(() => {
+        // Deactivate main flux by default (if disableMainPlayer is true or undefined)
+        const isDisabled = settings.disableMainPlayer !== false;
+        return isDisabled ? 1 : 0;
+    });
 
     // --- NEW FEATURES STATES ---
     const [userDrops, setUserDrops] = useState(() => {
@@ -350,7 +354,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             });
             playersRef.current = {};
         };
-    }, [playersOption, isJoined]); // Re-init if joined state changes to ensure players are bound
+    }, [playersOption, isJoined, channelItems, activeVideoIndex]); // Re-init if joined state, channel list, or active video index changes
 
     // Overdrive Handler
     useEffect(() => {
@@ -441,11 +445,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [editTitle, setEditTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [editMainFluxName] = useState(settings.mainFluxName || 'MAIN STAGE');
     const [displayLineup, setDisplayLineup] = useState(settings.lineup || '');
-    const [activeVideoIndex, setActiveVideoIndex] = useState(() => {
-        // Deactivate main flux by default (if disableMainPlayer is true or undefined)
-        const isDisabled = settings.disableMainPlayer !== false;
-        return isDisabled ? 1 : 0;
-    });
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 5000); // Mise à jour toutes les 5 secondes
@@ -813,7 +812,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [adminBgColor, setAdminBgColor] = useState(settings.adminBgColor || 'rgba(255, 0, 51, 0.05)');
 
     // Collapsible Chat
-    const [showUsersPanel, setShowUsersPanel] = useState(true);
+    const [showUsersPanel, setShowUsersPanel] = useState(false); // Hidden by default (Request 10.7)
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -1440,6 +1439,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     };
 
+    const handleClearChat = async () => {
+        if (!confirm('Voulez-vous vraiment vider le chat ? Cette action est irréversible.')) return;
+        try {
+            const res = await fetch(`/api/chat/messages/clear?channel=${currentVideoId}`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                setMessages([]);
+                alert('Chat vidé avec succès !');
+            }
+        } catch (e) {
+            console.error('Failed to clear chat', e);
+        }
+    };
+
     const handleShazam = async () => {
         if (shazamLoading) return;
         setShazamLoading(true);
@@ -2019,10 +2034,55 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-[80px] lg:top-[80px]') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[32px] lg:top-[48px]' : 'top-0') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+                {/* OFFLINE VIEW FOR NON-ADMINS - FULL PAGE BLANKET */}
+                {(!settings.isOnline && !isServerAdmin && isJoined) && (
+                    <div className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center p-6 text-center">
+                        <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
+                        <div className="w-24 h-24 rounded-full bg-neon-red/10 border border-neon-red/30 flex items-center justify-center mb-10 shadow-[0_0_50px_#ff000033]">
+                            <Power className="w-10 h-10 text-neon-red" />
+                        </div>
+
+                        <h3 className="text-4xl lg:text-7xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
+                            LE LIVE EST <span className="text-neon-red">COUPÉ</span>
+                        </h3>
+                        <p className="text-gray-500 font-bold uppercase tracking-[0.4em] text-[10px] lg:text-sm mb-16 px-4">Accès restreint • Reprise prochainement</p>
+
+                        {upcomingLives.length > 0 && (
+                            <div className="w-full max-w-2xl bg-white/[0.02] backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl relative">
+                                <div className="absolute -top-12 -left-12 w-32 h-32 bg-neon-red/10 rounded-full blur-3xl pointer-events-none" />
+                                <div className="absolute -bottom-12 -right-12 w-32 h-32 bg-neon-cyan/10 rounded-full blur-3xl pointer-events-none" />
+                                <div className="flex items-center gap-4 mb-8">
+                                    <div className="h-px flex-1 bg-white/10" />
+                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] whitespace-nowrap">Prochain Live Programmé</span>
+                                    <div className="h-px flex-1 bg-white/10" />
+                                </div>
+
+                                <div className="flex flex-col items-center gap-2">
+                                    <p className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        {new Date(upcomingLives[0].date || upcomingLives[0].startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' }).toUpperCase()}
+                                    </p>
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <div className="w-2 h-2 rounded-full bg-neon-cyan animate-pulse shadow-[0_0_8px_#00ffff]" />
+                                        <p className="text-xl md:text-2xl font-black text-neon-cyan uppercase italic tracking-tight">
+                                            {upcomingLives[0].title}
+                                        </p>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-2">
+                                        À {upcomingLives[0].time || 'Bientôt'} • {upcomingLives[0].location || 'Sur Dropsiders'}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        <div className="mt-12 text-[9px] font-black text-gray-600 uppercase tracking-widest border border-white/10 px-6 py-2 rounded-full">
+                            DROPSIDERS V2 • LIVE ENGINE
+                        </div>
+                    </div>
+                )}
+
                 {/* Live Banner Header - Conditionally based on top banner enabled */}
-                {showTopBanner && !isFocusMode && !isFullScreen && (
-                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
+                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.isOnline || isServerAdmin)) && (
+                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-8 md:py-10 flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
                         <div className="flex items-center gap-6">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="flex items-center gap-2.5 px-4 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
@@ -2034,7 +2094,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     onClick={() => setShowUsersPanel(!showUsersPanel)}
                                 >
                                     <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] leading-none flex items-center gap-2">
-                                        <Users className="w-3 h-3" />
+                                        <Users className="w-3.5 h-3.5" />
                                         {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (allActiveUsers.length || '...')}
                                     </span>
                                 </div>
@@ -2052,7 +2112,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <div className="flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full backdrop-blur-md">
                                             <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
                                             <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] whitespace-nowrap">
-                                                LIVESTREAM: <span className="text-neon-cyan">{fluxCurrentArtist.artist.toUpperCase()}</span>
+                                                NOW: <span className="text-neon-cyan">{fluxCurrentArtist.artist.toUpperCase()}</span>
                                             </span>
                                         </div>
                                     </motion.div>
@@ -2066,7 +2126,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
                                         {channelItems.map((item: any, idx) => {
                                             const isDisabled = settings.disableMainPlayer !== false;
-                                            if (item.isMain && isDisabled) return null;
+                                            if (item.isMain && isDisabled && playersOption === 1) return null;
                                             return (
                                                 <button
                                                     key={idx}
@@ -2288,7 +2348,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                         <iframe
                                                             id={`yt-player-${channel.id}`}
-                                                            className="w-[110%] h-[110%] border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto"
+                                                            className="w-full h-full border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto scale-[1.12]"
                                                             src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer || volume === 0) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
                                                             title={channel.title}
                                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -2301,97 +2361,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </motion.div>
                                 ) : (
                                     <div className="w-full h-full relative overflow-hidden">
-                                        {/* CLOSED DOOR EFFECT - ABSOLUTE PRIORITY */}
-                                        <AnimatePresence mode="wait">
-                                            {(showClosedDoors || settings.showClosedDoors) && (
-                                                <div className="absolute inset-0 z-[2000] flex">
-                                                    {/* LEFT PANEL */}
-                                                    <motion.div
-                                                        initial={{ x: '-100%' }}
-                                                        animate={{ x: 0 }}
-                                                        exit={{ x: '-100%' }}
-                                                        transition={{
-                                                            duration: 1.5,
-                                                            ease: [0.77, 0, 0.175, 1],
-                                                            delay: 0 // Left door starts first for "Left to Right" feel
-                                                        }}
-                                                        className="flex-1 bg-black border-r border-white/5 relative flex items-center justify-end overflow-hidden"
-                                                    >
-                                                        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-neon-red/10 to-transparent" />
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-neon-red/10 to-transparent" />
-                                                        <motion.div
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 0.1 }}
-                                                            className="text-[20vw] font-black text-white whitespace-nowrap -rotate-90 origin-right translate-x-12 select-none uppercase"
-                                                        >
-                                                            NO LIVE
-                                                        </motion.div>
-                                                    </motion.div>
-
-                                                    {/* RIGHT PANEL */}
-                                                    <motion.div
-                                                        initial={{ x: '100%' }}
-                                                        animate={{ x: 0 }}
-                                                        exit={{ x: '100%' }}
-                                                        transition={{
-                                                            duration: 1.5,
-                                                            ease: [0.77, 0, 0.175, 1],
-                                                            delay: 0.4 // Right door follows for "Left to Right" flow
-                                                        }}
-                                                        className="flex-1 bg-black border-l border-white/5 relative flex items-center justify-start overflow-hidden"
-                                                    >
-                                                        <div className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-neon-red/10 to-transparent" />
-                                                        <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-neon-red/10 to-transparent" />
-                                                        <motion.div
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 0.1 }}
-                                                            className="text-[20vw] font-black text-white whitespace-nowrap rotate-90 origin-left -translate-x-12 select-none uppercase"
-                                                        >
-                                                            OFFLINE
-                                                        </motion.div>
-                                                    </motion.div>
-
-                                                    {/* CONTENT CENTER */}
-                                                    <motion.div
-                                                        initial={{ opacity: 0, scale: 0.9 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        transition={{ delay: 1.8, duration: 0.8 }}
-                                                        className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-[1100]"
-                                                    >
-                                                        <div className="w-24 h-24 rounded-full bg-neon-red/10 border border-neon-red/30 flex items-center justify-center mb-10 shadow-[0_0_50px_#ff000033]">
-                                                            <Power className="w-10 h-10 text-neon-red animate-pulse" />
-                                                        </div>
-
-                                                        <h3 className="text-4xl lg:text-7xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
-                                                            LE LIVE EST <span className="text-neon-red">TERMINÉ</span>
-                                                        </h3>
-                                                        <p className="text-gray-500 font-bold uppercase tracking-[0.4em] text-[10px] lg:text-sm mb-16">Accès restreint • Reprise prochainement</p>
-
-                                                        {upcomingLives.length > 0 && (
-                                                            <div className="w-full max-w-2xl bg-black/40 backdrop-blur-3xl p-8 rounded-[3rem] border border-white/5 shadow-2xl">
-                                                                <div className="flex items-center gap-4 mb-8">
-                                                                    <div className="h-px flex-1 bg-white/10" />
-                                                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">Prochain Live Programmé</span>
-                                                                    <div className="h-px flex-1 bg-white/10" />
-                                                                </div>
-
-                                                                <div className="flex flex-col items-center gap-2">
-                                                                    <p className="text-4xl md:text-6xl font-display font-black text-white uppercase italic">
-                                                                        {new Date(upcomingLives[0].date || upcomingLives[0].startDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' }).toUpperCase()}
-                                                                    </p>
-                                                                    <p className="text-xl md:text-2xl font-black text-neon-cyan uppercase italic tracking-tight">
-                                                                        {upcomingLives[0].title}
-                                                                    </p>
-                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-2">
-                                                                        À {upcomingLives[0].time || 'Bientôt'} • {upcomingLives[0].location || 'Sur Dropsiders'}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </motion.div>
-                                                </div>
-                                            )}
-                                        </AnimatePresence>
+                                        {/* Removed redundant offline view inside video container as it is now full-page blanket */}
+                                        {/* Removed Door Effect */}
 
                                         <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
                                             <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
@@ -2997,26 +2968,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-red">Affichage</span></h3>
                                                             </div>
                                                             <div className="grid grid-cols-1 gap-3">
+                                                                <button
+                                                                    onClick={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
+                                                                    className={`w-full py-5 rounded-2xl font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-lg ${settings.isOnline ? 'bg-neon-red text-white shadow-neon-red/20' : 'bg-neon-cyan text-black shadow-neon-cyan/20'}`}
+                                                                >
+                                                                    {settings.isOnline ? (
+                                                                        <><PowerOff className="w-6 h-6" /> COUPER LE LIVE</>
+                                                                    ) : (
+                                                                        <><Power className="w-6 h-6" /> LANCER LE LIVE</>
+                                                                    )}
+                                                                </button>
                                                                 <StyledCheckbox
-                                                                    label="Live Menu Status"
-                                                                    sublabel={settings.isOnline ? 'Online Menu Active' : 'Offline Menu Active'}
-                                                                    checked={!!settings.isOnline}
-                                                                    onChange={() => handleUpdateSettings({ isOnline: !settings.isOnline })}
-                                                                    color="green"
-                                                                />
-                                                                <StyledCheckbox
-                                                                    label="Flux Principal"
-                                                                    sublabel={settings.disableMainPlayer !== false ? 'Désactivé' : 'Activé'}
-                                                                    checked={settings.disableMainPlayer === false}
-                                                                    onChange={() => handleUpdateSettings({ disableMainPlayer: settings.disableMainPlayer === false ? true : false })}
+                                                                    label="Afficher dans l'Agenda"
+                                                                    sublabel="Visible sur la page d'accueil"
+                                                                    checked={!!settings.showInAgenda}
+                                                                    onChange={() => handleUpdateSettings({ showInAgenda: !settings.showInAgenda })}
                                                                     color="cyan"
-                                                                />
-                                                                <StyledCheckbox
-                                                                    label="Effet Fermeture"
-                                                                    sublabel={settings.showClosedDoors ? "Portes Fermées (Mode Hors-Live)" : "Portes Ouvertes (Mode Live)"}
-                                                                    checked={!!settings.showClosedDoors}
-                                                                    onChange={() => handleUpdateSettings({ showClosedDoors: !settings.showClosedDoors })}
-                                                                    color={settings.showClosedDoors ? 'red' : 'green'}
                                                                 />
                                                             </div>
                                                         </div>
@@ -3033,20 +3000,39 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <div className="space-y-2">
                                                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Principaux (1 & 2)</p>
                                                                     <div className="grid grid-cols-2 gap-2">
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="Flux Principal" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                        </div>
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="YouTube ID Principal" value={fluxPrincipal} onChange={e => setFluxPrincipal(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {fluxPrincipal && <button onClick={() => setFluxPrincipal('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <input type="text" placeholder="Stage 1 Name" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                        <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage1 && <button onClick={() => setStage1('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                        <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage2 && <button onClick={() => setStage2('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="space-y-2">
                                                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Secondaires (3 & 4)</p>
-                                                                    <div className="grid grid-cols-2 gap-2">
+                                                                    <div className="grid grid-cols-2 gap-2 relative group">
                                                                         <input type="text" placeholder="Stage 3 Name" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                        <input type="text" placeholder="YouTube ID" value={stage3} onChange={e => setStage3(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="YouTube ID" value={stage3} onChange={e => setStage3(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage3 && <button onClick={() => setStage3('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <input type="text" placeholder="Stage 4 Name" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                        <input type="text" placeholder="YouTube ID" value={stage4} onChange={e => setStage4(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="YouTube ID" value={stage4} onChange={e => setStage4(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage4 && <button onClick={() => setStage4('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                     </div>
                                                                 </div>
 
@@ -3063,9 +3049,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Bonus (5 & 6)</p>
                                                                         <div className="grid grid-cols-2 gap-2">
                                                                             <input type="text" placeholder="Stage 5 Name" value={stage5Name} onChange={e => setStage5Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                            <input type="text" placeholder="YouTube ID" value={stage5} onChange={e => setStage5(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <div className="relative">
+                                                                                <input type="text" placeholder="YouTube ID" value={stage5} onChange={e => setStage5(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                                {stage5 && <button onClick={() => setStage5('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                            </div>
                                                                             <input type="text" placeholder="Stage 6 Name" value={stage6Name} onChange={e => setStage6Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
-                                                                            <input type="text" placeholder="YouTube ID" value={stage6} onChange={e => setStage6(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <div className="relative">
+                                                                                <input type="text" placeholder="YouTube ID" value={stage6} onChange={e => setStage6(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                                {stage6 && <button onClick={() => setStage6('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                            </div>
                                                                         </div>
                                                                     </motion.div>
                                                                 )}
@@ -3295,872 +3287,913 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                             {activeSettingsTab === 'moderation' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                        {/* Section Équipe de modération */}
-                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
+                                                    {/* TOP ACTIONS BAR */}
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                        <div className="p-5 bg-white/5 border border-white/5 rounded-3xl flex items-center justify-between">
                                                             <div className="flex items-center gap-3">
                                                                 <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <Shield className="w-4 h-4 text-neon-red" />
+                                                                    <MessageSquare className="w-5 h-5 text-neon-red" />
                                                                 </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Équipe de <span className="text-neon-red">Modération</span></h3>
-                                                            </div>
-                                                            <div className="space-y-4">
-                                                                <div className="flex gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        id="add-mod-input"
-                                                                        placeholder="Pseudo du modérateur..."
-                                                                        className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-red transition-all"
-                                                                        onKeyDown={(e) => {
-                                                                            if (e.key === 'Enter') {
-                                                                                const input = e.currentTarget;
-                                                                                handleAddModerator(input.value);
-                                                                                input.value = '';
-                                                                            }
-                                                                        }}
-                                                                    />
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            const input = document.getElementById('add-mod-input') as HTMLInputElement;
-                                                                            handleAddModerator(input.value);
-                                                                            if (input) input.value = '';
-                                                                        }}
-                                                                        className="px-4 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all font-bold"
-                                                                    >
-                                                                        Ajouter
-                                                                    </button>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Chat Global</p>
+                                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Vider l'historique</p>
                                                                 </div>
-
-                                                                <div className="space-y-2 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                    {localModerators?.split(',').filter(m => m.trim()).map(mod => (
-                                                                        <div key={mod} className="flex items-center justify-between group rounded-lg p-2 hover:bg-white/5 transition-colors">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <div className={`w-1.5 h-1.5 rounded-full bg-gray-600`} />
-                                                                                <span className="text-[11px] font-black text-gray-300 uppercase tracking-widest">{mod.trim()}</span>
-                                                                            </div>
-                                                                            <button
-                                                                                onClick={() => handleRemoveModerator(mod.trim())}
-                                                                                className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
-                                                                            >
-                                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        </div>
-                                                                    ))}
-                                                                    {!localModerators?.trim() && <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Modos Connectés */}
-                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-green-500/10 rounded-xl">
-                                                                    <Activity className="w-4 h-4 text-green-500" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Modos <span className="text-green-500">Connectés</span></h3>
-                                                            </div>
-                                                            <div className="space-y-3 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                {localModerators?.split(',').filter(m => m.trim() && isUserOnline(m.trim())).map(mod => (
-                                                                    <div key={mod} className="flex items-center justify-between group rounded-xl p-3 bg-black/40 border border-white/5 transition-colors">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e]" />
-                                                                            <span className="text-[11px] font-black text-white uppercase tracking-widest">{mod.trim()}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                                {localModerators?.split(',').filter(m => m.trim() && isUserOnline(m.trim())).length === 0 && (
-                                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modo connecté</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Outils de Sécurité */}
-                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <ShieldAlert className="w-4 h-4 text-neon-red" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Outils de <span className="text-neon-red">Sécurité</span></h3>
-                                                            </div>
-
-                                                            <div className="space-y-4">
-                                                                <div className="flex items-center justify-between p-4 bg-black/40 rounded-2xl border border-white/5">
-                                                                    <div>
-                                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-1">
-                                                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                                                        </p>
-                                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic">Limite l'envoi de messages</p>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={() => setIsSlowMode(!isSlowMode)}
-                                                                        className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${isSlowMode ? 'bg-yellow-500 shadow-[0_0_15px_#eab30844] justify-end' : 'bg-gray-800 justify-start'}`}
-                                                                    >
-                                                                        <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
-                                                                    </button>
-                                                                </div>
-
-                                                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
-                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 mb-3">
-                                                                        <Globe className="w-3.5 h-3.5 text-neon-cyan" /> Filtre de Liens
-                                                                    </p>
-                                                                    <div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                                                                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Bloquer les liens externes</span>
-                                                                        <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] font-black uppercase border border-green-500/20">Toujours Actif</span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Gestion Sondage */}
-                                                        <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <HelpCircle className="w-4 h-4 text-neon-red" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
-                                                            </div>
-
-                                                            <div className="space-y-4">
-                                                                <div className="space-y-1.5">
-                                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
-                                                                    <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white font-bold outline-none focus:border-neon-red" />
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                    <div className="grid grid-cols-2 gap-2">
-                                                                        {pollOptions.map((opt, i) => (
-                                                                            <input key={i} type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
-                                                                                const newOpts = [...pollOptions];
-                                                                                newOpts[i] = e.target.value;
-                                                                                setPollOptions(newOpts);
-                                                                            }} className="w-full bg-black/20 border border-white/5 rounded-lg p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red" />
-                                                                        ))}
-                                                                    </div>
-                                                                    {pollOptions.length < 6 && (
-                                                                        <button
-                                                                            onClick={() => setPollOptions([...pollOptions, ''])}
-                                                                            className="w-full py-2 bg-white/5 border border-white/5 rounded-lg text-[8px] font-black uppercase text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                                                                        >
-                                                                            <Plus className="w-3 h-3" /> Ajouter une option
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="flex flex-col gap-2 pt-2">
-                                                                    <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer le Sondage</button>
-                                                                    {activePoll && (
-                                                                        <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer le Sondage</button>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Apparence Admin */}
-                                                    <div className="space-y-6 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                        <div className="flex items-center justify-between">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                    <Pencil className="w-4 h-4 text-neon-red" />
-                                                                </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-red">Admin</span></h3>
                                                             </div>
                                                             <button
-                                                                onClick={() => handleUpdateSettings({
-                                                                    adminColor: localSettings.adminColor,
-                                                                    adminBgColor: localSettings.adminBgColor
-                                                                })}
-                                                                className="px-4 py-1.5 bg-neon-red text-white text-[10px] font-black uppercase rounded-lg hover:bg-neon-red/80 transition-all font-bold shadow-[0_0_15px_rgba(255,0,51,0.3)]"
+                                                                onClick={handleClearChat}
+                                                                className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all font-bold shadow-[0_0_15px_rgba(255,0,51,0.2)]"
                                                             >
-                                                                VALIDER
+                                                                Vider le Chat
                                                             </button>
                                                         </div>
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-red transition-all">
-                                                                    <input type="color" value={localSettings.adminColor || adminColor} onChange={(e) => handleUpdateLocalSetting({ adminColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
-                                                                    <span className="text-xs font-bold text-white uppercase">{localSettings.adminColor || adminColor}</span>
+
+                                                        <div className="p-5 bg-white/5 border border-white/5 rounded-3xl flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-yellow-500/10 rounded-xl">
+                                                                    <Clock className="w-5 h-5 text-yellow-500" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Mode Lent</p>
+                                                                    <div className="flex items-center gap-1 mt-0.5">
+                                                                        <input
+                                                                            type="number"
+                                                                            value={slowModeDuration}
+                                                                            onChange={e => setSlowModeDuration(parseInt(e.target.value) || 10)}
+                                                                            className="w-10 bg-transparent text-[10px] font-black text-yellow-500 outline-none border-b border-yellow-500/30 text-center"
+                                                                        />
+                                                                        <span className="text-[8px] text-gray-500 font-bold uppercase">sec</span>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-red transition-all">
-                                                                    <div className="relative group/picker">
-                                                                        <input
-                                                                            type="color"
-                                                                            value={localSettings.adminColor || adminColor}
-                                                                            onChange={(e) => {
-                                                                                const hex = e.target.value;
-                                                                                handleUpdateLocalSetting({ adminBgColor: `${hex}0d` }); // 0.05 opacity by default
-                                                                            }}
-                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
-                                                                        />
-                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
+                                                            <button
+                                                                onClick={() => setIsSlowMode(!isSlowMode)}
+                                                                className={`w-14 h-7 rounded-full p-1 transition-all flex items-center ${isSlowMode ? 'bg-yellow-500 shadow-[0_0_15px_#eab30844] justify-end' : 'bg-gray-800 justify-start'}`}
+                                                            >
+                                                                <div className="w-5 h-5 rounded-full bg-white shadow-lg" />
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="p-5 bg-white/5 border border-white/5 rounded-3xl flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                    <Globe className="w-5 h-5 text-neon-cyan" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Filtre de Liens</p>
+                                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Sécurité Auto</p>
+                                                                </div>
+                                                            </div>
+                                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] font-black uppercase border border-green-500/20">ACTIF</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                        <div className="space-y-6">
+                                                            {/* GESTION ÉQUIPE */}
+                                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                        <Shield className="w-4 h-4 text-neon-red" />
                                                                     </div>
-                                                                    <div className="flex flex-1 items-center gap-2">
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Équipe de <span className="text-neon-red">Modération</span></h3>
+                                                                </div>
+
+                                                                <div className="space-y-4">
+                                                                    <div className="flex gap-2">
                                                                         <input
                                                                             type="text"
-                                                                            placeholder="ex: rgba(255, 0, 51, 0.05)"
-                                                                            value={localSettings.adminBgColor || adminBgColor}
-                                                                            onChange={(e) => handleUpdateLocalSetting({ adminBgColor: e.target.value })}
-                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                            id="add-mod-input"
+                                                                            placeholder="Pseudo du modérateur..."
+                                                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-red transition-all font-bold placeholder:text-gray-600"
+                                                                            onKeyDown={(e) => {
+                                                                                if (e.key === 'Enter') {
+                                                                                    const input = e.currentTarget;
+                                                                                    handleAddModerator(input.value);
+                                                                                    input.value = '';
+                                                                                }
+                                                                            }}
                                                                         />
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                const input = document.getElementById('add-mod-input') as HTMLInputElement;
+                                                                                handleAddModerator(input.value);
+                                                                                if (input) input.value = '';
+                                                                            }}
+                                                                            className="px-6 py-2 bg-neon-red text-white text-[10px] font-black uppercase rounded-xl hover:bg-neon-red/80 transition-all shadow-[0_4px_15px_rgba(255,0,51,0.2)]"
+                                                                        >
+                                                                            Ajouter
+                                                                        </button>
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                                                        {localModerators?.split(',').filter(m => m.trim()).map(mod => (
+                                                                            <div key={mod} className="flex items-center justify-between group rounded-xl p-3 bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isUserOnline(mod.trim()) ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 'bg-gray-600'}`} />
+                                                                                    <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest truncate max-w-[100px]">{mod.trim()}</span>
+                                                                                </div>
+                                                                                <button
+                                                                                    onClick={() => handleRemoveModerator(mod.trim())}
+                                                                                    className="p-1.5 text-gray-600 hover:text-neon-red transition-colors"
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+                                                                        ))}
+                                                                        {!localModerators?.trim() && <p className="col-span-2 text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center py-4 italic">Aucun modérateur configuré</p>}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* RECOMMANDATIONS ET COULEURS ADMIN */}
+                                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                            <Pencil className="w-4 h-4 text-neon-red" />
+                                                                        </div>
+                                                                        <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-red">Directeur</span></h3>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({
+                                                                            adminColor: localSettings.adminColor,
+                                                                            adminBgColor: localSettings.adminBgColor
+                                                                        })}
+                                                                        className="px-4 py-1.5 bg-neon-red text-white text-[10px] font-black uppercase rounded-lg hover:bg-neon-red/80 transition-all font-bold shadow-[0_0_15px_rgba(255,0,51,0.3)]"
+                                                                    >
+                                                                        VALIDER
+                                                                    </button>
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div className="space-y-2">
+                                                                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Texte & Bordure</label>
+                                                                        <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-2xl p-3 focus-within:border-neon-red transition-all">
+                                                                            <input type="color" value={localSettings.adminColor || adminColor} onChange={(e) => handleUpdateLocalSetting({ adminColor: e.target.value })} className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-lg" />
+                                                                            <span className="text-xs font-black text-white uppercase tracking-tighter">{localSettings.adminColor || adminColor}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        <label className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Fond (Hex + Opacité)</label>
+                                                                        <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl p-3 focus-within:border-neon-red transition-all">
+                                                                            <input
+                                                                                type="text"
+                                                                                placeholder="rgba(255,0,0,0.1)"
+                                                                                value={localSettings.adminBgColor || adminBgColor}
+                                                                                onChange={(e) => handleUpdateLocalSetting({ adminBgColor: e.target.value })}
+                                                                                className="bg-transparent border-none text-[11px] font-mono font-black text-white outline-none w-full"
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-6">
+                                                            {/* ANNONCE ÉPINGLÉE */}
+                                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                            <Zap className="w-4 h-4 text-neon-cyan" />
+                                                                        </div>
+                                                                        <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-cyan">Épinglé</span></h3>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleUpdateSettings({ pinnedMessage: localPinnedMessage })}
+                                                                        className="px-4 py-1.5 bg-neon-cyan text-black text-[10px] font-black uppercase rounded-lg hover:bg-neon-cyan/80 transition-all font-bold"
+                                                                    >
+                                                                        Mettre à jour
+                                                                    </button>
+                                                                </div>
+                                                                <textarea
+                                                                    value={localPinnedMessage}
+                                                                    onChange={(e) => setLocalPinnedMessage(e.target.value)}
+                                                                    placeholder="Écrire une annonce globale..."
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[100px] font-bold"
+                                                                />
+                                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Ce message apparaîtra en haut du chat pour tous les viewers.</p>
+                                                            </div>
+
+                                                            {/* GESTION SONDAGE */}
+                                                            <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                        <BarChart3 className="w-4 h-4 text-neon-red" />
+                                                                    </div>
+                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion <span className="text-neon-red">Sondage</span></h3>
+                                                                </div>
+
+                                                                <div className="space-y-4">
+                                                                    <div className="space-y-1.5">
+                                                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1">Question</label>
+                                                                        <input type="text" placeholder="Question du sondage..." value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-xs text-white font-bold outline-none focus:border-neon-red placeholder:text-gray-700" />
+                                                                    </div>
+                                                                    <div className="space-y-2">
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            {pollOptions.map((opt, i) => (
+                                                                                <div key={i} className="relative">
+                                                                                    <input type="text" placeholder={`Option ${i + 1}`} value={opt} onChange={e => {
+                                                                                        const newOpts = [...pollOptions];
+                                                                                        newOpts[i] = e.target.value;
+                                                                                        setPollOptions(newOpts);
+                                                                                    }} className="w-full bg-white/5 border border-white/5 rounded-xl p-3 text-[10px] text-gray-300 outline-none focus:border-neon-red pr-10" />
+                                                                                    {pollOptions.length > 2 && (
+                                                                                        <button
+                                                                                            onClick={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
+                                                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"
+                                                                                        >
+                                                                                            <X className="w-3 h-3" />
+                                                                                        </button>
+                                                                                    )}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                        {pollOptions.length < 6 && (
+                                                                            <button
+                                                                                onClick={() => setPollOptions([...pollOptions, ''])}
+                                                                                className="w-full py-2 bg-white/5 border border-dashed border-white/10 rounded-xl text-[8px] font-black uppercase text-gray-500 hover:text-white hover:border-white/30 transition-all flex items-center justify-center gap-2"
+                                                                            >
+                                                                                <Plus className="w-3 h-3" /> Nouvelle Option
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-2 gap-3 pt-2">
+                                                                        <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-2xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer</button>
+                                                                        {activePoll && (
+                                                                            <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer</button>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            )}--- */}
+                                            <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                        <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
+                                                    </label>
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsEditingCmd(null);
+                                                            setCmdTrigger('');
+                                                            setCmdResponse('');
+                                                            document.getElementById('cmd-input')?.focus();
+                                                        }}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all"
+                                                    >
+                                                        <Plus className="w-3.5 h-3.5" /> Ajouter
+                                                    </button>
+                                                </div>
+                                                <div className="overflow-hidden border border-white/10 rounded-2xl">
+                                                    <table className="w-full text-left border-collapse">
+                                                        <thead>
+                                                            <tr className="bg-white/5">
+                                                                <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
+                                                                <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Description</th>
+                                                                <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10 text-right">Statut</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="text-[10px] font-bold text-gray-300">
+                                                            <tr className="hover:bg-white/[0.02] transition-colors group">
+                                                                <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
+                                                                <td className="px-4 py-3 border-b border-white/5 text-xs">Liste des commandes</td>
+                                                                <td className="px-4 py-3 border-b border-white/5 text-right flex items-center justify-end px-4 h-[45px]">
+                                                                    <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Système</span>
+                                                                </td>
+                                                            </tr>
+                                                            {/* Custom Commands List */}
+                                                            {(localCustomCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
+                                                                const [trigger, ...rest] = line.split(':').map(s => s.trim());
+                                                                const response = rest.join(':');
+                                                                return (
+                                                                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">{trigger}</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs truncate max-w-[150px]">{response}</td>
+                                                                        <td className="px-4 py-3 border-b border-white/5 text-right">
+                                                                            <div className="flex items-center justify-end gap-1">
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setCmdTrigger(trigger);
+                                                                                        setCmdResponse(response);
+                                                                                        setIsEditingCmd(trigger.toLowerCase());
+                                                                                    }}
+                                                                                    className="p-1 px-2 bg-white/5 hover:bg-neon-cyan/20 rounded text-neon-cyan transition-all"
+                                                                                    title="Editer"
+                                                                                >
+                                                                                    <Edit2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                                <button
+                                                                                    onClick={() => handleDeleteCommand(trigger)}
+                                                                                    className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all"
+                                                                                    title="Supprimer"
+                                                                                >
+                                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </td>
+                                                                    </tr>
+                                                                );
+                                                            })}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
 
-                                                    {/* --- BOT TAB CONTENT INJECTED HERE --- */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center justify-between mb-2">
-                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                <MessageSquare className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Liste des Commandes
-                                                            </label>
+                                                {/* Add/Edit command form */}
+                                                <div className="bg-black/40 border border-white/5 p-4 rounded-2xl space-y-3">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{isEditingCmd ? 'MODIFIER LA COMMANDE' : 'AJOUTER UNE COMMANDE'}</label>
+                                                        {isEditingCmd && (
                                                             <button
                                                                 onClick={() => {
                                                                     setIsEditingCmd(null);
                                                                     setCmdTrigger('');
                                                                     setCmdResponse('');
-                                                                    document.getElementById('cmd-input')?.focus();
                                                                 }}
-                                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-neon-cyan text-black rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/80 transition-all"
+                                                                className="text-[8px] font-black text-neon-red uppercase tracking-widest hover:underline"
                                                             >
-                                                                <Plus className="w-3.5 h-3.5" /> Ajouter
+                                                                Annuler
                                                             </button>
-                                                        </div>
-                                                        <div className="overflow-hidden border border-white/10 rounded-2xl">
-                                                            <table className="w-full text-left border-collapse">
-                                                                <thead>
-                                                                    <tr className="bg-white/5">
-                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Commande</th>
-                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10">Description</th>
-                                                                        <th className="px-4 py-3 text-[10px] font-black uppercase text-gray-400 tracking-widest border-b border-white/10 text-right">Statut</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody className="text-[10px] font-bold text-gray-300">
-                                                                    <tr className="hover:bg-white/[0.02] transition-colors group">
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">!help</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-xs">Liste des commandes</td>
-                                                                        <td className="px-4 py-3 border-b border-white/5 text-right flex items-center justify-end px-4 h-[45px]">
-                                                                            <span className="px-2 py-0.5 bg-green-500/10 text-green-500 rounded-full text-[8px] uppercase">Système</span>
-                                                                        </td>
-                                                                    </tr>
-                                                                    {/* Custom Commands List */}
-                                                                    {(localCustomCommands || '').split('\n').filter(l => l.includes(':')).map((line, idx) => {
-                                                                        const [trigger, ...rest] = line.split(':').map(s => s.trim());
-                                                                        const response = rest.join(':');
-                                                                        return (
-                                                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
-                                                                                <td className="px-4 py-3 border-b border-white/5 text-neon-cyan font-black">{trigger}</td>
-                                                                                <td className="px-4 py-3 border-b border-white/5 text-xs truncate max-w-[150px]">{response}</td>
-                                                                                <td className="px-4 py-3 border-b border-white/5 text-right">
-                                                                                    <div className="flex items-center justify-end gap-1">
-                                                                                        <button
-                                                                                            onClick={() => {
-                                                                                                setCmdTrigger(trigger);
-                                                                                                setCmdResponse(response);
-                                                                                                setIsEditingCmd(trigger.toLowerCase());
-                                                                                            }}
-                                                                                            className="p-1 px-2 bg-white/5 hover:bg-neon-cyan/20 rounded text-neon-cyan transition-all"
-                                                                                            title="Editer"
-                                                                                        >
-                                                                                            <Edit2 className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                        <button
-                                                                                            onClick={() => handleDeleteCommand(trigger)}
-                                                                                            className="p-1 px-2 bg-white/5 hover:bg-red-500/20 rounded text-gray-500 hover:text-red-500 transition-all"
-                                                                                            title="Supprimer"
-                                                                                        >
-                                                                                            <Trash2 className="w-3.5 h-3.5" />
-                                                                                        </button>
-                                                                                    </div>
-                                                                                </td>
-                                                                            </tr>
-                                                                        );
-                                                                    })}
-                                                                </tbody>
-                                                            </table>
-                                                        </div>
-
-                                                        {/* Add/Edit command form */}
-                                                        <div className="bg-black/40 border border-white/5 p-4 rounded-2xl space-y-3">
-                                                            <div className="flex items-center justify-between mb-1">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{isEditingCmd ? 'MODIFIER LA COMMANDE' : 'AJOUTER UNE COMMANDE'}</label>
-                                                                {isEditingCmd && (
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            setIsEditingCmd(null);
-                                                                            setCmdTrigger('');
-                                                                            setCmdResponse('');
-                                                                        }}
-                                                                        className="text-[8px] font-black text-neon-red uppercase tracking-widest hover:underline"
-                                                                    >
-                                                                        Annuler
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                                                <div className="md:col-span-1">
-                                                                    <div className="relative">
-                                                                        <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-neon-cyan" />
-                                                                        <input
-                                                                            id="cmd-input"
-                                                                            type="text"
-                                                                            value={cmdTrigger}
-                                                                            onChange={e => setCmdTrigger(e.target.value)}
-                                                                            placeholder="!ma-commande"
-                                                                            className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-8 pr-3 text-[11px] text-white focus:border-neon-cyan outline-none font-bold tabular-nums"
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                                <div className="md:col-span-2 flex gap-2">
-                                                                    <input
-                                                                        type="text"
-                                                                        value={cmdResponse}
-                                                                        onChange={e => setCmdResponse(e.target.value)}
-                                                                        placeholder="Message du bot..."
-                                                                        className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-[11px] text-white focus:border-neon-cyan outline-none"
-                                                                    />
-                                                                    <button
-                                                                        onClick={handleAddOrUpdateCommand}
-                                                                        disabled={!cmdTrigger.trim() || !cmdResponse.trim()}
-                                                                        className="px-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 shrink-0"
-                                                                    >
-                                                                        {isEditingCmd ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
-                                                                        {isEditingCmd ? 'OK' : 'Ajouter'}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Ces commandes sont utilisables par tous les membres du chat.</p>
+                                                        )}
                                                     </div>
-
-                                                    {/* Apparence Bot */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                <Pencil className="w-4 h-4 text-neon-cyan" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
-                                                                    <span className="text-xs font-bold text-white uppercase">{botColor}</span>
-                                                                </div>
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
-                                                                <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
-                                                                    <div className="relative group/picker">
-                                                                        <input
-                                                                            type="color"
-                                                                            value={botColor}
-                                                                            onChange={(e) => {
-                                                                                const hex = e.target.value;
-                                                                                handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
-                                                                            }}
-                                                                            className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
-                                                                        />
-                                                                        <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
-                                                                    </div>
-                                                                    <div className="flex flex-1 items-center gap-2">
-                                                                        <input
-                                                                            type="text"
-                                                                            placeholder="ex: rgba(0, 255, 204, 0.05)"
-                                                                            value={botBgColor}
-                                                                            onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
-                                                                            className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
-                                                                        />
-                                                                        <button
-                                                                            onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
-                                                                            className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
-                                                                        >
-                                                                            VALIDER
-                                                                        </button>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Auto Message Management */}
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                            <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
-                                                        </label>
-
-                                                        <div className="space-y-4">
-                                                            <div className="space-y-2">
-                                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
-                                                                <textarea
-                                                                    value={settings.autoMessage || ''}
-                                                                    onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
-                                                                    placeholder="Message à envoyer automatiquement..."
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                                        <div className="md:col-span-1">
+                                                            <div className="relative">
+                                                                <Zap className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-neon-cyan" />
+                                                                <input
+                                                                    id="cmd-input"
+                                                                    type="text"
+                                                                    value={cmdTrigger}
+                                                                    onChange={e => setCmdTrigger(e.target.value)}
+                                                                    placeholder="!ma-commande"
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-xl py-2 pl-8 pr-3 text-[11px] text-white focus:border-neon-cyan outline-none font-bold tabular-nums"
                                                                 />
                                                             </div>
-
-                                                            <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
-                                                                </div>
-                                                                <div className="flex items-center gap-3">
-                                                                    <input
-                                                                        type="number"
-                                                                        value={settings.autoMessageInterval || 60}
-                                                                        onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
-                                                                        className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
-                                                                        min="10"
-                                                                    />
-                                                                    <Clock className="w-4 h-4 text-gray-500" />
-                                                                </div>
-                                                            </div>
                                                         </div>
-
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
+                                                        <div className="md:col-span-2 flex gap-2">
+                                                            <input
+                                                                type="text"
+                                                                value={cmdResponse}
+                                                                onChange={e => setCmdResponse(e.target.value)}
+                                                                placeholder="Message du bot..."
+                                                                className="flex-1 bg-white/5 border border-white/10 rounded-xl py-2 px-4 text-[11px] text-white focus:border-neon-cyan outline-none"
+                                                            />
+                                                            <button
+                                                                onClick={handleAddOrUpdateCommand}
+                                                                disabled={!cmdTrigger.trim() || !cmdResponse.trim()}
+                                                                className="px-4 bg-neon-cyan text-black rounded-xl font-black text-[10px] uppercase hover:bg-neon-cyan/80 transition-all disabled:opacity-30 flex items-center gap-1 shrink-0"
+                                                            >
+                                                                {isEditingCmd ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                                                                {isEditingCmd ? 'OK' : 'Ajouter'}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            )}
-                                            {activeSettingsTab === 'planning' && (
-                                                <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                <Pencil className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Éditeur de Planning
-                                                            </label>
-                                                        </div>
-                                                        <div className="grid grid-cols-12 gap-2">
-                                                            <div className="col-span-3 flex flex-col gap-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest text-center mt-1">Début (HH:MM)</label>
-                                                                <div className="flex gap-1">
-                                                                    <input type="number" min="0" max="23" placeholder="HH" value={lineupHour} onChange={e => setLineupHour(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
-                                                                    <span className="text-white font-bold flex flex-col justify-center">:</span>
-                                                                    <input type="number" min="0" max="59" placeholder="MM" value={lineupMinute} onChange={e => setLineupMinute(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-span-3 flex flex-col gap-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest text-center mt-1">Fin (HH:MM)</label>
-                                                                <div className="flex gap-1">
-                                                                    <input type="number" min="0" max="23" placeholder="HH" value={lineupEndHour} onChange={e => setLineupEndHour(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
-                                                                    <span className="text-white font-bold flex flex-col justify-center">:</span>
-                                                                    <input type="number" min="0" max="59" placeholder="MM" value={lineupEndMinute} onChange={e => setLineupEndMinute(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
-                                                                </div>
-                                                            </div>
-                                                            <div className="col-span-6 flex flex-col gap-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">Nom de l'Artiste</label>
-                                                                <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
-                                                            </div>
+                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Ces commandes sont utilisables par tous les membres du chat.</p>
+                                            </div>
 
-                                                            <div className="col-span-4 flex flex-col gap-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">Flux / Scène</label>
-                                                                <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
-                                                                    <option value="" disabled>Sélectionner</option>
-                                                                    <option value="Flux Principal">Flux Principal</option>
-                                                                    {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
-                                                                    {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
-                                                                    {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
-                                                                    {stage4Name && <option value={stage4Name}>{stage4Name}</option>}
-                                                                </select>
-                                                            </div>
-                                                            <div className="col-span-5 flex flex-col gap-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">Lien Instagram (Optionnel)</label>
-                                                                <input type="text" placeholder="@insta" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
-                                                            </div>
-
-                                                            <div className="col-span-3 flex flex-col gap-1 justify-end">
-                                                                <button onClick={appendLineup} className="w-full py-2 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all">Ajouter</button>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Planning visual table */}
-                                                        {editLineup.trim() && (
-                                                            <div className="overflow-hidden border border-white/10 rounded-2xl">
-                                                                <table className="w-full text-left border-collapse">
-                                                                    <thead>
-                                                                        <tr className="bg-white/5">
-                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Heure</th>
-                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Artiste</th>
-                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Stage</th>
-                                                                            <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Instagram</th>
-                                                                            <th className="px-4 py-2.5 border-b border-white/10"></th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        {(() => {
-                                                                            const lines = editLineup.split('\n').filter(l => l.trim());
-
-                                                                            const moveLine = (index: number, direction: 'up' | 'down') => {
-                                                                                const newLines = [...lines];
-                                                                                if (direction === 'up' && index > 0) {
-                                                                                    [newLines[index], newLines[index - 1]] = [newLines[index - 1], newLines[index]];
-                                                                                } else if (direction === 'down' && index < newLines.length - 1) {
-                                                                                    [newLines[index], newLines[index + 1]] = [newLines[index + 1], newLines[index]];
-                                                                                }
-                                                                                setEditLineup(newLines.join('\n'));
-                                                                            };
-
-                                                                            return lines.map((line, idx) => {
-                                                                                const deleteLine = () => {
-                                                                                    const lines = editLineup.split('\n').filter(l => l.trim());
-                                                                                    lines.splice(idx, 1);
-                                                                                    setEditLineup(lines.join('\n'));
-                                                                                };
-
-                                                                                const timeMatch = line.includes('|') ? line.split('|')[0] : line.match(/^\[(.*?)\]/)?.[1];
-                                                                                if (!timeMatch) return (
-                                                                                    <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
-                                                                                        <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
-                                                                                        <td className="px-4 py-2 border-b border-white/5 text-right">
-                                                                                            <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
-                                                                                                <X className="w-3.5 h-3.5" />
-                                                                                            </button>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                );
-
-                                                                                const time = timeMatch.trim();
-                                                                                const rest = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : line.replace(/^\[(.*?)\]/, '').trim();
-                                                                                const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
-                                                                                const artist = parts[0] || '';
-                                                                                const stage = parts[1] || '';
-                                                                                // Direct 3rd part is Instagram now
-                                                                                const instagram = parts[2] || '';
-
-                                                                                const editOption = () => {
-                                                                                    const [h, m] = time.replace('h', ':').split(':');
-                                                                                    setLineupHour(h || '');
-                                                                                    setLineupMinute(m || '');
-                                                                                    setLineupArtist(artist.trim());
-
-                                                                                    // On essaye de matcher le stage avec les options existantes
-                                                                                    const lowerStage = stage.trim().toLowerCase();
-                                                                                    if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
-                                                                                    else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
-                                                                                    else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
-                                                                                    else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
-                                                                                    else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
-                                                                                    else setLineupStage(stage.trim());
-
-                                                                                    setLineupInstagram(instagram.trim());
-                                                                                    deleteLine();
-                                                                                };
-
-                                                                                const getStageColor = (stageName: string) => {
-                                                                                    const s = stageName.toLowerCase();
-                                                                                    if (s.includes('principal') || s.includes('main')) return 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10';
-                                                                                    if (s.includes('1')) return 'text-neon-purple border-neon-purple/30 bg-neon-purple/10';
-                                                                                    if (s.includes('2')) return 'text-neon-red border-neon-red/30 bg-neon-red/10';
-                                                                                    if (s.includes('3')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
-                                                                                    return 'text-gray-400 border-white/20 bg-white/5';
-                                                                                };
-
-                                                                                return (
-                                                                                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
-                                                                                        <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
-                                                                                        <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase truncate max-w-[150px]">{artist}</td>
-                                                                                        <td className="px-4 py-2.5 border-b border-white/5">
-                                                                                            {stage && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${getStageColor(stage)}`}>{stage}</span>}
-                                                                                        </td>
-                                                                                        <td className="px-4 py-2.5 border-b border-white/5">
-                                                                                            {instagram && (
-                                                                                                (instagram.includes('.') || (!instagram.includes(' ') && instagram.length > 0))
-                                                                                                    ? <a href={instagram.startsWith('http') ? instagram : `https://${instagram}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace(/^https?:\/\//, '')}</a>
-                                                                                                    : <span className="text-[9px] text-gray-400 font-bold uppercase truncate block max-w-[120px]">{instagram}</span>
-                                                                                            )}
-                                                                                        </td>
-                                                                                        <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
-                                                                                            <button onClick={() => moveLine(idx, 'up')} disabled={idx === 0} className="p-1 text-gray-400 hover:text-neon-cyan transition-all disabled:opacity-20" title="Monter">
-                                                                                                <ChevronUp className="w-3.5 h-3.5" />
-                                                                                            </button>
-                                                                                            <button onClick={() => moveLine(idx, 'down')} disabled={idx === lines.length - 1} className="p-1 text-gray-400 hover:text-neon-cyan transition-all disabled:opacity-20" title="Descendre">
-                                                                                                <ChevronDown className="w-3.5 h-3.5" />
-                                                                                            </button>
-                                                                                            <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all ml-1" title="Éditer">
-                                                                                                <Edit2 className="w-3.5 h-3.5" />
-                                                                                            </button>
-                                                                                            <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
-                                                                                                <X className="w-3.5 h-3.5" />
-                                                                                            </button>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                );
-                                                                            })
-                                                                        })()}
-                                                                    </tbody>
-                                                                </table>
-                                                            </div>
-                                                        )}
-
-                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM - HH:MM] Artiste - Stage - Instagram</p>
+                                            {/* Apparence Bot */}
+                                            <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                        <Pencil className="w-4 h-4 text-neon-cyan" />
                                                     </div>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Apparence <span className="text-neon-cyan">Bot</span></h3>
                                                 </div>
-                                            )}
-
-
-
-
-
-
-                                            {activeSettingsTab === 'shop' && (
-                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
-                                                                <Zap className="w-4 h-4 text-neon-cyan" />
-                                                            </div>
-                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Sélection <span className="text-neon-cyan">Shop</span></h3>
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur Texte/Bordure</label>
+                                                        <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                            <input type="color" value={botColor} onChange={(e) => handleUpdateSettings({ botColor: e.target.value })} className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md" />
+                                                            <span className="text-xs font-bold text-white uppercase">{botColor}</span>
                                                         </div>
-
-                                                        <div className="space-y-4">
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Choisissez 10 à 15 objets à mettre en avant :</p>
-
-                                                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                {allShopProducts.map(product => {
-                                                                    const isSelected = selectedShopIds.includes(String(product.id));
-                                                                    return (
-                                                                        <button
-                                                                            key={product.id}
-                                                                            onClick={() => {
-                                                                                if (isSelected) {
-                                                                                    setSelectedShopIds(selectedShopIds.filter(id => id !== String(product.id)));
-                                                                                } else {
-                                                                                    if (selectedShopIds.length >= 15) return alert("Maximum 15 objets.");
-                                                                                    setSelectedShopIds([...selectedShopIds, String(product.id)]);
-                                                                                }
-                                                                            }}
-                                                                            className={`p-3 rounded-xl border text-[9px] font-black uppercase text-left transition-all flex flex-col gap-1 ${isSelected ? 'bg-neon-cyan/20 border-neon-cyan text-white' : 'bg-black/40 border-white/10 text-gray-500 hover:border-white/20'}`}
-                                                                        >
-                                                                            <div className="flex items-center gap-2">
-                                                                                <div className="w-8 h-8 rounded-lg bg-white/10 shrink-0 overflow-hidden">
-                                                                                    {product.image && <img src={product.image} className="w-full h-full object-cover" />}
-                                                                                </div>
-                                                                                <div className="flex-1 min-w-0">
-                                                                                    <p className="truncate">{product.name}</p>
-                                                                                    <p className={`${isSelected ? 'text-neon-cyan' : 'text-gray-600'}`}>{product.price}€</p>
-                                                                                </div>
-                                                                            </div>
-                                                                        </button>
-                                                                    );
-                                                                })}
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Couleur de Fond</label>
+                                                        <div className="flex items-center gap-3 bg-black/40 border border-white/10 rounded-xl p-2 focus-within:border-neon-cyan transition-all">
+                                                            <div className="relative group/picker">
+                                                                <input
+                                                                    type="color"
+                                                                    value={botColor}
+                                                                    onChange={(e) => {
+                                                                        const hex = e.target.value;
+                                                                        handleUpdateSettings({ botBgColor: `${hex}0d` }); // 0.05 opacity by default
+                                                                    }}
+                                                                    className="w-8 h-8 rounded-lg cursor-pointer bg-transparent border-0 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:border-none [&::-webkit-color-swatch]:rounded-md"
+                                                                />
+                                                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black text-[8px] text-white rounded opacity-0 group-hover/picker:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/10">Base pour le fond</div>
                                                             </div>
-
-                                                            <div className="flex justify-between items-center p-4 bg-black/60 rounded-2xl border border-white/5">
-                                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Objets sélectionnés : {selectedShopIds.length} / 15</span>
+                                                            <div className="flex flex-1 items-center gap-2">
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="ex: rgba(0, 255, 204, 0.05)"
+                                                                    value={botBgColor}
+                                                                    onChange={(e) => handleUpdateSettings({ botBgColor: e.target.value })}
+                                                                    className="bg-transparent border-none text-[11px] font-mono font-bold text-white outline-none w-full"
+                                                                />
                                                                 <button
-                                                                    onClick={() => setSelectedShopIds([])}
-                                                                    className="text-[9px] font-black text-neon-red uppercase hover:underline"
+                                                                    onClick={() => alert(`Couleur Bot Validée : ${botBgColor}`)}
+                                                                    className="px-2 py-1 bg-white/5 border border-white/10 rounded-lg text-[7px] font-black uppercase text-white hover:bg-neon-cyan hover:text-black transition-all whitespace-nowrap"
                                                                 >
-                                                                    Tout vider
+                                                                    VALIDER
                                                                 </button>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
+
+                                            {/* Auto Message Management */}
+                                            <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                    <Zap className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_#00ffff66]" /> Message Automatique (Bot)
+                                                </label>
+
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Contenu du message</p>
+                                                        <textarea
+                                                            value={settings.autoMessage || ''}
+                                                            onChange={(e) => handleUpdateSettings({ autoMessage: e.target.value })}
+                                                            placeholder="Message à envoyer automatiquement..."
+                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-[11px] text-white focus:border-neon-cyan outline-none resize-none min-h-[80px]"
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-4">
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">Intervalle (secondes)</p>
+                                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Temps entre chaque message automatique</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <input
+                                                                type="number"
+                                                                value={settings.autoMessageInterval || 60}
+                                                                onChange={(e) => handleUpdateSettings({ autoMessageInterval: parseInt(e.target.value) || 60 })}
+                                                                className="w-20 bg-white/10 border border-white/10 rounded-xl px-3 py-2 text-center text-xs text-white font-black"
+                                                                min="10"
+                                                            />
+                                                            <Clock className="w-4 h-4 text-gray-500" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Le message s'enverra toutes les {settings.autoMessageInterval || 60} secondes si un contenu est défini.</p>
+                                            </div>
+                                        </div>
                                             )}
-                                        </div>
-
-                                        <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto shrink-0">
-                                            <button
-                                                onClick={async () => {
-                                                    const extractYoutubeId = (url: string) => {
-                                                        if (!url) return '';
-                                                        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
-                                                        return match ? match[1] : url.trim();
-                                                    };
-
-                                                    const fId = extractYoutubeId(fluxPrincipal);
-                                                    const s1Id = extractYoutubeId(stage1);
-                                                    const s2Id = extractYoutubeId(stage2);
-                                                    const s3Id = extractYoutubeId(stage3);
-                                                    const s4Id = extractYoutubeId(stage4);
-
-                                                    const newChannels = [];
-                                                    if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
-                                                    if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
-                                                    if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
-                                                    if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
-
-                                                    await handleUpdateSettings({
-                                                        ...localSettings,
-                                                        title: editTitle,
-                                                        mainFluxName: editMainFluxName,
-                                                        lineup: editLineup,
-                                                        youtubeId: fId,
-                                                        channels: newChannels.join('\n'),
-                                                        shopItems: selectedShopIds.join(','),
-                                                        chat_enabled: true,
-                                                        pinnedMessage: localPinnedMessage,
-                                                        customCommands: localCustomCommands,
-                                                        moderators: localModerators
-                                                    });
-                                                    setShowEditModal(false);
-                                                }}
-                                                disabled={isSaving}
-                                                className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
-                                            >
-                                                {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
-                                            </button>
-                                            <button
-                                                onClick={() => setShowEditModal(false)}
-                                                className="py-4 bg-white/5 border border-white/5 text-gray-500 hover:text-neon-red text-[10px] font-black uppercase tracking-[0.3em] rounded-xl transition-all"
-                                            >
-                                                ANNULER
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence >
-                    </div >
-
-                    {/* Chat Section */}
-                    < div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
-                        {/* Glossy Header */}
-                        {
-                            !isFocusMode && (
-                                <div className="p-1 lg:p-1 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
-                                    <div className="flex-1 flex items-center gap-2">
-                                        <div className="w-7 h-7 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                            <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
-                                                {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Boutique Drops' : 'Classement'}
-                                                {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
-                                            </h2>
-                                            {/* Hype Energy Mini Gauge */}
-                                            <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
-                                                <motion.div
-                                                    className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
-                                                    animate={{ width: `${hypeLevel}%` }}
-                                                    transition={{ type: "spring", stiffness: 50 }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* MES DROPS - CENTERED */}
-                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                                        <button
-                                            onClick={() => setActiveChatTab(activeChatTab === 'shop' ? 'chat' : 'shop')}
-                                            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
-                                        >
-                                            <span className="text-[8px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
-                                            <div className="w-3.5 h-3.5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
-                                                <Zap className="w-2 h-2 text-white fill-current" />
-                                            </div>
-                                        </button>
-                                    </div>
-
-                                    <div className="flex-1 flex items-center justify-end gap-2">
-                                        {hasModPowers && (
-                                            <>
-                                                <button
-                                                    onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
-                                                    className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                                    title="Shop (Global)"
-                                                >
-                                                    <Zap className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setShowSlowModePopup(!showSlowModePopup)}
-                                                    className={`p-2 rounded-lg transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                                    title="Mode Lent"
-                                                >
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                    {showSlowModePopup && (
-                                        <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
-                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                            </h3>
-                                            <input
-                                                type="number"
-                                                value={slowModeDuration}
-                                                onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
-                                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
-                                            />
-                                            <div className="flex gap-2">
-                                                <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
-                                                <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )
-                        }
-
-                        {/* Shop Widget Overhead */}
-                        <AnimatePresence>
-                            {!isFocusMode && showShopWidget && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
-                                >
-                                    <div className="relative group px-1">
-                                        <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                        <div className="w-full overflow-hidden relative py-2 mb-1">
-                                            <div className="flex flex-row gap-3 animate-shop-scroll">
-                                                {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
-                                                    <a
-                                                        key={`${product.id}-${i}`}
-                                                        href={product.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 p-1.5 pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95 shrink-0"
-                                                    >
-                                                        <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative shadow-lg">
-                                                            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
-                                                            <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
-                                                                <span className="text-[7.5px] font-black text-white">{product.price}€</span>
+                                        {activeSettingsTab === 'planning' && (
+                                            <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                <div className="bg-white/5 border border-white/5 p-5 rounded-3xl space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-xs font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                            <Pencil className="w-4 h-4 text-neon-red shadow-[0_0_10px_#ff003366]" /> Éditeur de Planning
+                                                        </label>
+                                                    </div>
+                                                    <div className="grid grid-cols-12 gap-2">
+                                                        <div className="col-span-3 flex flex-col gap-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest text-center mt-1">Début (HH:MM)</label>
+                                                            <div className="flex gap-1">
+                                                                <input type="number" min="0" max="23" placeholder="HH" value={lineupHour} onChange={e => setLineupHour(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
+                                                                <span className="text-white font-bold flex flex-col justify-center">:</span>
+                                                                <input type="number" min="0" max="59" placeholder="MM" value={lineupMinute} onChange={e => setLineupMinute(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
                                                             </div>
                                                         </div>
-                                                        <div className="flex flex-col justify-center max-w-[120px]">
-                                                            <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
-                                                            <p className="text-[7.5px] text-gray-500 uppercase tracking-widest mt-1 truncate opacity-60 font-bold">{product.description}</p>
+                                                        <div className="col-span-3 flex flex-col gap-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest text-center mt-1">Fin (HH:MM)</label>
+                                                            <div className="flex gap-1">
+                                                                <input type="number" min="0" max="23" placeholder="HH" value={lineupEndHour} onChange={e => setLineupEndHour(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
+                                                                <span className="text-white font-bold flex flex-col justify-center">:</span>
+                                                                <input type="number" min="0" max="59" placeholder="MM" value={lineupEndMinute} onChange={e => setLineupEndMinute(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-2 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all text-center" />
+                                                            </div>
                                                         </div>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                                        <div className="col-span-6 flex flex-col gap-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">Nom de l'Artiste</label>
+                                                            <input type="text" placeholder="Artiste" value={lineupArtist} onChange={e => setLineupArtist(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all" />
+                                                        </div>
 
-                        {/* Chat Content and Sidebar Wrapper */}
-                        <div className="flex-1 flex flex-row min-h-0 overflow-hidden relative">
-                            <div className="flex-1 flex flex-col min-h-0 relative">
-                                {isLocalBanned ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
-                                        <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
-                                            <ShieldAlert className="w-12 h-12 text-neon-red" />
-                                        </div>
-                                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
-                                            Vous avez été banni du chat communautaire.
-                                        </p>
+                                                        <div className="col-span-4 flex flex-col gap-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">Flux / Scène</label>
+                                                            <select value={lineupStage} onChange={e => setLineupStage(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-red font-bold uppercase transition-all cursor-pointer">
+                                                                <option value="" disabled>Sélectionner</option>
+                                                                <option value="Flux Principal">Flux Principal</option>
+                                                                {stage1Name && <option value={stage1Name}>{stage1Name}</option>}
+                                                                {stage2Name && <option value={stage2Name}>{stage2Name}</option>}
+                                                                {stage3Name && <option value={stage3Name}>{stage3Name}</option>}
+                                                                {stage4Name && <option value={stage4Name}>{stage4Name}</option>}
+                                                            </select>
+                                                        </div>
+                                                        <div className="col-span-5 flex flex-col gap-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest mt-1">Lien Instagram (Optionnel)</label>
+                                                            <input type="text" placeholder="@insta" value={lineupInstagram} onChange={e => setLineupInstagram(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-white outline-none focus:border-neon-purple font-bold uppercase transition-all" />
+                                                        </div>
+
+                                                        <div className="col-span-3 flex flex-col gap-1 justify-end">
+                                                            <button onClick={appendLineup} className="w-full py-2 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all">Ajouter</button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Planning visual table */}
+                                                    {editLineup.trim() && (
+                                                        <div className="overflow-hidden border border-white/10 rounded-2xl">
+                                                            <table className="w-full text-left border-collapse">
+                                                                <thead>
+                                                                    <tr className="bg-white/5">
+                                                                        <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Heure</th>
+                                                                        <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Artiste</th>
+                                                                        <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Stage</th>
+                                                                        <th className="px-4 py-2.5 text-[8px] font-black text-neon-red uppercase tracking-[0.2em] border-b border-white/10">Instagram</th>
+                                                                        <th className="px-4 py-2.5 border-b border-white/10"></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {(() => {
+                                                                        const lines = editLineup.split('\n').filter(l => l.trim());
+
+                                                                        const moveLine = (index: number, direction: 'up' | 'down') => {
+                                                                            const newLines = [...lines];
+                                                                            if (direction === 'up' && index > 0) {
+                                                                                [newLines[index], newLines[index - 1]] = [newLines[index - 1], newLines[index]];
+                                                                            } else if (direction === 'down' && index < newLines.length - 1) {
+                                                                                [newLines[index], newLines[index + 1]] = [newLines[index + 1], newLines[index]];
+                                                                            }
+                                                                            setEditLineup(newLines.join('\n'));
+                                                                        };
+
+                                                                        return lines.map((line, idx) => {
+                                                                            const deleteLine = () => {
+                                                                                const lines = editLineup.split('\n').filter(l => l.trim());
+                                                                                lines.splice(idx, 1);
+                                                                                setEditLineup(lines.join('\n'));
+                                                                            };
+
+                                                                            const timeMatch = line.includes('|') ? line.split('|')[0] : line.match(/^\[(.*?)\]/)?.[1];
+                                                                            if (!timeMatch) return (
+                                                                                <tr key={idx} className="hover:bg-white/[0.02] group transition-colors">
+                                                                                    <td colSpan={4} className="px-4 py-2 border-b border-white/5 text-[9px] text-red-400 italic font-bold">⚠️ Format incorrect: {line}</td>
+                                                                                    <td className="px-4 py-2 border-b border-white/5 text-right">
+                                                                                        <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
+                                                                                            <X className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+
+                                                                            const time = timeMatch.trim();
+                                                                            const rest = line.includes('|') ? line.substring(line.indexOf('|') + 1).trim() : line.replace(/^\[(.*?)\]/, '').trim();
+                                                                            const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split(/\s*[\-\|\–\—]\s*/).map(p => p.trim());
+                                                                            const artist = parts[0] || '';
+                                                                            const stage = parts[1] || '';
+                                                                            // Direct 3rd part is Instagram now
+                                                                            const instagram = parts[2] || '';
+
+                                                                            const editOption = () => {
+                                                                                const [h, m] = time.replace('h', ':').split(':');
+                                                                                setLineupHour(h || '');
+                                                                                setLineupMinute(m || '');
+                                                                                setLineupArtist(artist.trim());
+
+                                                                                // On essaye de matcher le stage avec les options existantes
+                                                                                const lowerStage = stage.trim().toLowerCase();
+                                                                                if (lowerStage === 'flux principal') setLineupStage('Flux Principal');
+                                                                                else if (lowerStage === (stage1Name?.toLowerCase() || '')) setLineupStage(stage1Name);
+                                                                                else if (lowerStage === (stage2Name?.toLowerCase() || '')) setLineupStage(stage2Name);
+                                                                                else if (lowerStage === (stage3Name?.toLowerCase() || '')) setLineupStage(stage3Name);
+                                                                                else if (lowerStage === (stage4Name?.toLowerCase() || '')) setLineupStage(stage4Name);
+                                                                                else setLineupStage(stage.trim());
+
+                                                                                setLineupInstagram(instagram.trim());
+                                                                                deleteLine();
+                                                                            };
+
+                                                                            const getStageColor = (stageName: string) => {
+                                                                                const s = stageName.toLowerCase();
+                                                                                if (s.includes('principal') || s.includes('main')) return 'text-neon-cyan border-neon-cyan/30 bg-neon-cyan/10';
+                                                                                if (s.includes('1')) return 'text-neon-purple border-neon-purple/30 bg-neon-purple/10';
+                                                                                if (s.includes('2')) return 'text-neon-red border-neon-red/30 bg-neon-red/10';
+                                                                                if (s.includes('3')) return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+                                                                                return 'text-gray-400 border-white/20 bg-white/5';
+                                                                            };
+
+                                                                            return (
+                                                                                <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-neon-cyan font-black text-[10px]">{time}</td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-white font-bold text-[10px] uppercase truncate max-w-[150px]">{artist}</td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5">
+                                                                                        {stage && <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${getStageColor(stage)}`}>{stage}</span>}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5">
+                                                                                        {instagram && (
+                                                                                            (instagram.includes('.') || (!instagram.includes(' ') && instagram.length > 0))
+                                                                                                ? <a href={instagram.startsWith('http') ? instagram : `https://${instagram}`} target="_blank" rel="noopener noreferrer" className="text-[9px] text-neon-purple hover:underline font-bold uppercase truncate block max-w-[120px]">{instagram.replace(/^https?:\/\//, '')}</a>
+                                                                                                : <span className="text-[9px] text-gray-400 font-bold uppercase truncate block max-w-[120px]">{instagram}</span>
+                                                                                        )}
+                                                                                    </td>
+                                                                                    <td className="px-4 py-2.5 border-b border-white/5 text-right space-x-1">
+                                                                                        <button onClick={() => moveLine(idx, 'up')} disabled={idx === 0} className="p-1 text-gray-400 hover:text-neon-cyan transition-all disabled:opacity-20" title="Monter">
+                                                                                            <ChevronUp className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button onClick={() => moveLine(idx, 'down')} disabled={idx === lines.length - 1} className="p-1 text-gray-400 hover:text-neon-cyan transition-all disabled:opacity-20" title="Descendre">
+                                                                                            <ChevronDown className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button onClick={editOption} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-cyan/10 rounded text-gray-500 hover:text-neon-cyan transition-all ml-1" title="Éditer">
+                                                                                            <Edit2 className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                        <button onClick={deleteLine} className="p-1 opacity-100 md:opacity-0 group-hover:opacity-100 hover:bg-neon-red/10 rounded text-gray-500 hover:text-neon-red transition-all" title="Supprimer">
+                                                                                            <X className="w-3.5 h-3.5" />
+                                                                                        </button>
+                                                                                    </td>
+                                                                                </tr>
+                                                                            );
+                                                                        })
+                                                                    })()}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    )}
+
+                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">Un artiste par ligne • Format: [HH:MM - HH:MM] Artiste - Stage - Instagram</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+
+
+
+
+
+                                        {activeSettingsTab === 'shop' && (
+                                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                            <Zap className="w-4 h-4 text-neon-cyan" />
+                                                        </div>
+                                                        <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Sélection <span className="text-neon-cyan">Shop</span></h3>
+                                                    </div>
+
+                                                    <div className="space-y-4">
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Choisissez 10 à 15 objets à mettre en avant :</p>
+
+                                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {allShopProducts.map(product => {
+                                                                const isSelected = selectedShopIds.includes(String(product.id));
+                                                                return (
+                                                                    <button
+                                                                        key={product.id}
+                                                                        onClick={() => {
+                                                                            if (isSelected) {
+                                                                                setSelectedShopIds(selectedShopIds.filter(id => id !== String(product.id)));
+                                                                            } else {
+                                                                                if (selectedShopIds.length >= 15) return alert("Maximum 15 objets.");
+                                                                                setSelectedShopIds([...selectedShopIds, String(product.id)]);
+                                                                            }
+                                                                        }}
+                                                                        className={`p-3 rounded-xl border text-[9px] font-black uppercase text-left transition-all flex flex-col gap-1 ${isSelected ? 'bg-neon-cyan/20 border-neon-cyan text-white' : 'bg-black/40 border-white/10 text-gray-500 hover:border-white/20'}`}
+                                                                    >
+                                                                        <div className="flex items-center gap-2">
+                                                                            <div className="w-8 h-8 rounded-lg bg-white/10 shrink-0 overflow-hidden">
+                                                                                {product.image && <img src={product.image} className="w-full h-full object-cover" />}
+                                                                            </div>
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <p className="truncate">{product.name}</p>
+                                                                                <p className={`${isSelected ? 'text-neon-cyan' : 'text-gray-600'}`}>{product.price}€</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        <div className="flex justify-between items-center p-4 bg-black/60 rounded-2xl border border-white/5">
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Objets sélectionnés : {selectedShopIds.length} / 15</span>
+                                                            <button
+                                                                onClick={() => setSelectedShopIds([])}
+                                                                className="text-[9px] font-black text-neon-red uppercase hover:underline"
+                                                            >
+                                                                Tout vider
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="pt-6 grid grid-cols-2 gap-4 border-t border-white/10 mt-auto shrink-0">
                                         <button
-                                            onClick={handleUnbanRequest}
-                                            className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                            onClick={async () => {
+                                                const extractYoutubeId = (url: string) => {
+                                                    if (!url) return '';
+                                                    const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                                                    return match ? match[1] : url.trim();
+                                                };
+
+                                                const fId = extractYoutubeId(fluxPrincipal);
+                                                const s1Id = extractYoutubeId(stage1);
+                                                const s2Id = extractYoutubeId(stage2);
+                                                const s3Id = extractYoutubeId(stage3);
+                                                const s4Id = extractYoutubeId(stage4);
+
+                                                const newChannels = [];
+                                                if (s1Id) newChannels.push(`${s1Id}:${stage1Name || 'Stage 1'}`);
+                                                if (s2Id) newChannels.push(`${s2Id}:${stage2Name || 'Stage 2'}`);
+                                                if (s3Id) newChannels.push(`${s3Id}:${stage3Name || 'Stage 3'}`);
+                                                if (s4Id) newChannels.push(`${s4Id}:${stage4Name || 'Stage 4'}`);
+
+                                                await handleUpdateSettings({
+                                                    ...localSettings,
+                                                    title: editTitle,
+                                                    mainFluxName: editMainFluxName,
+                                                    lineup: editLineup,
+                                                    youtubeId: fId,
+                                                    channels: newChannels.join('\n'),
+                                                    shopItems: selectedShopIds.join(','),
+                                                    chat_enabled: true,
+                                                    pinnedMessage: localPinnedMessage,
+                                                    customCommands: localCustomCommands,
+                                                    moderators: localModerators
+                                                });
+                                                setShowEditModal(false);
+                                            }}
+                                            disabled={isSaving}
+                                            className="py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/10 active:scale-[0.98] disabled:opacity-50"
                                         >
-                                            Demande de débannissement
+                                            {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
+                                        </button>
+                                        <button
+                                            onClick={() => setShowEditModal(false)}
+                                            className="py-4 bg-white/5 border border-white/5 text-gray-500 hover:text-neon-red text-[10px] font-black uppercase tracking-[0.3em] rounded-xl transition-all"
+                                        >
+                                            ANNULER
                                         </button>
                                     </div>
-                                ) : (
-                                    <div className="flex-1 flex flex-col min-h-0 relative">
+                                </motion.div>
+                                </motion.div>
+                            )}
+                    </AnimatePresence >
+                </div >
+
+                {/* Chat Section */}
+                < div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
+                    {/* Glossy Header */}
+                    {
+                        !isFocusMode && (
+                            <div className="p-1 lg:p-1 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                                <div className="flex-1 flex items-center gap-2">
+                                    <div className="w-7 h-7 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                        <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
+                                            {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Boutique Drops' : 'Classement'}
+                                            {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
+                                        </h2>
+                                        {/* Hype Energy Mini Gauge */}
+                                        <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1">
+                                            <motion.div
+                                                className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
+                                                animate={{ width: `${hypeLevel}%` }}
+                                                transition={{ type: "spring", stiffness: 50 }}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* MES DROPS - CENTERED */}
+                                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    <button
+                                        onClick={() => setActiveChatTab(activeChatTab === 'shop' ? 'chat' : 'shop')}
+                                        className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
+                                    >
+                                        <span className="text-[8px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
+                                        <div className="w-3.5 h-3.5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
+                                            <Zap className="w-2 h-2 text-white fill-current" />
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 flex items-center justify-end gap-2">
+                                    {hasModPowers && (
+                                        <>
+                                            <button
+                                                onClick={handleClearChat}
+                                                className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-[0_0_10px_rgba(255,18,65,0.2)]"
+                                                title="Vider le chat"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
+                                                className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                title="Shop (Global)"
+                                            >
+                                                <Zap className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => setShowSlowModePopup(!showSlowModePopup)}
+                                                className={`p-2 rounded-lg transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                title="Mode Lent"
+                                            >
+                                                <Clock className="w-3.5 h-3.5" />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
+                                {showSlowModePopup && (
+                                    <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                        </h3>
+                                        <input
+                                            type="number"
+                                            value={slowModeDuration}
+                                            onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
+                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
+                                            <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    }
+
+                    {/* Shop Widget Overhead */}
+                    <AnimatePresence>
+                        {!isFocusMode && showShopWidget && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
+                            >
+                                <div className="relative group px-1">
+                                    <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                    <div className="w-full overflow-hidden relative py-2 mb-1">
+                                        <div className="flex flex-row gap-3 animate-shop-scroll">
+                                            {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
+                                                <a
+                                                    key={`${product.id}-${i}`}
+                                                    href={product.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-3 p-1.5 pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95 shrink-0"
+                                                >
+                                                    <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative shadow-lg">
+                                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
+                                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
+                                                            <span className="text-[7.5px] font-black text-white">{product.price}€</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col justify-center max-w-[120px]">
+                                                        <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
+                                                        <p className="text-[7.5px] text-gray-500 uppercase tracking-widest mt-1 truncate opacity-60 font-bold">{product.description}</p>
+                                                    </div>
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Chat Content and Sidebar Wrapper */}
+                    <div className={`flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
+                        <div className="flex-1 flex flex-col min-h-0 relative">
+                            {isLocalBanned ? (
+                                <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
+                                    <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
+                                        <ShieldAlert className="w-12 h-12 text-neon-red" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                        Vous avez été banni du chat communautaire.
+                                    </p>
+                                    <button
+                                        onClick={handleUnbanRequest}
+                                        className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                    >
+                                        Demande de débannissement
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+                                    <AnimatePresence mode="wait">
                                         {activeChatTab === 'shop' ? (
-                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24">
+                                            <motion.div
+                                                key="shop-view"
+                                                initial={{ x: 50, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                exit={{ x: -50, opacity: 0 }}
+                                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
+                                            >
                                                 <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
                                                     <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
                                                 </button>
@@ -4188,6 +4221,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
                                                                 <button
                                                                     onClick={() => {
+                                                                        if (!confirm(`Confirmer l'achat de "${reward.name}" pour ${reward.cost} Drops ?`)) return;
                                                                         if (userDrops >= reward.cost) {
                                                                             setUserDrops(d => d - reward.cost);
                                                                             if (reward.id === 'pin') {
@@ -4205,9 +4239,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         ) : activeChatTab === 'leaderboard' ? (
-                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24">
+                                            <motion.div
+                                                key="leaderboard-view"
+                                                initial={{ x: 50, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                exit={{ x: -50, opacity: 0 }}
+                                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24"
+                                            >
                                                 <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
                                                     <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
                                                 </button>
@@ -4253,9 +4294,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     ))}
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         ) : activeChatTab === 'audio' ? (
-                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24">
+                                            <motion.div
+                                                key="audio-view"
+                                                initial={{ x: 50, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                exit={{ x: -50, opacity: 0 }}
+                                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24"
+                                            >
                                                 <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
                                                     <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
                                                 </button>
@@ -4295,9 +4343,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </motion.div>
                                         ) : (
-                                            <div id="default-chat-view" className="flex-1 flex flex-col min-h-0 relative">
+                                            <motion.div
+                                                key="chat-view"
+                                                initial={{ x: 100, opacity: 0 }}
+                                                animate={{ x: 0, opacity: 1 }}
+                                                exit={{ x: -100, opacity: 0 }}
+                                                transition={{ type: "spring", damping: 30, stiffness: 200 }}
+                                                id="default-chat-view"
+                                                className="flex-1 flex flex-col min-h-0 relative"
+                                            >
                                                 {!isJoined ? (
                                                     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
                                                         {/* Background Decor */}
@@ -4406,6 +4462,28 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                 ) : (
                                                     <>
+                                                        {/* Tab Switcher - Now at Top */}
+                                                        <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-4 relative z-20 shrink-0">
+                                                            {[
+                                                                { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                                                                { id: 'audio', icon: Mic, label: 'Audio' },
+                                                                { id: 'shop', icon: Zap, label: 'Shop' },
+                                                                { id: 'leaderboard', icon: Trophy, label: 'Top' }
+                                                            ].map(tab => (
+                                                                <button
+                                                                    key={tab.id}
+                                                                    onClick={() => setActiveChatTab(tab.id as any)}
+                                                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                                >
+                                                                    <tab.icon className="w-3.5 h-3.5" />
+                                                                    <span className="hidden sm:inline">{tab.label}</span>
+                                                                    {activeChatTab === tab.id && (
+                                                                        <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
+                                                                    )}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+
                                                         {/* Chat Messages */}
                                                         <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                                             {/* Pinned Message */}
@@ -4533,25 +4611,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                         {/* Chat Input Area */}
                                                         <div className="p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
-                                                            {/* Chat/Shop/Leaderboard/Audio Tab Switcher */}
-                                                            <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-2 max-w-md mx-auto">
-                                                                {[
-                                                                    { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                                                                    { id: 'audio', icon: Mic, label: 'Audio' },
-                                                                    { id: 'shop', icon: Zap, label: 'Shop' },
-                                                                    { id: 'leaderboard', icon: Trophy, label: 'Top' }
-                                                                ].map(tab => (
-                                                                    <button
-                                                                        key={tab.id}
-                                                                        onClick={() => setActiveChatTab(activeChatTab === tab.id ? 'chat' : tab.id as any)}
-                                                                        className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.id ? 'bg-white text-black shadow-lg scale-[1.05]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                                                    >
-                                                                        <tab.icon className="w-3.5 h-3.5" />
-                                                                        <span className="hidden sm:inline">{tab.label}</span>
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-
                                                             <form onSubmit={handleSendMessage} className="relative group/input px-2 py-1">
                                                                 <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                 <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
@@ -4601,374 +4660,375 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     </>
                                                 )}
-                                            </div>
+                                            </motion.div>
                                         )}
-                                    </div>
-                                )}
-                            </div>
-
-                            {!isFocusMode && (
-                                <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                                    <button
-                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                        className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
-                                    >
-                                        <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                                    </button>
+                                    </AnimatePresence>
                                 </div>
                             )}
-
-                            <AnimatePresence>
-                                {!isFocusMode && showUsersPanel && (
-                                    <motion.div
-                                        initial={{ width: 0, opacity: 0 }}
-                                        animate={{ width: 200, opacity: 1 }}
-                                        exit={{ width: 0, opacity: 0 }}
-                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
-                                    >
-                                        <div className="w-[200px] flex flex-col h-full">
-                                            <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                    <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                                </h2>
-                                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                            </div>
-                                            <div className="flex-1 overflow-y-auto">
-                                                <div className="p-3 space-y-2">
-                                                    {allActiveUsers.map(u => {
-                                                        const role = getRole(u.pseudo);
-                                                        const isUserAdmin = role === 'admin';
-                                                        const isUserModo = role === 'modo';
-                                                        const isExpanded = expandedUserId === u.pseudo;
-
-                                                        return (
-                                                            <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
-                                                                <div
-                                                                    onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
-                                                                    className="flex items-center justify-between group p-2 cursor-pointer select-none"
-                                                                >
-                                                                    <div className="flex items-center gap-2 truncate">
-                                                                        <div className="w-4 flex items-center justify-center">
-                                                                            {getCountryFlag(u.country)}
-                                                                        </div>
-                                                                        <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                            {u.pseudo}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        {(isUserAdmin || isUserModo) && (
-                                                                            <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
-                                                                                {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
-                                                                                {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
-                                                                            </span>
-                                                                        )}
-                                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
-                                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                                title="Promouvoir Modérateur Chat"
-                                                                            >
-                                                                                <Shield className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                <AnimatePresence>
-                                                                    {isExpanded && (
-                                                                        <motion.div
-                                                                            initial={{ height: 0, opacity: 0 }}
-                                                                            animate={{ height: 'auto', opacity: 1 }}
-                                                                            exit={{ height: 0, opacity: 0 }}
-                                                                            className="overflow-hidden border-t border-white/5"
-                                                                        >
-                                                                            <div className="p-3 space-y-3 bg-black/40">
-                                                                                <div className="space-y-1.5">
-                                                                                    <div className="flex items-center justify-between text-[10px]">
-                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
-                                                                                        <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center justify-between text-[10px]">
-                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
-                                                                                        <span className="text-gray-400 font-italic">Non disponible</span>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                {isAdmin && isUserModo && pseudo !== u.pseudo && (
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
-                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                                    >
-                                                                                        <Shield className="w-3.5 h-3.5" />
-                                                                                        Retirer MODO
-                                                                                    </button>
-                                                                                )}
-                                                                            </div>
-                                                                        </motion.div>
-                                                                    )}
-                                                                </AnimatePresence>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
                         </div>
-                    </div >
-                </div >
 
-                {/* Ticker Banner */}
-                {
-                    !isFocusMode && !isFullScreen && showTickerBanner && (
-                        <div
-                            className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
-                            style={{ backgroundColor: tickerBgColor }}
-                            onMouseEnter={() => {
-                                const ticker = document.getElementById('ticker-animate-container');
-                                if (ticker) ticker.style.animationPlayState = 'paused';
-                            }}
-                            onMouseLeave={() => {
-                                const ticker = document.getElementById('ticker-animate-container');
-                                if (ticker) ticker.style.animationPlayState = 'running';
-                            }}
-                        >
-                            <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-                            <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-
-                            <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                                {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
-                                    <a
-                                        key={`${news.id}-${i}`}
-                                        href={`/news/${news.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
-                                        style={{ color: tickerTextColor }}
-                                    >
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
-                                    </a>
-                                ))}
-
-                                {tickerType === 'planning' && (() => {
-                                    const activeItems = currentFluxLineup.filter(item => !item.isPast);
-                                    return activeItems.concat(activeItems).map((item, i) => (
-                                        <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                            <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </div>
-                                    ));
-                                })()}
-
-                                {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
-                                    tickerLink ? (
-                                        <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </a>
-                                    ) : (
-                                        <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
-                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                        </div>
-                                    )
-                                ))}
-
-                                {tickerType === 'news' && latestNews.length === 0 && (
-                                    <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
-                                        CHARGEMENT DU FIL D'ACTUALITÉ...
-                                    </div>
-                                )}
+                        {!isFocusMode && (
+                            <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                <button
+                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                    className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
+                                >
+                                    <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                </button>
                             </div>
-                        </div>
-                    )
-                }
+                        )}
 
-                {/* CLIP PLAYER POPUP */}
-                <AnimatePresence>
-                    {showClipPlayer && activeClipToPlay && (
-                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => {
-                                    setShowClipPlayer(false);
-                                    setIsMutedGlobal(false);
-                                    setActiveClipToPlay(null);
-                                }}
-                                className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
-                            />
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                                className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
-                            >
-                                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                            <Video className="w-6 h-6 text-neon-cyan" />
+                        <AnimatePresence>
+                            {!isFocusMode && showUsersPanel && (
+                                <motion.div
+                                    initial={{ width: 0, opacity: 0 }}
+                                    animate={{ width: 200, opacity: 1 }}
+                                    exit={{ width: 0, opacity: 0 }}
+                                    className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                >
+                                    <div className="w-[200px] flex flex-col h-full">
+                                        <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                            <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                            </h2>
+                                            <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
                                         </div>
-                                        <div className="flex flex-col">
-                                            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
-                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
+                                        <div className="flex-1 overflow-y-auto">
+                                            <div className="p-3 space-y-2">
+                                                {allActiveUsers.map(u => {
+                                                    const role = getRole(u.pseudo);
+                                                    const isUserAdmin = role === 'admin';
+                                                    const isUserModo = role === 'modo';
+                                                    const isExpanded = expandedUserId === u.pseudo;
+
+                                                    return (
+                                                        <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
+                                                            <div
+                                                                onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
+                                                                className="flex items-center justify-between group p-2 cursor-pointer select-none"
+                                                            >
+                                                                <div className="flex items-center gap-2 truncate">
+                                                                    <div className="w-4 flex items-center justify-center">
+                                                                        {getCountryFlag(u.country)}
+                                                                    </div>
+                                                                    <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                        {u.pseudo}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {(isUserAdmin || isUserModo) && (
+                                                                        <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
+                                                                            {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
+                                                                            {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
+                                                                        </span>
+                                                                    )}
+                                                                    {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
+                                                                            className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                            title="Promouvoir Modérateur Chat"
+                                                                        >
+                                                                            <Shield className="w-3.5 h-3.5" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <AnimatePresence>
+                                                                {isExpanded && (
+                                                                    <motion.div
+                                                                        initial={{ height: 0, opacity: 0 }}
+                                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                                        exit={{ height: 0, opacity: 0 }}
+                                                                        className="overflow-hidden border-t border-white/5"
+                                                                    >
+                                                                        <div className="p-3 space-y-3 bg-black/40">
+                                                                            <div className="space-y-1.5">
+                                                                                <div className="flex items-center justify-between text-[10px]">
+                                                                                    <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
+                                                                                    <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
+                                                                                </div>
+                                                                                <div className="flex items-center justify-between text-[10px]">
+                                                                                    <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
+                                                                                    <span className="text-gray-400 font-italic">Non disponible</span>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            {isAdmin && isUserModo && pseudo !== u.pseudo && (
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
+                                                                                    className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                >
+                                                                                    <Shield className="w-3.5 h-3.5" />
+                                                                                    Retirer MODO
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
                                     </div>
-                                    <button
-                                        onClick={() => {
-                                            setShowClipPlayer(false);
-                                            setIsMutedGlobal(false);
-                                            setActiveClipToPlay(null);
-                                        }}
-                                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
-                                    >
-                                        <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                                    </button>
-                                </div>
-                                <div className="w-full h-full bg-black">
-                                    <iframe
-                                        className="w-full h-full"
-                                        src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
-                                        title="Clip Player"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                </div>
-                                <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
-                                    <div className="flex items-center gap-4">
-                                        <button
-                                            onClick={() => {
-                                                const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
-                                                if (navigator.share) {
-                                                    navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
-                                                } else {
-                                                    navigator.clipboard.writeText(shareText);
-                                                    alert("Lien copié !");
-                                                }
-                                            }}
-                                            className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
-                                        >
-                                            Partager le clip
-                                        </button>
-                                        <button
-                                            onClick={() => handleDownloadClip(activeClipToPlay)}
-                                            className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
-                                        >
-                                            Télécharger (HD)
-                                        </button>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div >
+            </div >
 
-                {/* Shazam Instructions Modal */}
-                <AnimatePresence>
-                    {showShazamInfo && (
+            {/* Ticker Banner */}
+            {
+                !isFocusMode && !isFullScreen && showTickerBanner && (
+                    <div
+                        className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                        style={{ backgroundColor: tickerBgColor }}
+                        onMouseEnter={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'paused';
+                        }}
+                        onMouseLeave={() => {
+                            const ticker = document.getElementById('ticker-animate-container');
+                            if (ticker) ticker.style.animationPlayState = 'running';
+                        }}
+                    >
+                        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+
+                        <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                            {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
+                                <a
+                                    key={`${news.id}-${i}`}
+                                    href={`/news/${news.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
+                                    style={{ color: tickerTextColor }}
+                                >
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
+                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
+                                </a>
+                            ))}
+
+                            {tickerType === 'planning' && (() => {
+                                const activeItems = currentFluxLineup.filter(item => !item.isPast);
+                                return activeItems.concat(activeItems).map((item, i) => (
+                                    <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </div>
+                                ));
+                            })()}
+
+                            {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
+                                tickerLink ? (
+                                    <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </a>
+                                ) : (
+                                    <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                    </div>
+                                )
+                            ))}
+
+                            {tickerType === 'news' && latestNews.length === 0 && (
+                                <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                    CHARGEMENT DU FIL D'ACTUALITÉ...
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )
+            }
+
+            {/* CLIP PLAYER POPUP */}
+            <AnimatePresence>
+                {showClipPlayer && activeClipToPlay && (
+                    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
-                            onClick={() => setShowShazamInfo(false)}
+                            onClick={() => {
+                                setShowClipPlayer(false);
+                                setIsMutedGlobal(false);
+                                setActiveClipToPlay(null);
+                            }}
+                            className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
                         >
-                            <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                                className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                {/* Decorative elements */}
-                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
-
-                                <div className="relative p-10 lg:p-14 text-center space-y-10">
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
-
-                                    <div className="relative flex flex-col items-center">
-                                        <div className="relative group">
-                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
-                                            <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                                <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
-                                            </div>
-                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
-                                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-8">
-                                            <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
-                                                Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
-                                            </h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
-                                        </div>
+                            <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                        <Video className="w-6 h-6 text-neon-cyan" />
                                     </div>
-
-                                    <div className="space-y-3 text-left relative z-10">
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.3 }}
-                                            className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
-                                            <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
-                                                Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
-                                            </p>
-                                        </motion.div>
-                                    </div>
-
-                                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                        <button
-                                            onClick={() => { setShowShazamInfo(false); handleShazam(); }}
-                                            className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
-                                        >
-                                            Démarrer
-                                        </button>
-                                        <button
-                                            onClick={() => setShowShazamInfo(false)}
-                                            className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
-                                        >
-                                            Annuler
-                                        </button>
+                                    <div className="flex flex-col">
+                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
+                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
                                     </div>
                                 </div>
-                            </motion.div>
+                                <button
+                                    onClick={() => {
+                                        setShowClipPlayer(false);
+                                        setIsMutedGlobal(false);
+                                        setActiveClipToPlay(null);
+                                    }}
+                                    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
+                                >
+                                    <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
+                                </button>
+                            </div>
+                            <div className="w-full h-full bg-black">
+                                <iframe
+                                    className="w-full h-full"
+                                    src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
+                                    title="Clip Player"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => {
+                                            const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
+                                            if (navigator.share) {
+                                                navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
+                                            } else {
+                                                navigator.clipboard.writeText(shareText);
+                                                alert("Lien copié !");
+                                            }
+                                        }}
+                                        className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                    >
+                                        Partager le clip
+                                    </button>
+                                    <button
+                                        onClick={() => handleDownloadClip(activeClipToPlay)}
+                                        className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
+                                    >
+                                        Télécharger (HD)
+                                    </button>
+                                </div>
+                            </div>
                         </motion.div>
-                    )}
-                </AnimatePresence>
+                    </div>
+                )}
+            </AnimatePresence>
 
-                <style>{`
+            {/* Shazam Instructions Modal */}
+            <AnimatePresence>
+                {showShazamInfo && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
+                        onClick={() => setShowShazamInfo(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                            className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+
+                            <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
+
+                                <div className="relative flex flex-col items-center">
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                        <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                            <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                        </div>
+                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-8">
+                                        <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                            Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
+                                        </h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3 text-left relative z-10">
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.1 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.2 }}
+                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                            Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                        </p>
+                                    </motion.div>
+
+                                    <motion.div
+                                        initial={{ opacity: 0, x: -10 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ delay: 0.3 }}
+                                        className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                    >
+                                        <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                        <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                            Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                        </p>
+                                    </motion.div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                    <button
+                                        onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                        className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                    >
+                                        Démarrer
+                                    </button>
+                                    <button
+                                        onClick={() => setShowShazamInfo(false)}
+                                        className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
@@ -5024,7 +5084,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            </div >
+        </div >
         </>
     );
 }

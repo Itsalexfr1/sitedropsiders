@@ -19,6 +19,7 @@ interface Top5Item {
     sub: string;  // Song or Description
     value: string; // Streams or Percent
     spotifyUrl?: string;
+    photo?: string;
 }
 
 const STYLE_PRESETS = [
@@ -53,7 +54,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         main: 'ARTISTE',
         sub: 'TITRE DU MORCEAU',
         value: '50',
-        spotifyUrl: ''
+        spotifyUrl: '',
+        photo: ''
     })));
     const [currentPreviewIndex, setCurrentPreviewIndex] = useState(0);
     const [rotation, setRotation] = useState(0);
@@ -207,15 +209,25 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const centerX = canvas.width / 2;
                 const centerY = safeTop + 480;
                 const radius = 350;
-                if (img) {
+                const currentItem = top5Items[currentPreviewIndex];
+                let itemPhotoImg: HTMLImageElement | null = null;
+                if (currentItem.photo) {
+                    itemPhotoImg = new Image();
+                    itemPhotoImg.src = currentItem.photo;
+                }
+
+                if (itemPhotoImg || img) {
                     ctx.save();
                     ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
                     ctx.shadowBlur = 40;
                     ctx.beginPath(); ctx.arc(centerX, centerY, radius, 0, Math.PI * 2); ctx.fill();
                     ctx.clip();
                     ctx.translate(centerX, centerY); ctx.rotate(rotation);
-                    const scale = Math.max((radius * 2) / img.width, (radius * 2) / img.height);
-                    ctx.drawImage(img, -(img.width * scale) / 2, -(img.height * scale) / 2, img.width * scale, img.height * scale);
+                    const targetImg = itemPhotoImg || img;
+                    if (targetImg) {
+                        const scale = Math.max((radius * 2) / targetImg.width, (radius * 2) / targetImg.height);
+                        ctx.drawImage(targetImg, -(targetImg.width * scale) / 2, -(targetImg.height * scale) / 2, targetImg.width * scale, targetImg.height * scale);
+                    }
                     ctx.restore();
                     ctx.beginPath(); ctx.arc(centerX, centerY, 45, 0, Math.PI * 2); ctx.fillStyle = '#0a0a0a'; ctx.fill();
                     ctx.strokeStyle = activeData.color; ctx.lineWidth = 10; ctx.stroke();
@@ -237,12 +249,32 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
                 const baseY = 1500;
+                const itemX = 100 + slideX;
+
+                if (item.photo) {
+                    const photoImg = new Image();
+                    photoImg.src = item.photo;
+                    if (photoImg.complete || photoImg.width > 0) {
+                        ctx.save();
+                        ctx.shadowColor = 'rgba(0,0,0,0.5)';
+                        ctx.shadowBlur = 30;
+                        const size = 320;
+                        const photoY = baseY - 450;
+                        // Rounded corners for the cover
+                        ctx.beginPath();
+                        ctx.roundRect(itemX, photoY, size, size, 40);
+                        ctx.clip();
+                        ctx.drawImage(photoImg, itemX, photoY, size, size);
+                        ctx.restore();
+                    }
+                }
+
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 italic 52px "Inter", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), 100 + slideX, baseY);
+                ctx.fillText(`${item.main} - ${item.sub}`.toUpperCase(), itemX, baseY);
                 const barWidth = 880; const barHeight = 90; const barX = 90; const barY = baseY + 45;
                 ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
                 ctx.fillRect(barX - 10 + slideX, barY - 10, barWidth + 20, barHeight + 20);
@@ -528,7 +560,47 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                             {theme === 'TOP 5 ARTISTE' && (
                                                 <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
                                             )}
-                                            <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold" />
+                                            <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold mb-2" />
+
+                                            <div className="flex items-center gap-2">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        const input = document.createElement('input');
+                                                        input.type = 'file';
+                                                        input.accept = 'image/*';
+                                                        input.onchange = (ev: any) => {
+                                                            const file = ev.target.files?.[0];
+                                                            if (file) {
+                                                                const reader = new FileReader();
+                                                                reader.onload = (re) => {
+                                                                    const n = [...top5Items];
+                                                                    n[i].photo = re.target?.result as string;
+                                                                    setTop5Items(n);
+                                                                };
+                                                                reader.readAsDataURL(file);
+                                                            }
+                                                        };
+                                                        input.click();
+                                                    }}
+                                                    className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    < ImageIcon className="w-3 h-3" /> {item.photo ? 'Modifier Photo' : 'Ajouter Photo'}
+                                                </button>
+                                                {item.photo && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const n = [...top5Items];
+                                                            n[i].photo = '';
+                                                            setTop5Items(n);
+                                                        }}
+                                                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

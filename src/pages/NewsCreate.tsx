@@ -341,7 +341,7 @@ export function NewsCreate() {
     ]);
 
     const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(type === 'Musique' ? 'Musique' : 'News');
-    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', playerType: 'spotify' }]);
+    const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,
         type: 'image' | 'gallery' | 'video',
@@ -1033,7 +1033,7 @@ export function NewsCreate() {
     };
 
     const addMusicItem = () => {
-        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', playerType: 'spotify' }]);
+        setMusicItems([...musicItems, { id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
     };
 
     const fetchMusicMetadata = async (id: string, url: string) => {
@@ -1075,7 +1075,7 @@ export function NewsCreate() {
         }
     };
 
-    const updateMusicItem = (id: string, field: 'title' | 'media' | 'playerType', value: string) => {
+    const updateMusicItem = (id: string, field: 'title' | 'media' | 'imageUrl' | 'playerType', value: string) => {
         setMusicItems(musicItems.map(item => item.id === id ? { ...item, [field]: value } : item));
 
         if (field === 'media' && value && activeTab === 'Musique') {
@@ -2789,8 +2789,16 @@ ${generateSocialsHtml()}
                                                     type="text"
                                                     value={item.media}
                                                     onChange={(e) => updateMusicItem(item.id, 'media', e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none mb-3"
                                                     placeholder={item.playerType === 'beatport' ? "Lien ou ID Beatport..." : item.playerType === 'youtube' ? "Lien YouTube..." : "Lien Spotify..."}
+                                                />
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Photo du Vinyl (URL)</label>
+                                                <input
+                                                    type="text"
+                                                    value={item.imageUrl || ''}
+                                                    onChange={(e) => updateMusicItem(item.id, 'imageUrl', e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                                    placeholder="Lien de la photo..."
                                                 />
                                             </div>
                                         </div>
@@ -2869,11 +2877,47 @@ ${generateSocialsHtml()}
                             {activeTab === 'Musique' ? (
                                 <div className="music-top-section">
                                     {musicItems.map((item) => (
-                                        <div key={item.id} className="music-top-item-premium mb-12 last:mb-0">
-                                            <div className="flex items-center gap-6 mb-6">
-                                                <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tight">{item.title || 'Titre du morceau'}</h3>
+                                        <div key={item.id} className="music-top-item-premium mb-12 last:mb-0 relative">
+                                            <div className="flex items-center gap-8 mb-6">
+                                                {/* VINYL ANIMATION */}
+                                                <div className="relative group/vinyl">
+                                                    <motion.div
+                                                        animate={{ rotate: 360 }}
+                                                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                                        className="w-32 h-32 lg:w-40 lg:h-40 rounded-full bg-[#111] border-[6px] lg:border-[8px] border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.8)] relative flex items-center justify-center overflow-hidden"
+                                                    >
+                                                        {item.imageUrl ? (
+                                                            <img src={item.imageUrl} className="w-full h-full object-cover rounded-full opacity-60 group-hover/vinyl:opacity-80 transition-opacity" alt="Vinyl" />
+                                                        ) : (
+                                                            <div className="w-full h-full bg-gradient-to-br from-gray-800 to-black rounded-full opacity-40" />
+                                                        )}
+
+                                                        {/* Vinyl Grooves Effect */}
+                                                        <div className="absolute inset-0 rounded-full border-[20px] lg:border-[30px] border-black/20 opacity-40" />
+                                                        <div className="absolute inset-0 rounded-full border-[1px] border-white/5" />
+
+                                                        {/* Center Label */}
+                                                        <div className="absolute w-12 h-12 lg:w-16 lg:h-16 rounded-full bg-black flex items-center justify-center border-2 border-white/20 z-10">
+                                                            <div className="w-2 h-2 lg:w-3 lg:h-3 rounded-full bg-white/40 ring-4 ring-black" />
+                                                        </div>
+
+                                                        {/* Highlights */}
+                                                        <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent pointer-events-none" />
+                                                    </motion.div>
+
+                                                    {/* Shadow underneath */}
+                                                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-[80%] h-4 bg-black/60 blur-xl rounded-full" />
+                                                </div>
+
+                                                <div className="flex-1">
+                                                    <h3 className="text-3xl lg:text-5xl font-display font-black text-white uppercase italic tracking-tight leading-none mb-4" dangerouslySetInnerHTML={{ __html: standardizeContent(item.title || 'Titre du morceau') }} />
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="h-px flex-1 bg-gradient-to-r from-neon-red to-transparent opacity-30" />
+                                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">SÉLECTION OFFICIELLE</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+                                            <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-black/40 shadow-2xl relative z-10 backdrop-blur-xl group-hover:border-white/20 transition-colors">
                                                 <div dangerouslySetInnerHTML={{ __html: renderMediaEmbed(item.media, item.playerType) }} />
                                             </div>
                                         </div>

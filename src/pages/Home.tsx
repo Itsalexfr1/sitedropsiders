@@ -150,7 +150,14 @@ export function Home() {
         return () => window.removeEventListener('storage', checkExit);
     }, []);
 
-    if (takeover?.enabled && (takeover.forceHomepage !== false) && !hasExitedLive) {
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const status = takeover?.status || (takeover?.enabled ? 'live' : 'off');
+    const shouldRedirectToLive = takeover?.enabled &&
+        (status === 'live' || isAdmin) &&
+        (takeover.forceHomepage !== false) &&
+        !hasExitedLive;
+
+    if (shouldRedirectToLive) {
         return <Navigate to="/live" replace />;
     }
 

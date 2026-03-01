@@ -26,6 +26,8 @@ export function LivePage() {
         fetchTakeover();
     }, []);
 
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+
     if (loading) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center">
@@ -34,7 +36,10 @@ export function LivePage() {
         );
     }
 
-    if (!takeover || !takeover.enabled) {
+    const status = takeover?.status || (takeover?.enabled ? 'live' : 'off');
+
+    // Case: Off
+    if (status === 'off' || !takeover || (!takeover.enabled && !isAdmin)) {
         return (
             <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
                 <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">
@@ -46,6 +51,29 @@ export function LivePage() {
                 <a href="/" className="mt-8 px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-black text-white uppercase hover:bg-white/10 transition-all">
                     Retour à l'accueil
                 </a>
+            </div>
+        );
+    }
+
+    // Case: Edit mode (Preparation)
+    if (status === 'edit' && !isAdmin) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+                <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-8 border border-orange-500/20">
+                    <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+                <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4 text-center">
+                    Live en <span className="text-orange-500">Préparation</span>
+                </h1>
+                <p className="text-gray-500 font-bold uppercase tracking-widest text-center max-w-md">
+                    Nous préparons actuellement la diffusion. <br />Le live débutera très bientôt, restez connectés !
+                </p>
+                <div className="mt-12 flex flex-col items-center gap-4">
+                    <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em]">Dropsiders Live Module</p>
+                    <a href="/" className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-xs font-black text-white uppercase hover:bg-white/10 transition-all">
+                        Retour à l'accueil
+                    </a>
+                </div>
             </div>
         );
     }
