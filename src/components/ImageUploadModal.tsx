@@ -73,36 +73,49 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
     };
 
     const handleUpload = async (base64OrFile: string | File) => {
-        // Skip re-uploading if it's already a Cloudinary URL (and not a newly cropped base64)
-        if (typeof base64OrFile === 'string' && base64OrFile.includes('res.cloudinary.com')) {
-            if (onUploadSuccess) onUploadSuccess(base64OrFile);
-            onClose();
-            return;
-        }
-
         setIsUploading(true);
         setStatus('idle');
-        // Keep step preview so user can see it's uploading
+
         try {
-            // Direct Cloudinary Upload (Unsigned)
-            const CLOUD_NAME = 'djnvjsmvr';
-            const UPLOAD_PRESET = 'dropsiders_unsigned';
-            const apiUrl = (base64OrFile instanceof File && base64OrFile.type.startsWith('video/'))
-                ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/video/upload`
-                : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
+            let base64: string;
+            let filename: string;
+            let fileType: string;
 
-            const formData = new FormData();
-            formData.append('file', base64OrFile);
-            formData.append('upload_preset', UPLOAD_PRESET);
-            formData.append('folder', 'dropsiders');
+            if (base64OrFile instanceof File) {
+                filename = base64OrFile.name;
+                fileType = base64OrFile.type;
+                base64 = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result as string);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(base64OrFile);
+                });
+            } else {
+                // assume it's a base64 from cropper
+                base64 = base64OrFile;
+                filename = `cropped-${Date.now()}.jpg`;
+                fileType = 'image/jpeg';
+            }
 
-            const resp = await fetch(apiUrl, { method: 'POST', body: formData });
-            const data = await resp.json();
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                    // Add auth headers if needed, but worker usually handles it or checks session
+                },
+                body: JSON.stringify({
+                    filename,
+                    content: base64,
+                    type: fileType
+                })
+            });
 
-            if (data.secure_url) {
+            const data = await response.json();
+
+            if (data.success && data.url) {
                 setStatus('success');
                 setMessage('Média hébergé avec succès !');
-                if (onUploadSuccess) onUploadSuccess(data.secure_url);
+                if (onUploadSuccess) onUploadSuccess(data.url);
                 setTimeout(() => {
                     onClose();
                     setStatus('idle');
@@ -112,7 +125,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
                 }, 1500);
             } else {
                 setStatus('error');
-                setMessage('Erreur: ' + (data.error?.message || 'Upload échoué'));
+                setMessage('Erreur: ' + (data.error || 'Upload échoué'));
             }
         } catch (err: any) {
             console.error('Upload error:', err);
