@@ -57,6 +57,6 @@
     "isOnline": true,
     "dropsAmount": 150,
     "dropsIntervalMinutes": 5,
-    "showExtraFlux": true
+    "showExtraFlux": false
   }
 }
