@@ -212,7 +212,7 @@ export function AdminHome() {
     }
 
     const [layout, setLayout] = useState<LayoutItem[]>([]);
-    const [socials, setSocials] = useState(settingsData.socials);
+    const [socials, setSocials] = useState((settingsData as any).socials || {});
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState('');

@@ -1,15 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Music, Disc, ExternalLink, ListMusic, TrendingUp } from 'lucide-react';
-
-interface MusicTrack {
-    id: string;
-    title: string;
-    artist: string;
-    label?: string;
-    rank: number;
-    platform: string;
-}
 
 export function Musique() {
     const [activeTab, setActiveTab] = useState('beatport');
@@ -55,8 +46,8 @@ export function Musique() {
                             key={p.id}
                             onClick={() => setActiveTab(p.id)}
                             className={`flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all ${activeTab === p.id
-                                    ? 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]'
-                                    : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                                ? 'bg-neon-cyan border-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+                                : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
                                 }`}
                         >
                             <p.icon className={`w-5 h-5 ${activeTab === p.id ? 'animate-spin-slow' : ''}`} />
