@@ -39,14 +39,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
 
             const data = await response.json();
 
-            if (data.status === 'error' || data.status === 'rate-limit') {
-                throw new Error(data.text || 'Erreur lors de la récupération du média.');
+            // Handle Cobalt v10 error formats
+            if (data.status === 'error' || data.text?.includes('shut down') || data.message?.includes('shut down')) {
+                throw new Error(data.text || data.message || 'Le service de téléchargement est temporairement indisponible.');
             }
 
-            if (data.url || data.picker) {
+            if (data.url || data.picker || Array.isArray(data)) {
+                // Determine if it's a direct URL or multiple items (carousels)
                 setResult(data);
             } else {
-                throw new Error('Aucun lien de téléchargement trouvé.');
+                throw new Error('Aucun lien de téléchargement trouvé pour ce lien.');
             }
         } catch (err: any) {
             console.error(err);

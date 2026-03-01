@@ -33,12 +33,12 @@ export default {
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
             try {
-                const cobaltResponse = await fetch('https://api.cobalt.tools/api/json', {
+                const cobaltResponse = await fetch('https://api.cobalt.tools/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'User-Agent': 'Cloudflare-Worker-Dropsiders'
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                     },
                     body: JSON.stringify(body)
                 });
