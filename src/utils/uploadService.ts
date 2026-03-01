@@ -1,24 +1,23 @@
 
 /**
- * Uploads a file directly to Cloudinary (Client-side)
- * Uses the Unsigned Preset to avoid needing server-side signature.
+ * Uploads a file to the internal API (R2) or fallbacks to ImgBB
  */
 export const uploadValidation = (file: File): { valid: boolean; error?: string } => {
     if (!file) return { valid: false, error: "Aucun fichier sélectionné." };
-    if (!file.type.startsWith("image/")) return { valid: false, error: "Le fichier doit être une image." };
-    if (file.size > 10 * 1024 * 1024) return { valid: false, error: "L'image est trop lourde (max 10Mo)." };
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return { valid: false, error: "Le fichier doit être une image ou une vidéo." };
+    if (file.size > 100 * 1024 * 1024) return { valid: false, error: "Le fichier est trop lourd (max 100Mo)." };
     return { valid: true };
 };
 
 import { getAuthHeaders } from './auth';
 
-export const uploadToCloudinary = async (
+export const uploadFile = async (
     file: File,
     subFolder: string = 'uploads',
     onProgress?: (progress: number) => void
 ): Promise<string> => {
 
-    // 1. Attempt Server-Side Upload (Preferred - R2, ImgBB, Cloudinary, then GitHub)
+    // 1. Attempt Server-Side Upload (Preferred - R2, ImgBB, then GitHub)
     try {
         const base64 = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
@@ -75,13 +74,10 @@ export const uploadToCloudinary = async (
         return serverUpload;
 
     } catch (serverError: any) {
-        console.warn('Server upload failed, switching to client-side Cloudinary fallback...', serverError);
+        console.warn('Server upload failed (R2/Internal), switching to client-side fallback (ImgBB)...', serverError);
 
-        // 2. Client-Side Fallback (Direct Cloudinary or ImgBB)
-        // Check if we have ImgBB Key (can be passed via env or hardcoded for now if user provided)
-        const IMGBB_KEY = (window as any).VITE_IMGBB_API_KEY; // Optional: user can add to .env
-        const CLOUD_NAME = 'djnvjsmvr';
-        const UPLOAD_PRESET = 'dropsiders_unsigned';
+        // 2. Client-Side Fallback (ImgBB)
+        const IMGBB_KEY = (window as any).VITE_IMGBB_API_KEY;
 
         if (IMGBB_KEY) {
             return new Promise((resolve, reject) => {
@@ -113,53 +109,6 @@ export const uploadToCloudinary = async (
             });
         }
 
-        return new Promise((resolve, reject) => {
-            const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', UPLOAD_PRESET);
-            formData.append('folder', `dropsiders/${subFolder}`);
-
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', url, true);
-
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable && onProgress) {
-                    const percent = Math.round((e.loaded / e.total) * 100);
-                    // Scale from 50-100% for the second attempt
-                    onProgress(50 + Math.round(percent * 0.5));
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        if (data.secure_url) {
-                            console.log('Client-side Cloudinary success:', data);
-                            resolve(data.secure_url);
-                        } else {
-                            reject(new Error("Réponse Cloudinary invalide"));
-                        }
-                    } catch (err: any) {
-                        reject(new Error("Erreur lors de l'analyse de la réponse Cloudinary"));
-                    }
-                } else {
-                    try {
-                        const error = JSON.parse(xhr.responseText);
-                        reject(new Error(error.error?.message || "Erreur d'upload Cloudinary"));
-                    } catch {
-                        reject(new Error(`Erreur d'upload (${xhr.status}): ${xhr.statusText}`));
-                    }
-                }
-            };
-
-            xhr.onerror = () => {
-                console.error('Network error during fallback upload');
-                reject(new Error("Erreur réseau totale (Les deux méthodes ont échoué)"));
-            };
-
-            xhr.send(formData);
-        });
+        throw new Error("Toutes les méthodes d'upload ont échoué (R2 et ImgBB). Vérifiez vos configurations.");
     }
 };

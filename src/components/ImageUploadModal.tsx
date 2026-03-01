@@ -1,4 +1,4 @@
-// Image Upload Modal component with Cloudinary integration
+// Image Upload Modal component with Cloudflare R2 integration
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2 } from 'lucide-react';

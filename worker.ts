@@ -995,8 +995,6 @@ export default {
             }
 
             const IMGBB_KEY = env.IMGBB_API_KEY;
-            const CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME;
-            const UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET;
 
             // --- OPTION 1: IMGBB (Primary Alternative) ---
             if (IMGBB_KEY) {
@@ -1027,36 +1025,7 @@ export default {
                 }
             }
 
-            // --- OPTION 2: CLOUDINARY (Secondary) ---
-            if (CLOUD_NAME && UPLOAD_PRESET) {
-                try {
-                    const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
-
-                    const formData = new FormData();
-                    formData.append('file', content); // base64 or url
-                    formData.append('upload_preset', UPLOAD_PRESET);
-                    formData.append('folder', 'dropsiders');
-                    formData.append('resource_type', 'auto');
-
-                    const response = await fetch(cloudinaryUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        return new Response(JSON.stringify({ success: true, url: data.secure_url }), { status: 200, headers });
-                    } else {
-                        const err = await response.text();
-                        console.error('Cloudinary Upload Error:', err);
-                        // Fallback to GitHub if Cloudinary fails
-                    }
-                } catch (e) {
-                    console.error('Cloudinary error, falling back to GitHub...', e);
-                }
-            }
-
-            // --- OPTION 3: GITHUB (Fallback) ---
+            // --- OPTION 2: GITHUB (Fallback) ---
             const UPLOAD_PATH = `public/uploads/${Date.now()}-${filename}`;
             const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${UPLOAD_PATH}`;
 
