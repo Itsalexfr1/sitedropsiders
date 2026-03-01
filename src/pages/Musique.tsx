@@ -160,9 +160,16 @@ export function Musique() {
                                         </div>
 
                                         <div className="flex-1 min-w-0">
-                                            <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover:text-neon-red transition-colors">
-                                                {track.title}
-                                            </h3>
+                                            <a
+                                                href={track.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block hover:underline"
+                                            >
+                                                <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover:text-neon-red transition-colors">
+                                                    {track.title}
+                                                </h3>
+                                            </a>
                                             <div className="flex items-center gap-3 mt-1">
                                                 <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
                                                     {track.artist}

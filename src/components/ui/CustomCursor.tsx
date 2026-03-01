@@ -76,39 +76,41 @@ export function CustomCursor() {
                 }}
                 className="relative w-full h-full"
             >
-                {/* High Fidelity Vinyl Disc */}
-                <div className="absolute inset-0 bg-[#050505] rounded-full border border-white/20 shadow-[0_0_20px_rgba(0,0,0,0.8)] flex items-center justify-center overflow-hidden">
-                    {/* Concentric Grooves */}
-                    {[10, 20, 30, 40, 50, 60, 70, 80].map((inset) => (
-                        <div key={inset} className="absolute rounded-full border border-white/5" style={{ inset: `${inset / 2}%` }} />
-                    ))}
-
-                    {/* Central Label */}
-                    <div className={`absolute inset-[30%] rounded-full flex items-center justify-center transition-all duration-300 shadow-inner ${isHovering ? 'bg-neon-cyan' : 'bg-[#121212]'}`}>
-                        <div className={`w-2 h-2 rounded-full border border-black/20 ${isHovering ? 'bg-black' : 'bg-neon-cyan opacity-40'}`} />
-
-                        {/* Tiny Text on Label */}
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-[80%] h-[80%] border border-black/10 rounded-full" />
-                        </div>
-                    </div>
-
-                    {/* Dynamic Reflection / Shine */}
+                {/* USB Key Stylized Cursor */}
+                <div className="absolute inset-0 flex items-center justify-center">
                     <motion.div
-                        className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.08] to-transparent"
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    />
+                        animate={{
+                            rotate: isHovering ? 45 : 0,
+                            scale: isHovering ? 1.2 : 1
+                        }}
+                        className="relative w-full h-full flex items-center justify-center"
+                    >
+                        {/* USB Metal Head */}
+                        <div className={`absolute top-0 w-[40%] h-[30%] border-2 rounded-t-sm transition-all duration-300 ${isHovering ? 'border-neon-red bg-neon-red/20 shadow-[0_0_15px_rgba(255,17,17,0.5)]' : 'border-white/40 bg-white/10'}`} />
+
+                        {/* USB Body */}
+                        <div className={`absolute top-[30%] w-[60%] h-[60%] rounded-b-md border-2 transition-all duration-300 ${isHovering ? 'border-neon-red bg-black shadow-[0_0_20px_rgba(255,17,17,0.3)]' : 'border-white/20 bg-[#050505]'}`}>
+                            {/* Tiny details/logo on USB body */}
+                            <div className={`absolute top-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${isHovering ? 'bg-neon-red animate-pulse' : 'bg-white/20'}`} />
+                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[40%] h-0.5 bg-white/10 rounded-full" />
+                        </div>
+
+                        {/* Connection pins inside head */}
+                        <div className="absolute top-[5%] w-[30%] h-[15%] flex justify-between px-0.5">
+                            <div className={`w-[20%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
+                            <div className={`w-[20%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
+                        </div>
+                    </motion.div>
                 </div>
 
-                {/* Tonearm shadow or extra detail when hovering */}
+                {/* Glow effect when hovering */}
                 <AnimatePresence>
                     {isHovering && (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className="absolute -right-2 -top-2 w-4 h-4 bg-neon-red rounded-full blur-[8px] opacity-30"
+                            className="absolute inset-0 bg-neon-red rounded-full blur-[20px] opacity-20"
                         />
                     )}
                 </AnimatePresence>

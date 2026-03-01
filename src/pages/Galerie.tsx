@@ -12,6 +12,7 @@ const ALBUMS_PER_PAGE = 8;
 export function Galerie() {
     const { t } = useLanguage();
     const navigate = useNavigate();
+    const [activeSegment, setActiveSegment] = useState<'OFFICIAL' | 'COMMUNITY'>('OFFICIAL');
     const [activeCategory, setActiveCategory] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
@@ -32,22 +33,25 @@ export function Galerie() {
     ];
 
     const filteredAlbums = useMemo(() => {
-        return activeCategory === 'ALL'
-            ? galerieData
-            : galerieData.filter(album => {
-                const cat = (album.category || '').toUpperCase();
-                // Special case for CLUBS & EVENTS to be more robust
-                if (activeCategory === 'CLUBS & EVENTS') return cat.includes('CLUB');
-                return cat === activeCategory;
-            });
-    }, [activeCategory]);
+        const baseData = activeSegment === 'OFFICIAL'
+            ? galerieData.filter(album => !(album as any).isCommunity)
+            : galerieData.filter(album => (album as any).isCommunity);
+
+        if (activeCategory === 'ALL') return baseData;
+
+        return baseData.filter(album => {
+            const cat = (album.category || '').toUpperCase();
+            if (activeCategory === 'CLUBS & EVENTS') return cat.includes('CLUB');
+            return cat === activeCategory;
+        });
+    }, [activeCategory, activeSegment]);
 
     const totalPages = Math.ceil(filteredAlbums.length / ALBUMS_PER_PAGE);
 
-    // Reset page when category changes
-    useMemo(() => {
+    // Reset page when category or segment changes
+    useEffect(() => {
         setCurrentPage(1);
-    }, [activeCategory]);
+    }, [activeCategory, activeSegment]);
 
     const startIndex = (currentPage - 1) * ALBUMS_PER_PAGE;
     const currentAlbums = filteredAlbums.slice(startIndex, startIndex + ALBUMS_PER_PAGE);
@@ -108,6 +112,22 @@ export function Galerie() {
                     </div>
                 </motion.button>
             </motion.div>
+
+            {/* Main Tabs Segment */}
+            <div className="flex items-center gap-1 p-1 bg-white/5 rounded-2xl w-fit mb-8">
+                <button
+                    onClick={() => setActiveSegment('OFFICIAL')}
+                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeSegment === 'OFFICIAL' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                >
+                    Nos Récaps Photos
+                </button>
+                <button
+                    onClick={() => setActiveSegment('COMMUNITY')}
+                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeSegment === 'COMMUNITY' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                >
+                    Vos Photos de Festivals
+                </button>
+            </div>
 
             {/* Category Filter */}
             <div className="flex flex-wrap items-center gap-4 mb-12">

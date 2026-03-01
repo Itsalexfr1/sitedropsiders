@@ -355,26 +355,26 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const labelY = activeTab === 'PUBLICATION' ? safeBottom - 280 : safeBottom - 320;
                 const startY = labelY + 160;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
-                const labelW = ctx.measureText(labelText).width + 80;
+                const labelW = ctx.measureText(labelText).width + 50;
 
                 ctx.save();
                 ctx.globalAlpha = 0.9;
                 ctx.fillStyle = activeData.color;
                 const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - 50;
+                const rectY = labelY - 42;
                 const rectW = labelW;
-                const rectH = 80;
-                const radius = 25; // Round edges for premium look
+                const rectH = 65;
+                const radius = 20; // Slightly smaller radius for smaller box
 
                 ctx.beginPath();
                 ctx.roundRect(rectX, rectY, rectW, rectH, radius);
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = '#FFF';
-                ctx.font = `900 italic 45px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.fillStyle = labelText === 'MUSIQUE' ? '#000' : '#FFF';
+                ctx.font = `900 italic 35px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
-                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 5);
+                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 3);
                 ctx.restore();
                 const parseRichText = (str: string) => {
                     const segments: { text: string; color?: string; bg?: string }[] = [];
