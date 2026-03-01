@@ -1,5 +1,32 @@
 {
   "shop_enabled": true,
   "shop_password_protected": false,
-  "shop_password_image": ""
+  "shop_password_image": "",
+  "takeover": {
+    "enabled": false,
+    "youtubeId": "",
+    "title": "LIVE TAKEOVER",
+    "moderators": "",
+    "lineup": "",
+    "customCommands": "",
+    "tickerType": "news",
+    "tickerText": "",
+    "tickerLink": "",
+    "tickerBgColor": "#000000",
+    "tickerTextColor": "#ffffff",
+    "showTopBanner": true,
+    "showTickerBanner": false,
+    "showInNavbar": true,
+    "forceHomepage": false,
+    "isSecret": false,
+    "password": "2026",
+    "channels": "",
+    "autoMessage": "",
+    "autoMessageInterval": 60,
+    "pinnedMessage": "",
+    "showInAgenda": true,
+    "startDate": "",
+    "endDate": "",
+    "status": "off"
+  }
 }
