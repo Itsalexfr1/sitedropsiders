@@ -296,7 +296,7 @@ export function AdminHome() {
     };
 
     const updateSocials = (key: string, value: string) => {
-        setSocials(prev => ({ ...prev, [key]: value }));
+        setSocials((prev: any) => ({ ...prev, [key]: value }));
         setHasChanges(true);
     };
 

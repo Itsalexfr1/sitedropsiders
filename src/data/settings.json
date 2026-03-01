@@ -1,5 +1,20 @@
 {
   "shop_enabled": true,
   "shop_password_protected": false,
-  "shop_password_image": ""
+  "shop_password_image": "",
+  "socials": {
+    "instagram": "",
+    "tiktok": "",
+    "facebook": "",
+    "youtube": "",
+    "x": "",
+    "snapchat": ""
+  },
+  "takeover": {
+    "enabled": false,
+    "status": "off",
+    "title": "LIVE TAKEOVER",
+    "youtubeId": "",
+    "mainFluxName": "MAIN STAGE"
+  }
 }
