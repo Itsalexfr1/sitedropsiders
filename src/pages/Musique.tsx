@@ -148,7 +148,7 @@ export function Musique() {
                 { id: '1001-5', rank: 5, title: 'CHARLOTTE DE WITTE @ AWAKENINGS', artist: 'CHARLOTTE DE WITTE', label: 'KNTXT', url: '#' },
                 { id: '1001-6', rank: 6, title: 'VINTAGE CULTURE @ HI IBIZA', artist: 'VINTAGE CULTURE', label: 'THEATRE', url: '#' },
                 { id: '1001-7', rank: 7, title: 'FRED AGAIN.. @ READING 2026', artist: 'FRED AGAIN..', label: 'MAIN STAGE', url: '#' },
-                { id: '1001-8', rank: 8, title: 'MAU P @ SPACE MIAMI', label: 'TERRACE', url: '#' },
+                { id: '1001-8', rank: 8, title: 'MAU P @ SPACE MIAMI', artist: 'MAU P', label: 'TERRACE', url: '#' },
                 { id: '1001-9', rank: 9, title: 'DOM DOLLA @ PARLOUX', artist: 'DOM DOLLA', label: 'CLUB', url: '#' },
                 { id: '1001-10', rank: 10, title: 'CARL COX @ RESISTANCE', artist: 'CARL COX', label: 'MEGASTRUCTURE', url: '#' },
             ];
