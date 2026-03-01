@@ -40,10 +40,14 @@ export default {
 
             if (!targetUrl) return new Response(JSON.stringify({ error: 'URL requise' }), { status: 400, headers });
 
+            // Rotation of 5 stable Community Cobalt instances + 1 official
             const instances = [
-                'https://api.cobalt.tools/',
+                'https://cobalt.v0.sh/',
+                'https://cobalt.qwer.sh/',
+                'https://cobalt.hotis.moe/',
+                'https://co.wuk.sh/',
                 'https://cobalt.im/',
-                'https://co.wuk.sh/'
+                'https://api.cobalt.tools/'
             ];
 
             for (const instance of instances) {
@@ -57,20 +61,28 @@ export default {
                         },
                         body: JSON.stringify({
                             url: targetUrl,
-                            videoQuality: '1080',
-                            audioFormat: 'mp3',
-                            downloadMode: 'auto'
-                        })
+                            videoQuality: '1080'
+                        }),
+                        signal: AbortSignal.timeout(4000) // 4s timeout per instance
                     });
 
                     if (response.ok) {
-                        const data = await response.json();
-                        return new Response(JSON.stringify(data), { headers });
+                        const text = await response.text();
+                        // SAFETY: Check if it's actual JSON and not an HTML error page
+                        if (text.trim().startsWith('{')) {
+                            const data = JSON.parse(text);
+                            // If it's a valid Cobalt response
+                            if (data.url || data.picker || data.status === 'stream') {
+                                return new Response(JSON.stringify(data), { headers });
+                            }
+                        }
                     }
-                } catch (e) { }
+                } catch (e) {
+                    console.error(`Instance ${instance} failed:`, e.message);
+                }
             }
 
-            // TikWM for TikTok as robust fallback
+            // TikWM for TikTok as ultra-robust fallback
             if (targetUrl.includes('tiktok.com')) {
                 try {
                     const tikResponse = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(targetUrl)}`);
@@ -85,10 +97,10 @@ export default {
                 } catch (e) { }
             }
 
-            return new Response(JSON.stringify({ status: 'error', text: 'Tous les serveurs sont saturés. Réessayez dans un instant.' }), {
-                status: 500,
-                headers
-            });
+            return new Response(JSON.stringify({
+                status: 'error',
+                text: 'Le service est actuellement saturé (Trafic intense). Réessayez avec un autre lien ou dans 1 minute.'
+            }), { status: 500, headers });
         }
 
         // Configuration

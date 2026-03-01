@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { Hero } from '../components/ui/Hero';
 import { FeaturedNews } from '../components/widgets/FeaturedNews';
 import { RecentNews } from '../components/widgets/RecentNews';
@@ -14,7 +13,6 @@ import layoutData from '../data/home_layout.json';
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
     const [socials, setSocials] = useState<any>(null);
-    const [takeover, setTakeover] = useState<any>(null);
 
     useEffect(() => {
         const fetchLayout = async () => {
@@ -35,7 +33,6 @@ export function Home() {
                 if (response.ok) {
                     const data = await response.json();
                     if (data.socials) setSocials(data.socials);
-                    if (data.takeover) setTakeover(data.takeover);
                 }
             } catch (err: any) {
                 console.error('Failed to fetch settings', err);
@@ -139,27 +136,6 @@ export function Home() {
         }
     };
 
-    const [hasExitedLive, setHasExitedLive] = useState(() => {
-        return sessionStorage.getItem('exited_live') === 'true';
-    });
-
-    // Sync state with session storage if changed elsewhere
-    useEffect(() => {
-        const checkExit = () => setHasExitedLive(sessionStorage.getItem('exited_live') === 'true');
-        window.addEventListener('storage', checkExit);
-        return () => window.removeEventListener('storage', checkExit);
-    }, []);
-
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
-    const status = takeover?.status || (takeover?.enabled ? 'live' : 'off');
-    const shouldRedirectToLive = takeover?.enabled &&
-        (status === 'live' || isAdmin) &&
-        (takeover.forceHomepage !== false) &&
-        !hasExitedLive;
-
-    if (shouldRedirectToLive) {
-        return <Navigate to="/live" replace />;
-    }
 
     return (
         <div className="space-y-8 pb-12">
