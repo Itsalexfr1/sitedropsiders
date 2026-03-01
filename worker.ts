@@ -32,41 +32,62 @@ export default {
         // --- API: DOWNLOADER PROXY ---
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
+            const targetUrl = body.url;
+            const headers = {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            };
 
-            // Try different stable instances if the primary fails
-            const instances = ['https://api.cobalt.tools/', 'https://cobalt.im/'];
-            let lastError = null;
+            if (!targetUrl) return new Response(JSON.stringify({ error: 'URL requise' }), { status: 400, headers });
+
+            const instances = [
+                'https://api.cobalt.tools/',
+                'https://cobalt.im/',
+                'https://co.wuk.sh/'
+            ];
 
             for (const instance of instances) {
                 try {
-                    const cobaltResponse = await fetch(instance, {
+                    const response = await fetch(instance, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                         },
-                        body: JSON.stringify(body)
+                        body: JSON.stringify({
+                            url: targetUrl,
+                            videoQuality: '1080',
+                            audioFormat: 'mp3',
+                            downloadMode: 'auto'
+                        })
                     });
 
-                    if (cobaltResponse.ok) {
-                        const data = await cobaltResponse.json();
-                        return new Response(JSON.stringify(data), {
-                            status: 200,
-                            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-                        });
-                    } else {
-                        const errData = await cobaltResponse.json().catch(() => ({}));
-                        lastError = errData.text || errData.message || `HTTP ${cobaltResponse.status}`;
+                    if (response.ok) {
+                        const data = await response.json();
+                        return new Response(JSON.stringify(data), { headers });
                     }
-                } catch (err) {
-                    lastError = err.message;
-                }
+                } catch (e) { }
             }
 
-            return new Response(JSON.stringify({ status: 'error', text: 'Service de téléchargement surchargé ou indisponible. Veuillez réessayer. (' + lastError + ')' }), {
+            // TikWM for TikTok as robust fallback
+            if (targetUrl.includes('tiktok.com')) {
+                try {
+                    const tikResponse = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(targetUrl)}`);
+                    const tikData = await tikResponse.json();
+                    if (tikData.data) {
+                        return new Response(JSON.stringify({
+                            status: 'success',
+                            url: tikData.data.play,
+                            title: tikData.data.title
+                        }), { headers });
+                    }
+                } catch (e) { }
+            }
+
+            return new Response(JSON.stringify({ status: 'error', text: 'Tous les serveurs sont saturés. Réessayez dans un instant.' }), {
                 status: 500,
-                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                headers
             });
         }
 
