@@ -37,5 +37,11 @@
 			"binding": "CHAT_KV",
 			"id": "370cf84c95df4d1dba69b292ca30d813"
 		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "dropsiders-assets"
+		}
 	]
 }

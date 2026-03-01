@@ -953,14 +953,81 @@ export default {
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
+        if (path.startsWith('/uploads/') && request.method === 'GET') {
+            const key = path.replace('/uploads/', '');
+            if (env.R2) {
+                const object = await env.R2.get(key);
+                if (object === null) return new Response('Not Found', { status: 404 });
+                const headers = new Headers();
+                object.writeHttpMetadata(headers);
+                headers.set('etag', object.httpEtag);
+                headers.set('Access-Control-Allow-Origin', '*');
+                return new Response(object.body, { headers });
+            }
+        }
+
         if (path === '/api/upload' && request.method === 'POST') {
             const { filename, content, type } = await request.json();
             if (!filename || !content) return new Response(JSON.stringify({ error: 'Data missing' }), { status: 400, headers });
 
+            // --- OPTION 0: CLOUDFLARE R2 (New Primary) ---
+            if (env.R2) {
+                try {
+                    const key = `${Date.now()}-${filename}`;
+                    // Convert base64 to ArrayBuffer
+                    const base64Str = content.split(',')[1] || content;
+                    const byteCharacters = atob(base64Str);
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+
+                    await env.R2.put(key, byteArray, {
+                        httpMetadata: { contentType: type || 'image/jpeg' }
+                    });
+
+                    const url = `https://${urlHost}/uploads/${key}`;
+                    return new Response(JSON.stringify({ success: true, url }), { status: 200, headers });
+                } catch (e) {
+                    console.error('R2 Upload Error:', e);
+                }
+            }
+
+            const IMGBB_KEY = env.IMGBB_API_KEY;
             const CLOUD_NAME = env.CLOUDINARY_CLOUD_NAME;
             const UPLOAD_PRESET = env.CLOUDINARY_UPLOAD_PRESET;
 
-            // --- OPTION 1: CLOUDINARY (Preferred) ---
+            // --- OPTION 1: IMGBB (Primary Alternative) ---
+            if (IMGBB_KEY) {
+                try {
+                    const imgbbUrl = `https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`;
+                    const formData = new FormData();
+
+                    // ImgBB accepts base64 content directly or as a file
+                    const base64Data = content.split(',')[1] || content;
+                    formData.append('image', base64Data);
+
+                    const response = await fetch(imgbbUrl, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            return new Response(JSON.stringify({ success: true, url: data.data.url }), { status: 200, headers });
+                        }
+                    } else {
+                        const err = await response.text();
+                        console.error('ImgBB Upload Error:', err);
+                    }
+                } catch (e) {
+                    console.error('ImgBB error, falling back...', e);
+                }
+            }
+
+            // --- OPTION 2: CLOUDINARY (Secondary) ---
             if (CLOUD_NAME && UPLOAD_PRESET) {
                 try {
                     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`;
@@ -989,7 +1056,7 @@ export default {
                 }
             }
 
-            // --- OPTION 2: GITHUB (Fallback) ---
+            // --- OPTION 3: GITHUB (Fallback) ---
             const UPLOAD_PATH = `public/uploads/${Date.now()}-${filename}`;
             const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${UPLOAD_PATH}`;
 

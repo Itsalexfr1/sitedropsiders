@@ -18,15 +18,19 @@ export const uploadToCloudinary = async (
     onProgress?: (progress: number) => void
 ): Promise<string> => {
 
-    // 1. Attempt Server-Side Upload (Preferred - Secure & github fallback)
+    // 1. Attempt Server-Side Upload (Preferred - R2, ImgBB, Cloudinary, then GitHub)
     try {
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('path', subFolder);
+        const base64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
 
         const serverUpload = await new Promise<string>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open('POST', '/api/upload', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
 
             // Add auth headers
             const headers = getAuthHeaders(null);
@@ -37,8 +41,7 @@ export const uploadToCloudinary = async (
             xhr.upload.onprogress = (e) => {
                 if (e.lengthComputable && onProgress) {
                     const percent = Math.round((e.loaded / e.total) * 100);
-                    // Scale to 0-50% for the first attempt
-                    onProgress(Math.round(percent * 0.5));
+                    onProgress(percent);
                 }
             };
 
@@ -49,7 +52,6 @@ export const uploadToCloudinary = async (
                         if (data.success && data.url) {
                             resolve(data.url);
                         } else {
-                            // If server returns explicit error, throw to catch block
                             reject(new Error(data.error || 'Upload failed'));
                         }
                     } catch (err: any) {
@@ -60,11 +62,14 @@ export const uploadToCloudinary = async (
                 }
             };
 
-            xhr.onerror = () => {
-                reject(new Error("Network Error"));
-            };
+            xhr.onerror = () => reject(new Error("Network Error"));
 
-            xhr.send(formData);
+            xhr.send(JSON.stringify({
+                filename: file.name,
+                content: base64,
+                type: file.type,
+                path: subFolder
+            }));
         });
 
         return serverUpload;
@@ -72,10 +77,41 @@ export const uploadToCloudinary = async (
     } catch (serverError: any) {
         console.warn('Server upload failed, switching to client-side Cloudinary fallback...', serverError);
 
-        // 2. Client-Side Fallback (Direct Cloudinary)
-        // Hardcoded credentials for fallback only
+        // 2. Client-Side Fallback (Direct Cloudinary or ImgBB)
+        // Check if we have ImgBB Key (can be passed via env or hardcoded for now if user provided)
+        const IMGBB_KEY = (window as any).VITE_IMGBB_API_KEY; // Optional: user can add to .env
         const CLOUD_NAME = 'djnvjsmvr';
         const UPLOAD_PRESET = 'dropsiders_unsigned';
+
+        if (IMGBB_KEY) {
+            return new Promise((resolve, reject) => {
+                const url = `https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`;
+                const formData = new FormData();
+                formData.append('image', file);
+
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', url, true);
+
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            if (data.success) {
+                                resolve(data.data.url);
+                            } else {
+                                reject(new Error("Réponse ImgBB invalide"));
+                            }
+                        } catch (err) {
+                            reject(new Error("Erreur analyse ImgBB"));
+                        }
+                    } else {
+                        reject(new Error(`Erreur ImgBB: ${xhr.status}`));
+                    }
+                };
+                xhr.onerror = () => reject(new Error("Erreur réseau ImgBB"));
+                xhr.send(formData);
+            });
+        }
 
         return new Promise((resolve, reject) => {
             const url = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`;
