@@ -4,7 +4,7 @@ import {
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
-    Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail,
+    Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
     ChevronUp, ChevronDown, Download
 } from 'lucide-react';
 
@@ -67,6 +67,8 @@ interface TakeoverProps {
         stage4Name?: string;
         showInAgenda?: boolean;
         showClosedDoors?: boolean;
+        dropsAmount?: number;
+        dropsIntervalMinutes?: number;
     };
 }
 
@@ -109,6 +111,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [newsletter, setNewsletter] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState('general');
+    const [chat_color] = useState(() => localStorage.getItem('chat_color') || '#00ffff');
 
     // --- NEW FEATURES STATES ---
     const [userDrops, setUserDrops] = useState(() => {
@@ -117,14 +120,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [pendingUserPin, setPendingUserPin] = useState(false);
     const [activeUserPin, setActiveUserPin] = useState<{ pseudo: string, message: string, color: string } | null>(null);
 
-    // Mini-Game State
+    const [rewards, setRewards] = useState<{ id: string, name: string, description: string, cost: number, icon: string }[]>(() => {
+        try {
+            const saved = localStorage.getItem('drops_rewards');
+            if (saved) return JSON.parse(saved);
+        } catch { }
+        return [
+            { id: 'pseudo', name: 'Pseudo Animé', description: 'Une aura néon autour de ton pseudo', cost: 500, icon: 'Smile' },
+            { id: 'pin', name: 'Message Épinglé', description: 'Affiche ton message au-dessus du chat', cost: 100, icon: 'MessageSquare' },
+            { id: 'promo', name: 'Code Promo', description: 'Réduction sur le vrai magasin', cost: 1000, icon: 'Zap' }
+        ];
+    });
+
+    useEffect(() => {
+        localStorage.setItem('drops_rewards', JSON.stringify(rewards));
+    }, [rewards]);
+
     const triviaPool = [
-        { category: "FESTIVAL", question: "Dans quel pays se déroule Tomorrowland ?", options: ["BELGIQUE", "PAYS-BAS", "ALLEMAGNE", "FRANCE"], correct: 0 },
-        { category: "CULTURE DJ", question: "De quelle nationalité est le duo Daft Punk ?", options: ["FRANÇAISE", "AMÉRICAINE", "ANGLAISE", "ALLEMANDE"], correct: 0 },
-        { category: "TECHNIQUE", question: "Que signifie l'abréviation BPM ?", options: ["BEATS PER MINUTE", "BASS PER MIX", "BOOM PER MUSIC", "BEATS PER MEDIUM"], correct: 0 },
-        { category: "FESTIVAL", question: "Dans quelle ville se déroule l'Ultra Music Festival ?", options: ["MIAMI", "LAS VEGAS", "NEW YORK", "CHICAGO"], correct: 0 },
-        { category: "GENRE", question: "Quel genre est à 140-150 BPM avec des basses lourdes ?", options: ["DUBSTEP", "HOUSE", "TRANCE", "DISCO"], correct: 0 },
-        { category: "HISTOIRE", question: "Quel DJ a mixé depuis l'espace (ISS) ?", options: ["LUCA PARMITANO", "DAVID GUETTA", "TIËSTO", "SKRILLEX"], correct: 0 }
+        { category: "MUSIQUE", question: "Quel DJ a popularisé la French Touch dans le monde entier ?", options: ["Daft Punk", "David Guetta", "DJ Snake", "Justice"], correct: 0 },
+        { category: "FESTIVAL", question: "Dans quel pays se déroule le légendaire festival Tomorrowland ?", options: ["Pays-Bas", "Allemagne", "Belgique", "Croatie"], correct: 2 },
+        { category: "CULTURE", question: "En quelle année s'est déroulée la première rave officielle en Europe ?", options: ["1988", "1994", "2000", "1982"], correct: 0 }
     ];
 
     const [showBlindTest, setShowBlindTest] = useState(false);
@@ -133,7 +148,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [hypeLevel, setHypeLevel] = useState(0);
     const [isOverdrive, setIsOverdrive] = useState(false);
     const [bpm, setBpm] = useState(128);
-    const [_showDropsShop, setShowDropsShop] = useState(false);
+    const [_showDropsShop] = useState(false);
     const [_isListeningForDrops, _setIsListeningForDrops] = useState(true);
     const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'leaderboard' | 'audio'>('chat');
     const [isFullScreen, setIsFullScreen] = useState(false);
@@ -200,15 +215,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return () => clearInterval(interval);
     }, [isOverdrive]);
 
-    // Earn Drops every 10 minutes
+    // Earn Drops periodically
     useEffect(() => {
         if (!isJoined) return;
+        const configAmount = settings.dropsAmount || 10;
+        const configInterval = (settings.dropsIntervalMinutes || 10) * 60;
+
         const interval = setInterval(() => {
             setTotalWatchTime(prev => {
                 const next = prev + 1;
-                if (next >= 600) { // 10 minutes = 600 seconds
+                if (next >= configInterval) {
                     setUserDrops(d => {
-                        const newD = d + 10;
+                        const newD = d + configAmount;
                         localStorage.setItem('user_drops', String(newD));
                         return newD;
                     });
@@ -218,7 +236,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             });
         }, 1000);
         return () => clearInterval(interval);
-    }, [isJoined]);
+    }, [isJoined, settings.dropsAmount, settings.dropsIntervalMinutes]);
 
     // Hype Decay
     useEffect(() => {
@@ -1833,10 +1851,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-0 lg:top-0') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-[80px] lg:top-[80px]') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
                 {/* Live Banner Header - Conditionally based on top banner enabled */}
                 {showTopBanner && !isFocusMode && !isFullScreen && (
-                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 ${annBannerEnabled && annBannerText ? 'py-4' : 'py-12'} hidden lg:flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
+                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-4 flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
                         <div className="flex items-center gap-6">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="flex items-center gap-2.5 px-4 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
@@ -2243,13 +2261,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                 {!blindTestAnswered ? (
                                                     <div className="space-y-2">
-                                                        {blindTestState.options.map((opt, i) => (
+                                                        {blindTestState.options.map((opt: string, i: number) => (
                                                             <button
                                                                 key={i}
                                                                 onClick={() => {
                                                                     if (i === blindTestState.correct) {
                                                                         setUserDrops(d => {
-                                                                            const newD = d + blindTestState.reward;
+                                                                            const reward = (blindTestState as any).reward || 50;
+                                                                            const newD = d + reward;
                                                                             localStorage.setItem('user_drops', String(newD));
                                                                             return newD;
                                                                         });
@@ -2292,30 +2311,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </AnimatePresence>
                                 </motion.div>
 
-                                <div className="flex flex-col gap-3 pointer-events-auto">
-                                    {/* DROPS INDICATOR */}
-                                    <button
-                                        onClick={() => setShowDropsShop(true)}
-                                        className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex items-center gap-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] group hover:border-neon-cyan/50 hover:scale-105 transition-all"
-                                    >
-                                        <div className="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/30 flex items-center justify-center">
-                                            <div className="relative">
-                                                <Zap className="w-5 h-5 text-neon-cyan drop-shadow-[0_0_8px_#00ffff]" />
-                                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-ping" />
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col text-left">
-                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">MES DROPS</span>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-xl font-black text-white italic">{userDrops}</span>
-                                                <span className="text-[10px] font-black text-neon-cyan uppercase">drops</span>
-                                            </div>
-                                        </div>
-                                        <div className="ml-2 w-8 h-8 rounded-full border border-white/10 flex items-center justify-center group-hover:bg-neon-cyan group-hover:text-black transition-all">
-                                            <ArrowRight className="w-4 h-4" />
-                                        </div>
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
 
@@ -2766,16 +2762,103 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activeSettingsTab === 'video' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
                                             </button>
                                             <button
+                                                onClick={() => setActiveSettingsTab('rewards')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'rewards' ? 'text-neon-purple' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Récompenses
+                                                {activeSettingsTab === 'rewards' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-purple" />}
+                                            </button>
+                                            <button
                                                 onClick={() => setActiveSettingsTab('bot')}
                                                 className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'bot' ? 'text-neon-red' : 'text-gray-500 hover:text-white'}`}
                                             >
                                                 Bot
                                                 {activeSettingsTab === 'bot' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />}
                                             </button>
+                                            <button
+                                                onClick={() => setActiveSettingsTab('points')}
+                                                className={`px-6 py-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${activeSettingsTab === 'points' ? 'text-neon-cyan' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Points / Drops
+                                                {activeSettingsTab === 'points' && <motion.div layoutId="setting-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-cyan" />}
+                                            </button>
                                         </div>
 
                                         {/* Tab Content */}
                                         <div className="flex-1 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
+                                            {activeSettingsTab === 'rewards' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-purple/10 rounded-xl">
+                                                                <Zap className="w-4 h-4 text-neon-purple" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Boutique <span className="text-neon-purple">Drops</span> (Récompenses)</h3>
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                                                                Gérez les prix des récompenses achetables avec les Drops.
+                                                            </p>
+
+                                                            <div className="grid grid-cols-1 gap-3">
+                                                                {rewards.map((reward, ridx) => (
+                                                                    <div key={reward.id} className="flex items-center gap-4 p-4 bg-black/40 border border-white/10 rounded-2xl group hover:border-neon-purple/50 transition-all">
+                                                                        <div className="flex-1">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={reward.name}
+                                                                                onChange={(e) => {
+                                                                                    const newR = [...rewards];
+                                                                                    newR[ridx].name = e.target.value;
+                                                                                    setRewards(newR);
+                                                                                }}
+                                                                                className="bg-transparent border-none p-0 text-[10px] font-black text-white uppercase tracking-widest outline-none"
+                                                                            />
+                                                                            <input
+                                                                                type="text"
+                                                                                value={reward.description}
+                                                                                onChange={(e) => {
+                                                                                    const newR = [...rewards];
+                                                                                    newR[ridx].description = e.target.value;
+                                                                                    setRewards(newR);
+                                                                                }}
+                                                                                className="bg-transparent border-none p-0 text-[8px] text-gray-600 font-bold uppercase mt-1 outline-none w-full"
+                                                                            />
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={reward.cost}
+                                                                                onChange={(e) => {
+                                                                                    const newR = [...rewards];
+                                                                                    newR[ridx].cost = parseInt(e.target.value) || 0;
+                                                                                    setRewards(newR);
+                                                                                }}
+                                                                                className="w-20 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-black text-white outline-none focus:border-neon-purple"
+                                                                            />
+                                                                            <span className="text-[10px] font-black text-neon-purple">💧</span>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => setRewards(rewards.filter((_, i) => i !== ridx))}
+                                                                            className="p-2 bg-white/5 hover:bg-neon-red/20 rounded-xl text-gray-500 hover:text-neon-red transition-all"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                ))}
+
+                                                                <button
+                                                                    onClick={() => setRewards([...rewards, { id: Date.now().toString(), name: 'NOUVELLE RÉCOMPENSE', description: 'Description...', cost: 100, icon: 'Zap' }])}
+                                                                    className="w-full py-4 border-2 border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black text-gray-500 hover:text-white hover:border-white/20 transition-all"
+                                                                >
+                                                                    <Plus className="w-4 h-4" /> AJOUTER UNE RÉCOMPENSE
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                             {activeSettingsTab === 'general' && (
                                                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -3007,6 +3090,81 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 >
                                                                     Sauvegarder le Bandeau
                                                                 </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {activeSettingsTab === 'points' && (
+                                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                                    <div className="bg-white/5 border border-white/5 p-6 rounded-[2rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="p-2 bg-neon-cyan/10 rounded-xl">
+                                                                <Zap className="w-4 h-4 text-neon-cyan" />
+                                                            </div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-cyan">Points (Drops)</span></h3>
+                                                        </div>
+
+                                                        <div className="space-y-6">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                                <div className="space-y-2">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Points accordés</label>
+                                                                        <span className="text-neon-cyan font-black text-xs">{localSettings.dropsAmount || 10} 💧</span>
+                                                                    </div>
+                                                                    <div className="p-4 bg-black/40 border border-white/10 rounded-2xl flex items-center gap-4">
+                                                                        <div className="p-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl">
+                                                                            <Plus className="w-4 h-4 text-neon-cyan" />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={localSettings.dropsAmount || 10}
+                                                                                onChange={(e) => handleUpdateLocalSetting({ dropsAmount: parseInt(e.target.value) || 0 })}
+                                                                                className="w-full bg-transparent border-none text-sm font-black text-white outline-none"
+                                                                                placeholder="10"
+                                                                            />
+                                                                            <p className="text-[8px] text-gray-600 font-bold uppercase mt-1">Nombre de Drops gagnés à chaque intervalle</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="space-y-2">
+                                                                    <div className="flex items-center justify-between">
+                                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Intervalle de temps</label>
+                                                                        <span className="text-neon-cyan font-black text-xs">{localSettings.dropsIntervalMinutes || 10} MIN</span>
+                                                                    </div>
+                                                                    <div className="p-4 bg-black/40 border border-white/10 rounded-2xl flex items-center gap-4">
+                                                                        <div className="p-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl">
+                                                                            <Clock className="w-4 h-4 text-neon-cyan" />
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <input
+                                                                                type="number"
+                                                                                value={localSettings.dropsIntervalMinutes || 10}
+                                                                                onChange={(e) => handleUpdateLocalSetting({ dropsIntervalMinutes: parseInt(e.target.value) || 0 })}
+                                                                                className="w-full bg-transparent border-none text-sm font-black text-white outline-none"
+                                                                                placeholder="10"
+                                                                            />
+                                                                            <p className="text-[8px] text-gray-600 font-bold uppercase mt-1">Minutes de visionnage requises</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl">
+                                                                <div className="flex gap-3">
+                                                                    <div className="shrink-0 mt-1">
+                                                                        <HelpCircle className="w-4 h-4 text-neon-cyan" />
+                                                                    </div>
+                                                                    <div className="space-y-1">
+                                                                        <p className="text-[10px] font-black text-white uppercase italic">Comment ça marche ?</p>
+                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                                                                            Les spectateurs gagnent automatiquement <span className="text-neon-cyan">{localSettings.dropsAmount || 10} Drops</span> toutes les <span className="text-neon-cyan">{localSettings.dropsIntervalMinutes || 10} minutes</span> passées sur le live. Ces points peuvent être utilisés dans la boutique "Mes Drops" pour débloquer des avantages exclusifs.
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -4066,280 +4224,144 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative">
                                         {activeChatTab === 'shop' ? (
-                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6">
-                                                <div className="grid grid-cols-1 gap-4">
-                                                    {/* Animated Pseudo Colors */}
-                                                    <div className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
-                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
-                                                        <div className="relative flex items-center justify-between">
-                                                            <div className="space-y-1">
-                                                                <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                    <Smile className="w-4 h-4 text-neon-purple" /> Pseudo Animé
-                                                                </h4>
-                                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Une aura néon autour de ton pseudo</p>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (userDrops >= 500) {
-                                                                        setUserDrops(d => d - 500);
-                                                                        alert("Style débloqué !");
-                                                                    } else alert("Pas assez de Drops !");
-                                                                }}
-                                                                className="px-4 py-2 bg-neon-purple text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-purple/20"
-                                                            >
-                                                                500 💧
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Flash Message */}
-                                                    <div className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
-                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-cyan/40 transition-colors" />
-                                                        <div className="relative flex items-center justify-between">
-                                                            <div className="space-y-1">
-                                                                <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                    <MessageSquare className="w-4 h-4 text-neon-cyan" /> Message Mis en Avant
-                                                                </h4>
-                                                                <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Affiche ton message au-dessus du chat</p>
-                                                            </div>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (userDrops >= 100) {
-                                                                        setUserDrops(d => {
-                                                                            const newD = d - 100;
-                                                                            localStorage.setItem('user_drops', String(newD));
-                                                                            return newD;
-                                                                        });
-                                                                        setPendingUserPin(true);
-                                                                        setActiveChatTab('chat');
-                                                                        alert("Ton prochain message sera mis en avant pendant 15 secondes !");
-                                                                    } else alert("Pas assez de Drops !");
-                                                                }}
-                                                                className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
-                                                            >
-                                                                100 💧
-                                                            </button>
-                                                        </div>
-                                                    </div>
-
-                                                </div>
-                                            </div>
-                                        ) : activeChatTab === 'shop' ? (
-                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar">
+                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24">
                                                 <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
                                                     <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
                                                 </button>
-                                                <div className="space-y-10">
-                                                    <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
-                                                        <div className="absolute inset-0 bg-neon-cyan/5 blur-3xl rounded-full translate-y-12" />
-                                                        <Zap className="w-12 h-12 text-neon-cyan mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#00ffff]" />
-                                                        <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Drops Shop</h4>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                                            Ton Solde : <strong className="text-neon-cyan">{userDrops} 💧</strong>
-                                                        </p>
-                                                    </div>
+                                                <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+                                                    <div className="absolute inset-0 bg-neon-purple/5 blur-3xl rounded-full translate-y-12" />
+                                                    <Zap className="w-12 h-12 text-neon-purple mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#9333ea]" />
+                                                    <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Drops Shop</h4>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                                        Ton Solde : <strong className="text-neon-cyan">{userDrops} 💧</strong>
+                                                    </p>
+                                                </div>
 
-                                                    <div className="grid grid-cols-1 gap-4 pb-20">
-                                                        {/* Animated Pseudo Color */}
-                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden group">
+                                                <div className="grid grid-cols-1 gap-4">
+                                                    {rewards.map(reward => (
+                                                        <div key={reward.id} className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
                                                             <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
                                                             <div className="relative flex items-center justify-between">
                                                                 <div className="space-y-1">
                                                                     <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                        <Users className="w-4 h-4 text-neon-purple" /> Pseudo Animé (RGB)
+                                                                        {reward.icon === 'Smile' ? <Smile className="w-4 h-4 text-neon-purple" /> :
+                                                                            reward.icon === 'MessageSquare' ? <MessageSquare className="w-4 h-4 text-neon-cyan" /> :
+                                                                                <Zap className="w-4 h-4 text-neon-red" />} {reward.name}
                                                                     </h4>
-                                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Change de couleur en temps réel</p>
+                                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{reward.description}</p>
                                                                 </div>
                                                                 <button
                                                                     onClick={() => {
-                                                                        if (userDrops >= 500) {
-                                                                            setUserDrops(d => d - 500);
-                                                                            alert("Félicitations ! Ton pseudo est maintenant animé (RGB).");
+                                                                        if (userDrops >= reward.cost) {
+                                                                            setUserDrops(d => d - reward.cost);
+                                                                            if (reward.id === 'pin') {
+                                                                                setPendingUserPin(true);
+                                                                                setActiveChatTab('chat');
+                                                                            }
+                                                                            alert(`Récompense "${reward.name}" activée !`);
                                                                         } else alert("Pas assez de Drops !");
                                                                     }}
-                                                                    className="px-4 py-2 bg-neon-purple text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-purple/20"
+                                                                    className={`px-4 py-2 text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg ${reward.cost >= 1000 ? 'bg-neon-red' : reward.cost >= 500 ? 'bg-neon-purple' : 'bg-neon-cyan text-black'}`}
                                                                 >
-                                                                    500 💧
+                                                                    {reward.cost} 💧
                                                                 </button>
                                                             </div>
                                                         </div>
-
-                                                        {/* Pinned Messages */}
-                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden group">
-                                                            <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-cyan/40 transition-colors" />
-                                                            <div className="relative flex items-center justify-between">
-                                                                <div className="space-y-1">
-                                                                    <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                        <MessageSquare className="w-4 h-4 text-neon-cyan" /> Message Mis en Avant
-                                                                    </h4>
-                                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Affiche ton message au-dessus du chat</p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (userDrops >= 100) {
-                                                                            setUserDrops(d => {
-                                                                                const newD = d - 100;
-                                                                                localStorage.setItem('user_drops', String(newD));
-                                                                                return newD;
-                                                                            });
-                                                                            setPendingUserPin(true);
-                                                                            setActiveChatTab('chat');
-                                                                            alert("Ton prochain message sera mis en avant pendant 15 secondes !");
-                                                                        } else alert("Pas assez de Drops !");
-                                                                    }}
-                                                                    className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
-                                                                >
-                                                                    100 💧
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Promo Codes */}
-                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden group">
-                                                            <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-red/40 transition-colors" />
-                                                            <div className="relative flex items-center justify-between">
-                                                                <div className="space-y-1">
-                                                                    <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                        <Zap className="w-4 h-4 text-neon-red" /> Code Promo Shop (-10%)
-                                                                    </h4>
-                                                                    <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Réduction sur le vrai magasin</p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (userDrops >= 1000) {
-                                                                            setUserDrops(d => d - 1000);
-                                                                            alert("Code : DROPS10");
-                                                                        } else alert("Pas assez de Drops !");
-                                                                    }}
-                                                                    className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
-                                                                >
-                                                                    1000 💧
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                ) : activeChatTab === 'audio' ? (
-                                                <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar">
-                                                    <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
-                                                        <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
-                                                    </button>
-                                                    <div className="flex flex-col items-center justify-center text-center py-6">
-                                                        <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
-                                                            <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
-                                                        </div>
-                                                        <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
-
-                                                        <div className="w-full space-y-4">
-                                                            <button className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group">
-                                                                <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
-                                                            </button>
-                                                            <div className="relative">
-                                                                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                                                    <Hash className="w-4 h-4 text-gray-500" />
-                                                                </div>
-                                                                <input type="text" placeholder="CODE DU SALON..." className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700" />
-                                                            </div>
-                                                            <button className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all">REJOINDRE</button>
-                                                        </div>
-
-                                                        <div className="mt-12 w-full">
-                                                            <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                <Users className="w-3.5 h-3.5" /> Salons Publics
-                                                            </h5>
-                                                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.08] cursor-pointer">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                                                        <Headphones className="w-4 h-4 text-neon-cyan" />
-                                                                    </div>
-                                                                    <div className="text-left">
-                                                                        <p className="text-[11px] font-black text-white uppercase italic tracking-widest">General Voice 01</p>
-                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase">12 Connectés</p>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="flex -space-x-2">
-                                                                    {[...Array(3)].map((_, i) => (
-                                                                        <div key={i} className="w-6 h-6 rounded-full border-2 border-black bg-gray-800 flex items-center justify-center text-[8px] font-black text-white">AJ</div>
-                                                                    ))}
-                                                                    <div className="w-6 h-6 rounded-full border-2 border-black bg-neon-cyan/20 flex items-center justify-center text-[8px] font-black text-neon-cyan">+9</div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         ) : activeChatTab === 'leaderboard' ? (
-                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar">
+                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24">
                                                 <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
                                                     <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
                                                 </button>
-                                                <div className="space-y-8">
-                                                    {/* PODIUM */}
-                                                    <div className="flex items-end justify-center gap-2 pt-10 pb-6">
-                                                        {/* 2nd place */}
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
-                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                                                    <Trophy className="w-5 h-5 text-gray-400" />
-                                                                </div>
-                                                                <span className="text-[10px] font-black text-white/50">#2</span>
-                                                            </div>
-                                                            <div className="h-16 w-16 bg-gradient-to-t from-gray-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2">
-                                                                <span className="text-[8px] font-black text-white/60 truncate w-full text-center">DROPS_FAN</span>
-                                                            </div>
+                                                {/* PODIUM */}
+                                                <div className="flex items-end justify-center gap-2 pt-10 pb-6">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
+                                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-gray-400" /></div>
+                                                            <span className="text-[10px] font-black text-white/50">#2</span>
                                                         </div>
-                                                        {/* 1st place */}
-                                                        <div className="flex flex-col items-center gap-2 -translate-y-4">
-                                                            <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
-                                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                                                                    <Crown className="w-7 h-7 text-yellow-500 animate-bounce" />
-                                                                </div>
-                                                                <span className="text-xs font-black text-yellow-500">🏆</span>
-                                                            </div>
-                                                            <div className="h-24 w-20 bg-gradient-to-t from-yellow-400/20 to-transparent border-x border-t border-yellow-400/20 rounded-t-2xl flex flex-col items-center justify-end p-2">
-                                                                <span className="text-[9px] font-black text-white truncate w-full text-center">ALEXFR</span>
-                                                            </div>
-                                                        </div>
-                                                        {/* 3rd place */}
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center relative">
-                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                                                    <Trophy className="w-5 h-5 text-orange-400" />
-                                                                </div>
-                                                                <span className="text-[10px] font-black text-white/50">#3</span>
-                                                            </div>
-                                                            <div className="h-12 w-16 bg-gradient-to-t from-orange-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2">
-                                                                <span className="text-[8px] font-black text-white/60 truncate w-full text-center">TECHNO_...</span>
-                                                            </div>
-                                                        </div>
+                                                        <div className="h-16 w-16 bg-gradient-to-t from-gray-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">DROPS_FAN</span></div>
                                                     </div>
-
-                                                    <div className="space-y-4">
-                                                        <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest text-center mb-6 italic">Top 5 Tchatteurs</h4>
-                                                        {[
-                                                            { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
-                                                            { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
-                                                            { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
-                                                            { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
-                                                            { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
-                                                        ].map((user) => (
-                                                            <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
-                                                                <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
-                                                                <div className="flex-1">
-                                                                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
+                                                    <div className="flex flex-col items-center gap-2 -translate-y-4">
+                                                        <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+                                                            <div className="absolute -top-4 left-1/2 -translate-x-1/2"><Crown className="w-7 h-7 text-yellow-500 animate-bounce" /></div>
+                                                            <span className="text-xs font-black text-yellow-500">🏆</span>
+                                                        </div>
+                                                        <div className="h-24 w-20 bg-gradient-to-t from-yellow-400/20 to-transparent border-x border-t border-yellow-400/20 rounded-t-2xl flex flex-col items-center justify-end p-2"><span className="text-[9px] font-black text-white truncate w-full text-center">ALEXFR</span></div>
+                                                    </div>
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center relative">
+                                                            <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-orange-400" /></div>
+                                                            <span className="text-[10px] font-black text-white/50">#3</span>
+                                                        </div>
+                                                        <div className="h-12 w-16 bg-gradient-to-t from-orange-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">TECHNO...</span></div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {[
+                                                        { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
+                                                        { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
+                                                        { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
+                                                        { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
+                                                        { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
+                                                    ].map((user) => (
+                                                        <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
+                                                            <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
+                                                            <div className="flex-1">
+                                                                <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
+                                                            </div>
+                                                            <Zap className={`w-5 h-5 ${user.color}`} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : activeChatTab === 'audio' ? (
+                                            <div className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24">
+                                                <button onClick={() => setActiveChatTab('chat')} className="flex items-center gap-2 text-[9px] font-black text-gray-500 hover:text-white mb-6 uppercase tracking-widest transition-colors">
+                                                    <ArrowRight className="w-3.5 h-3.5 rotate-180" /> RETOUR AU CHAT
+                                                </button>
+                                                <div className="flex flex-col items-center justify-center text-center py-6">
+                                                    <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
+                                                        <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
+                                                    </div>
+                                                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
+                                                    <div className="w-full space-y-4">
+                                                        <button className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group">
+                                                            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
+                                                        </button>
+                                                        <div className="relative">
+                                                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                                                <Hash className="w-4 h-4 text-gray-500" />
+                                                            </div>
+                                                            <input type="text" placeholder="CODE DU SALON..." className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700" />
+                                                        </div>
+                                                        <button className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all">REJOINDRE</button>
+                                                    </div>
+                                                    <div className="mt-12 w-full text-left">
+                                                        <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                            <Users className="w-3.5 h-3.5" /> Salons Publics
+                                                        </h5>
+                                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.08] cursor-pointer">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                                                    <Headphones className="w-4 h-4 text-neon-cyan" />
                                                                 </div>
-                                                                <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center group-hover:border-neon-cyan/50 transition-all">
-                                                                    <Zap className={`w-5 h-5 ${user.color}`} />
+                                                                <div className="text-left">
+                                                                    <p className="text-[11px] font-black text-white uppercase italic tracking-widest">General Voice 01</p>
+                                                                    <p className="text-[9px] text-neon-cyan font-bold flex items-center gap-1.5"><span className="w-1 h-1 rounded-full bg-neon-cyan animate-ping" /> 12 CONNECTÉS</p>
                                                                 </div>
                                                             </div>
-                                                        ))}
+                                                            <ArrowRight className="w-4 h-4 text-gray-600 group-hover:text-white transition-all group-hover:translate-x-1" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         ) : (
-                                            <div className="flex-1 flex flex-col min-h-0 relative">
+                                            <div id="default-chat-view" className="flex-1 flex flex-col min-h-0 relative">
                                                 {!isJoined ? (
                                                     <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
                                                         {/* Background Decor */}
@@ -5064,7 +5086,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            </div>
+            </div >
         </>
     );
 }
