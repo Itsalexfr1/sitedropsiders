@@ -637,6 +637,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     // Local state for settings modal to avoid multiple builds
     const [localSettings, setLocalSettings] = useState<Partial<TakeoverProps['settings']>>({});
+    const [volume, setVolume] = useState(1);
+
     useEffect(() => {
         if (showEditModal) {
             setLocalSettings({ ...settings });
@@ -833,7 +835,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     }, [settings.shopItems]);
 
     const [showShopWidget, setShowShopWidget] = useState(false);
-    const [recentShazams] = useState<string[]>([]);
     const currentVideoId = channelItems[activeVideoIndex]?.id || channelItems[0]?.id || '';
 
 
@@ -2060,9 +2061,46 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </div>
                                                     )}
                                                     <div className="w-full h-full overflow-hidden relative">
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-center gap-2 group/volume hidden sm:flex pointer-events-auto">
+                                                            <div className="h-0 opacity-0 group-hover/volume:h-32 group-hover/volume:opacity-100 transition-all duration-300 bg-black/60 backdrop-blur-md rounded-full w-8 flex flex-col items-center justify-end py-3 overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
+                                                                <input
+                                                                    type="range"
+                                                                    min="0"
+                                                                    max="1"
+                                                                    step="0.01"
+                                                                    value={volume}
+                                                                    onChange={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setVolume(parseFloat(e.target.value));
+                                                                        if (parseFloat(e.target.value) > 0 && isMutedGlobal) {
+                                                                            setIsMutedGlobal(false);
+                                                                        } else if (parseFloat(e.target.value) === 0 && !isMutedGlobal) {
+                                                                            setIsMutedGlobal(true);
+                                                                        }
+                                                                    }}
+                                                                    className="appearance-none bg-transparent w-24 h-1 -rotate-90 origin-center translate-y-[40px] [&::-webkit-slider-runnable-track]:bg-white/20 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:-mt-1 cursor-pointer focus:outline-none"
+                                                                />
+                                                            </div>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (isMutedGlobal) {
+                                                                        setIsMutedGlobal(false);
+                                                                        setVolume(1);
+                                                                    } else {
+                                                                        setIsMutedGlobal(true);
+                                                                        setVolume(0);
+                                                                    }
+                                                                }}
+                                                                className="w-10 h-10 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors shadow-lg"
+                                                            >
+                                                                {isMutedGlobal || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                                            </button>
+                                                        </div>
+
                                                         <iframe
                                                             className="w-[110%] h-[110%] border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto"
-                                                            src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
+                                                            src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer || volume === 0) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
                                                             title={channel.title}
                                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             allowFullScreen
