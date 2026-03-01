@@ -352,7 +352,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = activeTab === 'PUBLICATION' ? safeBottom - 200 : safeBottom - 320;
+                const labelY = activeTab === 'PUBLICATION' ? safeBottom - 280 : safeBottom - 320;
                 const startY = labelY + 160;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 80;
