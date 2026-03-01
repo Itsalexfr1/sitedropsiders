@@ -2061,7 +2061,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     )}
                                                     <div className="w-full h-full overflow-hidden relative">
                                                         <iframe
-                                                            className="w-[115%] h-[115%] border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto"
+                                                            className="w-[110%] h-[110%] border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto"
                                                             src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
                                                             title={channel.title}
                                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
