@@ -61,10 +61,14 @@ interface TakeoverProps {
         stage2?: string;
         stage3?: string;
         stage4?: string;
+        stage5?: string;
+        stage6?: string;
         stage1Name?: string;
         stage2Name?: string;
         stage3Name?: string;
         stage4Name?: string;
+        stage5Name?: string;
+        stage6Name?: string;
         showInAgenda?: boolean;
         showClosedDoors?: boolean;
         dropsAmount?: number;
@@ -564,6 +568,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '';
     });
+    const [stage5, setStage5] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[4] ? `https://youtube.com/watch?v=${lines[4].split(':')[0]}` : '';
+    });
+    const [stage6, setStage6] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[5] ? `https://youtube.com/watch?v=${lines[5].split(':')[0]}` : '';
+    });
 
 
     const [localPinnedMessage, setLocalPinnedMessage] = useState(settings.pinnedMessage ?? '');
@@ -705,6 +717,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         setStage2(lines[1] ? `https://youtube.com/watch?v=${lines[1].split(':')[0]}` : '');
         setStage3(lines[2] ? `https://youtube.com/watch?v=${lines[2].split(':')[0]}` : '');
         setStage4(lines[3] ? `https://youtube.com/watch?v=${lines[3].split(':')[0]}` : '');
+        setStage5(lines[4] ? `https://youtube.com/watch?v=${lines[4].split(':')[0]}` : '');
+        setStage6(lines[5] ? `https://youtube.com/watch?v=${lines[5].split(':')[0]}` : '');
+
+        setStage1Name(lines[0] ? (lines[0].split(':').slice(1).join(':').trim() || 'Stage 1') : 'Stage 1');
+        setStage2Name(lines[1] ? (lines[1].split(':').slice(1).join(':').trim() || 'Stage 2') : 'Stage 2');
+        setStage3Name(lines[2] ? (lines[2].split(':').slice(1).join(':').trim() || 'Stage 3') : 'Stage 3');
+        setStage4Name(lines[3] ? (lines[3].split(':').slice(1).join(':').trim() || 'Stage 4') : 'Stage 4');
+        setStage5Name(lines[4] ? (lines[4].split(':').slice(1).join(':').trim() || 'Stage 5') : 'Stage 5');
+        setStage6Name(lines[5] ? (lines[5].split(':').slice(1).join(':').trim() || 'Stage 6') : 'Stage 6');
 
         setShowTopBanner(settings.showTopBanner ?? true);
         setShowTickerBanner(settings.showTickerBanner ?? true);
@@ -746,13 +767,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[1] ? (lines[1].split(':').slice(1).join(':').trim() || 'Stage 2') : 'Stage 2';
     });
-    const [stage3Name] = useState(() => {
+    const [stage3Name, setStage3Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[2] ? (lines[2].split(':').slice(1).join(':').trim() || 'Stage 3') : 'Stage 3';
     });
-    const [stage4Name] = useState(() => {
+    const [stage4Name, setStage4Name] = useState(() => {
         const lines = (settings.channels || '').split('\n').filter(Boolean);
         return lines[3] ? (lines[3].split(':').slice(1).join(':').trim() || 'Stage 4') : 'Stage 4';
+    });
+    const [stage5Name, setStage5Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[4] ? (lines[4].split(':').slice(1).join(':').trim() || 'Stage 5') : 'Stage 5';
+    });
+    const [stage6Name, setStage6Name] = useState(() => {
+        const lines = (settings.channels || '').split('\n').filter(Boolean);
+        return lines[5] ? (lines[5].split(':').slice(1).join(':').trim() || 'Stage 6') : 'Stage 6';
     });
     const [isLocalBanned, _setIsLocalBanned] = useState(false);
     const [_banTimestamp, _setBanTimestamp] = useState<number | null>(null);
@@ -1569,6 +1598,39 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             const res = await fetch(`/api/settings?t=${Date.now()}`);
             if (res.ok) {
                 const currentSettings = await res.json();
+                const cleanId = (url: string) => {
+                    if (!url) return '';
+                    if (url.includes('v=')) return url.split('v=')[1].split('&')[0];
+                    if (url.includes('youtu.be/')) return url.split('youtu.be/')[1].split('?')[0];
+                    return url.trim();
+                };
+
+                // Auto-generate channels string if stages are being updated
+                if (updates.stage1 !== undefined || updates.stage1Name !== undefined) {
+                    const st1 = updates.stage1 ?? stage1;
+                    const st2 = updates.stage2 ?? stage2;
+                    const st3 = updates.stage3 ?? stage3;
+                    const st4 = updates.stage4 ?? stage4;
+                    const st5 = updates.stage5 ?? stage5;
+                    const st6 = updates.stage6 ?? stage6;
+                    const n1 = updates.stage1Name ?? stage1Name;
+                    const n2 = updates.stage2Name ?? stage2Name;
+                    const n3 = updates.stage3Name ?? stage3Name;
+                    const n4 = updates.stage4Name ?? stage4Name;
+                    const n5 = updates.stage5Name ?? stage5Name;
+                    const n6 = updates.stage6Name ?? stage6Name;
+
+                    const chList = [];
+                    if (st1) chList.push(`${cleanId(st1)}:${n1 || 'Stage 1'}`);
+                    if (st2) chList.push(`${cleanId(st2)}:${n2 || 'Stage 2'}`);
+                    if (st3) chList.push(`${cleanId(st3)}:${n3 || 'Stage 3'}`);
+                    if (st4) chList.push(`${cleanId(st4)}:${n4 || 'Stage 4'}`);
+                    if (st5) chList.push(`${cleanId(st5)}:${n5 || 'Stage 5'}`);
+                    if (st6) chList.push(`${cleanId(st6)}:${n6 || 'Stage 6'}`);
+
+                    updates.channels = chList.join('\n');
+                }
+
                 const newSettings = {
                     ...currentSettings,
                     takeover: {
@@ -2953,9 +3015,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
                                                                     <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
                                                                     <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="Stage 3 Name" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="YouTube ID" value={stage3} onChange={e => setStage3(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="Stage 4 Name" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="YouTube ID" value={stage4} onChange={e => setStage4(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="Stage 5 Name" value={stage5Name} onChange={e => setStage5Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="YouTube ID" value={stage5} onChange={e => setStage5(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="Stage 6 Name" value={stage6Name} onChange={e => setStage6Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                    <input type="text" placeholder="YouTube ID" value={stage6} onChange={e => setStage6(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
                                                                 </div>
                                                                 <button
-                                                                    onClick={() => handleUpdateSettings({ stage1, stage2, stage1Name, stage2Name })}
+                                                                    onClick={() => handleUpdateSettings({
+                                                                        stage1, stage2, stage3, stage4, stage5, stage6,
+                                                                        stage1Name, stage2Name, stage3Name, stage4Name, stage5Name, stage6Name
+                                                                    })}
                                                                     className="w-full py-2 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-neon-cyan hover:text-black transition-all"
                                                                 >
                                                                     Sauvegarder les Sources
