@@ -3771,7 +3771,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     </div>
 
                                                                     <div className="grid grid-cols-2 gap-3 pt-2">
-                                                                        <button onClick={handleSendPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-2xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer</button>
+                                                                        <button onClick={handleStartPoll} className="py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-2xl text-[10px] font-black uppercase hover:bg-neon-cyan hover:text-black transition-all shadow-lg shadow-neon-cyan/5">Lancer</button>
                                                                         {activePoll && (
                                                                             <button onClick={handleStopPoll} className="py-3 bg-red-500/10 text-red-500 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase hover:bg-red-500 hover:text-white transition-all">Terminer</button>
                                                                         )}
@@ -4429,9 +4429,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     key={i}
                                                     onClick={async () => {
                                                         if (!isJoined) return alert("Rejoignez le chat pour voter !");
-                                                        if (votedPollIds.includes(activePoll.id)) return alert("Déjà voté !");
+                                                        const pollId = String((activePoll as any).id);
+                                                        if (votedPollIds.includes(pollId)) return alert("Déjà voté !");
 
-                                                        setVotedPollIds(prev => [...prev, activePoll.id]);
+                                                        setVotedPollIds(prev => [...prev, pollId]);
                                                         await fetch('/api/chat/messages', {
                                                             method: 'POST',
                                                             headers: { 'Content-Type': 'application/json' },
@@ -5307,7 +5308,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </div >
 
             {/* Ticker Banner */}
             {
@@ -5731,10 +5732,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-        </div >
-    </div >
-</>
-);
+        </>
+    );
 }
 
 export default TakeoverPage;
