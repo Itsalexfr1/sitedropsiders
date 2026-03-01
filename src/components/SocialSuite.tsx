@@ -66,6 +66,40 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const logoRef = useRef<HTMLImageElement | null>(null);
+    const textAreaRef = useRef<HTMLTextAreaElement>(null);
+    const [selection, setSelection] = useState({ start: 0, end: 0 });
+
+    const handleTextStyler = (type: 'C' | 'B', value: string) => {
+        if (!textAreaRef.current) return;
+        const start = selection.start;
+        const end = selection.end;
+
+        if (start === end) {
+            if (type === 'C') setTextColor(value);
+            else setTextBgColor(value);
+            return;
+        }
+
+        const current = customText;
+        const selectedText = current.substring(start, end);
+        const tagRegex = new RegExp(`^\\[${type}:[^\\]]+\\](.*?)\\[\\/${type}\\]$`, 'i');
+        const match = selectedText.match(tagRegex);
+
+        let newText;
+        if (match) {
+            newText = current.substring(0, start) + `[${type}:${value.toUpperCase()}]${match[1]}[/${type}]` + current.substring(end);
+        } else {
+            newText = current.substring(0, start) + `[${type}:${value.toUpperCase()}]${selectedText}[/${type}]` + current.substring(end);
+        }
+
+        setCustomText(newText.toUpperCase());
+        setTimeout(() => {
+            if (textAreaRef.current) {
+                textAreaRef.current.focus();
+                textAreaRef.current.setSelectionRange(start, end);
+            }
+        }, 50);
+    };
 
     // Initial load for logo
     useEffect(() => {
@@ -591,6 +625,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             {bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+
+                        <a
+                            href="/downloader"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full py-4 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-neon-cyan text-[10px] font-black uppercase hover:bg-neon-cyan/10 transition-all bg-white/5"
+                        >
+                            <Download className="w-4 h-4" />
+                            Ouvrir Downloader (Insta/TikTok)
+                        </a>
                     </div>
 
                     {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
@@ -674,21 +718,49 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ) : (
                             <div className="space-y-4">
                                 <span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>
-                                <textarea value={customText} onChange={e => setCustomText(e.target.value.toUpperCase())} placeholder="VOTRE TEXTE..." className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black" />
+                                <textarea
+                                    ref={textAreaRef}
+                                    value={customText}
+                                    onSelect={(e) => {
+                                        const t = e.target as HTMLTextAreaElement;
+                                        setSelection({ start: t.selectionStart, end: t.selectionEnd });
+                                    }}
+                                    onChange={e => setCustomText(e.target.value.toUpperCase())}
+                                    placeholder="VOTRE TEXTE..."
+                                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black"
+                                />
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-gray-500 uppercase">Couleur Texte</label>
                                         <div className="flex gap-2 items-center">
-                                            <input type="color" value={textColor} onChange={e => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                                            <input
+                                                type="color"
+                                                value={textColor}
+                                                onMouseDown={(e) => e.stopPropagation()}
+                                                onChange={e => handleTextStyler('C', e.target.value)}
+                                                className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer"
+                                            />
                                             <span className="text-[10px] font-mono text-white/50">{textColor}</span>
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-gray-500 uppercase">Fond Texte</label>
                                         <div className="flex gap-2 items-center">
-                                            <input type="color" value={textBgColor === 'transparent' ? '#000000' : textBgColor} onChange={e => setTextBgColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
-                                            <button onClick={() => setTextBgColor('transparent')} className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>Aucun</button>
+                                            <input
+                                                type="color"
+                                                value={textBgColor === 'transparent' ? '#000000' : textBgColor}
+                                                onMouseDown={(e) => e.stopPropagation()}
+                                                onChange={e => handleTextStyler('B', e.target.value)}
+                                                className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer"
+                                            />
+                                            <button
+                                                onMouseDown={(e) => e.preventDefault()}
+                                                onClick={() => { setTextBgColor('transparent'); setSelection({ start: 0, end: 0 }); }}
+                                                className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                                            >
+                                                Aucun
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
