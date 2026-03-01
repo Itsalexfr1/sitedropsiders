@@ -39,7 +39,7 @@
     "customCommands": "!insta:Suivez nous sur Instagram:https://www.instagram.com/dropsiders.eu/\n!tiktok:Suivez nous sur Tiktok : https://tiktok.com/@dropsiders.eu",
     "isSecret": false,
     "password": "2026",
-    "channels": "6Vl4n1NUcTM:AREA 1\njiG06Cp0hc4:AREA 2",
+    "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
     "pinnedMessage": "",
@@ -54,7 +54,7 @@
     "currentArtist": "DAVID FORBES",
     "artistInstagram": "https://www.instagram.com/davidforbesdj/",
     "showClosedDoors": false,
-    "isOnline": false,
+    "isOnline": true,
     "dropsAmount": 150,
     "dropsIntervalMinutes": 5,
     "showExtraFlux": true
