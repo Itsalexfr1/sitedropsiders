@@ -76,29 +76,28 @@ export function CustomCursor() {
                 }}
                 className="relative w-full h-full"
             >
-                {/* USB Key Stylized Cursor */}
-                <div className="absolute inset-0 flex items-center justify-center">
+                {/* USB Key Stylized Cursor (50% smaller and slimmer) */}
+                <div className="absolute inset-0 flex items-center justify-center scale-50">
                     <motion.div
                         animate={{
                             rotate: isHovering ? 45 : 0,
-                            scale: isHovering ? 1.2 : 1
+                            scale: isHovering ? 1.1 : 1
                         }}
                         className="relative w-full h-full flex items-center justify-center"
                     >
-                        {/* USB Metal Head */}
-                        <div className={`absolute top-0 w-[40%] h-[30%] border-2 rounded-t-sm transition-all duration-300 ${isHovering ? 'border-neon-red bg-neon-red/20 shadow-[0_0_15px_rgba(255,17,17,0.5)]' : 'border-white/40 bg-white/10'}`} />
+                        {/* USB Metal Head - Slimmer */}
+                        <div className={`absolute top-0 w-[30%] h-[30%] border-2 rounded-t-sm transition-all duration-300 ${isHovering ? 'border-neon-red bg-neon-red/20 shadow-[0_0_10px_rgba(255,17,17,0.5)]' : 'border-white/40 bg-white/10'}`} />
 
-                        {/* USB Body */}
-                        <div className={`absolute top-[30%] w-[60%] h-[60%] rounded-b-md border-2 transition-all duration-300 ${isHovering ? 'border-neon-red bg-black shadow-[0_0_20px_rgba(255,17,17,0.3)]' : 'border-white/20 bg-[#050505]'}`}>
-                            {/* Tiny details/logo on USB body */}
-                            <div className={`absolute top-2 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full ${isHovering ? 'bg-neon-red animate-pulse' : 'bg-white/20'}`} />
-                            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[40%] h-0.5 bg-white/10 rounded-full" />
+                        {/* USB Body - Slimmer */}
+                        <div className={`absolute top-[30%] w-[45%] h-[60%] rounded-b-md border-2 transition-all duration-300 ${isHovering ? 'border-neon-red bg-black shadow-[0_0_15px_rgba(255,17,17,0.3)]' : 'border-white/20 bg-[#050505]'}`}>
+                            {/* Tiny details on USB body */}
+                            <div className={`absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${isHovering ? 'bg-neon-red animate-pulse' : 'bg-white/20'}`} />
                         </div>
 
                         {/* Connection pins inside head */}
-                        <div className="absolute top-[5%] w-[30%] h-[15%] flex justify-between px-0.5">
-                            <div className={`w-[20%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
-                            <div className={`w-[20%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
+                        <div className="absolute top-[5%] w-[20%] h-[15%] flex justify-between px-0.5">
+                            <div className={`w-[25%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
+                            <div className={`w-[25%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
                         </div>
                     </motion.div>
                 </div>
