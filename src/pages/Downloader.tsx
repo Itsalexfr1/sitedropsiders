@@ -2,7 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, Instagram, Music, Twitter, Youtube, Link, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
 
-export const Downloader: React.FC = () => {
+interface DownloaderProps {
+    isPopup?: boolean;
+}
+
+export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -55,23 +59,27 @@ export const Downloader: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-black pt-32 pb-20 px-4">
-            {/* Background Effects */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neon-red/10 blur-[150px] rounded-full" />
-                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-neon-cyan/10 blur-[150px] rounded-full" />
-            </div>
+        <div className={`${isPopup ? 'p-6' : 'min-h-screen bg-black pt-32 pb-20 px-4'}`}>
+            {!isPopup && (
+                <>
+                    {/* Background Effects */}
+                    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-neon-red/10 blur-[150px] rounded-full" />
+                        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-neon-cyan/10 blur-[150px] rounded-full" />
+                    </div>
+                </>
+            )}
 
-            <div className="max-w-4xl mx-auto relative z-10">
+            <div className={`max-w-4xl mx-auto relative z-10 ${isPopup ? '' : ''}`}>
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="text-center space-y-6 mb-12"
+                    className={`text-center space-y-6 ${isPopup ? 'mb-8' : 'mb-12'}`}
                 >
-                    <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white">
+                    <h1 className={`${isPopup ? 'text-4xl' : 'text-5xl md:text-7xl'} font-black italic tracking-tighter text-white`}>
                         SOCIAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red to-neon-cyan">DOWNLOADER</span>
                     </h1>
-                    <p className="text-gray-400 text-lg max-w-2xl mx-auto font-medium">
+                    <p className={`text-gray-400 ${isPopup ? 'text-sm' : 'text-lg'} max-w-2xl mx-auto font-medium`}>
                         Téléchargez vos vidéos et photos Instagram, TikTok, Twitter et plus encore en haute qualité, instantanément.
                     </p>
                 </motion.div>
