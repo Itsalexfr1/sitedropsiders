@@ -43,7 +43,7 @@
     "autoMessage": "",
     "autoMessageInterval": 60,
     "pinnedMessage": "",
-    "showShop": true,
+    "showShop": false,
     "botColor": "#00ffcc",
     "botBgColor": "rgba(0, 255, 204, 0.05)",
     "adminColor": "#ff0033",
