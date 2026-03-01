@@ -108,9 +108,6 @@ const getAuthorTextStyle = (username: string) => {
 function StyledCheckbox({ checked, onChange, label, sublabel, icon: Icon, colorClass = "neon-red" }: { checked: boolean, onChange: (val: boolean) => void, label: string, sublabel?: string, icon?: any, colorClass?: string }) {
     const isRed = colorClass === "neon-red";
     const isCyan = colorClass === "neon-cyan";
-    const isPurple = colorClass === "neon-purple";
-    const isGreen = colorClass === "neon-green";
-    const isYellow = colorClass === "neon-yellow";
 
     const colorMap: any = {
         'neon-red': 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]',
