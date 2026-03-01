@@ -40,8 +40,11 @@ export default {
 
             if (!targetUrl) return new Response(JSON.stringify({ error: 'URL requise' }), { status: 400, headers });
 
-            // Rotation of 5 stable Community Cobalt instances + 1 official
+            // Extensive list of Cobalt v10+ instances (Community verified)
+            // We rotate through these to find one that isn't rate-limited
             const instances = [
+                'https://cobalt.pervage.me/',
+                'https://cobalt.k69.ch/',
                 'https://cobalt.v0.sh/',
                 'https://cobalt.qwer.sh/',
                 'https://cobalt.hotis.moe/',
@@ -50,7 +53,10 @@ export default {
                 'https://api.cobalt.tools/'
             ];
 
-            for (const instance of instances) {
+            // Shuffle instances slightly to distribute load
+            const shuffled = [...instances].sort(() => Math.random() - 0.5);
+
+            for (const instance of shuffled) {
                 try {
                     const response = await fetch(instance, {
                         method: 'POST',
@@ -61,24 +67,23 @@ export default {
                         },
                         body: JSON.stringify({
                             url: targetUrl,
-                            videoQuality: '1080'
+                            videoQuality: '1080',
+                            downloadMode: 'auto'
                         }),
-                        signal: AbortSignal.timeout(4000) // 4s timeout per instance
+                        signal: AbortSignal.timeout(5000) // 5s timeout
                     });
 
                     if (response.ok) {
                         const text = await response.text();
-                        // SAFETY: Check if it's actual JSON and not an HTML error page
                         if (text.trim().startsWith('{')) {
                             const data = JSON.parse(text);
-                            // If it's a valid Cobalt response
-                            if (data.url || data.picker || data.status === 'stream') {
+                            if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect') {
                                 return new Response(JSON.stringify(data), { headers });
                             }
                         }
                     }
                 } catch (e) {
-                    console.error(`Instance ${instance} failed:`, e.message);
+                    continue; // Quietly try next instance
                 }
             }
 
@@ -91,7 +96,7 @@ export default {
                         return new Response(JSON.stringify({
                             status: 'success',
                             url: tikData.data.play,
-                            title: tikData.data.title
+                            title: tikData.data.title || 'TikTok Media'
                         }), { headers });
                     }
                 } catch (e) { }
@@ -99,7 +104,7 @@ export default {
 
             return new Response(JSON.stringify({
                 status: 'error',
-                text: 'Le service est actuellement saturé (Trafic intense). Réessayez avec un autre lien ou dans 1 minute.'
+                text: 'Tous les serveurs sont temporairement occupés. Réessayez avec un autre lien ou dans quelques secondes (Instagram limite parfois les accès).'
             }), { status: 500, headers });
         }
 
