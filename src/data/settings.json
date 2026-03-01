@@ -54,9 +54,9 @@
     "currentArtist": "DAVID FORBES",
     "artistInstagram": "https://www.instagram.com/davidforbesdj/",
     "showClosedDoors": false,
-    "isOnline": false,
+    "isOnline": true,
     "dropsAmount": 150,
     "dropsIntervalMinutes": 5,
-    "showExtraFlux": false
+    "showExtraFlux": true
   }
 }
