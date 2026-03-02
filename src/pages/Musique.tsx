@@ -134,7 +134,12 @@ export function Musique() {
                         { title: 'Always You (ASOT 2026 Elevation Anthem)', artist: 'Armin van Buuren', time: '00:00' },
                         { title: 'Mouth Go LaLa', artist: 'Armin van Buuren & Maddix', time: '04:30' },
                         { title: 'Don\'t Be Afraid', artist: 'Moonman & Ferry Corsten & Joris Voorn', time: '08:15' },
-                        { title: 'Destiny', artist: 'Layton Giordani ft. Camden Cox', time: '12:45' }
+                        { title: 'Destiny', artist: 'Layton Giordani ft. Camden Cox', time: '12:45' },
+                        { title: 'Computers Take Over The World', artist: 'Armin van Buuren', time: '16:10' },
+                        { title: 'High On Emotion', artist: 'Maddix', time: '19:45' },
+                        { title: 'Dopamine Machine', artist: 'Armin van Buuren & Lilly Palmer', time: '23:20' },
+                        { title: 'Exploration of Space (Remix)', artist: 'Cosmic Gate', time: '28:15' },
+                        { title: 'Blah Blah Blah', artist: 'Armin van Buuren', time: '32:40' }
                     ]
                 },
                 {
@@ -144,7 +149,11 @@ export function Musique() {
                         { title: 'Turn On The Lights again..', artist: 'Fred again..', time: '00:00' },
                         { title: 'Music Sounds Better With You', artist: 'Stardust', time: '05:12' },
                         { title: 'Adored (Thomas Bangalter Remix)', artist: 'Fred again..', time: '09:45' },
-                        { title: 'Human After All', artist: 'Daft Punk (2026 Edit)', time: '14:30' }
+                        { title: 'Human After All', artist: 'Daft Punk (2026 Edit)', time: '14:30' },
+                        { title: 'Rumble', artist: 'Skrillex, Fred again.. & Flowdan', time: '18:15' },
+                        { title: 'Strong', artist: 'Fred again.. & Romy', time: '22:40' },
+                        { title: 'Delilah (pull me out of this)', artist: 'Fred again..', time: '26:50' },
+                        { title: 'Leavemealone', artist: 'Fred again.. & Baby Keem', time: '31:15' }
                     ]
                 },
                 {
@@ -152,8 +161,15 @@ export function Musique() {
                     embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
                     tracks: [
                         { title: 'High On Emotion', artist: 'Maddix', time: '00:00' },
-                        { title: 'Bucovina', artist: 'Oliver Heldens', time: '05:20' },
-                        { title: 'Elevation Anthem', artist: 'Armin van Buuren', time: '10:45' }
+                        { title: 'Bucovina', artist: 'Oliver Heldens', time: '04:20' },
+                        { title: 'Dopamine Machine', artist: 'Armin van Buuren & Lilly Palmer', time: '08:40' },
+                        { title: 'Transmission', artist: 'Maddix & Olly James & Hannah Laing', time: '13:10' },
+                        { title: 'Mouth Go LaLa', artist: 'Armin van Buuren & Maddix', time: '17:45' },
+                        { title: 'Universal Nation (ID Remix)', artist: 'Push', time: '22:30' },
+                        { title: 'Silence (ID Remix)', artist: 'Delerium ft. Sarah McLachlan', time: '28:15' },
+                        { title: 'Rescue Me (Technikal Remix)', artist: 'Sam & Deano & Ben Stevens', time: '34:00' },
+                        { title: 'It\'s That Time', artist: 'Marlon Hoffstadt', time: '40:15' },
+                        { title: 'Elevation Anthem', artist: 'Armin van Buuren', time: '45:30' }
                     ]
                 },
                 {
