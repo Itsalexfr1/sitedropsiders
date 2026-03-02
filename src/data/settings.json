@@ -14,7 +14,7 @@
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
     "showTopBanner": true,
-    "showTickerBanner": false,
+    "showTickerBanner": true,
     "showInNavbar": true,
     "forceHomepage": false,
     "customCommands": "",
@@ -27,7 +27,14 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "edit",
+    "mainFluxName": "MAIN STAGE",
+    "shopItems": "",
+    "chat_enabled": true,
+    "botColor": "#00ffcc",
+    "botBgColor": "rgba(0, 255, 204, 0.05)",
+    "adminColor": "#ff0033",
+    "adminBgColor": "rgba(255, 0, 51, 0.05)"
   },
   "socials": {
     "instagram": "dropsiders.eu",
