@@ -209,6 +209,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [votedPollIds, setVotedPollIds] = useState<string[]>([]);
     const [lastPollResult, setLastPollResult] = useState<{ question: string, winner: string, percentage: number } | null>(null);
 
+    // --- QUIZ POPUP ---
+    const [showQuizPopup, setShowQuizPopup] = useState(false);
+    const [quizPopupQuestion, setQuizPopupQuestion] = useState<{ id: string; type: string; question: string; options: string[]; correctAnswer: string; category: string; audioUrl?: string; imageUrl?: string; youtubeId?: string; } | null>(null);
+    const [quizPopupAnswer, setQuizPopupAnswer] = useState<string | null>(null);
+    const [quizPopupLoading, setQuizPopupLoading] = useState(false);
+
     const [clipTitle, setClipTitle] = useState('');
     const [clipDuration, setClipDuration] = useState(30);
     const [isFeatured, setIsFeatured] = useState(false);
@@ -1510,6 +1516,30 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             } else if (cmd === '!sondage' && hasModPowers) {
                 setShowPollModal(true);
                 response = "📊 Ouverture du panneau de gestion des sondages...";
+            } else if (cmd === '!quizz' || cmd === '!quiz') {
+                // Fetch a random question from the quiz API and show popup
+                setQuizPopupLoading(true);
+                setQuizPopupAnswer(null);
+                setShowQuizPopup(true);
+                try {
+                    const res = await fetch('/api/quiz/active');
+                    if (res.ok) {
+                        const data = await res.json();
+                        // Only select questions that have question text AND options
+                        const valid = Array.isArray(data) ? data.filter((q: any) => q && q.question && Array.isArray(q.options) && q.options.length > 0) : [];
+                        if (valid.length > 0) {
+                            const random = valid[Math.floor(Math.random() * valid.length)];
+                            setQuizPopupQuestion(random);
+                        } else {
+                            setQuizPopupQuestion(null);
+                        }
+                    }
+                } catch (e) {
+                    setQuizPopupQuestion(null);
+                } finally {
+                    setQuizPopupLoading(false);
+                }
+                response = "🎯 Une question de quiz apparaît sur votre écran !";
             } else if (cmd.startsWith('!give') && isAdmin) {
                 const parts = command.split(' ');
                 if (parts.length >= 3) {
@@ -5486,6 +5516,186 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         Annuler
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {/* === QUIZ POPUP === */}
+                {showQuizPopup && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            className="w-full max-w-lg bg-black/60 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(255,200,18,0.15)]"
+                        >
+                            <div className="p-8 space-y-6">
+                                {/* Header */}
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center">
+                                            <span className="text-2xl">🎯</span>
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Question Quiz</h2>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Testez vos connaissances !</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
+                                        className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                {/* Content */}
+                                {quizPopupLoading ? (
+                                    <div className="flex justify-center py-10">
+                                        <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                ) : !(quizPopupQuestion && quizPopupQuestion.question) ? (
+                                    <div className="py-10 text-center">
+                                        <p className="text-gray-400 font-bold text-sm">Aucune question disponible pour le moment.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-5">
+                                        {/* Category badge */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded-full">
+                                                {quizPopupQuestion.category ?? quizPopupQuestion.type ?? 'Quiz'}
+                                            </span>
+                                        </div>
+
+                                        {/* Question */}
+                                        <h3 className="text-lg font-black text-white tracking-tight leading-snug">
+                                            {quizPopupQuestion.question}
+                                        </h3>
+
+                                        {/* Audio for blind test */}
+                                        {quizPopupQuestion.type === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
+                                            <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex items-center gap-3">
+                                                <span className="text-2xl">🎵</span>
+                                                <audio autoPlay controls className="flex-1 h-8 opacity-80">
+                                                    <source src={quizPopupQuestion.audioUrl} type="audio/mpeg" />
+                                                </audio>
+                                            </div>
+                                        )}
+
+                                        {/* Image */}
+                                        {quizPopupQuestion.type === 'IMAGE' && quizPopupQuestion.imageUrl && (
+                                            <div className="rounded-2xl overflow-hidden border border-white/10 max-h-48 flex items-center justify-center">
+                                                <img src={quizPopupQuestion.imageUrl} alt="Quiz" className="w-full h-auto object-cover max-h-48" />
+                                            </div>
+                                        )}
+
+                                        {/* Video */}
+                                        {quizPopupQuestion.type === 'VIDEO' && quizPopupQuestion.youtubeId && (
+                                            <div className="rounded-2xl overflow-hidden border border-white/10 aspect-video">
+                                                <iframe
+                                                    width="100%"
+                                                    height="100%"
+                                                    src={`https://www.youtube.com/embed/${quizPopupQuestion.youtubeId}?autoplay=1`}
+                                                    title="YouTube video player"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* Answers */}
+                                        {Array.isArray(quizPopupQuestion.options) && quizPopupQuestion.options.length > 0 ? (
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {quizPopupQuestion.options.map((option, idx) => {
+                                                    if (!option) return null;
+                                                    const isSelected = quizPopupAnswer === option;
+                                                    const isCorrect = option === quizPopupQuestion.correctAnswer;
+                                                    let cls = "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/30 cursor-pointer";
+                                                    if (quizPopupAnswer) {
+                                                        if (isSelected && isCorrect) cls = "bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]";
+                                                        else if (isSelected && !isCorrect) cls = "bg-red-500/20 border-red-500 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.2)]";
+                                                        else if (!isSelected && isCorrect) cls = "bg-green-500/10 border-green-500/40 text-green-500";
+                                                        else cls = "opacity-40 bg-white/5 border-white/5 text-gray-600";
+                                                    }
+                                                    return (
+                                                        <motion.button
+                                                            key={idx}
+                                                            whileHover={{ scale: quizPopupAnswer ? 1 : 1.02 }}
+                                                            whileTap={{ scale: quizPopupAnswer ? 1 : 0.98 }}
+                                                            onClick={() => {
+                                                                if (quizPopupAnswer) return;
+                                                                setQuizPopupAnswer(option);
+                                                            }}
+                                                            disabled={!!quizPopupAnswer}
+                                                            className={`w-full p-4 rounded-2xl border text-left font-black text-xs uppercase tracking-widest transition-all flex items-center justify-between ${cls}`}
+                                                        >
+                                                            <span className="flex items-center gap-3">
+                                                                <span className="text-[9px] font-black opacity-60">{String.fromCharCode(65 + idx)}.</span>
+                                                                {option}
+                                                            </span>
+                                                            {quizPopupAnswer && isCorrect && <span className="text-base">✅</span>}
+                                                            {isSelected && !isCorrect && <span className="text-base">❌</span>}
+                                                        </motion.button>
+                                                    );
+                                                })}
+                                            </div>
+                                        ) : (
+                                            <p className="text-gray-500 text-xs font-bold text-center py-4">Aucune option de réponse disponible pour cette question.</p>
+                                        )}
+
+                                        {/* Result message */}
+                                        {quizPopupAnswer && quizPopupQuestion.correctAnswer && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className={`p-4 rounded-2xl text-center font-black text-sm uppercase tracking-wider ${quizPopupAnswer === quizPopupQuestion.correctAnswer ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}
+                                            >
+                                                {quizPopupAnswer === quizPopupQuestion.correctAnswer
+                                                    ? '🏆 Bravo ! Bonne réponse !'
+                                                    : `😅 Raté ! La bonne réponse était : ${quizPopupQuestion.correctAnswer}`}
+                                            </motion.div>
+                                        )}
+
+                                        {/* Actions */}
+                                        <div className="flex gap-3 pt-2">
+                                            <button
+                                                onClick={async () => {
+                                                    setQuizPopupAnswer(null);
+                                                    setQuizPopupLoading(true);
+                                                    try {
+                                                        const res = await fetch('/api/quiz/active');
+                                                        if (res.ok) {
+                                                            const data = await res.json();
+                                                            const valid = Array.isArray(data) ? data.filter((q: any) => q && q.question && Array.isArray(q.options) && q.options.length > 0) : [];
+                                                            if (valid.length > 0) {
+                                                                const filtered = valid.filter((q: any) => q.id !== quizPopupQuestion?.id);
+                                                                const pool = filtered.length > 0 ? filtered : valid;
+                                                                setQuizPopupQuestion(pool[Math.floor(Math.random() * pool.length)]);
+                                                            }
+                                                        }
+                                                    } catch (e) { } finally {
+                                                        setQuizPopupLoading(false);
+                                                    }
+                                                }}
+                                                className="flex-1 py-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-yellow-500/20 transition-all active:scale-95"
+                                            >
+                                                🎲 Autre question
+                                            </button>
+                                            <button
+                                                onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
+                                                className="flex-1 py-4 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                                            >
+                                                Fermer
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>
