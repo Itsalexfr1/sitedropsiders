@@ -2604,10 +2604,10 @@ export default {
         if (path === '/api/alerts/active' && request.method === 'GET') {
             const listRaw = await env.CHAT_KV.get('alerts_list') || "[]";
             const list = JSON.parse(listRaw);
-            // Mask emails for public view
+            // Completely hide emails for public view
             const masked = list.map(a => ({
                 ...a,
-                email: a.email ? a.email.replace(/(^.{2})(.*)(@.*$)/, '$1***$3') : '***@***.com'
+                email: 'Utilisateur anonyme'
             }));
             return new Response(JSON.stringify(masked), { status: 200, headers });
         }
