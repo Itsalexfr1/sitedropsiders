@@ -342,12 +342,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const paragraphs = customText.toUpperCase().split('\n');
                 let lines: string[] = [];
                 ctx.font = `900 italic ${fontSize}px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                const stripTags = (s: string) => s.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]/gi, '');
                 for (let para of paragraphs) {
                     if (para.trim() === '') { lines.push(''); continue; }
                     const words = para.split(' ');
                     let currentLine = '';
                     for (let word of words) {
-                        if (ctx.measureText(currentLine + word).width < canvas.width - 200) currentLine += word + ' ';
+                        const testLine = currentLine + word + ' ';
+                        if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
                         else { lines.push(currentLine.trim()); currentLine = word + ' '; }
                     }
                     lines.push(currentLine.trim());
@@ -379,7 +381,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
                 const parseRichText = (str: string) => {
                     const segments: { text: string; color?: string; bg?: string }[] = [];
-                    const regex = /\[([CB]):([^\]]+)\](.*?)\[\/\1\]|([^\[]+|\[(?!([CB]):[^\]]+\]))/g;
+                    const regex = /\[([CB]):([^\]]+)\](.*?)\[\/\1\]|([^\[]+|\[(?!([CB]):[^\]]+\]))/gi;
                     let match;
                     while ((match = regex.exec(str)) !== null) {
                         if (match[1]) {
@@ -793,10 +795,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                         const t = e.target as HTMLTextAreaElement;
                                         setSelection({ start: t.selectionStart, end: t.selectionEnd });
                                     }}
-                                    onChange={e => setCustomText(e.target.value.toUpperCase().slice(0, 1100))}
+                                    onChange={e => setCustomText(e.target.value.slice(0, 1100))}
                                     placeholder="VOTRE TEXTE..."
                                     className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black uppercase"
                                 />
+                                <p className="text-[9px] text-white/30 italic mt-1 px-4">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
