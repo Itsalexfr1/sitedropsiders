@@ -4,9 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
-    Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
+    Facebook, Maximize, Minimize, Video, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download, CircleStop, Loader2, Link,
+    ChevronUp, ChevronDown, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download, CircleStop, Loader2, Link,
     Star, ShieldCheck
 } from 'lucide-react';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
@@ -23,6 +23,7 @@ const SnapchatIcon = ({ className }: { className?: string }) => (
         <path d="M12 2.8c-2.8 0-4.5 1.5-4.5 3.9 0 1 .1 1.8.4 2.4.1.2.1.3.1.5 0 .2-.1.3-.2.5-.2.2-.4.4-.7.8-.3.3-.5.7-.5 1.1 0 .6.4 1.1.9 1.5.5.4 1.1.7 1.8.8.4.1.8.1 1.2.1 1 0 2-.2 2.9-.6.4-.2.8-.4 1.2-.4s.8.2 1.2.4c.9.4 1.9.6 2.9.6.4 0 .8 0 1.2-.1.7-.1 1.3-.4 1.8-.8.5-.4.9-.9.9-1.5 0-.4-.2-.8-.5-1.1s-.5-.6-.7-.8c-.1-.2-.2-.3-.2-.5 0-.2 0-.3.1-.5.3-.6.4-1.4.4-2.4 0-2.4-1.7-3.9-4.5-3.9zm6.6 9.4c.6.6 1.1 1.3 1.1 2.2 0 1-.5 1.9-1.4 2.5-.9.6-2 .9-3.3.9-1.2 0-2.3-.3-3.1-.8-.4-.3-.8-.4-1.2-.4s-.8.1-1.2.4c-.8.5-1.9.8-3.1.8-1.3 0-2.4-.3-3.3-.9-.9-.6-1.4-1.5-1.4-2.5 0-.9.5-1.6 1.1-2.2.6-.6 1.3-1 2.2-1.3.4-.1.8-.2 1.2-.2 1.1 0 2.2.4 3.1 1.1.4.3.8.4 1.2.4s.8-.1 1.2-.4c.9-.7 2-1.1 3.1-1.1.4 0 .8.1 1.2.2.9.3 1.6.7 2.2 1.3z" />
     </svg>
 );
+
 
 
 
@@ -155,7 +156,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [newsletter, setNewsletter] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'planning' | 'moderation' | 'points' | 'shop'>('general');
-    const [chat_color] = useState(() => localStorage.getItem('chat_color') || '#00ffff');
     const [activeVideoIndex, setActiveVideoIndex] = useState(() => {
         // Deactivate main flux by default (if disableMainPlayer is true or undefined)
         const isDisabled = settings.disableMainPlayer !== false;
@@ -166,8 +166,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [userDrops, setUserDrops] = useState(() => {
         try { return parseInt(localStorage.getItem('user_drops') || '0'); } catch { return 0; }
     });
-    const [pendingUserPin, setPendingUserPin] = useState(false);
-    const [activeUserPin, setActiveUserPin] = useState<{ pseudo: string, message: string, color: string } | null>(null);
+
 
     const [rewards, setRewards] = useState<{ id: string, name: string, description: string, cost: number, icon: string }[]>(() => {
         try {
@@ -185,22 +184,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         localStorage.setItem('drops_rewards', JSON.stringify(rewards));
     }, [rewards]);
 
-    const triviaPool = [
-        { category: "MUSIQUE", question: "Quel DJ a popularisé la French Touch dans le monde entier ?", options: ["Daft Punk", "David Guetta", "DJ Snake", "Justice"], correct: 0 },
-        { category: "FESTIVAL", question: "Dans quel pays se déroule le légendaire festival Tomorrowland ?", options: ["Pays-Bas", "Allemagne", "Belgique", "Croatie"], correct: 2 },
-        { category: "CULTURE", question: "En quelle année s'est déroulée la première rave officielle en Europe ?", options: ["1988", "1994", "2000", "1982"], correct: 0 },
-        { category: "DJ", question: "Qui est le DJ masqué célèbre pour sa tête de guimauve ?", options: ["Marshmello", "Deadmau5", "Angerfist", "Malaa"], correct: 0 },
-        { category: "FESTIVAL", question: "Quel festival français se déroule chaque été au Barcarès ?", options: ["Tomorrowland Winter", "Electrobeach (EMF)", "Ultra", "Dour"], correct: 1 },
-        { category: "TECHNO", question: "Quelle ville est considérée comme le berceau de la musique Techno ?", options: ["Berlin", "Détroit", "Chicago", "Londres"], correct: 1 },
-        { category: "ARTISTE", question: "Lequel de ces artistes est l'ambassadeur de Dropsiders ?", options: ["Malaa", "Vladimir Cauchemar", "Dropsiders Official", "Timmy Trumpet"], correct: 2 },
-        { category: "FESTIVAL", question: "Quel festival est réputé pour son décor 'Mainstage' géant et féérique ?", options: ["Tomorrowland", "Ultra", "Parookaville", "Creamfields"], correct: 0 },
-        { category: "ARTISTE", question: "Quel duo français est célèbre pour porter des casques de robots ?", options: ["Justice", "Daft Punk", "Tchami & Malaa", "The Blaze"], correct: 1 },
-        { category: "FESTIVAL", question: "En quelle année a eu lieu la première édition de l'Electrobeach (EMF) ?", options: ["2009", "2013", "2015", "2011"], correct: 0 }
-    ];
 
-    const [showBlindTest, setShowBlindTest] = useState(false);
-    const [blindTestState, setBlindTestState] = useState(triviaPool[0]);
-    const [blindTestAnswered, setBlindTestAnswered] = useState(false);
+
     const [hypeLevel, setHypeLevel] = useState(0);
     const [isOverdrive, setIsOverdrive] = useState(false);
     const [bpm, setBpm] = useState(128);
@@ -214,20 +199,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [_totalWatchTime, setTotalWatchTime] = useState(0);
-    const [isTransitioning, setIsTransitioning] = useState(false);
     const [annBannerEnabled, setAnnBannerEnabled] = useState(false);
     const [annBannerText, setAnnBannerText] = useState('');
     const [annBannerColor, setAnnBannerColor] = useState('#ffffff');
     const [annBannerBg, setAnnBannerBg] = useState('#0a0a0a');
     const [showClosedDoors, setShowClosedDoors] = useState(false);
     const [upcomingLives, setUpcomingLives] = useState<any[]>([]);
-    const [showBPM, setShowBPM] = useState(true);
     const [showPollModal, setShowPollModal] = useState(false);
     const [votedPollIds, setVotedPollIds] = useState<string[]>([]);
-    const [isSyncingBPM, setIsSyncingBPM] = useState(false);
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const analyserRef = useRef<AnalyserNode | null>(null);
-    const bpmStreamRef = useRef<MediaStream | null>(null);
     const [lastPollResult, setLastPollResult] = useState<{ question: string, winner: string, percentage: number } | null>(null);
 
     const [clipTitle, setClipTitle] = useState('');
@@ -259,12 +238,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         fetchUpcoming();
     }, []);
 
-    // Transition effect when changing player counts
-    useEffect(() => {
-        setIsTransitioning(true);
-        const t = setTimeout(() => setIsTransitioning(false), 800);
-        return () => clearTimeout(t);
-    }, [playersOption]);
+
 
     // Fetch clips periodically
     useEffect(() => {
@@ -524,12 +498,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         return { artist: '', instagram: '' };
     }, [currentFluxLineup, currentTime]);
 
-    const getVisiblePlayers = useCallback(() => {
-        if (playersOption === 1) {
-            return [channelItems[activeVideoIndex]].filter(Boolean);
-        }
-        return channelItems.slice(0, playersOption);
-    }, [activeVideoIndex, channelItems, playersOption]);
+
 
     useEffect(() => {
         if (!("Notification" in window)) return;
@@ -854,7 +823,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     // Local state for settings modal to avoid multiple builds
     const [localSettings, setLocalSettings] = useState<Partial<TakeoverProps['settings']>>({});
-    const [volume, setVolume] = useState(1);
+    const [volume] = useState(1);
     const playersRef = useRef<Record<string, any>>({});
 
     useEffect(() => {
@@ -1534,11 +1503,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 response = `🎤 ARTISTE ACTUEL : ${artist.toUpperCase()} ! 🔥`;
             } else if (cmd === '!festival') {
                 response = `🎪 FESTIVAL : ${settings.title.toUpperCase() || "DROPSIDERS LIVE"} ! 🔥`;
-            } else if ((cmd === '!blindtest' || cmd === '!quiz') && hasModPowers) {
-                const randomQuest = triviaPool[Math.floor(Math.random() * triviaPool.length)];
-                setBlindTestState(randomQuest);
-                setShowBlindTest(true);
-                response = `🕹️ QUIZ : ${randomQuest.category} ! Préparez-vous !`;
+
             } else if (cmd === '!instagram' || cmd === '!insta') {
                 const insta = fluxCurrentArtist?.instagram || settings.artistInstagram || "@DROPSIDERS";
                 response = `📸 Instagram de l'artiste : ${insta} ! ✨`;
@@ -1613,11 +1578,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         const msgText = newMessage;
         setNewMessage('');
 
-        if (pendingUserPin) {
-            setActiveUserPin({ pseudo: (pseudo || 'Anonyme'), message: msgText.trim(), color: (chat_color || '#00ffff') });
-            setPendingUserPin(false);
-            setTimeout(() => setActiveUserPin(null), 15000);
-        }
+
 
         // Link blocking logic
         const hasLinks = /(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9]+\.[a-z]{2,})/i.test(msgText);
@@ -1789,96 +1750,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-    const handleSyncBPM = async () => {
-        if (isSyncingBPM) {
-            setIsSyncingBPM(false);
-            if (bpmStreamRef.current) {
-                bpmStreamRef.current.getTracks().forEach(track => track.stop());
-            }
-            if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-                audioContextRef.current.close();
-            }
-            return;
-        }
 
-        try {
-            if (!navigator.mediaDevices || !(navigator.mediaDevices as any).getDisplayMedia) {
-                return alert("Votre navigateur ne supporte pas la capture audio.");
-            }
 
-            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
-                video: true,
-                audio: true,
-                selfBrowserSurface: 'include'
-            });
 
-            const audioTrack = stream.getAudioTracks()[0];
-            if (!audioTrack) {
-                stream.getTracks().forEach((t: any) => t.stop());
-                return alert("Veuillez activer 'Partager l'audio' pour synchroniser le BPM.");
-            }
 
-            stream.getVideoTracks().forEach((t: any) => t.stop());
-
-            const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const source = ctx.createMediaStreamSource(new MediaStream([audioTrack]));
-            const analyser = ctx.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
-
-            audioContextRef.current = ctx;
-            analyserRef.current = analyser;
-            bpmStreamRef.current = stream;
-            setIsSyncingBPM(true);
-
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-            let lastPeakTime = Date.now();
-            let peaks: number[] = [];
-
-            const detectBPM = () => {
-                if (!analyserRef.current) return;
-                analyser.getByteFrequencyData(dataArray);
-
-                const bassValue = dataArray[0] + dataArray[1] + dataArray[2];
-                const threshold = 220;
-
-                if (bassValue > threshold) {
-                    const now = Date.now();
-                    const diff = now - lastPeakTime;
-                    if (diff > 300 && diff < 1200) {
-                        peaks.push(60000 / diff);
-                        if (peaks.length > 5) peaks.shift();
-                        const avg = Math.round(peaks.reduce((a, b) => a + b, 0) / peaks.length);
-                        if (avg > 60 && avg < 190) {
-                            setBpm(avg);
-                        }
-                        lastPeakTime = now;
-                    }
-                }
-                if (bpmStreamRef.current?.active) requestAnimationFrame(detectBPM);
-                else setIsSyncingBPM(false);
-            };
-
-            detectBPM();
-
-        } catch (err) {
-            console.error(err);
-            setIsSyncingBPM(false);
-        }
-    };
-
-    // Cleanup audio context on unmount
-    useEffect(() => {
-        return () => {
-            if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-                audioContextRef.current.close();
-            }
-            if (bpmStreamRef.current) {
-                bpmStreamRef.current.getTracks().forEach(track => track.stop());
-            }
-        };
-    }, []);
 
     const handleGiveDrops = async (targetPseudo: string) => {
         const amount = prompt(`Combien de Drops donner à @${targetPseudo} ?`, "500");
@@ -2472,12 +2347,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 key={idx}
                                                 onClick={() => {
                                                     if (activeVideoIndex === idx) return;
-                                                    setIsTransitioning(true);
-                                                    setTimeout(() => {
-                                                        setActiveVideoIndex(idx);
-                                                        setPlayersOption(1);
-                                                        setTimeout(() => setIsTransitioning(false), 500);
-                                                    }, 150);
+                                                    setActiveVideoIndex(idx);
+                                                    setPlayersOption(1);
                                                 }}
                                                 className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
                                             >
@@ -2976,10 +2847,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <div className="flex flex-col gap-2">
                                                                     <div className="flex gap-2">
                                                                         <button
-                                                                            onClick={() => {
-                                                                                setDownloaderUrl(clip.url);
-                                                                                setShowDownloader(true);
-                                                                            }}
+                                                                            onClick={() => handleDownloadClip(clip)}
                                                                             className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-neon-purple/20 border border-neon-purple/30 rounded-xl text-[9px] font-black uppercase text-neon-purple hover:bg-neon-purple hover:text-white transition-all group"
                                                                         >
                                                                             <Download className="w-3.5 h-3.5 group-hover:bounce" /> EXPORTER CLIP
@@ -4687,7 +4555,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 if (userDrops >= reward.cost) {
                                                                                     setUserDrops(d => d - reward.cost);
                                                                                     if (reward.id === 'pin') {
-                                                                                        setPendingUserPin(true);
                                                                                         setActiveChatTab('chat');
                                                                                     }
                                                                                     alert(`Récompense "${reward.name}" activée !`);
@@ -5875,32 +5742,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            {/* Downloader Popup */}
-            <AnimatePresence>
-                {showDownloader && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            exit={{ scale: 0.9, y: 20 }}
-                            className="bg-[#111] border border-white/10 rounded-[40px] w-full max-w-4xl max-h-[90vh] overflow-y-auto relative p-2"
-                        >
-                            <button
-                                onClick={() => setShowDownloader(false)}
-                                className="absolute top-8 right-8 z-50 p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-400 hover:text-white transition-all focus:outline-none"
-                            >
-                                <X className="w-6 h-6 transition-transform hover:rotate-90 text-gray-400" />
-                            </button>
-                            <Downloader isPopup={true} initialUrl={downloaderUrl} />
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
         </>
     );
