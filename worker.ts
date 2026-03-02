@@ -2507,7 +2507,14 @@ export default {
         }
 
         if (path === '/api/covoit/active' && request.method === 'GET') {
-            const listRaw = await env.CHAT_KV.get('covoit_list') || "[]";
+            let listRaw = await env.CHAT_KV.get('covoit_list');
+            if (!listRaw) {
+                // Seed data for demo
+                const defaultCovoit = [
+                    { id: 'seed1', festival: 'Tomorrowland Winter', departure: 'Paris', date: '2026-03-15', capacity: 3, contact: '0600000000', author: 'Dropsiders', timestamp: new Date().toISOString() }
+                ];
+                listRaw = JSON.stringify(defaultCovoit);
+            }
             return new Response(listRaw, { status: 200, headers });
         }
 
@@ -2549,7 +2556,13 @@ export default {
         }
 
         if (path === '/api/avis/active' && request.method === 'GET') {
-            const activeRaw = await env.CHAT_KV.get('avis_active') || "[]";
+            let activeRaw = await env.CHAT_KV.get('avis_active');
+            if (!activeRaw) {
+                const defaultAvis = [
+                    { id: 'seed1', festival: 'Tomorrowland Winter 2024', ratings: { organization: 5, sound: 5, food: 4 }, comment: "Une expérience incroyable dans les Alpes !", tips: "Prévoyez des vêtements très chauds pour la Mainstage en extérieur.", author: "Alex", timestamp: new Date().toISOString() }
+                ];
+                activeRaw = JSON.stringify(defaultAvis);
+            }
             return new Response(activeRaw, { status: 200, headers });
         }
 
@@ -2602,7 +2615,13 @@ export default {
         }
 
         if (path === '/api/alerts/active' && request.method === 'GET') {
-            const listRaw = await env.CHAT_KV.get('alerts_list') || "[]";
+            let listRaw = await env.CHAT_KV.get('alerts_list');
+            if (!listRaw) {
+                const defaultAlerts = [
+                    { id: 'seed1', festival: 'Tomorrowland', artist: 'David Guetta', email: '***@***.com', author: 'Dropsiders', timestamp: new Date().toISOString() }
+                ];
+                listRaw = JSON.stringify(defaultAlerts);
+            }
             return new Response(listRaw, { status: 200, headers });
         }
 
@@ -2667,7 +2686,14 @@ export default {
         }
 
         if (path === '/api/quiz/active' && request.method === 'GET') {
-            const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            let activeRaw = await env.CHAT_KV.get('quiz_active');
+            if (!activeRaw) {
+                const defaultQuizzes = [
+                    { id: '1', type: 'QCM', question: 'En quelle année a été créé Tomorrowland ?', options: ['2004', '2005', '2006', '2007'], correctAnswer: '2005', category: 'Festivals', author: 'Dropsiders', timestamp: new Date().toISOString() },
+                    { id: '2', type: 'QCM', question: 'Quel DJ est surnommé "The King of Trance" ?', options: ['Tiësto', 'Armin van Buuren', 'Paul van Dyk', 'Ferry Corsten'], correctAnswer: 'Armin van Buuren', category: 'DJs', author: 'Dropsiders', timestamp: new Date().toISOString() }
+                ];
+                activeRaw = JSON.stringify(defaultQuizzes);
+            }
             return new Response(activeRaw, { status: 200, headers });
         }
 
