@@ -390,7 +390,31 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             festSocialsContainer.remove();
         }
 
-        return { cleanHtml: doc.body.innerHTML, socials, artistLabel, festivalSocials, festivalLabel };
+        // Limit text to 1100 characters while preserving HTML tags
+        let charCount = 0;
+        const limit = 1100;
+        const contentNodes = Array.from(doc.body.childNodes);
+        let finalHtml = '';
+
+        for (const node of contentNodes) {
+            const textLen = node.textContent?.length || 0;
+            if (charCount + textLen > limit) {
+                const remaining = limit - charCount;
+                if (node.nodeType === Node.TEXT_NODE) {
+                    finalHtml += node.textContent?.substring(0, remaining) + '...';
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    const clone = (node as HTMLElement).cloneNode(true) as HTMLElement;
+                    // This is a simple truncation for one level, could be more complex but matches typical article structure
+                    clone.textContent = clone.textContent?.substring(0, remaining) + '...';
+                    finalHtml += clone.outerHTML;
+                }
+                break;
+            }
+            finalHtml += (node as HTMLElement).outerHTML || node.textContent || '';
+            charCount += textLen;
+        }
+
+        return { cleanHtml: finalHtml || doc.body.innerHTML, socials, artistLabel, festivalSocials, festivalLabel };
     };
 
     const rawDisplayContent = language === 'en' && translatedBody ? cleanHTML(translatedBody) : cleanHTML(content);

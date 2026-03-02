@@ -339,7 +339,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 57 : 78; const lineHeight = fontSize * 1.2;
                 ctx.textAlign = 'center';
-                const paragraphs = customText.split('\n');
+                const paragraphs = customText.toUpperCase().split('\n');
                 let lines: string[] = [];
                 ctx.font = `900 italic ${fontSize}px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 for (let para of paragraphs) {
@@ -792,9 +792,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                         const t = e.target as HTMLTextAreaElement;
                                         setSelection({ start: t.selectionStart, end: t.selectionEnd });
                                     }}
-                                    onChange={e => setCustomText(e.target.value)}
+                                    onChange={e => setCustomText(e.target.value.toUpperCase().slice(0, 1100))}
                                     placeholder="VOTRE TEXTE..."
-                                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black"
+                                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black uppercase"
                                 />
 
                                 <div className="grid grid-cols-2 gap-4">
