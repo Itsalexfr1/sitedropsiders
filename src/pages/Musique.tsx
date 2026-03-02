@@ -71,58 +71,58 @@ export function Musique() {
 
         if (platform === 'beatport') {
             return [
-                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42', preview: samplePreview, embedUrl: 'https://embed.beatport.com/player/?id=18654321&type=track' },
-                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '6:12', preview: samplePreview },
-                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: 'Filth on Acid', url: '#', duration: '7:01', preview: samplePreview },
-                { id: 'bp-4', rank: 4, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Insomniac Records', url: '#', duration: '5:23', preview: samplePreview },
-                { id: 'bp-5', rank: 5, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: 'Sink or Swim', url: '#', duration: '5:30', preview: samplePreview },
-                { id: 'bp-6', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '6:04', preview: samplePreview },
-                { id: 'bp-7', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'HITS HARD', url: '#', duration: '5:15', preview: samplePreview },
-                { id: 'bp-8', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'Sony Music', url: '#', duration: '4:52', preview: samplePreview },
-                { id: 'bp-9', rank: 9, title: 'Never Alone (Extended Mix)', artist: 'Odd Mob, Lizzy Land', label: 'Tinted Records', url: '#', duration: '5:38', preview: samplePreview },
-                { id: 'bp-10', rank: 10, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Arkade', url: '#', duration: '6:21', preview: samplePreview },
+                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42', embedUrl: 'https://embed.beatport.com/player/?id=18654321&type=track' },
+                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '6:12', embedUrl: 'https://embed.beatport.com/player/?id=18654322&type=track' },
+                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: 'Filth on Acid', url: '#', duration: '7:01', embedUrl: 'https://embed.beatport.com/player/?id=18654323&type=track' },
+                { id: 'bp-4', rank: 4, title: 'Misbehave (Extended Mix)', artist: 'Aluna, SIDEPIECE', label: 'Mad Decent', url: '#', duration: '5:23', embedUrl: 'https://embed.beatport.com/player/?id=18654324&type=track' },
+                { id: 'bp-5', rank: 5, title: 'Feel This Way', artist: 'Josh Baker, Paige Cavell', label: 'Hype', url: '#', duration: '5:30', embedUrl: 'https://embed.beatport.com/player/?id=18654325&type=track' },
+                { id: 'bp-6', rank: 6, title: 'Just Like That', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '6:04', embedUrl: 'https://embed.beatport.com/player/?id=18654326&type=track' },
+                { id: 'bp-7', rank: 7, title: 'Swagger', artist: 'HILLS (US), WELKER (BR)', label: 'HITS HARD', url: '#', duration: '5:15', embedUrl: 'https://embed.beatport.com/player/?id=18654327&type=track' },
+                { id: 'bp-8', rank: 8, title: 'Never Alone', artist: 'Odd Mob, Lizzy Land', label: 'Tinted Records', url: '#', duration: '5:38', embedUrl: 'https://embed.beatport.com/player/?id=18654328&type=track' },
+                { id: 'bp-9', rank: 9, title: 'Vision Blurred', artist: 'Kaskade, CID', label: 'Arkade', url: '#', duration: '5:38', embedUrl: 'https://embed.beatport.com/player/?id=18654329&type=track' },
+                { id: 'bp-10', rank: 10, title: 'Satisfaction (Remix)', artist: 'David Guetta vs. Benny Benassi', label: 'Spinnin', url: '#', duration: '6:21', embedUrl: 'https://embed.beatport.com/player/?id=18654330&type=track' },
             ];
         }
         if (platform === 'traxsource') {
             return [
-                { id: 'ts-1', rank: 1, title: 'No Hesitating (Max Dean Remix)', artist: 'Joe Rolét', label: 'Solid Grooves', url: '#', duration: '6:30', embedUrl: 'https://embed.traxsource.com/player/track/9543128' },
-                { id: 'ts-2', rank: 2, title: 'Positive (Extended Mix)', artist: 'Jamback', label: 'Piv', url: '#', duration: '5:55', embedUrl: 'https://embed.traxsource.com/player/track/9543130' },
-                { id: 'ts-3', rank: 3, title: 'The Feeling', artist: 'Adam Port, Stryv', label: 'Keinemusik', url: '#', duration: '4:20', embedUrl: 'https://embed.traxsource.com/player/track/9543135' },
-                { id: 'ts-4', rank: 4, title: 'Move', artist: 'Keinemusik', label: 'Keinemusik', url: '#', duration: '7:15', embedUrl: 'https://embed.traxsource.com/player/track/9543140' },
-                { id: 'ts-5', rank: 5, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:45', embedUrl: 'https://embed.traxsource.com/player/track/9543145' },
-                { id: 'ts-6', rank: 6, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:02', embedUrl: 'https://embed.traxsource.com/player/track/9543150' },
-                { id: 'ts-7', rank: 7, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:33', embedUrl: 'https://embed.traxsource.com/player/track/9543155' },
-                { id: 'ts-8', rank: 8, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:45', embedUrl: 'https://embed.traxsource.com/player/track/9543160' },
-                { id: 'ts-9', rank: 9, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:18', embedUrl: 'https://embed.traxsource.com/player/track/9543165' },
-                { id: 'ts-10', rank: 10, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:50', embedUrl: 'https://embed.traxsource.com/player/track/9543170' },
+                { id: 'ts-1', rank: 1, title: 'Each Step (Powerhouse Mix)', artist: 'Deetron, Seth Troxler', label: 'Defected', url: '#', duration: '6:30', embedUrl: 'https://embed.traxsource.com/player/track/9543160' },
+                { id: 'ts-2', rank: 2, title: 'Eyes For You (Migs Remix)', artist: 'Miguel Migs', label: 'Salted Music', url: '#', duration: '5:55', embedUrl: 'https://embed.traxsource.com/player/track/9543161' },
+                { id: 'ts-3', rank: 3, title: 'Music Is My Way Of Life', artist: 'The Lab Rats, Lisa Millett', label: 'Soulful', url: '#', duration: '4:20', embedUrl: 'https://embed.traxsource.com/player/track/9543162' },
+                { id: 'ts-4', rank: 4, title: 'Cool Calm Collected', artist: 'Jeff Bros', label: 'Tech House', url: '#', duration: '7:15', embedUrl: 'https://embed.traxsource.com/player/track/9543163' },
+                { id: 'ts-5', rank: 5, title: 'Good Stuff', artist: 'Definite Grooves', label: 'House', url: '#', duration: '5:45', embedUrl: 'https://embed.traxsource.com/player/track/9543164' },
+                { id: 'ts-6', rank: 6, title: 'The Deal', artist: '6th Borough Project', label: 'Deep House', url: '#', duration: '6:02', embedUrl: 'https://embed.traxsource.com/player/track/9543165' },
+                { id: 'ts-7', rank: 7, title: 'Charleen (Main Mix)', artist: 'Deon Cole, Stacy Kidd', label: 'Soulful House', url: '#', duration: '6:33', embedUrl: 'https://embed.traxsource.com/player/track/9543166' },
+                { id: 'ts-8', rank: 8, title: 'Judgement Dance', artist: 'Culoe de Song', label: 'Afro House', url: '#', duration: '3:45', embedUrl: 'https://embed.traxsource.com/player/track/9543167' },
+                { id: 'ts-9', rank: 9, title: 'Mystic Loop', artist: 'Unknown', label: 'House', url: '#', duration: '6:18', embedUrl: 'https://embed.traxsource.com/player/track/9543168' },
+                { id: 'ts-10', rank: 10, title: 'Moments Original Vocal Mix', artist: 'David Diaz', label: 'Deep House', url: '#', duration: '5:50', embedUrl: 'https://embed.traxsource.com/player/track/9543169' },
             ];
         }
         if (platform === 'hardtunes') {
             return [
-                { id: 'ht-1', rank: 1, title: 'Bigger Than Hardcore', artist: 'Angerfist', label: 'Masters of Hardcore', url: '#', duration: '4:15', embedUrl: 'https://www.hardtunes.com/embed/track/angerfist-bigger-than-hardcore' },
-                { id: 'ht-2', rank: 2, title: 'Darkside', artist: 'Sefa', label: 'Sefa Music', url: '#', duration: '3:58', preview: samplePreview },
-                { id: 'ht-3', rank: 3, title: 'Warriors', artist: 'Miss K8', label: 'Masters of Hardcore', url: '#', duration: '4:05', preview: samplePreview },
-                { id: 'ht-4', rank: 4, title: 'Legacy', artist: 'Mad Dog', label: 'Dogfight Records', url: '#', duration: '4:22', preview: samplePreview },
-                { id: 'ht-5', rank: 5, title: 'Fallen Angel', artist: 'N-Vitral', label: 'Masters of Hardcore', url: '#', duration: '4:10', preview: samplePreview },
-                { id: 'ht-6', rank: 6, title: 'Psycho', artist: 'Dr. Peacock', label: 'Peacock Records', url: '#', duration: '3:45', preview: samplePreview },
-                { id: 'ht-7', rank: 7, title: 'Domination', artist: 'Deadly Guns', label: 'Blacklist', url: '#', duration: '4:30', preview: samplePreview },
-                { id: 'ht-8', rank: 8, title: 'Rebirth', artist: 'D-Sturb', label: 'End of Line', url: '#', duration: '4:02', preview: samplePreview },
-                { id: 'ht-9', rank: 9, title: 'Hyperdrive', artist: 'Sub Zero Project', label: 'Dirty Workz', url: '#', duration: '3:55', preview: samplePreview },
-                { id: 'ht-10', rank: 10, title: 'The Power', artist: 'Sound Rush', label: 'Art of Creation', url: '#', duration: '4:08', preview: samplePreview },
+                { id: 'ht-1', rank: 1, title: 'Tides of Tyranny (MOH Anthem)', artist: 'D-Fence & Alee', label: 'Masters of Hardcore', url: '#', duration: '4:15', embedUrl: 'https://www.hardtunes.com/embed/track/d-fence-alee-tides-of-tyranny-official-masters-of-hardcore-2026-anthem' },
+                { id: 'ht-2', rank: 2, title: 'Accelerate It', artist: 'MT & Complex', label: 'Hardcore', url: '#', duration: '3:58', embedUrl: 'https://www.hardtunes.com/embed/track/mt-complex-accelerate-it' },
+                { id: 'ht-3', rank: 3, title: 'King Of The Jungle', artist: 'Satirized & Manifest Destiny', label: 'Manifest', url: '#', duration: '4:05', embedUrl: 'https://www.hardtunes.com/embed/track/satirized-manifest-destiny-king-of-the-jungle' },
+                { id: 'ht-4', rank: 4, title: 'Bass Go Boom', artist: 'N-Vitral & Dither', label: 'Masters of Hardcore', url: '#', duration: '4:22', embedUrl: 'https://www.hardtunes.com/embed/track/n-vitral-dither-bass-go-boom' },
+                { id: 'ht-5', rank: 5, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Hardcore', url: '#', duration: '4:10', embedUrl: 'https://www.hardtunes.com/embed/track/missy-damaxy-koffiepauze' },
+                { id: 'ht-6', rank: 6, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Bricks', url: '#', duration: '3:45', embedUrl: 'https://www.hardtunes.com/embed/track/dmrc-bang-to-the-bricks' },
+                { id: 'ht-7', rank: 7, title: 'Max Ammo', artist: 'Roosterz & Kili', label: 'Ammo', url: '#', duration: '4:30', embedUrl: 'https://www.hardtunes.com/embed/track/roosterz-kili-max-ammo' },
+                { id: 'ht-8', rank: 8, title: 'Illusion', artist: 'Screecher & Deviation', label: 'Hardcore', url: '#', duration: '4:02', embedUrl: 'https://www.hardtunes.com/embed/track/screecher-deviation-illusion' },
+                { id: 'ht-9', rank: 9, title: 'My Time', artist: 'T.M.O.', label: 'Hardcore', url: '#', duration: '3:55', embedUrl: 'https://www.hardtunes.com/embed/track/t.m.o.-my-time' },
+                { id: 'ht-10', rank: 10, title: 'Gameroni', artist: 'Akimbo & Complex', label: 'Hardcore', url: '#', duration: '4:08', embedUrl: 'https://www.hardtunes.com/embed/track/akimbo-complex-gameroni' },
             ];
         }
         if (platform === 'juno') {
             return [
-                { id: 'jn-1', rank: 1, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:12', preview: samplePreview },
-                { id: 'jn-2', rank: 2, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:48', preview: samplePreview },
-                { id: 'jn-3', rank: 3, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:30', preview: samplePreview },
-                { id: 'jn-4', rank: 4, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:12', preview: samplePreview },
-                { id: 'jn-5', rank: 5, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:04', preview: samplePreview },
-                { id: 'jn-6', rank: 6, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:25', preview: samplePreview },
-                { id: 'jn-7', rank: 7, title: 'The Feeling', artist: 'Adam Port', label: 'Keinemusik', url: '#', duration: '4:18', preview: samplePreview },
-                { id: 'jn-8', rank: 8, title: 'Positive', artist: 'Jamback', label: 'Piv', url: '#', duration: '6:01', preview: samplePreview },
-                { id: 'jn-9', rank: 9, title: 'Make My Day', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '5:52', preview: samplePreview },
-                { id: 'jn-10', rank: 10, title: 'Just Like That', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '5:45', preview: samplePreview },
+                { id: 'jn-1', rank: 1, title: 'Cry Me A River', artist: '3 Are Legend, Timbaland & W&W', label: 'Tomorrowland', url: '#', duration: '6:12', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890123-02' },
+                { id: 'jn-2', rank: 2, title: 'Aspirin', artist: 'HBz, BIG TIM', label: 'Club', url: '#', duration: '5:48', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890124-02' },
+                { id: 'jn-3', rank: 3, title: 'So Bist Du', artist: 'Oli.P & Felix Harrer', label: 'Club', url: '#', duration: '3:30', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890125-02' },
+                { id: 'jn-4', rank: 4, title: 'Komodo', artist: 'Lilly Palmer', label: 'Techno', url: '#', duration: '5:12', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890126-02' },
+                { id: 'jn-5', rank: 5, title: 'Set Me Free', artist: 'Armin Van Buuren', label: 'ASOT', url: '#', duration: '6:04', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890127-02' },
+                { id: 'jn-6', rank: 6, title: 'When The Beat Drops Out', artist: 'Neptunica', label: 'Dance', url: '#', duration: '6:25', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890128-02' },
+                { id: 'jn-7', rank: 7, title: 'Miss Fatty (Techno Mix)', artist: 'LUNAX, D.T.E', label: 'Techno', url: '#', duration: '4:18', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890129-02' },
+                { id: 'jn-8', rank: 8, title: 'The Tide Is High', artist: 'Salvatore Mancuso', label: 'Dance', url: '#', duration: '6:01', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890130-02' },
+                { id: 'jn-9', rank: 9, title: 'Bugatti (CID Remix)', artist: 'Tiga', label: 'Techno', url: '#', duration: '5:52', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890131-02' },
+                { id: 'jn-10', rank: 10, title: 'Lick It (Remix)', artist: 'WILL K', label: 'Club', url: '#', duration: '5:45', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890132-02' },
             ];
         }
         if (platform === '1001tracklists') {
@@ -404,7 +404,8 @@ export function Musique() {
                                                         {track.embedUrl ? (
                                                             <iframe
                                                                 src={track.embedUrl}
-                                                                className="w-full h-[150px] border-none"
+                                                                className="w-full h-[180px] border-none overflow-hidden"
+                                                                scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />
                                                         ) : (
