@@ -68,50 +68,49 @@ export function Musique() {
 
     const getMockData = (platform: string): Track[] => {
         // High energy tech-house / techno preview fallback
-        const beatportPreview = 'https://www.samplemagic.com/audio/samples/SM209%20-%20Tech-House%202%20-%20Full%20Demo.mp3';
         const hardtunesPreview = 'https://www.samplemagic.com/audio/samples/SM%20-%20Hardcore%20Techno%20-%20Full%20Demo.mp3';
         const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
         if (platform === 'beatport') {
             return [
-                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Black Book Records', url: 'https://www.beatport.com/fr/track/neck/23308330', preview: beatportPreview },
-                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'ESSEntial.', url: 'https://www.beatport.com/fr/track/make-my-day/23451068', preview: beatportPreview },
-                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036', preview: beatportPreview },
-                { id: 'bp-4', rank: 4, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: '8Bit', url: 'https://www.beatport.com/fr/track/good-time/23443670', preview: beatportPreview },
-                { id: 'bp-5', rank: 5, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Hellbent Records', url: 'https://www.beatport.com/fr/track/out-of-my-mind/23451235', preview: beatportPreview },
-                { id: 'bp-6', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'You&Me Records', url: 'https://www.beatport.com/fr/track/just-like-that/23965405', preview: beatportPreview },
-                { id: 'bp-7', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'Higher Ground', url: 'https://www.beatport.com/fr/track/swagger/23996197', preview: beatportPreview },
-                { id: 'bp-8', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'MoBlack Records', url: 'https://www.beatport.com/fr/track/jamaican-bam-bam/22357262', preview: beatportPreview },
-                { id: 'bp-9', rank: 9, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Experts Only', url: 'https://www.beatport.com/fr/track/vision-blurred/23648337', preview: beatportPreview },
-                { id: 'bp-10', rank: 10, title: 'Lifting (Extended)', artist: 'Riordan, Silva Bumpa', label: 'Room Two Recordings', url: 'https://www.beatport.com/fr/track/lifting/24441099', preview: beatportPreview },
+                { id: '23308330', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Black Book Records', url: 'https://www.beatport.com/fr/track/neck/23308330', embedUrl: 'https://embed.beatport.com/?id=23308330&type=track' },
+                { id: '23451068', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'ESSEntial.', url: 'https://www.beatport.com/fr/track/make-my-day/23451068', embedUrl: 'https://embed.beatport.com/?id=23451068&type=track' },
+                { id: '23904036', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036', embedUrl: 'https://embed.beatport.com/?id=23904036&type=track' },
+                { id: '23443670', rank: 4, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: '8Bit', url: 'https://www.beatport.com/fr/track/good-time/23443670', embedUrl: 'https://embed.beatport.com/?id=23443670&type=track' },
+                { id: '23451235', rank: 5, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Hellbent Records', url: 'https://www.beatport.com/fr/track/out-of-my-mind/23451235', embedUrl: 'https://embed.beatport.com/?id=23451235&type=track' },
+                { id: '23965405', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'You&Me Records', url: 'https://www.beatport.com/fr/track/just-like-that/23965405', embedUrl: 'https://embed.beatport.com/?id=23965405&type=track' },
+                { id: '23996197', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'Higher Ground', url: 'https://www.beatport.com/fr/track/swagger/23996197', embedUrl: 'https://embed.beatport.com/?id=23996197&type=track' },
+                { id: '22357262', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'MoBlack Records', url: 'https://www.beatport.com/fr/track/jamaican-bam-bam/22357262', embedUrl: 'https://embed.beatport.com/?id=22357262&type=track' },
+                { id: '23648337', rank: 9, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Experts Only', url: 'https://www.beatport.com/fr/track/vision-blurred/23648337', embedUrl: 'https://embed.beatport.com/?id=23648337&type=track' },
+                { id: '24441099', rank: 10, title: 'Lifting (Extended)', artist: 'Riordan, Silva Bumpa', label: 'Room Two Recordings', url: 'https://www.beatport.com/fr/track/lifting/24441099', embedUrl: 'https://embed.beatport.com/?id=24441099&type=track' },
             ];
         }
         if (platform === 'traxsource') {
             return [
-                { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1' },
-                { id: 'ts-14384124', rank: 2, title: 'I Love U (Afro Mix)', artist: 'Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14384124/i-love-u-afro-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384124?autoplay=1' },
-                { id: 'ts-14283333', rank: 3, title: 'Carry Us Away (Extended Mix)', artist: 'DJ Fudge', label: "Fool's Paradise", url: 'https://traxsource.com/track/14283333/carry-us-away-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14283333?autoplay=1' },
-                { id: 'ts-14403274', rank: 4, title: 'Charleen (Main Mix)', artist: 'Deon Cole, Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14403274/charleen-main-mix', embedUrl: 'https://embed.traxsource.com/player/track/14403274?autoplay=1' },
-                { id: 'ts-14324830', rank: 5, title: 'Stand Up (Extended)', artist: 'Da Lukas, Stella Brown', label: 'Groove Culture', url: 'https://traxsource.com/track/14324830/stand-up-extended', embedUrl: 'https://embed.traxsource.com/player/track/14324830?autoplay=1' },
-                { id: 'ts-14330028', rank: 6, title: '"U" (Klassik Jazz Mix)', artist: "K' Alexi Shelby", label: 'Klassik Blueprint Muzik Digital', url: 'https://traxsource.com/track/14330028/u-klassik-jazz-mix', embedUrl: 'https://embed.traxsource.com/player/track/14330028?autoplay=1' },
-                { id: 'ts-14235719', rank: 7, title: 'Luv Musica (Luca Guerrieri Remix)', artist: 'Ridney, Luca Guerrieri', label: 'Paharas Musica', url: 'https://traxsource.com/track/14235719/luv-musica-luca-guerrieri-remix', embedUrl: 'https://embed.traxsource.com/player/track/14235719?autoplay=1' },
-                { id: 'ts-14384931', rank: 8, title: 'Good Stuff (Extended Mix)', artist: 'Definite Grooves', label: 'Nervous', url: 'https://traxsource.com/track/14384931/good-stuff-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384931?autoplay=1' },
-                { id: 'ts-14334069', rank: 9, title: 'Better Days (Extended Mix)', artist: 'Jimi Polo, Michael Gray', label: 'Toolroom', url: 'https://traxsource.com/track/14334069/better-days-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14334069?autoplay=1' },
-                { id: 'ts-14410945', rank: 10, title: 'My Mistake', artist: 'DJ Spen, Thommy Davis', label: 'Quantize Recordings', url: 'https://traxsource.com/track/14410945/my-mistake-spen-and-thommys-chi-philly-dub', embedUrl: 'https://embed.traxsource.com/player/track/14410945?autoplay=1' },
+                { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1&play=1' },
+                { id: 'ts-14384124', rank: 2, title: 'I Love U (Afro Mix)', artist: 'Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14384124/i-love-u-afro-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384124?autoplay=1&play=1' },
+                { id: 'ts-14283333', rank: 3, title: 'Carry Us Away (Extended Mix)', artist: 'DJ Fudge', label: "Fool's Paradise", url: 'https://traxsource.com/track/14283333/carry-us-away-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14283333?autoplay=1&play=1' },
+                { id: 'ts-14403274', rank: 4, title: 'Charleen (Main Mix)', artist: 'Deon Cole, Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14403274/charleen-main-mix', embedUrl: 'https://embed.traxsource.com/player/track/14403274?autoplay=1&play=1' },
+                { id: 'ts-14324830', rank: 5, title: 'Stand Up (Extended)', artist: 'Da Lukas, Stella Brown', label: 'Groove Culture', url: 'https://traxsource.com/track/14324830/stand-up-extended', embedUrl: 'https://embed.traxsource.com/player/track/14324830?autoplay=1&play=1' },
+                { id: 'ts-14330028', rank: 6, title: '"U" (Klassik Jazz Mix)', artist: "K' Alexi Shelby", label: 'Klassik Blueprint Muzik Digital', url: 'https://traxsource.com/track/14330028/u-klassik-jazz-mix', embedUrl: 'https://embed.traxsource.com/player/track/14330028?autoplay=1&play=1' },
+                { id: 'ts-14235719', rank: 7, title: 'Luv Musica (Luca Guerrieri Remix)', artist: 'Ridney, Luca Guerrieri', label: 'Paharas Musica', url: 'https://traxsource.com/track/14235719/luv-musica-luca-guerrieri-remix', embedUrl: 'https://embed.traxsource.com/player/track/14235719?autoplay=1&play=1' },
+                { id: 'ts-14384931', rank: 8, title: 'Good Stuff (Extended Mix)', artist: 'Definite Grooves', label: 'Nervous', url: 'https://traxsource.com/track/14384931/good-stuff-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384931?autoplay=1&play=1' },
+                { id: 'ts-14334069', rank: 9, title: 'Better Days (Extended Mix)', artist: 'Jimi Polo, Michael Gray', label: 'Toolroom', url: 'https://traxsource.com/track/14334069/better-days-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14334069?autoplay=1&play=1' },
+                { id: 'ts-14410945', rank: 10, title: 'My Mistake', artist: 'DJ Spen, Thommy Davis', label: 'Quantize Recordings', url: 'https://traxsource.com/track/14410945/my-mistake-spen-and-thommys-chi-philly-dub', embedUrl: 'https://embed.traxsource.com/player/track/14410945?autoplay=1&play=1' },
             ];
         }
         if (platform === 'hardtunes') {
             return [
-                { id: 'ht-96997', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardtunes.com/tunes/mt-and-complex-accelerate-it-extended-mix/96997', preview: hardtunesPreview },
-                { id: 'ht-97375', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix/97375', preview: hardtunesPreview },
-                { id: 'ht-97336', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/missy-and-damaxy-koffiepauze/97336', preview: hardtunesPreview },
-                { id: 'ht-99441', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/dmrc-bang-to-the-bricks/99441', preview: hardtunesPreview },
-                { id: 'ht-99602', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardtunes.com/tunes/roosterz-and-kili-max-ammo-extended-mix/99602', preview: hardtunesPreview },
-                { id: 'ht-99486', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/catscan-speaker-attack-original-mix/99486', preview: hardtunesPreview },
-                { id: 'ht-99611', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardtunes.com/tunes/s-kill-the-hunt/99611', preview: hardtunesPreview },
-                { id: 'ht-99507', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardtunes.com/tunes/neox-death-by-gabber/99507', preview: hardtunesPreview },
-                { id: 'ht-99612', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/mad-dog-self-destroyed/99612', preview: hardtunesPreview },
-                { id: 'ht-97486', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/unproven-sins/97486', preview: hardtunesPreview },
+                { id: '96997', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardtunes.com/tunes/mt-and-complex-accelerate-it-extended-mix/96997', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/96997' },
+                { id: '97375', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix/97375', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/97375' },
+                { id: '97336', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/missy-and-damaxy-koffiepauze/97336', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/97336' },
+                { id: '99441', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/dmrc-bang-to-the-bricks/99441', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99441' },
+                { id: '99602', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardtunes.com/tunes/roosterz-and-kili-max-ammo-extended-mix/99602', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99602' },
+                { id: '99486', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/catscan-speaker-attack-original-mix/99486', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99486' },
+                { id: '99611', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardtunes.com/tunes/s-kill-the-hunt/99611', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99611' },
+                { id: '99507', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardtunes.com/tunes/neox-death-by-gabber/99507', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99507' },
+                { id: '99612', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/mad-dog-self-destroyed/99612', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99612' },
+                { id: '97486', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/unproven-sins/97486', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/97486' },
             ];
         }
         if (platform === 'juno') {
@@ -347,8 +346,8 @@ export function Musique() {
                                         <div className="flex items-center gap-6 p-6">
                                             <div
                                                 className={`w-12 h-12 rounded-lg flex items-center justify-center font-black transition-all duration-300 relative group/rank cursor-pointer ${selectedTrack?.id === track.id
-                                                        ? 'bg-neon-red text-white'
-                                                        : 'bg-white/5 text-gray-500 group-hover:bg-neon-red/20 group-hover:text-neon-red'
+                                                    ? 'bg-neon-red text-white'
+                                                    : 'bg-white/5 text-gray-500 group-hover:bg-neon-red/20 group-hover:text-neon-red'
                                                     }`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -359,8 +358,8 @@ export function Musique() {
                                                     {track.rank}
                                                 </span>
                                                 <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${selectedTrack?.id === track.id
-                                                        ? 'opacity-100 scale-100'
-                                                        : 'opacity-0 scale-75 group-hover/rank:opacity-100 group-hover/rank:scale-100'
+                                                    ? 'opacity-100 scale-100'
+                                                    : 'opacity-0 scale-75 group-hover/rank:opacity-100 group-hover/rank:scale-100'
                                                     }`}>
                                                     {selectedTrack?.id === track.id && isPlaying ? (
                                                         <Pause className="w-5 h-5 text-white" />
@@ -417,8 +416,9 @@ export function Musique() {
                                                     <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-xl">
                                                         {track.embedUrl ? (
                                                             <iframe
+                                                                key={track.id}
                                                                 src={track.embedUrl}
-                                                                className="w-full h-[220px] border-none overflow-hidden"
+                                                                className="w-full h-[162px] border-none overflow-hidden"
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />
