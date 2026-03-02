@@ -9,15 +9,54 @@ export function PhotoSubmission() {
     const [isSuccess, setIsSuccess] = useState(false);
     const [preview, setPreview] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!preview) return;
         setIsSubmitting(true);
-        // Mock submission
-        setTimeout(() => {
-            setIsSubmitting(false);
+
+        try {
+            // 1. Upload the image first to our secure hosting
+            // We'll use the same /api/upload endpoint as the rest of the site
+            const uploadResponse = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filename: `submission-${Date.now()}.jpg`,
+                    content: preview, // It's a base64 from FileReader
+                    type: 'image/jpeg'
+                })
+            });
+
+            if (!uploadResponse.ok) throw new Error('Erreur lors de l\'hébergement de l\'image');
+            const uploadData = await uploadResponse.json();
+            const imageUrl = uploadData.url;
+
+            // 2. Submit the metadata to the moderation queue
+            const formData = new FormData(e.currentTarget as HTMLFormElement);
+            const submission = {
+                userName: formData.get('userName') as string,
+                festivalName: formData.get('festivalName') as string,
+                instagram: formData.get('instagram') as string,
+                imageUrl: imageUrl,
+                timestamp: new Date().toISOString()
+            };
+
+            const submitResponse = await fetch('/api/photos/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(submission)
+            });
+
+            if (!submitResponse.ok) throw new Error('Erreur lors de la soumission');
+
             setIsSuccess(true);
             setTimeout(() => navigate('/communaute'), 3000);
-        }, 2000);
+        } catch (error: any) {
+            console.error('Submission error:', error);
+            alert('Désolé, une erreur est survenue lors de l\'envoi. Réessayez plus tard.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +98,7 @@ export function PhotoSubmission() {
                                     <div className="relative group">
                                         <input
                                             type="text"
+                                            name="userName"
                                             required
                                             placeholder="TON NOM / PSEUDO *"
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
@@ -67,6 +107,7 @@ export function PhotoSubmission() {
                                     <div className="relative group">
                                         <input
                                             type="text"
+                                            name="festivalName"
                                             required
                                             placeholder="NOM DU FESTIVAL *"
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
@@ -75,6 +116,7 @@ export function PhotoSubmission() {
                                     <div className="relative group">
                                         <input
                                             type="text"
+                                            name="instagram"
                                             placeholder="TON INSTAGRAM (POUR TE TAGUER)"
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
                                         />

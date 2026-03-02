@@ -61,14 +61,14 @@ export function Musique() {
     const platforms = [
         { id: 'beatport', name: 'Beatport Top 10', icon: Music, color: '#39ff14' },
         { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
-        { id: 'hardtunes', name: 'Hardtunes Top 10', icon: Zap, color: '#ff00ff' },
+        { id: 'hardstyle', name: 'Hardstyle.com Top 10', icon: Zap, color: '#ff4b00' },
         { id: 'juno', name: 'Juno Download Top 10', icon: ListMusic, color: '#00f0ff' },
         { id: '1001tracklists', name: 'Most Viewed Tracklists', icon: TrendingUp, color: '#ff0033' },
     ];
 
     const getMockData = (platform: string): Track[] => {
         // Premium high-energy tech-house / techno preview fallback
-        const hardtunesPreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3';
+        const hardstylePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3';
         const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
         if (platform === 'beatport') {
@@ -99,18 +99,18 @@ export function Musique() {
                 { id: 'ts-14410945', rank: 10, title: 'My Mistake', artist: 'DJ Spen, Thommy Davis', label: 'Quantize Recordings', url: 'https://traxsource.com/track/14410945/my-mistake-spen-and-thommys-chi-philly-dub', embedUrl: 'https://embed.traxsource.com/player/track/14410945?autoplay=1&play=1' },
             ];
         }
-        if (platform === 'hardtunes') {
+        if (platform === 'hardstyle') {
             return [
-                { id: '96997', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardtunes.com/tunes/mt-and-complex-accelerate-it-extended-mix/96997', preview: hardtunesPreview },
-                { id: '97375', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix/97375', preview: hardtunesPreview },
-                { id: '97336', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/missy-and-damaxy-koffiepauze/97336', preview: hardtunesPreview },
-                { id: '99441', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/dmrc-bang-to-the-bricks/99441', preview: hardtunesPreview },
-                { id: '99602', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardtunes.com/tunes/roosterz-and-kili-max-ammo-extended-mix/99602', preview: hardtunesPreview },
-                { id: '99486', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/catscan-speaker-attack-original-mix/99486', preview: hardtunesPreview },
-                { id: '99611', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardtunes.com/tunes/s-kill-the-hunt/99611', preview: hardtunesPreview },
-                { id: '99507', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardtunes.com/tunes/neox-death-by-gabber/99507', preview: hardtunesPreview },
-                { id: '99612', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/mad-dog-self-destroyed/99612', preview: hardtunesPreview },
-                { id: '97486', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/unproven-sins/97486', preview: hardtunesPreview },
+                { id: 'hs-1', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardstyle.com/tracks/mt-and-complex-accelerate-it-extended-mix', preview: hardstylePreview },
+                { id: 'hs-2', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardstyle.com/tracks/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix', preview: hardstylePreview },
+                { id: 'hs-3', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardstyle.com/tracks/missy-and-damaxy-koffiepauze', preview: hardstylePreview },
+                { id: 'hs-4', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardstyle.com/tracks/dmrc-bang-to-the-bricks', preview: hardstylePreview },
+                { id: 'hs-5', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardstyle.com/tracks/roosterz-and-kili-max-ammo-extended-mix', preview: hardstylePreview },
+                { id: 'hs-6', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardstyle.com/tracks/catscan-speaker-attack-original-mix', preview: hardstylePreview },
+                { id: 'hs-7', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardstyle.com/tracks/s-kill-the-hunt', preview: hardstylePreview },
+                { id: 'hs-8', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardstyle.com/tracks/neox-death-by-gabber', preview: hardstylePreview },
+                { id: 'hs-9', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardstyle.com/tracks/mad-dog-self-destroyed', preview: hardstylePreview },
+                { id: 'hs-10', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardstyle.com/tracks/unproven-sins', preview: hardstylePreview },
             ];
         }
         if (platform === 'juno') {

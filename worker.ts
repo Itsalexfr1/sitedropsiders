@@ -130,6 +130,8 @@ export default {
             'src/data/recaps_content_1.json'
         ];
         const EDITORS_PATH = 'src/data/editors.json';
+        const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
+        const GALERIE_PATH = 'src/data/galerie.json';
 
         // CORS Headers
         const headers = {
@@ -298,6 +300,9 @@ export default {
             path === '/api/settings/update' ||
             path === '/api/shop/create' ||
             path === '/api/shop/update' ||
+            path === '/api/photos/moderate' ||
+            path === '/api/photos/pending' ||
+            path === '/api/photos/delete' ||
             path === '/api/shop/delete' ||
             path === '/api/dashboard-actions/update' ||
             path.startsWith('/api/editors') ||
@@ -1110,7 +1115,6 @@ export default {
             // --- OPTION 0: CLOUDFLARE R2 (New Primary) ---
             if (env.R2) {
                 try {
-                    const key = `${Date.now()}-${filename}`;
                     // Convert base64 to ArrayBuffer
                     const base64Str = content.split(',')[1] || content;
                     const byteCharacters = atob(base64Str);
@@ -1119,6 +1123,15 @@ export default {
                         byteNumbers[i] = byteCharacters.charCodeAt(i);
                     }
                     const byteArray = new Uint8Array(byteNumbers);
+
+                    // Generate Unique Hash based on content (Deduplication)
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', byteArray);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                    // Keep original extension
+                    const extension = filename.split('.').pop() || 'jpg';
+                    const key = `${hashHex}.${extension}`;
 
                     await env.R2.put(key, byteArray, {
                         httpMetadata: { contentType: type || 'image/jpeg' }
@@ -2251,7 +2264,108 @@ export default {
             return new Response(JSON.stringify({ content: '' }), { status: 200, headers });
         }
 
+        // --- API: PHOTO SUBMISSIONS ---
+        if (path === '/api/photos/submit' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { imageUrl, userName, festivalName, instagram } = body;
+                if (!imageUrl) return new Response(JSON.stringify({ error: 'Image URL required' }), { status: 400, headers });
 
+                const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH) || { content: [], sha: null };
+                const submissions = Array.isArray(file.content) ? file.content : [];
+
+                const newSubmission = {
+                    id: Date.now().toString(),
+                    imageUrl,
+                    userName: userName || 'Anonyme',
+                    festivalName: festivalName || 'Inconnu',
+                    instagram: instagram || '',
+                    timestamp: new Date().toISOString(),
+                    status: 'pending'
+                };
+
+                const updated = [newSubmission, ...submissions];
+                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updated, `New photo submission from ${newSubmission.userName}`, file.sha);
+
+                return new Response(JSON.stringify({ success: true, submission: newSubmission }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/photos/pending' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH);
+                return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/photos/moderate' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { id, action } = await request.json();
+                if (!id || !action) return new Response(JSON.stringify({ error: 'Missing ID or action' }), { status: 400, headers });
+
+                const subFile = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH);
+                if (!subFile) return new Response(JSON.stringify({ error: 'Submissions file not found' }), { status: 404, headers });
+
+                const submission = subFile.content.find(s => s.id === id);
+                if (!submission) return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers });
+
+                if (action === 'approve') {
+                    // Add to galerie.json
+                    const galFile = await fetchGitHubFile(GALERIE_PATH) || { content: [], sha: null };
+                    const galleries = Array.isArray(galFile.content) ? galFile.content : [];
+
+                    const year = new Date().getFullYear().toString();
+                    const galleryTitle = `COMMUNAUTÉ @ ${submission.festivalName.toUpperCase()} ${year}`;
+                    const galleryId = `${submission.festivalName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-community-${year}`;
+
+                    let targetGallery = galleries.find(g => g.id === galleryId);
+                    if (!targetGallery) {
+                        targetGallery = {
+                            id: galleryId,
+                            title: galleryTitle,
+                            category: "Communauté",
+                            cover: submission.imageUrl,
+                            images: [submission.imageUrl],
+                            date: year
+                        };
+                        galleries.unshift(targetGallery);
+                    } else {
+                        if (!targetGallery.images.includes(submission.imageUrl)) {
+                            targetGallery.images.unshift(submission.imageUrl);
+                        }
+                    }
+
+                    await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha);
+                } else if (action === 'reject') {
+                    // Physical deletion from Cloudflare R2
+                    if (env.R2 && submission.imageUrl.includes('/uploads/')) {
+                        try {
+                            const r2Key = submission.imageUrl.split('/uploads/').pop();
+                            if (r2Key) {
+                                await env.R2.delete(r2Key);
+                                console.log(`Deleted ${r2Key} from R2 storage`);
+                            }
+                        } catch (e) {
+                            console.error('Failed to delete from R2:', e);
+                        }
+                    }
+                }
+
+                // Remove from pending (for both approve and reject)
+                const updatedSubs = subFile.content.filter(s => s.id !== id);
+                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, subFile.sha);
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
 
         if (path.startsWith('/api/')) {
             return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers });
