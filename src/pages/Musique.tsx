@@ -344,66 +344,53 @@ export function Musique() {
                                         transition={{ delay: i * 0.05 }}
                                         className="group flex flex-col gap-0 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300"
                                     >
-                                        <div className="flex items-center gap-6 p-6">
-                                            <div
-                                                className={`w-12 h-12 rounded-lg flex items-center justify-center font-black transition-all duration-300 relative group/rank cursor-pointer ${selectedTrack?.id === track.id
-                                                    ? 'bg-neon-red text-white'
-                                                    : 'bg-white/5 text-gray-500 group-hover:bg-neon-red/20 group-hover:text-neon-red'
-                                                    }`}
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleTrackClick(track);
-                                                }}
-                                            >
-                                                <span className={`transition-opacity duration-300 ${selectedTrack?.id === track.id ? 'opacity-0 scale-50' : 'group-hover/rank:opacity-0 group-hover/rank:scale-50'}`}>
-                                                    {track.rank}
-                                                </span>
-                                                <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${selectedTrack?.id === track.id
-                                                    ? 'opacity-100 scale-100'
-                                                    : 'opacity-0 scale-75 group-hover/rank:opacity-100 group-hover/rank:scale-100'
-                                                    }`}>
-                                                    {selectedTrack?.id === track.id && isPlaying ? (
-                                                        <Pause className="w-5 h-5 text-white" />
-                                                    ) : (
-                                                        <Play className="w-5 h-5 text-white" />
-                                                    )}
+                                        <div
+                                            className="flex flex-row items-center cursor-pointer group/track"
+                                            onClick={() => handleTrackClick(track)}
+                                        >
+                                            <div className="flex items-center gap-6 p-6 flex-1">
+                                                <div
+                                                    className={`w-12 h-12 rounded-lg flex items-center justify-center font-black transition-all duration-300 relative ${selectedTrack?.id === track.id
+                                                        ? 'bg-neon-red text-white'
+                                                        : 'bg-white/5 text-gray-500 group-hover/track:bg-neon-red/20 group-hover/track:text-neon-red'
+                                                        }`}
+                                                >
+                                                    <span>{track.rank}</span>
                                                 </div>
-                                            </div>
 
-                                            <div
-                                                className="flex-1 cursor-pointer"
-                                                onClick={() => handleTrackClick(track)}
-                                            >
-                                                <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover:text-neon-red transition-colors flex items-center gap-3">
-                                                    {track.title}
-                                                    {activeTab !== '1001tracklists' && (
-                                                        <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'visible' : 'invisible group-hover:visible'}`}>
-                                                            <div className={`w-1.5 h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-1 animate-pulse' : 'bg-neon-red'}`} />
-                                                            <span className={`text-[9px] font-black tracking-[0.2em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
-                                                                {selectedTrack?.id === track.id && isPlaying ? 'PLAYING' : 'LISTEN'}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </h3>
-                                                <div className="flex items-center gap-3 mt-1">
-                                                    <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                        {track.artist}
-                                                    </span>
-                                                    <span className="w-1 h-1 rounded-full bg-white/20" />
-                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                                                        {track.label}
-                                                    </span>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover/track:text-neon-red transition-colors flex items-center gap-3">
+                                                        {track.title}
+                                                        {activeTab !== '1001tracklists' && (
+                                                            <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'visible' : 'invisible group-hover/track:visible'}`}>
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-1 animate-pulse' : 'bg-neon-red'}`} />
+                                                                <span className={`text-[9px] font-black tracking-[0.2em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
+                                                                    {selectedTrack?.id === track.id && isPlaying ? 'PLAYING' : 'LISTEN'}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </h3>
+                                                    <div className="flex items-center gap-3 mt-1">
+                                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
+                                                            {track.artist}
+                                                        </span>
+                                                        <span className="w-1 h-1 rounded-full bg-white/20" />
+                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                                            {track.label}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
 
-                                            <a
-                                                href={track.url}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
-                                            >
-                                                <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                                            </a>
+                                                <a
+                                                    href={track.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                    className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
+                                                >
+                                                    <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                                </a>
+                                            </div>
                                         </div>
 
                                         <AnimatePresence>
