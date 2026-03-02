@@ -287,7 +287,7 @@ export function GalerieCreate() {
                         <div>
                             <div className="flex items-center gap-3 mb-2">
                                 <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'}`}>
-                                    {isEditing ? 'Mode Édition' : 'Nouveau Album'}
+                                    {isEditing ? 'Mode Édition' : 'Nouvel Album'}
                                 </span>
                                 <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
                                     <User className="w-3 h-3 text-gray-500" />

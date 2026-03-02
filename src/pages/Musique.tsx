@@ -101,16 +101,16 @@ export function Musique() {
         }
         if (platform === 'hardstyle') {
             return [
-                { id: 'hs-1', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardstyle.com/tracks/mt-and-complex-accelerate-it-extended-mix', preview: hardstylePreview },
-                { id: 'hs-2', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardstyle.com/tracks/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix', preview: hardstylePreview },
-                { id: 'hs-3', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardstyle.com/tracks/missy-and-damaxy-koffiepauze', preview: hardstylePreview },
-                { id: 'hs-4', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardstyle.com/tracks/dmrc-bang-to-the-bricks', preview: hardstylePreview },
-                { id: 'hs-5', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardstyle.com/tracks/roosterz-and-kili-max-ammo-extended-mix', preview: hardstylePreview },
-                { id: 'hs-6', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardstyle.com/tracks/catscan-speaker-attack-original-mix', preview: hardstylePreview },
-                { id: 'hs-7', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardstyle.com/tracks/s-kill-the-hunt', preview: hardstylePreview },
-                { id: 'hs-8', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardstyle.com/tracks/neox-death-by-gabber', preview: hardstylePreview },
-                { id: 'hs-9', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardstyle.com/tracks/mad-dog-self-destroyed', preview: hardstylePreview },
-                { id: 'hs-10', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardstyle.com/tracks/unproven-sins', preview: hardstylePreview },
+                { id: 'hs-1', rank: 1, title: 'GOD_MODE (PRO_MIX)', artist: 'Kruelty, SLVL', label: 'TC Records', url: 'https://www.hardstyle.com/en/tracks/kruelty-slvl-god-mode-pro-mix', preview: hardstylePreview },
+                { id: 'hs-2', rank: 2, title: 'Save The Day (Extended Mix)', artist: 'D-Block & S-te-Fan, Rebelion', label: 'Acid Reign', url: 'https://www.hardstyle.com/en/tracks/d-block-s-te-fan-rebelion-save-the-day-extended-mix', preview: hardstylePreview },
+                { id: 'hs-3', rank: 3, title: 'Rave Mode (Pro Mix)', artist: 'Dual Damage', label: 'Ravage Records', url: 'https://www.hardstyle.com/en/tracks/dual-damage-rave-mode-pro-mix', preview: hardstylePreview },
+                { id: 'hs-4', rank: 4, title: '1, 2 Polizei (Extended Mix)', artist: 'Fraw', label: 'Gearbox Digital', url: 'https://www.hardstyle.com/en/tracks/fraw-1-2-polizei-extended-mix', preview: hardstylePreview },
+                { id: 'hs-5', rank: 5, title: 'Right Here (Extended Mix)', artist: 'D-Sturb, DEEZL', label: 'End Of Line Recordings', url: 'https://www.hardstyle.com/en/tracks/d-sturb-deezl-right-here-extended-mix', preview: hardstylePreview },
+                { id: 'hs-6', rank: 6, title: 'Endless Voyage (Extended Mix)', artist: 'Act of Rage', label: 'Minus Is More', url: 'https://www.hardstyle.com/en/tracks/act-of-rage-endless-voyage-extended-mix', preview: hardstylePreview },
+                { id: 'hs-7', rank: 7, title: 'The Next Dimension (APEX 2026 OST) (Extended Mix)', artist: 'D-Block & S-te-Fan', label: 'Scantraxx', url: 'https://www.hardstyle.com/en/tracks/d-block-s-te-fan-the-next-dimension-apex-2026-ost-extended-mix', preview: hardstylePreview },
+                { id: 'hs-8', rank: 8, title: 'Dangerous (Extended Hard Version)', artist: 'Devin Wild, Creeds', label: 'Scantraxx', url: 'https://www.hardstyle.com/en/tracks/devin-wild-creeds-dangerous-extended-hard-version', preview: hardstylePreview },
+                { id: 'hs-9', rank: 9, title: 'The Devil (Extended Mix)', artist: 'Rejecta', label: 'Roughstate', url: 'https://www.hardstyle.com/en/tracks/rejecta-the-devil-extended-mix', preview: hardstylePreview },
+                { id: 'hs-10', rank: 10, title: 'RUNNIN\' AROUND! (Extended Mix)', artist: 'Sanctuary', label: 'Acid Reign', url: 'https://www.hardstyle.com/en/tracks/sanctuary-runnin-around-extended-mix', preview: hardstylePreview },
             ];
         }
         if (platform === 'juno') {
@@ -406,7 +406,7 @@ export function Musique() {
                                                             <iframe
                                                                 key={track.id}
                                                                 src={track.embedUrl}
-                                                                className="w-full h-[162px] border-none overflow-hidden"
+                                                                className="w-full h-[400px] border-none overflow-hidden"
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />

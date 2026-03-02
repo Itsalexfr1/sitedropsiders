@@ -135,7 +135,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         let frame: number;
         if (theme === 'TOP 5 STYLES' && isVideoRecording) {
             const animate = () => {
-                setRotation(prev => (prev + 0.05) % (Math.PI * 2));
+                setRotation(prev => (prev + 0.012) % (Math.PI * 2));
                 frame = requestAnimationFrame(animate);
             };
             frame = requestAnimationFrame(animate);
@@ -255,8 +255,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             } else if (theme === 'TOP 5 STYLES') {
                 const item = top5Items[currentPreviewIndex];
                 const centerX = canvas.width / 2;
-                const centerY = safeTop + 480;
-                const radius = 350;
+                const centerY = safeTop + 620; // Descendu de 80px supplémentaires
+                const radius = 240; // Encore plus réduit (était 280)
                 const currentItem = top5Items[currentPreviewIndex];
                 let itemPhotoImg: HTMLImageElement | null = null;
                 if (currentItem.photo) {
@@ -292,7 +292,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 147px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 150);
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120);
 
             } else if (theme === 'TOP 5 ARTISTE') {
                 const item = top5Items[currentPreviewIndex];
@@ -334,10 +334,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 117px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
-                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, baseY - 20);
+                ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
             } else {
-                const fontSize = activeTab === 'PUBLICATION' ? 73 : 78; const lineHeight = fontSize * 1.2;
+                const fontSize = activeTab === 'PUBLICATION' ? 57 : 78; const lineHeight = fontSize * 1.2;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.split('\n');
                 let lines: string[] = [];

@@ -62,6 +62,7 @@ export function AdminDashboard() {
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const [clips, setClips] = useState<any[]>([]);
     const [isLoadingClips, setIsLoadingClips] = useState(false);
+    const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
     const [isTakeoverModalOpen, setIsTakeoverModalOpen] = useState(false);
     interface TakeoverState {
         enabled: boolean;
@@ -342,6 +343,15 @@ export function AdminDashboard() {
             }
         } catch (e: any) { }
     };
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetch('/api/photos/pending', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(data => setPendingPhotosCount(Array.isArray(data) ? data.length : 0))
+                .catch(() => setPendingPhotosCount(0));
+        }
+    }, [isAuthenticated, isModerationModalOpen]);
 
     const saveTakeoverSettings = async () => {
         setIsUpdatingTakeover(true);
@@ -1205,8 +1215,13 @@ export function AdminDashboard() {
                                     }}
                                 >
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors">
+                                        <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                             {getIcon(action.icon, action.baseColor)}
+                                            {action.title === 'Modération' && pendingPhotosCount > 0 && (
+                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce">
+                                                    <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
                                             <Plus className="w-4 h-4 text-white" />
