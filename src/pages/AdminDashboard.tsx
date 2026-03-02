@@ -633,6 +633,9 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
+        // LIVE
+        { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", category: "LIVE", link: "/live", color: "border-neon-red/20 hover:border-neon-red flex-col md:flex-row col-span-1 md:col-span-2", bg: "bg-neon-red/10", permission: "takeover_modo", baseColor: "red", columns: 2 },
+
         // CONTENU & ÉDITORIAL
         { title: "News", description: "Actualités", icon: "FileText", category: "ÉDITORIAL", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
         { title: "Musique", description: "Articles Musique", icon: "Music", category: "ÉDITORIAL", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
