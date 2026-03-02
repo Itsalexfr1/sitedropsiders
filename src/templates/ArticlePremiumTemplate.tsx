@@ -653,10 +653,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             {/* LEFT COLUMN: Main Content (9 spans) */}
                             <div className="lg:col-span-9">
                                 <div
-                                    className="article-body-premium w-full"
+                                    className="article-body-premium w-full max-w-[1100px] mx-auto uppercase"
                                     dangerouslySetInnerHTML={{ __html: displayContent }}
                                 />
-
                                 {artistSocials && artistSocials.length > 0 && (
                                     <div className="artist-socials-premium mt-12 pt-8 border-t border-white/10">
                                         <div className="flex flex-col items-center mb-8">

@@ -63,7 +63,7 @@ export function Musique() {
         { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
         { id: 'hardstyle', name: 'Hardstyle.com Top 10', icon: Zap, color: '#ff4b00' },
         { id: 'juno', name: 'Juno Download Top 10', icon: ListMusic, color: '#00f0ff' },
-        { id: '1001tracklists', name: 'Most Viewed Tracklists', icon: TrendingUp, color: '#ff0033' },
+        { id: '1001tracklists', name: 'TOP 10 TRACKLISTS BY 1001 TRACKLISTS', icon: TrendingUp, color: '#ff0033' },
     ];
 
     const getMockData = (platform: string): Track[] => {
@@ -280,7 +280,7 @@ export function Musique() {
                         <EqualizerLoader count={8} className="scale-75 opacity-50" />
                     </div>
                     <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-none">
-                        TRACKS <span className="text-neon-red">STUDIO</span>
+                        DROPSIDERS CHARTS <span className="text-neon-red">MASTERCLASS</span>
                     </h1>
                     <p className="text-gray-500 max-w-2xl mx-auto text-xs md:text-sm font-black uppercase tracking-[0.3em]">
                         LES CHARTS LES PLUS INFLUENTS DE LA PLANÈTE
@@ -406,7 +406,7 @@ export function Musique() {
                                                             <iframe
                                                                 key={track.id}
                                                                 src={track.embedUrl}
-                                                                className="w-full h-[400px] border-none overflow-hidden"
+                                                                className="w-full h-[480px] border-none overflow-hidden"
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />

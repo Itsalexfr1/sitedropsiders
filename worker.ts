@@ -309,7 +309,12 @@ export default {
             path === '/api/auth/revoke-all' ||
             path.startsWith('/api/contacts') ||
             path.startsWith('/api/push/subscribe') ||
-            path.startsWith('/api/push/unsubscribe')
+            path.startsWith('/api/push/unsubscribe') ||
+            path === '/api/chat/clear' ||
+            path === '/api/chat/delete' ||
+            path === '/api/chat/ban' ||
+            path === '/api/chat/unban' ||
+            path === '/api/chat/banned'
         );
 
         // --- API: PUSH NOTIFICATIONS ---

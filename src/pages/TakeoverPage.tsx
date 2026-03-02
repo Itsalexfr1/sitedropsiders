@@ -2283,7 +2283,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Live Banner Header - Conditionally based on top banner enabled */}
                 {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
-                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-8 md:py-10 flex items-center justify-between z-20 shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out`}>
+                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-16 md:py-20 flex items-center justify-between z-[200] shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out md:mt-20 mt-32`}>
                         <div className="flex items-center gap-6">
                             <div className="flex flex-col items-center gap-2">
                                 <div className="flex items-center gap-2.5 px-4 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
@@ -3297,17 +3297,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                                         {/* Bandeau Ticker */}
                                                         <div className="space-y-4 bg-white/5 border border-white/5 p-6 rounded-[2rem]">
-                                                            <div className="flex items-center justify-between mb-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 bg-neon-red/10 rounded-xl">
-                                                                        <Activity className="w-4 h-4 text-neon-red" />
-                                                                    </div>
-                                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Bandeau 1 <span className="text-neon-red">(Ticker)</span></h3>
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="p-2 bg-neon-red/10 rounded-xl">
+                                                                    <Activity className="w-4 h-4 text-neon-red" />
                                                                 </div>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-red">Bandeaux</span></h3>
                                                             </div>
-                                                            <div className="space-y-3">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                                 <StyledCheckbox
-                                                                    label="Activer le Ticker"
+                                                                    label="Bandeau Titre"
+                                                                    sublabel="Afficher le titre en haut"
+                                                                    checked={!!showTopBanner}
+                                                                    onChange={() => handleUpdateLocalSetting({ showTopBanner: !showTopBanner })}
+                                                                    color="red"
+                                                                />
+                                                                <StyledCheckbox
+                                                                    label="Bandeau Ticker"
+                                                                    sublabel="Activer le texte défilant"
                                                                     checked={!!showTickerBanner}
                                                                     onChange={() => handleUpdateLocalSetting({ showTickerBanner: !showTickerBanner })}
                                                                     color="red"
@@ -5060,6 +5066,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         ) : (
                                                             <>
                                                                 {/* Tab Switcher - Logic moved and integrated above AnimatePresence */}
+                                                                {/* Pinned Message */}
+                                                                {settings.pinnedMessage && (
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0, y: -10 }}
+                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                        className="mx-3 lg:mx-5 mt-3 p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl flex items-start gap-3 relative overflow-hidden group/pinned"
+                                                                    >
+                                                                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent pointer-events-none" />
+                                                                        <Pin className="w-3.5 h-3.5 text-neon-red shrink-0 mt-1 animate-pulse" />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-0.5">MESSAGE ÉPINGLÉ</p>
+                                                                            <p className="text-[11px] font-bold text-white leading-relaxed break-words uppercase">
+                                                                                {settings.pinnedMessage}
+                                                                            </p>
+                                                                        </div>
+                                                                        {hasModPowers && (
+                                                                            <button
+                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                                                className="p-1 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all opacity-0 group-hover/pinned:opacity-100"
+                                                                            >
+                                                                                <X className="w-3 h-3" />
+                                                                            </button>
+                                                                        )}
+                                                                    </motion.div>
+                                                                )}
+
                                                                 {/* Chat Messages */}
                                                                 <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                                                     {messages

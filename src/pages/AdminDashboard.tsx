@@ -560,8 +560,7 @@ export function AdminDashboard() {
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
         { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
-        { title: "Team", description: "Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
-        { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", link: "/live", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "takeover_modo", baseColor: "red", columns: 2 }
+        { title: "Team", description: "Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -1218,7 +1217,7 @@ export function AdminDashboard() {
                                         <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                             {getIcon(action.icon, action.baseColor)}
                                             {action.title === 'Modération' && pendingPhotosCount > 0 && (
-                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce">
+                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                     <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                 </div>
                                             )}
