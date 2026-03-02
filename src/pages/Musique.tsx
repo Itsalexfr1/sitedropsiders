@@ -382,7 +382,7 @@ export function Musique() {
                                                             <iframe
                                                                 key={track.id}
                                                                 src={track.embedUrl}
-                                                                className={`w-full ${activeTab === 'juno' ? 'h-[180px]' : activeTab === 'beatport' ? 'h-[162px]' : 'h-[180px]'} border-none overflow-hidden`}
+                                                                className={`w-full ${activeTab === 'juno' ? 'h-[180px]' : activeTab === 'beatport' ? 'h-[162px]' : activeTab === 'traxsource' ? 'h-[240px]' : 'h-[180px]'} border-none overflow-hidden`}
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />

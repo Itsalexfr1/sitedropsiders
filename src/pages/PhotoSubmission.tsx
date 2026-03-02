@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Camera, Send, CheckCircle2, Upload, X } from 'lucide-react';
+import { Camera, Send, CheckCircle2, Upload, X, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function PhotoSubmission() {
@@ -82,6 +82,14 @@ export function PhotoSubmission() {
 
                     {!isSuccess ? (
                         <div className="relative z-10 space-y-8">
+                            <button
+                                onClick={() => navigate('/communaute')}
+                                className="group flex items-center gap-2 text-gray-500 hover:text-white transition-all transform hover:-translate-x-1"
+                            >
+                                <ArrowLeft className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">RETOUR</span>
+                            </button>
+
                             <div className="text-center space-y-4">
                                 <div className="inline-flex p-3 bg-neon-red/10 rounded-2xl mb-2">
                                     <Camera className="w-8 h-8 text-neon-red" />

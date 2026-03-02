@@ -2278,7 +2278,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[32px] lg:top-[48px]' : 'top-0') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-20') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
                 {/* OFFLINE VIEW FOR NON-ADMINS - FULL PAGE BLANKET */}
                 {(!settings.isOnline && !isServerAdmin && isJoined) && (
                     <div className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center p-6 text-center">

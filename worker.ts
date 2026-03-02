@@ -2672,6 +2672,56 @@ export default {
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        if (path === '/api/quiz/update' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const updatedQuiz = await request.json();
+            if (!updatedQuiz.id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+
+            const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            const active = JSON.parse(activeRaw);
+            const activeIndex = active.findIndex(q => q.id === updatedQuiz.id);
+            if (activeIndex !== -1) {
+                active[activeIndex] = { ...active[activeIndex], ...updatedQuiz };
+                await env.CHAT_KV.put('quiz_active', JSON.stringify(active));
+                return new Response(JSON.stringify({ success: true, from: 'active' }), { status: 200, headers });
+            }
+
+            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            const pendingIndex = pending.findIndex(q => q.id === updatedQuiz.id);
+            if (pendingIndex !== -1) {
+                pending[pendingIndex] = { ...pending[pendingIndex], ...updatedQuiz };
+                await env.CHAT_KV.put('quiz_pending', JSON.stringify(pending));
+                return new Response(JSON.stringify({ success: true, from: 'pending' }), { status: 200, headers });
+            }
+            return new Response(JSON.stringify({ error: 'Quiz not found' }), { status: 404, headers });
+        }
+
+        if (path === '/api/quiz/delete' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { id } = await request.json();
+            if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
+
+            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            const pendingIndex = pending.findIndex(q => q.id === id);
+            if (pendingIndex !== -1) {
+                pending.splice(pendingIndex, 1);
+                await env.CHAT_KV.put('quiz_pending', JSON.stringify(pending));
+                return new Response(JSON.stringify({ success: true, from: 'pending' }), { status: 200, headers });
+            }
+
+            const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            const active = JSON.parse(activeRaw);
+            const activeIndex = active.findIndex(q => q.id === id);
+            if (activeIndex !== -1) {
+                active.splice(activeIndex, 1);
+                await env.CHAT_KV.put('quiz_active', JSON.stringify(active));
+                return new Response(JSON.stringify({ success: true, from: 'active' }), { status: 200, headers });
+            }
+            return new Response(JSON.stringify({ error: 'Quiz not found' }), { status: 404, headers });
+        }
+
         if (path === '/api/quiz/active' && request.method === 'GET') {
             let activeRaw = await env.CHAT_KV.get('quiz_active');
             if (!activeRaw || activeRaw === "[]") {
@@ -2926,16 +2976,16 @@ export default {
                     { id: 'h20', type: 'QCM', question: 'Qui est l\'auteur de "Your Love" ?', options: ['Frankie Knuckles', 'Jamie Principle', 'Les deux', 'Marshall Jefferson'], correctAnswer: 'Les deux', category: 'House', author: 'Dropsiders', timestamp: now },
 
                     // --- BLIND TESTS ---
-                    { id: 'bt1', type: 'BLIND_TEST', question: 'Quel est ce titre iconique de Swedish House Mafia ?', options: ['One', 'Greyhound', 'Don\'t You Worry Child', 'Save The World'], correctAnswer: 'One', category: 'Progressive', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt2', type: 'BLIND_TEST', question: 'Reconnaissez-vous ce classique de Daft Punk ?', options: ['One More Time', 'Around The World', 'Harder Better Faster Stronger', 'Digital Love'], correctAnswer: 'Around The World', category: 'House', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt3', type: 'BLIND_TEST', question: 'Quel DJ a produit ce hit mondial ?', options: ['Avicii', 'Calvin Harris', 'Tiesto', 'Kygo'], correctAnswer: 'Avicii', category: 'Progressive', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt4', type: 'BLIND_TEST', question: 'Identifiez ce titre Tech House incontournable', options: ['Losing It', 'Piece of Your Heart', 'Cola', 'Turn On The Lights'], correctAnswer: 'Losing It', category: 'Tech House', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt5', type: 'BLIND_TEST', question: 'Quel titre de Tiesto est joué ici ?', options: ['Adagio For Strings', 'Traffic', 'Lethal Industry', 'Elements of Life'], correctAnswer: 'Adagio For Strings', category: 'Trance', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt6', type: 'BLIND_TEST', question: 'Reconnaissez ce classique de Gigi D\'Agostino ?', options: ['L\'Amour Toujours', 'Bla Bla Bla', 'The Riddle', 'In My Mind'], correctAnswer: 'L\'Amour Toujours', category: 'DJs', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt7', type: 'BLIND_TEST', question: 'Ce riff de piano appartient à quel morceau ?', options: ['Show Me Love', 'Finally', 'Push The Feeling On', 'Free'], correctAnswer: 'Show Me Love', category: 'House', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt8', type: 'BLIND_TEST', question: 'Quel morceau d\'Hardwell reconnaissez-vous ?', options: ['Spaceman', 'Apollo', 'Young Again', 'Encoded'], correctAnswer: 'Spaceman', category: 'Big Room', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt9', type: 'BLIND_TEST', question: 'Cette annonce est celle de quel festival ?', options: ['Tomorrowland', 'Ultra', 'Defqon.1', 'EDC'], correctAnswer: 'Tomorrowland', category: 'Festivals', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt10', type: 'BLIND_TEST', question: 'Identifiez ce hit de David Guetta', options: ['Titanium', 'I\'m Good', 'Memories', 'Sexy Bitch'], correctAnswer: 'Titanium', category: 'DJs', audioUrl: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-13.mp3', author: 'Dropsiders', timestamp: now }
+                    { id: 'bt1', type: 'BLIND_TEST', question: 'Quel est ce titre iconique de Swedish House Mafia ?', options: ['One', 'Greyhound', 'Don\'t You Worry Child', 'Save The World'], correctAnswer: 'One', category: 'Progressive', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/19/ac/82/19ac82f4-421a-1082-04b6-f3b666d1a623/mzaf_5238421517267497053.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt2', type: 'BLIND_TEST', question: 'Reconnaissez-vous ce classique de Daft Punk ?', options: ['One More Time', 'Around The World', 'Harder Better Faster Stronger', 'Digital Love'], correctAnswer: 'Around The World', category: 'House', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview125/v4/ee/22/1a/ee221ab0-02dd-7290-47e7-383ad9c81e3b/mzaf_912969547193259322.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt3', type: 'BLIND_TEST', question: 'Quel DJ a produit ce hit mondial ?', options: ['Avicii', 'Calvin Harris', 'Tiesto', 'Kygo'], correctAnswer: 'Avicii', category: 'Progressive', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/03/22/71/0322719d-a924-6c25-de14-37240b97ad31/mzaf_2674112838059770205.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt4', type: 'BLIND_TEST', question: 'Identifiez ce titre Tech House incontournable', options: ['Losing It', 'Piece of Your Heart', 'Cola', 'Turn On The Lights'], correctAnswer: 'Losing It', category: 'Tech House', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview221/v4/ba/ab/09/baab098b-7ed7-52c2-6a60-55b3d51ffc71/mzaf_15738876229197099582.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt5', type: 'BLIND_TEST', question: 'Quel titre de Tiesto est joué ici ?', options: ['Adagio For Strings', 'Traffic', 'Lethal Industry', 'Elements of Life'], correctAnswer: 'Adagio For Strings', category: 'Trance', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview115/v4/7c/4f/7c/7c4f7c7c-4745-4884-297e-b04620ed/mzaf_1084288673721342615.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt6', type: 'BLIND_TEST', question: 'Reconnaissez ce classique de Gigi D\'Agostino ?', options: ['L\'Amour Toujours', 'Bla Bla Bla', 'The Riddle', 'In My Mind'], correctAnswer: 'L\'Amour Toujours', category: 'DJs', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview126/v4/7d/08/22/7d0822ec-f1ac-def6-69d0-0b4f845cf039/mzaf_8668450585277292114.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt7', type: 'BLIND_TEST', question: 'Ce riff de piano appartient à quel morceau ?', options: ['Show Me Love', 'Finally', 'Push The Feeling On', 'Free'], correctAnswer: 'Show Me Love', category: 'House', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview122/v4/6e/4f/75/6e4f757a-22a0-7e4a-f80d-e3c7fe140064/mzaf_6454886697200918890.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt8', type: 'BLIND_TEST', question: 'Quel morceau d\'Hardwell reconnaissez-vous ?', options: ['Spaceman', 'Apollo', 'Young Again', 'Encoded'], correctAnswer: 'Spaceman', category: 'Big Room', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview112/v4/de/1f/e0/de1fe019-4fe0-6c73-a961-ea50daf9378a/mzaf_4144924208795027866.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt9', type: 'BLIND_TEST', question: 'Cette announcement est celle de quel festival ?', options: ['Tomorrowland', 'Ultra', 'Defqon.1', 'EDC'], correctAnswer: 'Tomorrowland', category: 'Festivals', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview123/v4/b2/b2/cd/b2b2cd30-78f3-0b56-93ce-159ea1e8b4a0/mzaf_12285822606495971061.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now },
+                    { id: 'bt10', type: 'BLIND_TEST', question: 'Identifiez ce hit de David Guetta', options: ['Titanium', 'I\'m Good', 'Memories', 'Sexy Bitch'], correctAnswer: 'Titanium', category: 'DJs', audioUrl: 'https://audio-ssl.itunes.apple.com/itunes-assets/AudioPreview211/v4/45/dd/8f/45dd8ffc-0164-1f70-c53d-bf91a1d80b1a/mzaf_3092057092144618662.plus.aac.p.m4a', author: 'Dropsiders', timestamp: now }
                 ];
                 activeRaw = JSON.stringify(defaultQuizzes);
             }

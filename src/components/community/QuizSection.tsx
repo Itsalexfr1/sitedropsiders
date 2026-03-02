@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Clock, Play, BarChart3, Zap } from 'lucide-react';
+import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Clock, Play, BarChart3, Zap, User } from 'lucide-react';
 
 type QuizType = 'QCM' | 'BLIND_TEST';
 type GameLength = 5 | 10 | 20;
@@ -40,6 +40,7 @@ export function QuizSection() {
     const [loading, setLoading] = useState(true);
     const [timer, setTimer] = useState(0);
     const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [gamePseudo, setGamePseudo] = useState(localStorage.getItem('user_pseudo') || '');
 
     const [leaderboard, setLeaderboard] = useState<ScoreRecord[]>([]);
 
@@ -112,10 +113,12 @@ export function QuizSection() {
         const shuffled = [...filtered].sort(() => Math.random() - 0.5);
         const selection = shuffled.slice(0, selectedLength);
 
-        if (selection.length === 0) {
-            alert("Désolé, aucune question ne correspond à vos filtres !");
+        if (!gamePseudo.trim()) {
+            alert("Veuillez entrer votre prénom / pseudo pour participer !");
             return;
         }
+
+        localStorage.setItem('user_pseudo', gamePseudo.trim());
 
         setGameQuizzes(selection);
         setCurrentQuizIndex(0);
@@ -147,7 +150,7 @@ export function QuizSection() {
         setIsTimerRunning(false);
         setGameState('results');
 
-        const pseudo = localStorage.getItem('user_pseudo') || 'Anonyme';
+        const pseudo = gamePseudo.trim() || 'Anonyme';
         const result: ScoreRecord = {
             id: Date.now().toString(),
             pseudo,
@@ -248,6 +251,19 @@ export function QuizSection() {
                                     </h3>
 
                                     <div className="space-y-8 relative z-10">
+                                        <div className="bg-neon-red/5 p-6 rounded-3xl border border-neon-red/20 shadow-[0_0_30px_rgba(255,17,17,0.05)]">
+                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                                <User className="w-3 h-3" /> VOTRE PRÉNOM / PSEUDO (OBLIGATOIRE)
+                                            </p>
+                                            <input
+                                                type="text"
+                                                value={gamePseudo}
+                                                onChange={(e) => setGamePseudo(e.target.value)}
+                                                placeholder="EX: ALEX, LEO..."
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white font-black uppercase placeholder-white/20 focus:outline-none focus:border-neon-red transition-all"
+                                            />
+                                        </div>
+
                                         <div>
                                             <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4">MODE DE JEU</p>
                                             <div className="flex flex-wrap gap-2 p-1 bg-black/40 rounded-2xl w-fit">
@@ -416,7 +432,7 @@ export function QuizSection() {
                                             REJOUER
                                         </button>
                                         <button
-                                            onClick={() => window.location.reload()}
+                                            onClick={() => setGameState('selection')}
                                             className="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all uppercase tracking-[0.3em] text-[10px]"
                                         >
                                             REVENIR
@@ -432,33 +448,36 @@ export function QuizSection() {
                         <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 sticky top-32">
                             <div className="flex items-center gap-3 mb-8">
                                 <Trophy className="w-6 h-6 text-yellow-500" />
-                                <h4 className="text-xs font-black text-white uppercase tracking-[0.3em]">TOP 3 SCORES</h4>
+                                <h4 className="text-xs font-black text-white uppercase tracking-[0.3em]">CLASSEMENT GLOBAL</h4>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                                 {leaderboard.length === 0 ? (
                                     <div className="py-10 text-center">
                                         <BarChart3 className="w-8 h-8 text-gray-800 mx-auto mb-4" />
                                         <p className="text-[10px] font-bold text-gray-600 uppercase">Aucun record</p>
                                     </div>
                                 ) : (
-                                    leaderboard.slice(0, 3).map((res, i) => (
+                                    leaderboard.slice(0, 10).map((res, i) => (
                                         <motion.div
                                             key={i}
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: i * 0.1 }}
-                                            className={`p-4 rounded-2xl border transition-all ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/30' : (i === 1 ? 'bg-gray-400/10 border-gray-400/30' : 'bg-orange-500/10 border-orange-500/30')}`}
+                                            transition={{ delay: i * 0.05 }}
+                                            className={`p-3.5 rounded-2xl border transition-all ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/30 ring-1 ring-yellow-500/20' : (i === 1 ? 'bg-gray-400/10 border-gray-400/30' : (i === 2 ? 'bg-orange-500/10 border-orange-500/30' : 'bg-white/[0.02] border-white/5'))}`}
                                         >
-                                            <div className="flex justify-between items-center mb-2">
-                                                <span className={`text-[10px] font-black uppercase tracking-widest ${i === 0 ? 'text-yellow-500' : (i === 1 ? 'text-gray-400' : 'text-orange-500')}`}>
+                                            <div className="flex justify-between items-center mb-1.5">
+                                                <span className={`text-[9px] font-black uppercase tracking-widest ${i === 0 ? 'text-yellow-500' : (i === 1 ? 'text-gray-400' : (i === 2 ? 'text-orange-500' : 'text-gray-500'))}`}>
                                                     #{i + 1} • {res.pseudo}
                                                 </span>
-                                                <Trophy className={`w-3 h-3 ${i === 0 ? 'text-yellow-500' : (i === 1 ? 'text-gray-400' : 'text-orange-500')}`} />
+                                                {i < 3 && <Trophy className={`w-3 h-3 ${i === 0 ? 'text-yellow-500' : (i === 1 ? 'text-gray-400' : 'text-orange-500')}`} />}
                                             </div>
                                             <div className="flex justify-between items-end">
-                                                <span className="text-xl font-display font-black text-white">{res.score}/{res.total}</span>
-                                                <span className="text-[10px] font-bold text-gray-500 tabular-nums">{res.time}s</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-lg font-display font-black text-white leading-none">{res.score}/{res.total}</span>
+                                                    <span className="text-[7px] text-gray-600 font-bold mt-1 tracking-tighter uppercase">{new Date(res.date).toLocaleDateString()}</span>
+                                                </div>
+                                                <span className="text-[9px] font-black text-gray-400 tabular-nums bg-white/5 px-2 py-1 rounded-lg border border-white/10">{res.time}s</span>
                                             </div>
                                         </motion.div>
                                     ))

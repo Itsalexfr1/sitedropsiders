@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    RotateCcw, VideoOff, Play, Download
+    RotateCcw, VideoOff, Play, Download, Gamepad2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -45,6 +45,7 @@ export function AdminDashboard() {
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
     const [isClipsModalOpen, setIsClipsModalOpen] = useState(false);
+    const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
@@ -63,6 +64,13 @@ export function AdminDashboard() {
     const [clips, setClips] = useState<any[]>([]);
     const [isLoadingClips, setIsLoadingClips] = useState(false);
     const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
+    const [pendingQuizzesCount, setPendingQuizzesCount] = useState(0);
+    const [allActiveQuizzes, setAllActiveQuizzes] = useState<any[]>([]);
+    const [allPendingQuizzes, setAllPendingQuizzes] = useState<any[]>([]);
+    const [isQuizLoading, setIsQuizLoading] = useState(false);
+    const [quizTab, setQuizTab] = useState<'active' | 'pending'>('active');
+    const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
+    const [quizToEdit, setQuizToEdit] = useState<any>(null);
     const [isTakeoverModalOpen, setIsTakeoverModalOpen] = useState(false);
     interface TakeoverState {
         enabled: boolean;
@@ -144,6 +152,12 @@ export function AdminDashboard() {
     const [isSendingManualPush, setIsSendingManualPush] = useState(false);
 
     useEffect(() => {
+        if (isQuizModalOpen) {
+            fetchQuizzes();
+        }
+    }, [isQuizModalOpen]);
+
+    useEffect(() => {
         if (isNotificationModalOpen) {
             // 1. Fetch count
             fetch('/api/push/subscribers-count')
@@ -161,6 +175,66 @@ export function AdminDashboard() {
                 .catch(err => console.error("Error fetching news for push:", err));
         }
     }, [isNotificationModalOpen]);
+
+    const fetchQuizzes = async () => {
+        setIsQuizLoading(true);
+        try {
+            const [activeRes, pendingRes] = await Promise.all([
+                fetch('/api/quiz/active'),
+                fetch('/api/quiz/pending', { headers: getAuthHeaders() })
+            ]);
+
+            if (activeRes.ok) {
+                const data = await activeRes.json();
+                setAllActiveQuizzes(Array.isArray(data) ? data : []);
+            }
+            if (pendingRes.ok) {
+                const data = await pendingRes.json();
+                const pending = Array.isArray(data) ? data : [];
+                setAllPendingQuizzes(pending);
+                setPendingQuizzesCount(pending.length);
+            }
+        } catch (err) {
+            console.error("Error fetching quizzes:", err);
+        } finally {
+            setIsQuizLoading(false);
+        }
+    };
+
+    const handleModerateQuiz = async (id: string, action: 'approve' | 'delete') => {
+        if (action === 'delete' && !window.confirm("Supprimer définitivement cette question ?")) return;
+
+        try {
+            const endpoint = action === 'approve' ? '/api/quiz/moderate' : '/api/quiz/delete';
+            const res = await apiFetch(endpoint, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id, action: action === 'approve' ? 'approve' : undefined })
+            });
+
+            if (res.ok) {
+                fetchQuizzes();
+            }
+        } catch (err) {
+            console.error("Error moderating quiz:", err);
+        }
+    };
+
+    const handleUpdateQuiz = async (quiz: any) => {
+        try {
+            const res = await apiFetch('/api/quiz/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(quiz)
+            });
+            if (res.ok) {
+                setIsEditQuizModalOpen(false);
+                fetchQuizzes();
+            }
+        } catch (err) {
+            console.error("Error updating quiz:", err);
+        }
+    };
 
     useEffect(() => {
         if (isSocialModalOpen) {
@@ -576,7 +650,8 @@ export function AdminDashboard() {
         { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
         { title: "Team", description: "Dream Team", icon: "Users", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
         { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
-        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 }
+        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 },
+        { title: "Quizz", description: "Questions & Jeux", icon: "Gamepad2", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -787,6 +862,7 @@ export function AdminDashboard() {
             case 'Megaphone': return <Megaphone className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Youtube': return <Youtube className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'CheckCircle2': return <CheckCircle2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Gamepad2': return <Gamepad2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -1165,6 +1241,9 @@ export function AdminDashboard() {
                                         } else if (action.title === 'Shop') {
                                             e.preventDefault();
                                             setIsShopModalOpen(true);
+                                        } else if (action.title === 'Quizz') {
+                                            e.preventDefault();
+                                            setIsQuizModalOpen(true);
                                         }
                                         else if (action.title === 'Team') {
                                             e.preventDefault();
@@ -1229,6 +1308,11 @@ export function AdminDashboard() {
                                             {action.title === 'Modération' && pendingPhotosCount > 0 && (
                                                 <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                     <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                </div>
+                                            )}
+                                            {action.title === 'Quizz' && pendingQuizzesCount > 0 && (
+                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                    <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
                                                 </div>
                                             )}
                                         </div>
@@ -3739,6 +3823,250 @@ export function AdminDashboard() {
                 isOpen={isModerationModalOpen}
                 onClose={() => setIsModerationModalOpen(false)}
             />
+
+            {/* Modal Quizz */}
+            <AnimatePresence>
+                {isQuizModalOpen && (
+                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsQuizModalOpen(false)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl h-[85vh] flex flex-col"
+                        >
+                            <div className="p-8 md:p-10 flex flex-col h-full">
+                                <div className="flex items-center justify-between mb-8 shrink-0">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                            <Gamepad2 className="w-6 h-6 text-neon-red" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                Gestion <span className="text-neon-red">Quizz</span>
+                                            </h2>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & proposées</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsQuizModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 shrink-0">
+                                    <button
+                                        onClick={() => setQuizTab('active')}
+                                        className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'active' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        Actives ({allActiveQuizzes.length})
+                                    </button>
+                                    <button
+                                        onClick={() => setQuizTab('pending')}
+                                        className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'pending' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        En attente ({allPendingQuizzes.length})
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    {isQuizLoading ? (
+                                        <div className="h-full flex flex-col items-center justify-center gap-4">
+                                            <Loader2 className="w-10 h-10 text-neon-red animate-spin" />
+                                            <p className="text-xs font-black text-gray-500 uppercase tracking-widest animate-pulse">Chargement des questions...</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes).length === 0 ? (
+                                                <div className="p-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[2rem] text-center">
+                                                    <p className="text-sm text-gray-500 font-bold uppercase tracking-widest italic">Aucune question dans cette liste</p>
+                                                </div>
+                                            ) : (
+                                                (quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes).map((quiz: any) => (
+                                                    <div
+                                                        key={quiz.id}
+                                                        className="p-6 bg-white/[0.02] border border-white/10 rounded-3xl hover:bg-white/[0.04] transition-all group"
+                                                    >
+                                                        <div className="flex items-start justify-between gap-6">
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-3 mb-3">
+                                                                    <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-neon-red uppercase tracking-widest">
+                                                                        {quiz.category}
+                                                                    </span>
+                                                                    <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                                                                        {quiz.type}
+                                                                    </span>
+                                                                    {quiz.author && (
+                                                                        <span className="text-[9px] font-bold text-gray-500">PAR : {quiz.author.toUpperCase()}</span>
+                                                                    )}
+                                                                </div>
+                                                                <h4 className="text-lg font-bold text-white mb-4">{quiz.question}</h4>
+                                                                <div className="grid grid-cols-2 gap-2">
+                                                                    {quiz.options.map((opt: string, idx: number) => (
+                                                                        <div
+                                                                            key={idx}
+                                                                            className={`p-3 rounded-xl text-[10px] font-bold border ${opt === quiz.correctAnswer ? 'bg-neon-green/10 border-neon-green/30 text-neon-green' : 'bg-black/40 border-white/5 text-gray-400'}`}
+                                                                        >
+                                                                            {opt}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex flex-col gap-2">
+                                                                {quizTab === 'pending' && (
+                                                                    <button
+                                                                        onClick={() => handleModerateQuiz(quiz.id, 'approve')}
+                                                                        className="p-3 bg-neon-green/20 text-neon-green border border-neon-green/30 rounded-2xl hover:bg-neon-green hover:text-white transition-all shadow-xl shadow-neon-green/10"
+                                                                        title="Approuver"
+                                                                    >
+                                                                        <CheckCircle2 className="w-5 h-5" />
+                                                                    </button>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => { setQuizToEdit(quiz); setIsEditQuizModalOpen(true); }}
+                                                                    className="p-3 bg-blue-500/20 text-blue-500 border border-blue-500/30 rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-xl shadow-blue-500/10"
+                                                                    title="Modifier"
+                                                                >
+                                                                    <Pencil className="w-5 h-5" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleModerateQuiz(quiz.id, 'delete')}
+                                                                    className="p-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-neon-red/10"
+                                                                    title="Supprimer"
+                                                                >
+                                                                    <Trash2 className="w-5 h-5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            <AnimatePresence>
+                {isEditQuizModalOpen && quizToEdit && (
+                    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsEditQuizModalOpen(false)}
+                            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            className="relative w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-[2rem] p-8 shadow-2xl"
+                        >
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Modifier la Question</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Question</label>
+                                    <input
+                                        type="text"
+                                        value={quizToEdit.question}
+                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, question: e.target.value })}
+                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Catégorie</label>
+                                        <input
+                                            type="text"
+                                            value={quizToEdit.category}
+                                            onChange={(e) => setQuizToEdit({ ...quizToEdit, category: e.target.value })}
+                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Type</label>
+                                        <select
+                                            value={quizToEdit.type}
+                                            onChange={(e) => setQuizToEdit({ ...quizToEdit, type: e.target.value })}
+                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                        >
+                                            <option value="QCM">QCM</option>
+                                            <option value="BLIND_TEST">BLIND_TEST</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Options</label>
+                                    <div className="space-y-2">
+                                        {quizToEdit.options.map((opt: string, i: number) => (
+                                            <input
+                                                key={i}
+                                                type="text"
+                                                value={opt}
+                                                onChange={(e) => {
+                                                    const newOpts = [...quizToEdit.options];
+                                                    newOpts[i] = e.target.value;
+                                                    setQuizToEdit({ ...quizToEdit, options: newOpts });
+                                                }}
+                                                className={`w-full bg-black border rounded-xl p-2.5 text-xs text-white focus:border-neon-red outline-none ${opt === quizToEdit.correctAnswer ? 'border-neon-green/50' : 'border-white/10'}`}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Bonne Réponse</label>
+                                    <select
+                                        value={quizToEdit.correctAnswer}
+                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, correctAnswer: e.target.value })}
+                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                    >
+                                        {quizToEdit.options.map((opt: string, i: number) => (
+                                            <option key={i} value={opt}>{opt}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {quizToEdit.type === 'BLIND_TEST' && (
+                                    <div>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Audio URL</label>
+                                        <input
+                                            type="text"
+                                            value={quizToEdit.audioUrl || ''}
+                                            onChange={(e) => setQuizToEdit({ ...quizToEdit, audioUrl: e.target.value })}
+                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mt-8 flex gap-3">
+                                <button
+                                    onClick={() => setIsEditQuizModalOpen(false)}
+                                    className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase text-[10px]"
+                                >
+                                    Annuler
+                                </button>
+                                <button
+                                    onClick={() => handleUpdateQuiz(quizToEdit)}
+                                    className="flex-1 py-3 bg-neon-red text-white rounded-xl font-bold uppercase text-[10px] shadow-lg shadow-neon-red/20"
+                                >
+                                    Enregistrer
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
