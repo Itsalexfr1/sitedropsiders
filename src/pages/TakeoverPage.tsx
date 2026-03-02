@@ -5,7 +5,7 @@ import {
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download
+    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download, CircleStop, Loader2, Link
 } from 'lucide-react';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 import { Downloader } from './Downloader';
@@ -189,7 +189,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         { category: "DJ", question: "Qui est le DJ masqué célèbre pour sa tête de guimauve ?", options: ["Marshmello", "Deadmau5", "Angerfist", "Malaa"], correct: 0 },
         { category: "FESTIVAL", question: "Quel festival français se déroule chaque été au Barcarès ?", options: ["Tomorrowland Winter", "Electrobeach (EMF)", "Ultra", "Dour"], correct: 1 },
         { category: "TECHNO", question: "Quelle ville est considérée comme le berceau de la musique Techno ?", options: ["Berlin", "Détroit", "Chicago", "Londres"], correct: 1 },
-        { category: "ARTISTE", question: "Lequel de ces artistes est l'ambassadeur de Dropsiders ?", options: ["Malaa", "Vladimir Cauchemar", "Dropsiders Official", "Timmy Trumpet"], correct: 2 }
+        { category: "ARTISTE", question: "Lequel de ces artistes est l'ambassadeur de Dropsiders ?", options: ["Malaa", "Vladimir Cauchemar", "Dropsiders Official", "Timmy Trumpet"], correct: 2 },
+        { category: "FESTIVAL", question: "Quel festival est réputé pour son décor 'Mainstage' géant et féérique ?", options: ["Tomorrowland", "Ultra", "Parookaville", "Creamfields"], correct: 0 },
+        { category: "ARTISTE", question: "Quel duo français est célèbre pour porter des casques de robots ?", options: ["Justice", "Daft Punk", "Tchami & Malaa", "The Blaze"], correct: 1 },
+        { category: "FESTIVAL", question: "En quelle année a eu lieu la première édition de l'Electrobeach (EMF) ?", options: ["2009", "2013", "2015", "2011"], correct: 0 }
     ];
 
     const [showBlindTest, setShowBlindTest] = useState(false);
@@ -223,6 +226,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const analyserRef = useRef<AnalyserNode | null>(null);
     const bpmStreamRef = useRef<MediaStream | null>(null);
     const [lastPollResult, setLastPollResult] = useState<{ question: string, winner: string, percentage: number } | null>(null);
+    const [downloaderUrl, setDownloaderUrl] = useState('');
+    const [clipTitle, setClipTitle] = useState('');
+    const [clipDuration, setClipDuration] = useState(30);
 
 
 
@@ -623,16 +629,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 setIsClipping(false);
                 const clipId = Math.random().toString(36).substr(2, 9);
                 const currentVideoId = channelItems[activeVideoIndex]?.id;
+                const artist = fluxCurrentArtist?.artist || settings.currentArtist || "Live";
                 const newClip = {
                     id: clipId,
                     videoId: currentVideoId,
-                    title: `Extrait Live - ${channelItems[activeVideoIndex]?.title || 'Main Stage'}`,
-                    duration: '0:30',
+                    title: clipTitle ? clipTitle.toUpperCase() : `EXTRAIT - ${artist.toUpperCase()}`,
+                    duration: `0:${clipDuration < 10 ? '0' + clipDuration : clipDuration}`,
                     date: new Date().toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     channelId: currentVideoId,
                     creator: pseudo || 'Anonyme',
-                    url: `https://youtube.com/watch?v=${currentVideoId}` // Simplified for demo
+                    url: `https://youtube.com/watch?v=${currentVideoId}` // YouTube URL for the downloader
                 };
 
                 // Save to API (Centralized Clips)
@@ -1386,17 +1393,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             if (serverCommands.includes(cmd)) return;
 
             if (cmd === '!artiste') {
-                const artist = fluxCurrentArtist.artist || settings.currentArtist || "Aucun artiste annoncé";
-                response = `🎤 Artiste actuel : ${artist.toUpperCase()} ! 🔥`;
+                const artist = fluxCurrentArtist?.artist || settings.currentArtist || "DÉCOUVRIR...";
+                response = `🎤 ARTISTE ACTUEL : ${artist.toUpperCase()} ! 🔥`;
             } else if (cmd === '!festival') {
-                response = `🎪 Festival : ${settings.title.toUpperCase()} ! 🔥`;
-            } else if (cmd === '!blindtest' && hasModPowers) {
+                response = `🎪 FESTIVAL : ${settings.title.toUpperCase() || "DROPSIDERS LIVE"} ! 🔥`;
+            } else if ((cmd === '!blindtest' || cmd === '!quiz') && hasModPowers) {
                 const randomQuest = triviaPool[Math.floor(Math.random() * triviaPool.length)];
                 setBlindTestState(randomQuest);
                 setShowBlindTest(true);
                 response = `🕹️ QUIZ : ${randomQuest.category} ! Préparez-vous !`;
             } else if (cmd === '!instagram' || cmd === '!insta') {
-                const insta = fluxCurrentArtist.instagram || settings.artistInstagram || "@DROPSIDERS";
+                const insta = fluxCurrentArtist?.instagram || settings.artistInstagram || "@DROPSIDERS";
                 response = `📸 Instagram de l'artiste : ${insta} ! ✨`;
             } else if (cmd === '!sondage' && hasModPowers) {
                 setShowPollModal(true);
@@ -1407,8 +1414,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     const targetPseudo = parts[1].replace('@', '').toUpperCase();
                     const amount = parseInt(parts[2]);
                     if (!isNaN(amount)) {
-                        // For the admin who sends it, we also trigger a visual or just the bot message
                         response = `💎 DON DE DROPS : @${targetPseudo} vient de recevoir ${amount} Drops de la part de l'administration ! ⚡`;
+                        // Potential logic to credit the user if we had a backend store for user balances
                     }
                 }
             } else if (cmd === '!shop' || cmd === '!boutique') {
@@ -3025,33 +3032,61 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </button>
                                         </div>
                                         <div className="p-6 lg:p-8 flex-1 overflow-y-auto min-h-[400px]">
-                                            <div className="mb-10 p-6 bg-white/[0.02] border border-white/10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6 shadow-inner">
-                                                <div className="flex-1">
+                                            <div className="mb-10 p-6 bg-white/[0.02] border border-white/10 rounded-3xl flex flex-col items-center justify-between gap-6 shadow-inner relative overflow-hidden group/capture">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/5 via-transparent to-transparent pointer-events-none" />
+                                                <div className="flex-1 w-full">
                                                     <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-2 mb-2">
-                                                        <Zap className="w-4 h-4 text-neon-purple" />
+                                                        <Zap className="w-4 h-4 text-neon-purple animate-pulse" />
                                                         Capturer un Instant
                                                     </h3>
-                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.1em]">Générez un clip vidéo des 30 dernières secondes du flux sélectionné. Vous pourrez ensuite le partager sur vos réseaux.</p>
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.1em]">Générez un clip vidéo de la durée de votre choix du flux sélectionné.</p>
+
+                                                    <div className="flex flex-col sm:flex-row gap-4 mt-6 p-5 bg-black/40 rounded-[2rem] border border-white/5 backdrop-blur-sm">
+                                                        <div className="flex-1">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Titre Personnalisé (Optionnel)</label>
+                                                            <input
+                                                                type="text"
+                                                                value={clipTitle}
+                                                                onChange={e => setClipTitle(e.target.value)}
+                                                                placeholder="EX: MOMENT ÉPIQUE !"
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-5 py-3 text-[10px] font-black text-white outline-none focus:border-neon-purple transition-all uppercase placeholder:text-white/5"
+                                                            />
+                                                        </div>
+                                                        <div className="sm:w-32">
+                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Durée</label>
+                                                            <div className="relative">
+                                                                <select
+                                                                    value={clipDuration}
+                                                                    onChange={e => setClipDuration(Number(e.target.value))}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl pl-5 pr-10 py-3 text-[10px] font-black text-white outline-none focus:border-neon-purple appearance-none cursor-pointer hover:bg-white/5 transition-all uppercase"
+                                                                >
+                                                                    <option value={15}>15 SECONDES</option>
+                                                                    <option value={30}>30 SECONDES</option>
+                                                                    <option value={60}>60 SECONDES</option>
+                                                                </select>
+                                                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <button
                                                     onClick={handleCreateClip}
                                                     disabled={isClipping}
-                                                    className="relative w-full md:w-auto overflow-hidden px-8 py-4 bg-neon-purple/20 text-neon-purple border border-neon-purple/40 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neon-purple hover:text-white transition-all shadow-[0_0_20px_rgba(188,19,254,0.15)] group shrink-0 active:scale-95 disabled:opacity-50"
+                                                    className="relative w-full overflow-hidden px-8 py-5 bg-neon-purple text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] hover:scale-[1.02] transition-all shadow-[0_0_30px_rgba(188,19,254,0.3)] shrink-0 active:scale-95 disabled:opacity-50 mt-4 h-16"
                                                 >
                                                     {isClipping ? (
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-3 h-3 rounded-full bg-neon-purple animate-ping absolute" />
-                                                            <div className="w-3 h-3 rounded-full bg-neon-purple" />
-                                                            Création en cours {clipProgress}%...
+                                                        <div className="flex items-center justify-center gap-3">
+                                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                                            CRÉATION {clipProgress}%...
                                                         </div>
                                                     ) : (
-                                                        <div className="flex items-center gap-2">
-                                                            <Video className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                                            Créer un Clip Maintenent
+                                                        <div className="flex items-center justify-center gap-3">
+                                                            <Video className="w-5 h-5" />
+                                                            LANCER LA CAPTURE
                                                         </div>
                                                     )}
                                                     {isClipping && (
-                                                        <div className="absolute bottom-0 left-0 h-1 bg-neon-purple shadow-[0_0_10px_#bc13fe] transition-all duration-150" style={{ width: `${clipProgress}%` }} />
+                                                        <div className="absolute bottom-0 left-0 h-1.5 bg-white/30 transition-all duration-150" style={{ width: `${clipProgress}%` }} />
                                                     )}
                                                 </button>
                                             </div>
@@ -3082,14 +3117,37 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <h4 className="text-white font-black uppercase text-sm italic tracking-tight mb-1 truncate">{clip.title}</h4>
                                                                 <p className="text-[9px] text-gray-400 font-bold uppercase tracking-[0.2em] mb-6">Enregistré le {clip.date}</p>
 
-                                                                <div className="flex gap-2">
-                                                                    <a href="https://instagram.com/create/story" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-xl text-[8px] font-black uppercase text-white hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(230,104,60,0.2)]">
-                                                                        <Instagram className="w-3.5 h-3.5" /> Story IG
-                                                                    </a>
-                                                                    <a href="https://tiktok.com/upload" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-white/10 border border-white/20 hover:bg-white hover:text-black rounded-xl text-[8px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-                                                                        <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg>
-                                                                        TikTok
-                                                                    </a>
+                                                                <div className="flex flex-col gap-2">
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setDownloaderUrl(clip.url);
+                                                                                setShowDownloader(true);
+                                                                            }}
+                                                                            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-neon-purple/20 border border-neon-purple/30 rounded-xl text-[9px] font-black uppercase text-neon-purple hover:bg-neon-purple hover:text-white transition-all group"
+                                                                        >
+                                                                            <Download className="w-3.5 h-3.5 group-hover:bounce" /> EXPORTER CLIP
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                navigator.clipboard.writeText(clip.url);
+                                                                                alert("Lien du clip copié !");
+                                                                            }}
+                                                                            className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                                                            title="Copier le lien"
+                                                                        >
+                                                                            <Link className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <a href="https://instagram.com/create/story" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-xl text-[8px] font-black uppercase text-white hover:opacity-90 transition-opacity shadow-[0_0_15px_rgba(230,104,60,0.2)]">
+                                                                            <Instagram className="w-3.5 h-3.5" /> Story IG
+                                                                        </a>
+                                                                        <a href="https://tiktok.com/upload" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-1.5 py-2.5 bg-white/10 border border-white/20 hover:bg-white hover:text-black rounded-xl text-[8px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+                                                                            <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" /></svg>
+                                                                            TikTok
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -4367,10 +4425,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 {activePoll && (
                                                     <button
                                                         onClick={handleStopPoll}
-                                                        className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-lg animate-pulse"
+                                                        className="p-2 rounded-lg bg-neon-red/20 text-white border border-neon-red/40 hover:bg-neon-red hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,0,51,0.4)] animate-pulse"
                                                         title="Arrêter le sondage"
                                                     >
-                                                        <XIcon className="w-3.5 h-3.5" />
+                                                        <CircleStop className="w-4 h-4" />
                                                     </button>
                                                 )}
                                                 <div className="w-[1px] h-4 bg-white/10 mx-1" />
@@ -4433,7 +4491,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
                                             Sondage En Cours
                                         </span>
-                                        {hasModPowers && <button onClick={handleStopPoll} className="text-neon-red hover:text-white transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                        {hasModPowers && <button onClick={handleStopPoll} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-neon-red/10 text-neon-red hover:bg-neon-red hover:text-white transition-all text-[8px] font-black border border-neon-red/20"><CircleStop className="w-2.5 h-2.5" /> ARRÊTER</button>}
                                     </h3>
                                     <p className="text-[11px] font-bold text-white mb-4 drop-shadow-sm">{activePoll.question}</p>
                                     <div className="space-y-2">
@@ -4492,21 +4550,33 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     initial={{ opacity: 0, scale: 0.8, y: -20 }}
                                     animate={{ opacity: 1, scale: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                                    className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[320px] bg-neon-cyan/10 backdrop-blur-2xl border border-neon-cyan/40 rounded-2xl p-6 shadow-[0_0_50px_rgba(0,255,255,0.2)] text-center"
+                                    className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[280px] bg-[#000]/90 backdrop-blur-3xl border border-neon-cyan/50 rounded-3xl p-6 shadow-[0_0_60px_rgba(0,255,255,0.4)] text-center overflow-hidden"
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-b from-neon-cyan/5 to-transparent pointer-none" />
-                                    <Trophy className="w-8 h-8 text-neon-cyan mx-auto mb-3 animate-bounce" />
-                                    <h3 className="text-[9px] font-black text-neon-cyan uppercase tracking-[0.3em] mb-2 drop-shadow-[0_0_10px_#00ffff]">Résultat Vainqueur</h3>
-                                    <p className="text-[10px] text-gray-400 uppercase mb-4 px-2 italic">{lastPollResult.question}</p>
-                                    <div className="relative inline-block">
-                                        <div className="absolute inset-0 blur-xl bg-neon-cyan/30 animate-pulse" />
-                                        <h4 className="relative text-xl font-black text-white uppercase tracking-wider drop-shadow-[0_0_15px_#fff]">
+                                    <div className="absolute inset-0 bg-gradient-to-b from-neon-cyan/10 via-transparent to-transparent pointer-events-none" />
+                                    <div className="absolute -top-10 -left-10 w-24 h-24 bg-neon-cyan/20 blur-3xl rounded-full animate-pulse" />
+                                    <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-neon-cyan/20 blur-3xl rounded-full animate-pulse" />
+
+                                    <Trophy className="w-8 h-8 text-neon-cyan mx-auto mb-4 drop-shadow-[0_0_15px_#00ffff]" />
+                                    <h3 className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.4em] mb-2 drop-shadow-[0_0_10px_#00ffff]">VAINQUEUR</h3>
+                                    <p className="text-[9px] text-gray-500 uppercase mb-4 px-2 font-black italic tracking-wider leading-tight">{lastPollResult.question}</p>
+
+                                    <div className="relative inline-block py-2 px-6">
+                                        <div className="absolute inset-0 blur-2xl bg-neon-cyan/40 animate-pulse" />
+                                        <h4 className="relative text-2xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_20px_#fff]">
                                             {lastPollResult.winner}
                                         </h4>
                                     </div>
-                                    <div className="mt-4 text-[11px] font-black text-neon-cyan font-mono drop-shadow-[0_0_5px_#00ffff]">
-                                        {lastPollResult.percentage}% DES VOTES
+
+                                    <div className="mt-5 text-[12px] font-black text-neon-cyan font-mono tracking-widest bg-neon-cyan/10 py-1.5 rounded-xl border border-neon-cyan/20">
+                                        {lastPollResult.percentage}% DES VOIX
                                     </div>
+
+                                    <motion.div
+                                        className="mt-4 h-[2px] bg-neon-cyan rounded-full"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: "100%" }}
+                                        transition={{ duration: 1, ease: "easeOut" }}
+                                    />
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -5799,9 +5869,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 onClick={() => setShowDownloader(false)}
                                 className="absolute top-8 right-8 z-50 p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-gray-400 hover:text-white transition-all focus:outline-none"
                             >
-                                <XIcon className="w-5 h-5 transition-transform hover:rotate-90 text-gray-500" />
+                                <X className="w-6 h-6 transition-transform hover:rotate-90 text-gray-400" />
                             </button>
-                            <Downloader isPopup={true} />
+                            <Downloader isPopup={true} initialUrl={downloaderUrl} />
                         </motion.div>
                     </motion.div>
                 )}

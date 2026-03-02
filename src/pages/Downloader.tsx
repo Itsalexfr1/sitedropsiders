@@ -5,10 +5,11 @@ import { Download, Instagram, Music, Twitter, Youtube, Link, AlertCircle, CheckC
 interface DownloaderProps {
     isPopup?: boolean;
     onSelect?: (url: string) => void;
+    initialUrl?: string;
 }
 
-export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelect }) => {
-    const [url, setUrl] = useState('');
+export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelect, initialUrl }) => {
+    const [url, setUrl] = useState(initialUrl || '');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
