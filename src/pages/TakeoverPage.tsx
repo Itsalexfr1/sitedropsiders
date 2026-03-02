@@ -2382,7 +2382,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {/* Live Banner Header - REDUCED SIZE */}
                 {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
                     <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shadow-xl shrink-0">
-                        <div className="flex items-center gap-6 overflow-hidden">
+                        <div className="flex items-center gap-6 min-w-0">
                             <div className="flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
                                 onClick={() => setShowUsersPanel(!showUsersPanel)}>
                                 <Users className="w-3 h-3 text-neon-red" />
@@ -2391,8 +2391,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </span>
                             </div>
 
-                            <div className="flex flex-col min-w-0">
-                                <h1 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter truncate leading-tight">
+                            <div className="flex flex-col min-w-0 py-1 pr-2">
+                                <h1 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible">
                                     {displayTitle}
                                 </h1>
                                 {settings.isOnline && (
@@ -4529,7 +4529,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         className="flex-1 flex flex-col min-h-0 bg-black"
                                                     >
                                                         <iframe
-                                                            src="/shop"
+                                                            src="/shop?mini=true"
                                                             className="flex-1 w-full border-none"
                                                             title="Dropsiders Shop"
                                                         ></iframe>

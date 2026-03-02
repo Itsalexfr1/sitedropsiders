@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react';
 import initialSettings from '../data/settings.json';
 
 export function Shop() {
+    const isMini = new URLSearchParams(window.location.search).get('mini') === 'true';
+
     const [isEnabled, setIsEnabled] = useState(initialSettings.shop_enabled);
     const [isPasswordProtected, setIsPasswordProtected] = useState((initialSettings as any).shop_password_protected || false);
     const [passwordImage, setPasswordImage] = useState((initialSettings as any).shop_password_image || '');
@@ -187,19 +189,19 @@ export function Shop() {
     }
 
     return (
-        <div className="min-h-screen bg-dark-bg py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
+        <div className={`min-h-screen bg-dark-bg ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'}`}>
             <div className="w-full">
-                <div className="mb-20 text-center">
+                <div className={`${isMini ? 'mb-8' : 'mb-20'} text-center`}>
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
                         <span className="text-neon-red font-display font-black uppercase tracking-[0.3em] text-xs mb-4 block underline decoration-4 underline-offset-8">COLLECTION 2026</span>
-                        <h1 className="text-6xl md:text-8xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-6">
+                        <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-6xl md:text-8xl'} font-display font-black text-white uppercase italic tracking-tighter leading-none mb-6`}>
                             OFFICIAL <span className="text-neon-red">SHOP</span>
                         </h1>
 
-                        <div className="flex justify-center gap-4 mt-12 mb-8">
+                        <div className={`flex justify-center gap-2 md:gap-4 mt-8 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
                             {['Tous', 'Vetements', 'Accessoires'].map((cat) => {
                                 const isActive = activeCategory === cat;
                                 return (
@@ -242,12 +244,13 @@ export function Shop() {
                         <p className="text-gray-400">Revenez bientôt pour nos nouveautés.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div className={`grid ${isMini ? 'grid-cols-2 gap-2 md:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'}`}>
                         <AnimatePresence mode="popLayout">
                             {filteredProducts.map((product) => (
                                 <ProductCard
                                     key={product.id}
                                     product={product}
+                                    isMini={isMini}
                                     onBuy={() => setSelectedProductUrl(product.url)}
                                 />
                             ))}
@@ -315,7 +318,7 @@ export function Shop() {
     );
 }
 
-function ProductCard({ product, onBuy }: { product: any, onBuy: () => void }) {
+function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: () => void, isMini?: boolean }) {
     const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
     const [isZooming, setIsZooming] = useState(false);
     const [showBack, setShowBack] = useState(false);
@@ -339,12 +342,12 @@ function ProductCard({ product, onBuy }: { product: any, onBuy: () => void }) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="bg-white/5 border border-white/10 rounded-[32px] overflow-hidden group hover:border-white/20 transition-all duration-500 pb-8 h-full flex flex-col"
+            className={`bg-white/5 border border-white/10 rounded-[32px] overflow-hidden group hover:border-white/20 transition-all duration-500 h-full flex flex-col ${isMini ? 'pb-4' : 'pb-8'}`}
             onMouseEnter={() => !selectedColor && setShowBack(true)}
             onMouseLeave={() => setShowBack(false)}
         >
             <div
-                className="aspect-square relative overflow-hidden bg-black/40 cursor-zoom-in mb-6"
+                className={`aspect-square relative overflow-hidden bg-black/40 cursor-zoom-in ${isMini ? 'mb-3' : 'mb-6'}`}
                 onMouseMove={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -368,9 +371,9 @@ function ProductCard({ product, onBuy }: { product: any, onBuy: () => void }) {
                 />
             </div>
 
-            <div className="px-8 flex flex-col flex-1 h-full">
+            <div className={`flex flex-col flex-1 h-full ${isMini ? 'px-4' : 'px-8'}`}>
                 {hasBackImage && !isZooming && (
-                    <div className="flex gap-2 mb-6 justify-center">
+                    <div className={`flex gap-2 justify-center ${isMini ? 'mb-3' : 'mb-6'}`}>
                         <button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -393,17 +396,19 @@ function ProductCard({ product, onBuy }: { product: any, onBuy: () => void }) {
                         </button>
                     </div>
                 )}
-                <div className="mb-4">
-                    <h3 className="text-2xl font-bold text-white leading-tight">
+                <div className={isMini ? 'mb-2' : 'mb-4'}>
+                    <h3 className={`${isMini ? 'text-sm' : 'text-2xl'} font-bold text-white leading-tight`}>
                         {product.name}
                     </h3>
                 </div>
 
-                <p className="text-gray-500 text-sm line-clamp-2 mb-6 min-h-[40px]">
-                    {product.description}
-                </p>
+                {!isMini && (
+                    <p className="text-gray-500 text-sm line-clamp-2 mb-6 min-h-[40px]">
+                        {product.description}
+                    </p>
+                )}
 
-                <div className="flex items-center justify-between mt-auto pt-6 border-t border-white/5">
+                <div className={`flex items-center justify-between mt-auto border-t border-white/5 ${isMini ? 'pt-3' : 'pt-6'}`}>
                     {product.colors && product.colors.length > 0 ? (
                         <div className="flex flex-wrap gap-2">
                             {product.colors.map((hex: string, i: number) => {
@@ -424,18 +429,18 @@ function ProductCard({ product, onBuy }: { product: any, onBuy: () => void }) {
                     )}
 
                     <div className="flex flex-col items-end flex-shrink-0">
-                        <span className="text-neon-red font-display font-black italic text-2xl">{product.price}€</span>
-                        <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">+ frais de port</span>
+                        <span className={`text-neon-red font-display font-black italic ${isMini ? 'text-lg' : 'text-2xl'}`}>{product.price}€</span>
+                        {!isMini && <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">+ frais de port</span>}
                     </div>
                 </div>
 
-                <div className="mt-8">
+                <div className={isMini ? 'mt-4' : 'mt-8'}>
                     <button
                         onClick={(e) => {
                             e.preventDefault();
                             onBuy();
                         }}
-                        className="w-full py-4 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-center shadow-lg shadow-neon-red/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all"
+                        className={`w-full bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-center shadow-lg shadow-neon-red/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all ${isMini ? 'py-2 text-[10px]' : 'py-4'}`}
                     >
                         Acheter
                     </button>
