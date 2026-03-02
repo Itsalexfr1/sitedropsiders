@@ -637,22 +637,22 @@ export function AdminDashboard() {
         { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", category: "LIVE", link: "/live", color: "border-neon-red/20 hover:border-neon-red flex-col md:flex-row col-span-1 md:col-span-2", bg: "bg-neon-red/10", permission: "takeover_modo", baseColor: "red", columns: 2 },
 
         // CONTENU & ÉDITORIAL
-        { title: "News", description: "Actualités", icon: "FileText", category: "ÉDITORIAL", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
-        { title: "Musique", description: "Articles Musique", icon: "Music", category: "ÉDITORIAL", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
-        { title: "Interviews", description: "Gérer & Créer", icon: "Mic", category: "ÉDITORIAL", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Récaps", description: "Reportages", icon: "Video", category: "ÉDITORIAL", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "ÉDITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        { title: "News", description: "Actualités", icon: "FileText", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
+        { title: "Musique", description: "Articles Musique", icon: "Music", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
+        { title: "Interviews", description: "Gérer & Créer", icon: "Mic", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
+        { title: "Récaps", description: "Reportages", icon: "Video", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
-        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
-        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
+        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
+        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
+        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
 
         // COMMUNAUTÉ & ENGAGEMENT
-        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", category: "COMMUNAUTÉ", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Modération", description: "Validation Photos", icon: "CheckCircle2", category: "COMMUNAUTÉ", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
-        { title: "Quizz", description: "Questions & Jeux", icon: "Gamepad2", category: "COMMUNAUTÉ", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Modération", description: "Validation Photos", icon: "CheckCircle2", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
+        { title: "Quizz", description: "Questions & Jeux", icon: "Gamepad2", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
@@ -660,10 +660,10 @@ export function AdminDashboard() {
         { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
         // SYSTÈME & TEAM
-        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÈME", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Team", description: "Dream Team", icon: "Users", category: "SYSTÈME", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
-        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", category: "SYSTÈME", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
-        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", category: "SYSTÈME", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 },
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Team", description: "Dream Team", icon: "Users", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 },
     ];
 
 
