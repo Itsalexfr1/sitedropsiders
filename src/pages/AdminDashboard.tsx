@@ -633,26 +633,36 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
-        { title: "News", description: "Actualités", icon: "FileText", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
-        { title: "Musique", description: "Articles Musique", icon: "Music", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
-        { title: "Interviews", description: "Gérer & Créer", icon: "Mic", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Récaps", description: "Reportages", icon: "Video", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
-        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Modération", description: "Validation Photos", icon: "CheckCircle2", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
-        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
-        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
-        { title: "Team", description: "Dream Team", icon: "Users", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
-        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
-        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 },
-        { title: "Quizz", description: "Questions & Jeux", icon: "Gamepad2", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 }
+        // CONTENU & ÉDITORIAL
+        { title: "News", description: "Actualités", icon: "FileText", category: "ÉDITORIAL", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
+        { title: "Musique", description: "Articles Musique", icon: "Music", category: "ÉDITORIAL", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
+        { title: "Interviews", description: "Gérer & Créer", icon: "Mic", category: "ÉDITORIAL", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
+        { title: "Récaps", description: "Reportages", icon: "Video", category: "ÉDITORIAL", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "ÉDITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+
+        // STUDIO & ANALYTICS
+        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
+        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
+        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
+
+        // COMMUNAUTÉ & ENGAGEMENT
+        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", category: "COMMUNAUTÉ", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Modération", description: "Validation Photos", icon: "CheckCircle2", category: "COMMUNAUTÉ", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
+        { title: "Quizz", description: "Questions & Jeux", icon: "Gamepad2", category: "COMMUNAUTÉ", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+
+        // SHOP & CONTACT
+        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+
+        // SYSTÈME & TEAM
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÈME", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Team", description: "Dream Team", icon: "Users", category: "SYSTÈME", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", category: "SYSTÈME", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", category: "SYSTÈME", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 },
     ];
+
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1016,7 +1026,7 @@ export function AdminDashboard() {
                                 </button>
                             )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex overflow-x-auto pb-4 md:pb-0 md:flex-wrap items-center gap-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth">
                             <button
                                 onClick={fetchActions}
                                 className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center gap-2"
@@ -1087,249 +1097,269 @@ export function AdminDashboard() {
                     </div>
                 </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-                    <AnimatePresence>
-                        {filteredActions.map((action, index) => (
-                            <motion.div
-                                key={action.title}
-                                layout
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ type: "spring", stiffness: 400, damping: 40 }}
-                                className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
-                                    action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
-                                        action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
-                                    }`}
-                            >
-                                {editMode && (
-                                    <>
-                                        {/* D-Pad Controls (Replacement for GripVertical) */}
-                                        <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-                                            <div />
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'up'); }}
-                                                disabled={index === 0}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                            >
-                                                <ChevronUp className="w-4 h-4" />
-                                            </button>
-                                            <div />
+                <div className="space-y-16 relative">
+                    {["CONTENU & ÉDITORIAL", "STUDIO & ANALYTICS", "COMMUNAUTÉ & ENGAGEMENT", "SHOP & CONTACT", "SYSTÈME & TEAM"].map((cat) => {
+                        const catActions = filteredActions.filter(a => (a as any).category === cat);
+                        if (catActions.length === 0) return null;
 
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                            >
-                                                <ChevronLeft className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(index, 'down'); }}
-                                                disabled={index === actions.length - 1}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                            >
-                                                <ChevronDown className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
-                                                className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                            >
-                                                <ChevronRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-
-                                        <div className="absolute top-4 right-4 z-[60]">
-                                            <button
-                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
-                                                className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
-                                            >
-                                                <Settings2 className="w-5 h-5" />
-                                            </button>
-
-                                            {openMenu === action.title && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                    className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
-                                                >
-                                                    <div className="space-y-2">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
-                                                        <div className="flex gap-1">
-                                                            {[1, 2, 3, 4].map(n => (
-                                                                <button
-                                                                    key={n}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault(); e.stopPropagation();
-                                                                        updateActionProp(action.title, { columns: n });
-                                                                    }}
-                                                                    className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                                                >
-                                                                    x{n}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="space-y-2">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
-                                                        <div className="grid grid-cols-5 gap-1.5">
-                                                            {colors.map(c => (
-                                                                <button
-                                                                    key={c.value}
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault(); e.stopPropagation();
-                                                                        updateActionProp(action.title, { baseColor: c.value });
-                                                                    }}
-                                                                    className={`w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-125 ${action.baseColor === c.value ? 'scale-125 ring-2 ring-white/50' : ''}`}
-                                                                    style={{ backgroundColor: c.value === 'white' ? '#ffffff' : `var(--color-neon-${c.value})` }}
-                                                                    title={c.name}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="pt-2 border-t border-white/5 flex items-center justify-between">
-                                                        <label className="text-[9px] font-black uppercase text-gray-400">Roue Perso</label>
-                                                        <div className="relative group/brush">
-                                                            <button
-                                                                className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red transition-colors relative"
-                                                                style={action.baseColor?.startsWith('#') ? { backgroundColor: `${action.baseColor}33`, borderColor: action.baseColor } : {}}
-                                                            >
-                                                                <Paintbrush className="w-5 h-5 text-white" />
-                                                                <input
-                                                                    type="color"
-                                                                    value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
-                                                                    onChange={(e) => updateActionProp(action.title, { baseColor: e.target.value })}
-                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                                                />
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </div>
-                                    </>
-                                )}
-                                <Link
-                                    to={editMode ? "#" : action.link}
-                                    onClick={(e) => {
-                                        if (editMode) {
-                                            e.preventDefault();
-                                        } else if (action.title === 'Bandeau') {
-                                            e.preventDefault();
-                                            setIsBannerModalOpen(true);
-                                        } else if (action.title === 'Interviews') {
-                                            e.preventDefault();
-                                            setIsInterviewModalOpen(true);
-                                        } else if (action.title === 'News') {
-                                            e.preventDefault();
-                                            setIsNewsModalOpen(true);
-                                        } else if (action.title === 'Musique') {
-                                            e.preventDefault();
-                                            setIsMusiqueModalOpen(true);
-                                        } else if (action.title === 'Récaps') {
-                                            e.preventDefault();
-                                            setIsRecapModalOpen(true);
-                                        } else if (action.title === 'Agenda') {
-                                            e.preventDefault();
-                                            setIsAgendaModalOpen(true);
-                                        } else if (action.title === 'Communauté') {
-                                            e.preventDefault();
-                                            setIsGalerieModalOpen(true);
-                                        } else if (action.title === 'Modération') {
-                                            e.preventDefault();
-                                            setIsModerationModalOpen(true);
-                                        } else if (action.title === 'Shop') {
-                                            e.preventDefault();
-                                            setIsShopModalOpen(true);
-                                        } else if (action.title === 'Quizz') {
-                                            e.preventDefault();
-                                            setIsQuizModalOpen(true);
-                                        }
-                                        else if (action.title === 'Team') {
-                                            e.preventDefault();
-                                            setIsTeamModalOpen(true);
-                                        } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
-                                            e.preventDefault();
-                                            setIsNewsletterModalOpen(true);
-                                        } else if (action.title === 'Éditeurs') {
-                                            e.preventDefault();
-                                            setIsEditorsModalOpen(true);
-                                        } else if (action.title === 'Mots de passe') {
-                                            e.preventDefault();
-                                            setIsSettingsModalOpen(true);
-                                        } else if (action.title === 'LIVE / TAKEOVER') {
-                                            // Redirection direct vers le live
-                                            navigate('/live');
-                                        } else if (action.title === 'Notifications') {
-                                            e.preventDefault();
-                                            setIsNotificationModalOpen(true);
-                                        } else if (action.title === 'Accueil') {
-                                            e.preventDefault();
-                                            setIsAccueilModalOpen(true);
-                                        } else if (action.title === 'Statistiques') {
-                                            e.preventDefault();
-                                            setIsStatsModalOpen(true);
-                                        } else if (action.title === 'Spotify') {
-                                            e.preventDefault();
-                                            setIsSpotifyModalOpen(true);
-                                        } else if (action.title === 'MESSAGERIE & CONTACT') {
-                                            e.preventDefault();
-                                            setIsMessagesModalOpen(true);
-                                        } else if (action.title === 'Social Studio') {
-                                            e.preventDefault();
-                                            setIsSocialModalOpen(true);
-                                        }
-                                    }}
-                                    className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
-                                    style={{
-                                        borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                            action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                                `var(--color-neon-${action.baseColor}33)`,
-                                        backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
-                                            action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
-                                                `var(--color-neon-${action.baseColor}0D)`,
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!editMode) {
-                                            e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
-                                                action.baseColor?.startsWith('#') ? action.baseColor :
-                                                    `var(--color-neon-${action.baseColor})`;
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                            action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                                `var(--color-neon-${action.baseColor}33)`;
-                                    }}
-                                >
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
-                                            {getIcon(action.icon, action.baseColor)}
-                                            {action.title === 'Modération' && pendingPhotosCount > 0 && (
-                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                    <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
-                                                </div>
-                                            )}
-                                            {action.title === 'Quizz' && pendingQuizzesCount > 0 && (
-                                                <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                    <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Plus className="w-4 h-4 text-white" />
-                                        </div>
-                                    </div>
-                                    <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
-                                        {action.title}
+                        return (
+                            <div key={cat} className="space-y-8">
+                                <div className="flex items-center gap-6">
+                                    <h3 className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] pl-4 border-l-2 border-neon-red">
+                                        {cat}
                                     </h3>
-                                    <p className="text-gray-400 font-medium">
-                                        {action.description}
-                                    </p>
-                                </Link>
-                            </motion.div>
-                        ))}
-                    </AnimatePresence>
+                                    <div className="flex-1 h-px bg-white/5" />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <AnimatePresence>
+                                        {catActions.map((action) => {
+                                            const globalIndex = filteredActions.findIndex(a => a.title === action.title);
+                                            return (
+                                                <motion.div
+                                                    key={action.title}
+                                                    layout
+                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                    animate={{ opacity: 1, scale: 1 }}
+                                                    exit={{ opacity: 0, scale: 0.9 }}
+                                                    transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                                                    className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
+                                                        action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
+                                                            action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
+                                                        }`}
+                                                >
+                                                    {editMode && (
+                                                        <>
+                                                            {/* D-Pad Controls (Replacement for GripVertical) */}
+                                                            <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+                                                                <div />
+                                                                <button
+                                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(globalIndex, 'up'); }}
+                                                                    disabled={globalIndex === 0}
+                                                                    className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                                                >
+                                                                    <ChevronUp className="w-4 h-4" />
+                                                                </button>
+                                                                <div />
+
+                                                                <button
+                                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
+                                                                    className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                                                >
+                                                                    <ChevronLeft className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(globalIndex, 'down'); }}
+                                                                    disabled={globalIndex === filteredActions.length - 1}
+                                                                    className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                                                >
+                                                                    <ChevronDown className="w-4 h-4" />
+                                                                </button>
+                                                                <button
+                                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
+                                                                    className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                                                >
+                                                                    <ChevronRight className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="absolute top-4 right-4 z-[60]">
+                                                                <button
+                                                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
+                                                                    className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
+                                                                >
+                                                                    <Settings2 className="w-5 h-5" />
+                                                                </button>
+
+                                                                {openMenu === action.title && (
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                        className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
+                                                                    >
+                                                                        <div className="space-y-2">
+                                                                            <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
+                                                                            <div className="flex gap-1">
+                                                                                {[1, 2, 3, 4].map(n => (
+                                                                                    <button
+                                                                                        key={n}
+                                                                                        onClick={(e) => {
+                                                                                            e.preventDefault(); e.stopPropagation();
+                                                                                            updateActionProp(action.title, { columns: n });
+                                                                                        }}
+                                                                                        className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                                                    >
+                                                                                        x{n}
+                                                                                    </button>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="space-y-2">
+                                                                            <label className="text-[9px] font-black uppercase text-gray-400">Thème Couleur</label>
+                                                                            <div className="grid grid-cols-5 gap-1.5">
+                                                                                {colors.map(c => (
+                                                                                    <button
+                                                                                        key={c.value}
+                                                                                        onClick={(e) => {
+                                                                                            e.preventDefault(); e.stopPropagation();
+                                                                                            updateActionProp(action.title, { baseColor: c.value });
+                                                                                        }}
+                                                                                        className={`w-5 h-5 rounded-full border border-white/20 transition-transform hover:scale-125 ${action.baseColor === c.value ? 'scale-125 ring-2 ring-white/50' : ''}`}
+                                                                                        style={{ backgroundColor: c.value === 'white' ? '#ffffff' : `var(--color-neon-${c.value})` }}
+                                                                                        title={c.name}
+                                                                                    />
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                                                                            <label className="text-[9px] font-black uppercase text-gray-400">Roue Perso</label>
+                                                                            <div className="relative group/brush">
+                                                                                <button
+                                                                                    className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red transition-colors relative"
+                                                                                    style={action.baseColor?.startsWith('#') ? { backgroundColor: `${action.baseColor}33`, borderColor: action.baseColor } : {}}
+                                                                                >
+                                                                                    <Paintbrush className="w-5 h-5 text-white" />
+                                                                                    <input
+                                                                                        type="color"
+                                                                                        value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
+                                                                                        onChange={(e) => updateActionProp(action.title, { baseColor: e.target.value })}
+                                                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                                    />
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                    <Link
+                                                        to={editMode ? "#" : action.link}
+                                                        onClick={(e) => {
+                                                            if (editMode) {
+                                                                e.preventDefault();
+                                                            } else if (action.title === 'Bandeau') {
+                                                                e.preventDefault();
+                                                                setIsBannerModalOpen(true);
+                                                            } else if (action.title === 'Interviews') {
+                                                                e.preventDefault();
+                                                                setIsInterviewModalOpen(true);
+                                                            } else if (action.title === 'News') {
+                                                                e.preventDefault();
+                                                                setIsNewsModalOpen(true);
+                                                            } else if (action.title === 'Musique') {
+                                                                e.preventDefault();
+                                                                setIsMusiqueModalOpen(true);
+                                                            } else if (action.title === 'Récaps') {
+                                                                e.preventDefault();
+                                                                setIsRecapModalOpen(true);
+                                                            } else if (action.title === 'Agenda') {
+                                                                e.preventDefault();
+                                                                setIsAgendaModalOpen(true);
+                                                            } else if (action.title === 'Communauté') {
+                                                                e.preventDefault();
+                                                                setIsGalerieModalOpen(true);
+                                                            } else if (action.title === 'Modération') {
+                                                                e.preventDefault();
+                                                                setIsModerationModalOpen(true);
+                                                            } else if (action.title === 'Shop') {
+                                                                e.preventDefault();
+                                                                setIsShopModalOpen(true);
+                                                            } else if (action.title === 'Quizz') {
+                                                                e.preventDefault();
+                                                                setIsQuizModalOpen(true);
+                                                            }
+                                                            else if (action.title === 'Team') {
+                                                                e.preventDefault();
+                                                                setIsTeamModalOpen(true);
+                                                            } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
+                                                                e.preventDefault();
+                                                                setIsNewsletterModalOpen(true);
+                                                            } else if (action.title === 'Éditeurs') {
+                                                                e.preventDefault();
+                                                                setIsEditorsModalOpen(true);
+                                                            } else if (action.title === 'Mots de passe') {
+                                                                e.preventDefault();
+                                                                setIsSettingsModalOpen(true);
+                                                            } else if (action.title === 'LIVE / TAKEOVER') {
+                                                                // Redirection direct vers le live
+                                                                navigate('/live');
+                                                            } else if (action.title === 'Notifications') {
+                                                                e.preventDefault();
+                                                                setIsNotificationModalOpen(true);
+                                                            } else if (action.title === 'Accueil') {
+                                                                e.preventDefault();
+                                                                setIsAccueilModalOpen(true);
+                                                            } else if (action.title === 'Statistiques') {
+                                                                e.preventDefault();
+                                                                setIsStatsModalOpen(true);
+                                                            } else if (action.title === 'Spotify') {
+                                                                e.preventDefault();
+                                                                setIsSpotifyModalOpen(true);
+                                                            } else if (action.title === 'MESSAGERIE & CONTACT') {
+                                                                e.preventDefault();
+                                                                setIsMessagesModalOpen(true);
+                                                            } else if (action.title === 'Social Studio') {
+                                                                e.preventDefault();
+                                                                setIsSocialModalOpen(true);
+                                                            }
+                                                        }}
+                                                        className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
+                                                        style={{
+                                                            borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                                                action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                                                    `var(--color-neon-${action.baseColor}33)`,
+                                                            backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
+                                                                action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
+                                                                    `var(--color-neon-${action.baseColor}0D)`,
+                                                        }}
+                                                        onMouseEnter={(e) => {
+                                                            if (!editMode) {
+                                                                e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
+                                                                    action.baseColor?.startsWith('#') ? action.baseColor :
+                                                                        `var(--color-neon-${action.baseColor})`;
+                                                            }
+                                                        }}
+                                                        onMouseLeave={(e) => {
+                                                            e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                                                action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                                                    `var(--color-neon-${action.baseColor}33)`;
+                                                        }}
+                                                    >
+                                                        <div className="flex justify-between items-start mb-4">
+                                                            <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
+                                                                {getIcon(action.icon, action.baseColor)}
+                                                                {action.title === 'Modération' && pendingPhotosCount > 0 && (
+                                                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                        <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                                    </div>
+                                                                )}
+                                                                {action.title === 'Quizz' && pendingQuizzesCount > 0 && (
+                                                                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                        <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <Plus className="w-4 h-4 text-white" />
+                                                            </div>
+                                                        </div>
+                                                        <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
+                                                            {action.title}
+                                                        </h3>
+                                                        <p className="text-gray-400 font-medium">
+                                                            {action.description}
+                                                        </p>
+                                                    </Link>
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
 

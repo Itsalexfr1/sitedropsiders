@@ -132,7 +132,7 @@
     color: #d1d5db;
     font-weight: 300;
     text-align: center !important;
-    clear: both !important;
+    clear: none !important; /* Changed from both to allow journal wrapping */
     display: block;
     width: 100%;
     overflow-wrap: break-word;
@@ -184,7 +184,7 @@
 .article-section {
     margin-bottom: 40px;
     /* Automatic spacing */
-    clear: both;
+    clear: none; /* Changed from both to allow journal wrapping */
     text-align: center;
 }
 
@@ -515,4 +515,57 @@
 
 .article-body-premium .bg-white a {
     color: #ff0033 !important;
+}
+
+/* --- PREMIUM JOURNAL LAYOUT --- */
+.premium-image-float-container {
+    margin: 2rem 0;
+    position: relative;
+    display: block;
+    clear: none;
+}
+
+.premium-image-float-container[data-align="left"] {
+    float: left !important;
+    margin-right: 2.5rem !important;
+    margin-bottom: 1.5rem !important;
+    text-align: left !important;
+}
+
+.premium-image-float-container[data-align="right"] {
+    float: right !important;
+    margin-left: 2.5rem !important;
+    margin-bottom: 1.5rem !important;
+    text-align: right !important;
+}
+
+.premium-image-float-container[data-align="center"] {
+    float: none !important;
+    margin: 3rem auto !important;
+    width: 100% !important;
+}
+
+.article-section:has(.premium-image-float-container[data-align="left"]),
+.article-section:has(.premium-image-float-container[data-align="right"]) {
+    clear: none !important;
+}
+
+/* Force clear for specific elements that should NOT wrap */
+.article-section:has(h2),
+.article-section:has(h3),
+.article-section:has(.premium-section-title),
+.article-section:has(.gallery-premium-grid),
+.article-section:has(.youtube-player-widget),
+.article-section:has(.video-group-premium),
+.article-section:has(.duo-photos-premium),
+.article-section:has(.music-top-item-premium) {
+    clear: both !important;
+}
+
+@media (max-width: 768px) {
+    .premium-image-float-container {
+        float: none !important;
+        width: 100% !important;
+        margin: 2rem 0 !important;
+    }
 }

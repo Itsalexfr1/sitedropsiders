@@ -349,14 +349,18 @@ export function NewsCreate() {
         urls: string,
         aspectRatio?: string,
         widgetId?: string,
-        cols?: number
+        cols?: number,
+        alignment?: 'left' | 'right' | 'center',
+        width?: number
     }>({
         show: false,
         type: 'image',
         url: '',
         urls: '',
         aspectRatio: 'auto',
-        cols: 4
+        cols: 4,
+        alignment: 'center',
+        width: 100
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
     const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string }>({ type: 'main' });
@@ -1139,14 +1143,22 @@ export function NewsCreate() {
     };
 
     const handleMediaConfirm = (index?: number) => {
-        const { type, url, urls, aspectRatio } = mediaModal;
+        const { type, url, urls, aspectRatio, alignment, width } = mediaModal;
         let content = '';
 
         if (type === 'image' && url) {
             const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect-[${aspectRatio}]` : '';
             const imgClass = aspectRatio && aspectRatio !== 'auto' ? 'w-full h-full object-cover' : 'w-full h-auto object-cover';
-            content = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group ${aspectClass}">
-  <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
+
+            // Layout classes for "premium journal" effect
+            let layoutClasses = "image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group";
+            let sectionWrapperAttribs = `data-align="${alignment || 'center'}"`;
+            let sectionWrapperStyles = alignment !== 'center' ? `width: ${width || 45}%; max-width: 100%;` : '';
+
+            content = `<div class="premium-image-float-container" ${sectionWrapperAttribs} style="${sectionWrapperStyles}">
+  <div class="${layoutClasses} ${aspectClass}">
+    <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
+  </div>
 </div>`;
         } else if (type === 'video' && url) {
             let id = url;
@@ -1181,7 +1193,39 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content }]);
             }
         }
-        setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined, cols: 4 });
+        setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined, cols: 4, alignment: 'center', width: 100 });
+    };
+
+    const extractSingleImageUrlAndRatio = (html: string) => {
+        const imgMatch = html.match(/src="([^"]+)"/);
+        const ratioMatch = html.match(/aspect-\[([^\]]+)\]/);
+        const alignMatch = html.match(/data-align="([^"]+)"/);
+        const widthMatch = html.match(/width:\s*(\d+)%/);
+        return {
+            url: imgMatch ? imgMatch[1] : '',
+            ratio: ratioMatch ? ratioMatch[1] : 'auto',
+            alignment: (alignMatch ? alignMatch[1] : 'center') as 'left' | 'center' | 'right',
+            width: widthMatch ? parseInt(widthMatch[1]) : 100
+        };
+    };
+
+    const extractDuoUrls = (html: string) => {
+        const urls: string[] = [];
+        const matches = html.matchAll(/src="([^"]+)"/g);
+        for (const match of matches) {
+            urls.push(match[1]);
+        }
+        const ratioMatch = html.match(/aspect-\[([^\]]+)\]/);
+        return { urls, ratio: ratioMatch ? ratioMatch[1] : '3/4' };
+    };
+
+    const extractVideoUrls = (html: string) => {
+        const urls: string[] = [];
+        const matches = html.matchAll(/src="([^"]+)"/g);
+        for (const match of matches) {
+            urls.push(match[1]);
+        }
+        return { urls, count: urls.length };
     };
 
     const generateSocialsHtml = (customName?: string, customColor?: string) => {
@@ -2341,13 +2385,15 @@ ${generateSocialsHtml()}
                                                                     const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
                                                                     updateWidget(widget.id, videoWidget);
                                                                 } else if (widget.content.includes('image-premium-wrapper')) {
-                                                                    const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
+                                                                    const { url, ratio, alignment, width } = extractSingleImageUrlAndRatio(widget.content);
                                                                     setMediaModal({
                                                                         show: true,
                                                                         type: 'image',
                                                                         url: url,
                                                                         urls: '',
                                                                         aspectRatio: ratio,
+                                                                        alignment,
+                                                                        width,
                                                                         widgetId: widget.id
                                                                     });
                                                                 }
@@ -3170,18 +3216,43 @@ ${generateSocialsHtml()}
                     text-decoration: underline;
                     pointer-events: none; /* Prevent navigation during edit */
                 }
-                /* Line wrapping for editor (Request 1) & Font reduction (Request 2) */
+                /* Line wrapping for editor */
                 .visual-editor-content p {
-                    max-width: 800px;
-                    aspect-ratio: 1/1;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: center;
-                    margin-left: auto !important;
-                    margin-right: auto !important;
-                    font-size: 11px !important; /* Reduced even more (Request 3) */
-                    line-height: 1.4 !important;
-                    overflow: hidden;
+                    max-width: 100%;
+                    font-size: 14px !important;
+                    line-height: 1.6 !important;
+                    margin-bottom: 1.5rem !important;
+                    color: #d1d5db;
+                }
+                /* PREMIUM JOURNAL PREVIEW */
+                .premium-image-float-container {
+                    margin: 1.5rem 0;
+                    clear: none;
+                }
+                .premium-image-float-container[data-align="left"] {
+                    float: left !important;
+                    margin-right: 2rem !important;
+                    margin-bottom: 1rem !important;
+                }
+                .premium-image-float-container[data-align="right"] {
+                    float: right !important;
+                    margin-left: 2rem !important;
+                    margin-bottom: 1rem !important;
+                }
+                .premium-image-float-container[data-align="center"] {
+                    float: none !important;
+                    margin: 2rem auto !important;
+                    width: 100% !important;
+                }
+                .article-body-premium {
+                    overflow: auto; /* Clearfix for floats */
+                    display: flow-root;
+                }
+                .article-section {
+                    clear: none !important; /* Allow wrapping between widgets */
+                }
+                .article-section:has(h2), .article-section:has(.premium-section-title), .article-section:has(.grid) {
+                    clear: both !important;
                 }
                 /* Mobile Scroll fix (Request 8) */
                 body, html {
@@ -3275,20 +3346,69 @@ ${generateSocialsHtml()}
                                 )}
 
                                 {mediaModal.type === 'image' && (
-                                    <div className="space-y-2">
-                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">Format de l'image</label>
-                                        <div className="grid grid-cols-4 gap-2">
-                                            {['auto', '1/1', '3/4', '16/9'].map(ratio => (
-                                                <button
-                                                    key={ratio}
-                                                    type="button"
-                                                    onClick={() => setMediaModal({ ...mediaModal, aspectRatio: ratio })}
-                                                    className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${mediaModal.aspectRatio === ratio ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
-                                                >
-                                                    {ratio === 'auto' ? 'Orig' : ratio}
-                                                </button>
-                                            ))}
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-center">Format de l'image</label>
+                                            <div className="grid grid-cols-4 gap-2">
+                                                {['auto', '1/1', '3/4', '16/9'].map(ratio => (
+                                                    <button
+                                                        key={ratio}
+                                                        type="button"
+                                                        onClick={() => setMediaModal({ ...mediaModal, aspectRatio: ratio as any })}
+                                                        className={`py-2 rounded-xl text-[10px] font-bold uppercase transition-all ${mediaModal.aspectRatio === ratio ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
+                                                    >
+                                                        {ratio === 'auto' ? 'Orig' : ratio}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
+
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 text-center">Position du texte (Journal Premium)</label>
+                                            <div className="flex justify-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ ...mediaModal, alignment: 'left', width: 45 })}
+                                                    className={`flex-1 py-2.5 rounded-xl transition-all border flex flex-col items-center gap-1 ${mediaModal.alignment === 'left' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                >
+                                                    <AlignLeft className="w-4 h-4" />
+                                                    <span className="text-[8px] font-black uppercase">À gauche</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ ...mediaModal, alignment: 'center', width: 100 })}
+                                                    className={`flex-1 py-2.5 rounded-xl transition-all border flex flex-col items-center gap-1 ${mediaModal.alignment === 'center' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                >
+                                                    <AlignCenter className="w-4 h-4" />
+                                                    <span className="text-[8px] font-black uppercase">Centré</span>
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setMediaModal({ ...mediaModal, alignment: 'right', width: 45 })}
+                                                    className={`flex-1 py-2.5 rounded-xl transition-all border flex flex-col items-center gap-1 ${mediaModal.alignment === 'right' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                >
+                                                    <AlignRight className="w-4 h-4" />
+                                                    <span className="text-[8px] font-black uppercase">À droite</span>
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {mediaModal.alignment !== 'center' && (
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center px-1">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Largeur Image : {mediaModal.width}%</label>
+                                                </div>
+                                                <input
+                                                    type="range"
+                                                    min="25"
+                                                    max="75"
+                                                    step="5"
+                                                    value={mediaModal.width || 45}
+                                                    onChange={(e) => setMediaModal({ ...mediaModal, width: parseInt(e.target.value) })}
+                                                    className="w-full accent-neon-cyan h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
 

@@ -3,7 +3,7 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
 
     return (
-        <section className="relative h-[50vh] md:h-[65vh] min-h-[400px] w-full flex items-center overflow-hidden bg-black">
+        <section className="relative h-[50vh] md:h-[65vh] min-h-[480px] w-full flex items-center overflow-hidden bg-black">
             {/* Background Video */}
             <div className="absolute inset-0 z-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-dark-bg/40 to-transparent z-10" />
@@ -20,7 +20,7 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
                         />
                     ) : (
                         <iframe
-                            className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-[52%] scale-[1.2] aspect-video pointer-events-none border-none"
+                            className="absolute top-1/2 left-1/2 min-w-[100vw] min-h-[100vh] w-auto h-auto -translate-x-1/2 -translate-y-1/2 scale-[1.3] pointer-events-none border-none"
                             src={`https://www.youtube.com/embed/${finalVideoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${finalVideoId}&playsinline=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1`}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
                             title="Hero Video"
