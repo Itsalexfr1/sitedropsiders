@@ -67,8 +67,8 @@ export function Musique() {
     ];
 
     const getMockData = (platform: string): Track[] => {
-        // High energy tech-house / techno preview fallback
-        const hardtunesPreview = 'https://www.samplemagic.com/audio/samples/SM%20-%20Hardcore%20Techno%20-%20Full%20Demo.mp3';
+        // Premium high-energy tech-house / techno preview fallback
+        const hardtunesPreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3';
         const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
         if (platform === 'beatport') {
@@ -101,16 +101,16 @@ export function Musique() {
         }
         if (platform === 'hardtunes') {
             return [
-                { id: '96997', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardtunes.com/tunes/mt-and-complex-accelerate-it-extended-mix/96997', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/96997' },
-                { id: '97375', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix/97375', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/97375' },
-                { id: '97336', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/missy-and-damaxy-koffiepauze/97336', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/97336' },
-                { id: '99441', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/dmrc-bang-to-the-bricks/99441', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99441' },
-                { id: '99602', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardtunes.com/tunes/roosterz-and-kili-max-ammo-extended-mix/99602', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99602' },
-                { id: '99486', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/catscan-speaker-attack-original-mix/99486', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99486' },
-                { id: '99611', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardtunes.com/tunes/s-kill-the-hunt/99611', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99611' },
-                { id: '99507', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardtunes.com/tunes/neox-death-by-gabber/99507', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99507' },
-                { id: '99612', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/mad-dog-self-destroyed/99612', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/99612' },
-                { id: '97486', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/unproven-sins/97486', preview: hardtunesPreview, embedUrl: 'https://www.hardtunes.com/embed/97486' },
+                { id: '96997', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardtunes.com/tunes/mt-and-complex-accelerate-it-extended-mix/96997', preview: hardtunesPreview },
+                { id: '97375', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix/97375', preview: hardtunesPreview },
+                { id: '97336', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/missy-and-damaxy-koffiepauze/97336', preview: hardtunesPreview },
+                { id: '99441', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/dmrc-bang-to-the-bricks/99441', preview: hardtunesPreview },
+                { id: '99602', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardtunes.com/tunes/roosterz-and-kili-max-ammo-extended-mix/99602', preview: hardtunesPreview },
+                { id: '99486', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/catscan-speaker-attack-original-mix/99486', preview: hardtunesPreview },
+                { id: '99611', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardtunes.com/tunes/s-kill-the-hunt/99611', preview: hardtunesPreview },
+                { id: '99507', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardtunes.com/tunes/neox-death-by-gabber/99507', preview: hardtunesPreview },
+                { id: '99612', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/mad-dog-self-destroyed/99612', preview: hardtunesPreview },
+                { id: '97486', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/unproven-sins/97486', preview: hardtunesPreview },
             ];
         }
         if (platform === 'juno') {
@@ -252,13 +252,14 @@ export function Musique() {
             if (selectedTrack?.id === track.id) {
                 if (isPlaying) {
                     setIsPlaying(false);
-                    audioRef.current?.pause();
+                    if (!track.embedUrl) audioRef.current?.pause();
                 } else {
                     setIsPlaying(true);
-                    audioRef.current?.play();
+                    if (!track.embedUrl) audioRef.current?.play();
                 }
             } else {
                 setSelectedTrack(track);
+                setIsPlaying(true);
             }
         }
     };
@@ -423,29 +424,14 @@ export function Musique() {
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />
                                                         ) : (
-                                                            <div className="p-12 space-y-8 bg-gradient-to-br from-black/80 to-black/40">
-                                                                <div className="flex flex-col items-center gap-6">
-                                                                    <div className="text-center">
-                                                                        <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">{track.title}</h4>
-                                                                        <p className="text-neon-cyan font-black text-sm uppercase tracking-widest">{track.artist}</p>
-                                                                    </div>
+                                                            <div className="p-8 md:p-12 space-y-8 bg-gradient-to-br from-black/90 via-black/60 to-black/90 relative overflow-hidden group/premium-player">
+                                                                {/* Animated background glow */}
+                                                                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover/premium-player:bg-neon-red/20 transition-all duration-1000" />
 
-                                                                    <div className="w-full max-w-md">
-                                                                        <div className="flex items-center justify-between mb-2">
-                                                                            <span className="text-[10px] font-black text-gray-500 tracking-[0.3em]">PREVIEW MODE</span>
-                                                                            <span className="text-[10px] font-black text-neon-red tracking-[0.3em] animate-pulse">HQ AUDIO</span>
-                                                                        </div>
-                                                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                                                            <motion.div
-                                                                                className="h-full bg-gradient-to-r from-neon-red to-neon-cyan shadow-[0_0_10px_rgba(255,18,65,0.5)]"
-                                                                                initial={{ width: "0%" }}
-                                                                                animate={{ width: isPlaying ? "100%" : "0%" }}
-                                                                                transition={{ duration: 30, ease: "linear" }}
-                                                                            />
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="flex items-center gap-8">
+                                                                <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+                                                                    {/* Play/Pause Main Control */}
+                                                                    <div className="relative">
+                                                                        <div className={`absolute inset-0 bg-neon-red/20 blur-2xl rounded-full transition-opacity duration-500 ${isPlaying ? 'opacity-100' : 'opacity-0'}`} />
                                                                         <button
                                                                             onClick={() => {
                                                                                 if (isPlaying) {
@@ -456,18 +442,82 @@ export function Musique() {
                                                                                     setIsPlaying(true);
                                                                                 }
                                                                             }}
-                                                                            className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red hover:border-neon-red hover:scale-110 transition-all duration-500 group/play shadow-2xl"
+                                                                            className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red hover:border-neon-red hover:scale-110 transition-all duration-500 group/play-btn shadow-[0_0_50px_rgba(0,0,0,0.5)] active:scale-95"
                                                                         >
-                                                                            {isPlaying ? <Pause className="w-10 h-10 text-white" /> : <Play className="w-10 h-10 text-white ml-1" />}
+                                                                            {isPlaying ? (
+                                                                                <Pause className="w-10 h-10 text-white fill-white" />
+                                                                            ) : (
+                                                                                <Play className="w-10 h-10 text-white ml-1 fill-white" />
+                                                                            )}
                                                                         </button>
+                                                                    </div>
 
-                                                                        <a
-                                                                            href={track.url}
-                                                                            target="_blank"
-                                                                            className="px-8 py-3 rounded-full bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all duration-300 shadow-xl"
-                                                                        >
-                                                                            Full Track & Shop
-                                                                        </a>
+                                                                    <div className="flex-1 w-full space-y-6">
+                                                                        <div>
+                                                                            <div className="flex items-center gap-2 mb-2">
+                                                                                <span className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded text-[9px] font-black text-neon-red tracking-widest uppercase">Premium Player</span>
+                                                                                <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase opacity-50">• High Quality Previews</span>
+                                                                            </div>
+                                                                            <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 leading-none">{track.title}</h4>
+                                                                            <p className="text-neon-cyan font-black text-xs uppercase tracking-[0.3em]">{track.artist}</p>
+                                                                        </div>
+
+                                                                        <div className="space-y-3">
+                                                                            <div className="flex items-center justify-between">
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-neon-green animate-pulse' : 'bg-gray-600'}`} />
+                                                                                    <span className="text-[9px] font-black text-gray-500 tracking-[0.2em] uppercase">
+                                                                                        {isPlaying ? 'Streaming Live' : 'Paused'}
+                                                                                    </span>
+                                                                                </div>
+                                                                                <span className="text-[10px] font-black text-neon-red tracking-widest">HQ 320KBPS</span>
+                                                                            </div>
+
+                                                                            {/* Visualizer Mock */}
+                                                                            <div className="h-12 flex items-end gap-1 px-2">
+                                                                                {Array.from({ length: 40 }).map((_, i) => (
+                                                                                    <motion.div
+                                                                                        key={i}
+                                                                                        className="flex-1 bg-gradient-to-t from-neon-red/40 to-neon-red rounded-t-sm"
+                                                                                        animate={{
+                                                                                            height: isPlaying ? [
+                                                                                                Math.random() * 100 + "%",
+                                                                                                Math.random() * 100 + "%",
+                                                                                                Math.random() * 100 + "%"
+                                                                                            ] : "10%"
+                                                                                        }}
+                                                                                        transition={{
+                                                                                            duration: 0.5,
+                                                                                            repeat: Infinity,
+                                                                                            delay: i * 0.02,
+                                                                                            ease: "easeInOut"
+                                                                                        }}
+                                                                                    />
+                                                                                ))}
+                                                                            </div>
+
+                                                                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                                                                <motion.div
+                                                                                    className="h-full bg-gradient-to-r from-neon-red to-neon-cyan shadow-[0_0_15px_rgba(255,18,65,0.6)]"
+                                                                                    initial={{ width: "0%" }}
+                                                                                    animate={{ width: isPlaying ? "100%" : "0%" }}
+                                                                                    transition={{ duration: 30, ease: "linear" }}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+
+                                                                        <div className="flex items-center gap-4 pt-2">
+                                                                            <a
+                                                                                href={track.url}
+                                                                                target="_blank"
+                                                                                className="px-8 py-3.5 rounded-xl bg-white text-black font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all duration-300 shadow-xl flex items-center gap-3 active:scale-95"
+                                                                            >
+                                                                                Buy Full Track <ExternalLink className="w-3.5 h-3.5" />
+                                                                            </a>
+                                                                            <button className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
+                                                                                <Heart className="w-4 h-4 text-white" />
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
