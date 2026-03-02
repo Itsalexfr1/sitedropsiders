@@ -337,7 +337,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
             } else {
-                const fontSize = activeTab === 'PUBLICATION' ? 52 : 78; const lineHeight = fontSize * 1.15;
+                const fontSize = activeTab === 'PUBLICATION' ? 48 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.toUpperCase().split('\n');
                 let lines: string[] = [];
@@ -352,18 +352,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = activeTab === 'PUBLICATION' ? 760 : safeBottom - 320;
+                const labelY = activeTab === 'PUBLICATION' ? 860 : safeBottom - 320;
                 const startY = labelY + 130;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
-                const labelW = ctx.measureText(labelText).width + 50;
+                const labelW = ctx.measureText(labelText).width + (activeTab === 'PUBLICATION' ? 80 : 50);
 
                 ctx.save();
                 ctx.globalAlpha = 0.9;
                 ctx.fillStyle = activeData.color;
                 const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - 42;
+                const rectY = labelY - (activeTab === 'PUBLICATION' ? 52 : 42);
                 const rectW = labelW;
-                const rectH = 65;
+                const rectH = activeTab === 'PUBLICATION' ? 80 : 65;
                 const radius = 20; // Slightly smaller radius for smaller box
 
                 ctx.beginPath();
@@ -372,9 +372,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = labelText === 'MUSIQUE' ? '#000' : '#FFF';
-                ctx.font = `900 italic 35px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                const labelFontSize = activeTab === 'PUBLICATION' ? 42 : 35;
+                ctx.font = `900 italic ${labelFontSize}px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
-                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 3);
+                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
                 const parseRichText = (str: string) => {
                     const segments: { text: string; color?: string; bg?: string }[] = [];
