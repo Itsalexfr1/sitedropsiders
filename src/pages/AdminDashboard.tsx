@@ -162,6 +162,20 @@ export function AdminDashboard() {
         }
     }, [isNotificationModalOpen]);
 
+    useEffect(() => {
+        if (isSocialModalOpen) {
+            setIsLoadingSocial(true);
+            apiFetch('/api/news', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(data => {
+                    const sorted = Array.isArray(data) ? data.slice(0, 20) : [];
+                    setSocialRecentArticles(sorted);
+                })
+                .catch(err => console.error("Error fetching news for social:", err))
+                .finally(() => setIsLoadingSocial(false));
+        }
+    }, [isSocialModalOpen]);
+
     const handleSendManualPush = async () => {
         if (!pushCustomTitle || !pushCustomBody) {
             alert('Veuillez remplir le titre et le message.');
@@ -545,22 +559,24 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        { title: "Accueil", description: "Vues & Sections", icon: "LayoutDashboard", link: "/admin/home", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", link: "social-studio", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
-        { title: "News", description: "Actualités", icon: "FileText", link: "/admin/manage?tab=News", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
-        { title: "Musique", description: "Articles Musique", icon: "Music", link: "/admin/manage?tab=Musique", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
+        { title: "News", description: "Actualités", icon: "FileText", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "publications", baseColor: "blue", columns: 1 },
+        { title: "Musique", description: "Articles Musique", icon: "Music", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "publications", baseColor: "green", columns: 1 },
         { title: "Interviews", description: "Gérer & Créer", icon: "Mic", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "publications", baseColor: "purple", columns: 1 },
-        { title: "Récaps", description: "Reportages", icon: "Video", link: "/admin/manage?tab=Recaps", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", link: "/admin/manage?tab=Agenda", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
-        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", link: "/admin/manage?tab=Communauté", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Modération", description: "Photos Communauté", icon: "CheckCircle2", link: "moderation", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", link: "push-notifications", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
-        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", link: "/admin/stats", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Playlists Accueil", icon: "Music", link: "/admin/spotify", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
-        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", link: "/admin/shop", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", link: "/newsletter/studio", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "/admin/messages", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
-        { title: "Team", description: "Dream Team", icon: "Users", link: "/admin/team", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 }
+        { title: "Récaps", description: "Reportages", icon: "Video", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "publications", baseColor: "red", columns: 1 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Modération", description: "Validation Photos", icon: "CheckCircle2", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
+        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
+        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "Team", description: "Dream Team", icon: "Users", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "Éditeurs", description: "Gérer l'équipe", icon: "Lock", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Mots de passe", description: "Sécurité Accès", icon: "Settings2", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "superadmin", baseColor: "purple", columns: 1 }
     ];
 
     const handleLogin = async (e: React.FormEvent) => {
@@ -1168,27 +1184,21 @@ export function AdminDashboard() {
                                         } else if (action.title === 'Notifications') {
                                             e.preventDefault();
                                             setIsNotificationModalOpen(true);
+                                        } else if (action.title === 'Accueil') {
+                                            e.preventDefault();
+                                            setIsAccueilModalOpen(true);
+                                        } else if (action.title === 'Statistiques') {
+                                            e.preventDefault();
+                                            setIsStatsModalOpen(true);
+                                        } else if (action.title === 'Spotify') {
+                                            e.preventDefault();
+                                            setIsSpotifyModalOpen(true);
+                                        } else if (action.title === 'MESSAGERIE & CONTACT') {
+                                            e.preventDefault();
+                                            setIsMessagesModalOpen(true);
                                         } else if (action.title === 'Social Studio') {
                                             e.preventDefault();
-                                            const fetchSocialContent = async () => {
-                                                setIsLoadingSocial(true);
-                                                setIsSocialModalOpen(true);
-                                                try {
-                                                    const res = await fetch('/api/news');
-                                                    if (res.ok) {
-                                                        const data = await res.json();
-                                                        setSocialRecentArticles(data.slice(0, 10));
-                                                    } else {
-                                                        const { default: news } = await import('../data/news.json');
-                                                        setSocialRecentArticles(news.slice(0, 10));
-                                                    }
-                                                } catch (e: any) {
-                                                    console.error("Error fetching social content:", e);
-                                                } finally {
-                                                    setIsLoadingSocial(false);
-                                                }
-                                            };
-                                            fetchSocialContent();
+                                            setIsSocialModalOpen(true);
                                         }
                                     }}
                                     className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -1756,7 +1766,10 @@ export function AdminDashboard() {
                                         socialRecentArticles.map(article => (
                                             <button
                                                 key={article.id}
-                                                onClick={() => setSelectedSocialArticle(article)}
+                                                onClick={() => {
+                                                    setSelectedSocialArticle(article);
+                                                    setIsSocialModalOpen(false);
+                                                }}
                                                 className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all group text-left"
                                             >
                                                 <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 flex-shrink-0">
@@ -3719,6 +3732,8 @@ export function AdminDashboard() {
                     </div>
                 )}
             </AnimatePresence>
+
+
 
             <ModerationModal
                 isOpen={isModerationModalOpen}

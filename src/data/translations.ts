@@ -24,7 +24,13 @@ export type TranslationKey =
     | 'interviews.title_prefix' | 'recaps.title_prefix' | 'communaute.title_prefix' | 'news.title_prefix'
     | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage'
     | 'article_reader.play' | 'article_reader.stop' | 'article_reader.playing'
-    | 'galerie.badge' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_portraits' | 'galerie.filter_others';
+    | 'galerie.badge' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_portraits' | 'galerie.filter_others'
+    | 'communaute.tab_photos' | 'communaute.tab_quizz' | 'communaute.tab_guide' | 'communaute.tab_covoit' | 'communaute.tab_alerts'
+    | 'communaute.quizz_title' | 'communaute.quizz_subtitle' | 'communaute.quizz_submit_title' | 'communaute.quizz_submit_desc'
+    | 'communaute.blindtest_title' | 'communaute.blindtest_subtitle'
+    | 'communaute.guide_title' | 'communaute.guide_subtitle'
+    | 'communaute.covoit_title' | 'communaute.covoit_subtitle'
+    | 'communaute.alerts_title' | 'communaute.alerts_subtitle';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copié !', en: 'Link copied!' },
@@ -294,5 +300,22 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'galerie.filter_clubs': { fr: 'CLUBS & EVENTS', en: 'CLUBS & EVENTS' },
     'galerie.filter_concerts': { fr: 'CONCERTS', en: 'CONCERTS' },
     'galerie.filter_portraits': { fr: 'PORTRAITS', en: 'PORTRAITS' },
-    'galerie.filter_others': { fr: 'AUTRES', en: 'OTHERS' }
+    'galerie.filter_others': { fr: 'AUTRES', en: 'OTHERS' },
+    'communaute.tab_photos': { fr: 'Photos & Clips', en: 'Photos & Clips' },
+    'communaute.tab_quizz': { fr: 'Quizz & Blind Test', en: 'Quiz & Blind Test' },
+    'communaute.tab_guide': { fr: 'Guide & Avis', en: 'Guide & Reviews' },
+    'communaute.tab_covoit': { fr: 'Covoiturage', en: 'Carpooling' },
+    'communaute.tab_alerts': { fr: 'Alertes Line-up', en: 'Line-up Alerts' },
+    'communaute.quizz_title': { fr: 'DÉFIE LA COMMUNAUTÉ', en: 'CHALLENGE THE COMMUNITY' },
+    'communaute.quizz_subtitle': { fr: 'Teste tes connaissances sur l\'électro, les festivals et tes DJs préférés.', en: 'Test your knowledge about electro, festivals, and your favorite DJs.' },
+    'communaute.quizz_submit_title': { fr: 'PROPOSE TON QUIZZ', en: 'SUBMIT YOUR QUIZ' },
+    'communaute.quizz_submit_desc': { fr: 'Tes questions seront validées par un modérateur.', en: 'Your questions will be validated by a moderator.' },
+    'communaute.blindtest_title': { fr: 'BLIND TEST', en: 'BLIND TEST' },
+    'communaute.blindtest_subtitle': { fr: 'Reconnais les tracks les plus iconiques.', en: 'Recognize the most iconic tracks.' },
+    'communaute.guide_title': { fr: 'GUIDE & AVIS', en: 'GUIDE & REVIEWS' },
+    'communaute.guide_subtitle': { fr: 'Les meilleurs conseils de la communauté pour tes festivals.', en: 'The best community tips for your festivals.' },
+    'communaute.covoit_title': { fr: 'COVOITURAGE', en: 'CARPOOLING' },
+    'communaute.covoit_subtitle': { fr: 'Propose ou trouve un trajet pour ton prochain festival.', en: 'Offer or find a ride for your next festival.' },
+    'communaute.alerts_title': { fr: 'ALERTES LINE-UP', en: 'LINE-UP ALERTS' },
+    'communaute.alerts_subtitle': { fr: 'Ne manque jamais l\'annonce de tes artistes préférés.', en: 'Never miss an announcement for your favorite artists.' }
 };

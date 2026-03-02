@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useLanguage } from '../hooks/useLanguage';
+import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile, Activity,
@@ -206,7 +206,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [bpm, setBpm] = useState(128);
     const [_showDropsShop] = useState(false);
     const [_isListeningForDrops, _setIsListeningForDrops] = useState(true);
-    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'drops-shop' | 'leaderboard' | 'audio' | 'hype'>('chat');
+    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'drops-shop' | 'leaderboard' | 'audio' | 'hype' | 'clips'>('chat');
     const [chatCountryFilter, setChatCountryFilter] = useState('ALL');
     const [forceScroll, setForceScroll] = useState(false);
     const isFirstJoinFetch = useRef(true);

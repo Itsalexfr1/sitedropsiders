@@ -41,6 +41,7 @@ import { AdminMessages } from './pages/AdminMessages';
 import { AdminBanner } from './pages/AdminBanner';
 import { Contact } from './pages/Contact';
 import { PhotoSubmission } from './pages/PhotoSubmission';
+import { SocialStudioPage } from './pages/SocialStudioPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 
 import { CookieConsent } from './components/ui/CookieConsent';
@@ -106,6 +107,7 @@ const router = createBrowserRouter([
       { path: "admin/settings", element: <ProtectedRoute><AdminSettings /></ProtectedRoute> },
       { path: "admin/messages", element: <ProtectedRoute><AdminMessages /></ProtectedRoute> },
       { path: "admin/banner", element: <ProtectedRoute><AdminBanner /></ProtectedRoute> },
+      { path: "social-studio", element: <ProtectedRoute><SocialStudioPage /></ProtectedRoute> },
 
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },

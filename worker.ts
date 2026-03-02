@@ -319,7 +319,12 @@ export default {
             path === '/api/chat/delete' ||
             path === '/api/chat/ban' ||
             path === '/api/chat/unban' ||
-            path === '/api/chat/banned'
+            path === '/api/chat/banned' ||
+            path === '/api/media/comment/delete' ||
+            path === '/api/quiz/pending' ||
+            path === '/api/quiz/moderate' ||
+            path === '/api/covoit/delete' ||
+            path === '/api/avis/moderate'
         );
 
         // --- API: PUSH NOTIFICATIONS ---
@@ -2471,6 +2476,199 @@ export default {
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             }
+        }
+
+        // --- API: CARPOOLING ---
+        if (path === '/api/covoit/submit' && request.method === 'POST') {
+            const body = await request.json();
+            const { festival, departure, date, capacity, contact, author } = body;
+            if (!festival || !departure || !date || !contact) {
+                return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+            }
+
+            const newCovoit = {
+                id: Date.now().toString(),
+                festival,
+                departure,
+                date,
+                capacity: capacity || 1,
+                contact,
+                author: author || 'Anonyme',
+                timestamp: new Date().toISOString()
+            };
+
+            const listRaw = await env.CHAT_KV.get('covoit_list') || "[]";
+            const list = JSON.parse(listRaw);
+            list.unshift(newCovoit);
+            // Limit to 50 active trips
+            await env.CHAT_KV.put('covoit_list', JSON.stringify(list.slice(0, 50)));
+
+            return new Response(JSON.stringify({ success: true, covoit: newCovoit }), { status: 200, headers });
+        }
+
+        if (path === '/api/covoit/active' && request.method === 'GET') {
+            const listRaw = await env.CHAT_KV.get('covoit_list') || "[]";
+            return new Response(listRaw, { status: 200, headers });
+        }
+
+        if (path === '/api/covoit/delete' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { id } = await request.json();
+            const listRaw = await env.CHAT_KV.get('covoit_list') || "[]";
+            const list = JSON.parse(listRaw);
+            const updated = list.filter(c => c.id !== id);
+            await env.CHAT_KV.put('covoit_list', JSON.stringify(updated));
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        // --- API: FESTIVAL REVIEWS & GUIDE ---
+        if (path === '/api/avis/submit' && request.method === 'POST') {
+            const body = await request.json();
+            const { festival, ratings, comment, tips, author } = body;
+            if (!festival || !ratings || !author) {
+                return new Response(JSON.stringify({ error: 'Missing mandatory fields' }), { status: 400, headers });
+            }
+
+            const newAvis = {
+                id: Date.now().toString(),
+                festival,
+                ratings, // { organization: 5, sound: 4, food: 3 }
+                comment,
+                tips,
+                author,
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+
+            const pendingRaw = await env.CHAT_KV.get('avis_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            pending.push(newAvis);
+            await env.CHAT_KV.put('avis_pending', JSON.stringify(pending));
+
+            return new Response(JSON.stringify({ success: true, avis: newAvis }), { status: 200, headers });
+        }
+
+        if (path === '/api/avis/active' && request.method === 'GET') {
+            const activeRaw = await env.CHAT_KV.get('avis_active') || "[]";
+            return new Response(activeRaw, { status: 200, headers });
+        }
+
+        if (path === '/api/avis/moderate' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { id, action } = await request.json();
+            const pendingRaw = await env.CHAT_KV.get('avis_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            const index = pending.findIndex(a => a.id === id);
+
+            if (index === -1) return new Response(JSON.stringify({ error: 'Review not found' }), { status: 404, headers });
+
+            const [avis] = pending.splice(index, 1);
+            await env.CHAT_KV.put('avis_pending', JSON.stringify(pending));
+
+            if (action === 'approve') {
+                const activeRaw = await env.CHAT_KV.get('avis_active') || "[]";
+                const active = JSON.parse(activeRaw);
+                avis.status = 'approved';
+                active.unshift(avis);
+                await env.CHAT_KV.put('avis_active', JSON.stringify(active.slice(0, 100)));
+            }
+
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        // --- API: LINE-UP ALERTS ---
+        if (path === '/api/alerts/submit' && request.method === 'POST') {
+            const body = await request.json();
+            const { festival, artist, email, author } = body;
+            if (!festival || !email) {
+                return new Response(JSON.stringify({ error: 'Missing festival or email' }), { status: 400, headers });
+            }
+
+            const newAlert = {
+                id: Date.now().toString(),
+                festival,
+                artist: artist || 'Toute la line-up',
+                email,
+                author: author || 'Anonyme',
+                timestamp: new Date().toISOString()
+            };
+
+            const listRaw = await env.CHAT_KV.get('alerts_list') || "[]";
+            const list = JSON.parse(listRaw);
+            list.unshift(newAlert);
+            await env.CHAT_KV.put('alerts_list', JSON.stringify(list.slice(0, 1000)));
+
+            return new Response(JSON.stringify({ success: true, alert: newAlert }), { status: 200, headers });
+        }
+
+        if (path === '/api/alerts/active' && request.method === 'GET') {
+            const listRaw = await env.CHAT_KV.get('alerts_list') || "[]";
+            return new Response(listRaw, { status: 200, headers });
+        }
+
+        // --- API: QUIZ & BLIND TEST ---
+        if (path === '/api/quiz/submit' && request.method === 'POST') {
+            const body = await request.json();
+            const { type, question, options, correctAnswer, category, audioUrl, author } = body;
+            if (!type || !question || !correctAnswer || !category) {
+                return new Response(JSON.stringify({ error: 'Missing mandatory fields' }), { status: 400, headers });
+            }
+
+            const newQuiz = {
+                id: Date.now().toString(),
+                type,
+                question,
+                options: options || [],
+                correctAnswer,
+                category,
+                audioUrl: audioUrl || '',
+                author: author || 'Anonyme',
+                timestamp: new Date().toISOString(),
+                status: 'pending'
+            };
+
+            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            pending.push(newQuiz);
+            await env.CHAT_KV.put('quiz_pending', JSON.stringify(pending));
+
+            return new Response(JSON.stringify({ success: true, quiz: newQuiz }), { status: 200, headers });
+        }
+
+        if (path === '/api/quiz/pending' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+            return new Response(pendingRaw, { status: 200, headers });
+        }
+
+        if (path === '/api/quiz/moderate' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { id, action } = await request.json();
+            if (!id || !action) return new Response(JSON.stringify({ error: 'Missing id or action' }), { status: 400, headers });
+
+            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            const quizIndex = pending.findIndex(q => q.id === id);
+
+            if (quizIndex === -1) return new Response(JSON.stringify({ error: 'Quiz not found' }), { status: 404, headers });
+
+            const [quiz] = pending.splice(quizIndex, 1);
+            await env.CHAT_KV.put('quiz_pending', JSON.stringify(pending));
+
+            if (action === 'approve') {
+                const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+                const active = JSON.parse(activeRaw);
+                quiz.status = 'approved';
+                active.push(quiz);
+                await env.CHAT_KV.put('quiz_active', JSON.stringify(active));
+            }
+
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/quiz/active' && request.method === 'GET') {
+            const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            return new Response(activeRaw, { status: 200, headers });
         }
 
         if (path.startsWith('/api/')) {

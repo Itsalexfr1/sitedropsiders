@@ -95,21 +95,23 @@ const KitMedia = () => {
         "Tomorrowland Winter (depuis 2019)",
         "Tomorrowland Belgium",
         "EDC Las Vegas",
-        "Elrow Barcelona",
-        "Ultra Europe",
-        "Awakenings",
-        "Elrow Ibiza",
-        "Elrow Las Vegas",
+        "Burning Man 2024/2025",
+        "Ultra Miami & Europe",
+        "Elrow (Ibiza, Barcelona, Las Vegas)",
+        "Untold Festival",
+        "Parookaville",
+        "Sea You Festival",
         "Et de nombreux autres festivals"
     ] : [
         "Tomorrowland Winter (since 2019)",
         "Tomorrowland Belgium",
         "EDC Las Vegas",
-        "Elrow Barcelona",
-        "Ultra Europe",
-        "Awakenings",
-        "Elrow Ibiza",
-        "Elrow Las Vegas",
+        "Burning Man 2024/2025",
+        "Ultra Miami & Europe",
+        "Elrow (Ibiza, Barcelona, Las Vegas)",
+        "Untold Festival",
+        "Parookaville",
+        "Sea You Festival",
         "And many other festivals"
     ], [language]);
 
@@ -121,9 +123,9 @@ const KitMedia = () => {
     ], [language, socials]);
 
     const services: ServiceItem[] = useMemo(() => [
-        { title: language === 'fr' ? "Live Coverage" : "Live Coverage", desc: language === 'fr' ? "Immersion terrain EDM & Techno." : "On-site EDM & Techno immersion.", icon: <Globe className="w-6 h-6" /> },
-        { title: language === 'fr' ? "Artist Focus" : "Artist Focus", desc: language === 'fr' ? "Interviews flash (Reels/Shorts)." : "Flash interviews (Reels/Shorts).", icon: <Users className="w-6 h-6" /> },
-        { title: language === 'fr' ? "Storytelling" : "Storytelling", desc: language === 'fr' ? "Reportages photo/vidéo haute fidélité." : "High-fidelity photo/video reporting.", icon: <Instagram className="w-6 h-6" /> },
+        { title: language === 'fr' ? "Social Studio" : "Social Studio", desc: language === 'fr' ? "Studio de création de contenu intelligent pour réseaux sociaux." : "Intelligent content creation studio for social media.", icon: <Zap className="w-6 h-6" /> },
+        { title: language === 'fr' ? "Live Takeover" : "Live Takeover", desc: language === 'fr' ? "Système de direct immersif avec interaction temps-réel." : "Immersive live system with real-time interaction.", icon: <ExternalLink className="w-6 h-6" /> },
+        { title: language === 'fr' ? "Community Hub" : "Community Hub", desc: language === 'fr' ? "Quiz, Blind Test et espace communautaire engagé." : "Quiz, Blind Test and engaged community space.", icon: <Users className="w-6 h-6" /> },
         { title: language === 'fr' ? "Interviews" : "Interviews", desc: language === 'fr' ? "Rencontres exclusives avec les plus grands DJs." : "Exclusive meetings with the world's biggest DJs.", icon: <Mic className="w-6 h-6" /> }
     ], [language]);
 

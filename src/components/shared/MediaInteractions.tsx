@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Share2, MessageSquare, X, Play, Video, Maximize2, Trash2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 
 interface MediaStats {
@@ -70,23 +70,43 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
         } catch (e) { console.error(e); }
     };
 
+    const handleSocialShare = async (platform: 'instagram' | 'tiktok') => {
+        try {
+            await fetch('/api/media/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, id, platform })
+            });
+
+            const shareUrl = imageUrl || id;
+            const message = type === 'photo' ? "Check cette photo sur Dropsiders !" : "Check ce clip sur Dropsiders !";
+
+            if (navigator.share) {
+                await navigator.share({ title: 'Dropsiders', text: message, url: shareUrl });
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                alert("Lien copié ! Ouvre " + platform + " pour partager.");
+            }
+            setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
+        } catch (e) { console.error(e); }
+    };
+
     const handleShare = async () => {
         try {
-            const res = await fetch('/api/media/share', {
+            await fetch('/api/media/share', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type, id })
             });
-            const data = await res.json();
-            if (data.success) {
-                setStats(prev => ({ ...prev, shares: data.shares }));
-                if (navigator.share) {
-                    await navigator.share({ url: id });
-                } else {
-                    navigator.clipboard.writeText(id);
-                    alert("Lien copié !");
-                }
+
+            const shareUrl = imageUrl || id;
+            if (navigator.share) {
+                await navigator.share({ title: 'Dropsiders', url: shareUrl });
+            } else {
+                navigator.clipboard.writeText(shareUrl);
+                alert("Lien copié !");
             }
+            setStats(prev => ({ ...prev, shares: prev.shares + 1 }));
         } catch (e) { console.error(e); }
     };
 
@@ -175,10 +195,22 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                             <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">{stats.likes} Likes</span>
                         </button>
                         <button onClick={handleShare} className="flex flex-col items-center gap-1.5 group">
-                            <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-neon-cyan/20 transition-all text-gray-400 group-hover:text-neon-cyan">
+                            <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-white/10 transition-all text-gray-400 group-hover:text-white">
                                 <Share2 className="w-7 h-7" />
                             </div>
                             <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">{stats.shares} Shares</span>
+                        </button>
+                        <button onClick={() => handleSocialShare('instagram')} className="flex flex-col items-center gap-1.5 group">
+                            <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-pink-500/20 transition-all text-gray-400 group-hover:text-pink-500">
+                                <Instagram className="w-7 h-7" />
+                            </div>
+                            <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">Instagram</span>
+                        </button>
+                        <button onClick={() => handleSocialShare('tiktok')} className="flex flex-col items-center gap-1.5 group">
+                            <div className="p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-cyan-500/20 transition-all text-gray-400 group-hover:text-cyan-400">
+                                <Music className="w-7 h-7" />
+                            </div>
+                            <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-tighter transition-colors">TikTok</span>
                         </button>
                         <button onClick={() => setShowComments(!showComments)} className="flex flex-col items-center gap-1.5 group">
                             <div className={`p-4 bg-white/5 rounded-[1.25rem] group-hover:bg-neon-green/20 transition-all ${showComments ? 'text-neon-green bg-neon-green/10 shadow-[0_0_20px_rgba(52,211,153,0.2)]' : 'text-gray-400'} group-hover:text-neon-green`}>
