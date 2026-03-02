@@ -2,8 +2,8 @@
   {
     "id": 1,
     "title": "Récap : Escape Psycho Circus 2025",
-    "date": "2025-11-05T22:53:00+02:00",
-    "summary": "Récap : Escape Psycho Circus 2025  Escape Psycho Circus 2025 : une édition qui a mis le feu dès le premier jour ! L'Escape Psycho Circus 2025 restera dans les annales...",
+    "date": "2026-03-02T03:21",
+    "summary": "Récap : Escape Psycho Circus 2025 Escape Psycho Circus 2025 : une édition qui a mis le feu dès le premier jour ! L' Escape Psycho Circus 2025 restera dans les annales comme une édition particulièremen...",
     "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810433/dropsiders/images/mqewg4ayj5zaed0vcjct.jpg",
     "images": [
       "https://res.cloudinary.com/djnvjsmvr/image/upload/v1771810434/dropsiders/images/pxssukglqdxodulegkkx.jpg",
@@ -20,10 +20,13 @@
     "link": "https://www.dropsiders.fr/recaps/2802106_recap-escape-psycho-circus-2025",
     "category": "Recaps",
     "content": "",
-    "festival": "",
-    "location": "",
+    "festival": "ESCAPE PSYCHO",
+    "location": "SAN BERNARDINO",
     "isFeatured": false,
-    "author": "Alex"
+    "author": "Alex",
+    "country": "USA",
+    "showVideo": true,
+    "year": "2025"
   },
   {
     "id": 2,
