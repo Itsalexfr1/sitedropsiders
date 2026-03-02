@@ -44,11 +44,11 @@
   "shop_password": "",
   "kit_media_password": "dropsiders",
   "announcement_banner": {
-    "enabled": false,
+    "enabled": true,
     "text": "BIENVENUE SUR DROPSIDERS V2 - LA PLATEFORME INTERACTIVE  CONSACRÉE AUX FESTIVALS ET A LA MUSIQUE ELECTRONIQUE - RECRUREMENT OUVERT ",
     "text_en": "WELCOME TO DROPSIDERS V2 - THE PLATFORM",
     "color": "#ffffff",
-    "bgColor": "#ff0033",
+    "bgColor": "#0033ff",
     "size": "medium",
     "link": "/contact"
   }
