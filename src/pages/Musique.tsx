@@ -160,7 +160,8 @@ export function Musique() {
                     ]
                 },
                 {
-                    id: '1001-trending-4', rank: 4, title: 'ARMIN VAN BUUREN @ 25 YEARS CELEBRATION SET', artist: 'ARMIN VAN BUUREN', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/armin-van-buuren-25-years-celebration-set-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-27.html',
+                    id: '1001-trending-4', rank: 4, title: 'ARMIN VAN BUUREN @ 25 YEARS CELEBRATION SET', artist: 'ARMIN VAN BUUREN', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k927k/armin-van-buuren-25-years-celebration-set-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-27.html',
+                    embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
                     tracks: [
                         { title: 'Communication (Classic Mix)', artist: 'Armin van Buuren', time: '00:00' },
                         { title: 'Shivers', artist: 'Armin van Buuren', time: '06:15' },
@@ -176,32 +177,33 @@ export function Musique() {
                     ]
                 },
                 {
-                    id: '1001-trending-6', rank: 6, title: 'TIËSTO - PRISMATIC 009', artist: 'TIËSTO', label: 'MUSICAL FREEDOM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/tiesto-prismatic-009-2026-02-28.html',
+                    id: '1001-trending-6', rank: 6, title: 'TIËSTO - PRISMATIC 009', artist: 'TIËSTO', label: 'MUSICAL FREEDOM', url: 'https://www.1001tracklists.com/tracklist/2v6n9zpk/tiesto-prismatic-009-2026-02-28.html',
+                    embedUrl: 'https://www.youtube.com/embed/YpIit22rW7g',
                     tracks: [
                         { title: 'Beautiful Places', artist: 'Tiësto & Brieanna Grace', time: '00:00' },
                         { title: 'BOOM', artist: 'Tiësto', time: '04:12' }
                     ]
                 },
                 {
-                    id: '1001-trending-7', rank: 7, title: 'RICHARD DURAND @ AREA TWO, ASOT FESTIVAL', artist: 'RICHARD DURAND', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/richard-durand-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    id: '1001-trending-7', rank: 7, title: 'RICHARD DURAND @ AREA TWO, ASOT FESTIVAL', artist: 'RICHARD DURAND', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8wk1/richard-durand-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
                     tracks: [
                         { title: 'Always You (Richard Durand Remix)', artist: 'Armin van Buuren', time: '00:00' }
                     ]
                 },
                 {
-                    id: '1001-trending-8', rank: 8, title: 'COSMIC GATE @ AREA TWO, ASOT FESTIVAL', artist: 'COSMIC GATE', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/cosmic-gate-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    id: '1001-trending-8', rank: 8, title: 'COSMIC GATE @ AREA TWO, ASOT FESTIVAL', artist: 'COSMIC GATE', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8wj1/cosmic-gate-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
                     tracks: [
                         { title: 'Exploration of Space (2026 Edit)', artist: 'Cosmic Gate', time: '00:00' }
                     ]
                 },
                 {
-                    id: '1001-trending-9', rank: 9, title: 'NIFRA @ AREA ONE, ASOT FESTIVAL', artist: 'NIFRA', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/nifra-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    id: '1001-trending-9', rank: 9, title: 'NIFRA @ AREA ONE, ASOT FESTIVAL', artist: 'NIFRA', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8vh1/nifra-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
                     tracks: [
                         { title: 'Resistance', artist: 'Nifra', time: '00:00' }
                     ]
                 },
                 {
-                    id: '1001-trending-10', rank: 10, title: 'ANDREW RAYEL PRES. EXTASIA @ AREA TWO, ASOT FESTIVAL', artist: 'ANDREW RAYEL', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/andrew-rayel-pres.-extasia-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    id: '1001-trending-10', rank: 10, title: 'ANDREW RAYEL PRES. EXTASIA @ AREA TWO, ASOT FESTIVAL', artist: 'ANDREW RAYEL', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8wl1/andrew-rayel-pres.-extasia-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
                     tracks: [
                         { title: 'Extasia (Official Anthem)', artist: 'Andrew Rayel', time: '00:00' }
                     ]
@@ -222,7 +224,13 @@ export function Musique() {
 
     const handleTrackClick = (track: Track) => {
         if (activeTab === '1001tracklists') {
-            window.open(track.url, '_blank');
+            setSelectedTracklist({
+                id: track.id,
+                title: track.title,
+                artist: track.artist,
+                tracks: track.tracks || [],
+                embedUrl: track.embedUrl
+            });
             setSelectedTrack(null);
         } else {
             if (selectedTrack?.id === track.id) {

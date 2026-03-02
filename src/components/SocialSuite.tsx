@@ -161,7 +161,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
 
             canvas.width = 1080;
-            canvas.height = activeTab === 'REEL' ? 1920 : 1440;
+            canvas.height = activeTab === 'REEL' ? 1920 : 1350;
             const safeSize = activeTab === 'PUBLICATION' ? 1050 : 1080;
             const safeTop = (canvas.height - safeSize) / 2;
             const safeBottom = safeTop + safeSize;
