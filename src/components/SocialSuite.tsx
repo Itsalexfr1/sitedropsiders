@@ -337,7 +337,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
             } else {
-                const fontSize = activeTab === 'PUBLICATION' ? 57 : 78; const lineHeight = fontSize * 1.2;
+                const fontSize = activeTab === 'PUBLICATION' ? 52 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.toUpperCase().split('\n');
                 let lines: string[] = [];
@@ -352,8 +352,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = activeTab === 'PUBLICATION' ? safeTop + 300 : safeBottom - 320;
-                const startY = labelY + 160;
+                const labelY = activeTab === 'PUBLICATION' ? 680 : safeBottom - 320;
+                const startY = labelY + 130;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 50;
 
