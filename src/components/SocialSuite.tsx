@@ -162,8 +162,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             canvas.width = 1080;
             canvas.height = activeTab === 'REEL' ? 1920 : 1440;
-            const safeTop = (activeTab === 'REEL') ? (canvas.height - 1080) / 2 : (canvas.height - 1080) / 2;
-            const safeBottom = safeTop + 1080;
+            const safeSize = activeTab === 'PUBLICATION' ? 1050 : 1080;
+            const safeTop = (canvas.height - safeSize) / 2;
+            const safeBottom = safeTop + safeSize;
 
             if (bgVideo) {
                 const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);

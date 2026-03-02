@@ -37,6 +37,7 @@ export function PhotoSubmission() {
                 userName: formData.get('userName') as string,
                 festivalName: formData.get('festivalName') as string,
                 instagram: formData.get('instagram') as string,
+                anecdote: formData.get('anecdote') as string,
                 imageUrl: imageUrl,
                 timestamp: new Date().toISOString()
             };
@@ -119,6 +120,14 @@ export function PhotoSubmission() {
                                             name="instagram"
                                             placeholder="TON INSTAGRAM (POUR TE TAGUER)"
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
+                                        />
+                                    </div>
+                                    <div className="relative group">
+                                        <textarea
+                                            name="anecdote"
+                                            placeholder="UNE ANECDOTE SUR CE MOMENT ? (OPTIONNEL)"
+                                            rows={3}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all resize-none"
                                         />
                                     </div>
                                 </div>

@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useLanguage } from '../hooks/useLanguage';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, LayoutGrid, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
-    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download, CircleStop, Loader2, Link
+    ChevronUp, ChevronDown, VolumeX, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, Download, CircleStop, Loader2, Link,
+    Star, ShieldCheck
 } from 'lucide-react';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 import { Downloader } from './Downloader';
@@ -116,6 +118,7 @@ const StyledCheckbox = ({ checked, onChange, label, sublabel, color = 'red' }: {
 };
 
 export function TakeoverPage({ settings }: TakeoverProps) {
+    const { t } = useLanguage();
     const [currentTime, setCurrentTime] = useState(new Date());
     const adminAuth = localStorage.getItem('admin_auth') === 'true';
     const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
@@ -229,6 +232,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [downloaderUrl, setDownloaderUrl] = useState('');
     const [clipTitle, setClipTitle] = useState('');
     const [clipDuration, setClipDuration] = useState(30);
+    const [isFeatured, setIsFeatured] = useState(false);
+    const [keepForever, setKeepForever] = useState(false);
+    const recordedClipsBlobs = useRef<Record<string, string>>({});
     const processedGiveIds = useRef<Set<number>>(new Set());
 
 
@@ -619,22 +625,64 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [allShopProducts, setAllShopProducts] = useState<any[]>([]);
 
     const handleCreateClip = async () => {
-        setIsClipping(true);
-        setClipProgress(0);
+        if (!navigator.mediaDevices || !(navigator.mediaDevices as any).getDisplayMedia) {
+            return alert("Votre navigateur ne supporte pas la capture vidéo.");
+        }
 
-        let progress = 0;
-        const interval = setInterval(async () => {
-            progress += 5;
-            setClipProgress(progress);
-            if (progress >= 100) {
-                clearInterval(interval);
-                setIsClipping(false);
+        try {
+            const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+                video: { frameRate: 30 },
+                audio: true,
+                selfBrowserSurface: 'include',
+                preferCurrentTab: true
+            });
+
+            setIsClipping(true);
+            setClipProgress(0);
+
+            const chunks: Blob[] = [];
+            const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')
+                ? 'video/webm;codecs=vp9,opus'
+                : 'video/webm';
+
+            const recorder = new MediaRecorder(stream, { mimeType });
+
+            recorder.ondataavailable = (e) => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
+
+            recorder.onstop = async () => {
+                const blob = new Blob(chunks, { type: mimeType });
+                const blobUrl = URL.createObjectURL(blob);
                 const clipId = Math.random().toString(36).substr(2, 9);
-                const currentVideoId = channelItems[activeVideoIndex]?.id;
-                const player = playersRef.current[currentVideoId];
-                const currentTimeSecs = player && typeof player.getCurrentTime === 'function' ? Math.floor(player.getCurrentTime()) : 0;
 
+                recordedClipsBlobs.current[clipId] = blobUrl;
+
+                const currentVideoId = channelItems[activeVideoIndex]?.id || settings.youtubeId;
                 const artist = fluxCurrentArtist?.artist || settings.currentArtist || "Live";
+
+                // Upload to Cloudinary
+                let remoteUrl = '';
+                try {
+                    const formData = new FormData();
+                    formData.append('file', blob);
+                    formData.append('upload_preset', 'dropsiders_unsigned');
+                    formData.append('folder', 'dropsiders/clips');
+                    formData.append('tags', keepForever ? 'permanent_clip' : 'auto_delete_90_days'); // System tag for cleanup or permanent
+                    if (isFeatured) formData.append('tags', 'featured_clip');
+
+                    const cldRes = await fetch(`https://api.cloudinary.com/v1_1/djnvjsmvr/video/upload`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const cldData = await cldRes.json();
+                    if (cldData.secure_url) {
+                        remoteUrl = cldData.secure_url;
+                    }
+                } catch (err) {
+                    console.error('Cloudinary upload error:', err);
+                }
+
                 const newClip = {
                     id: clipId,
                     videoId: currentVideoId,
@@ -644,60 +692,82 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     channelId: currentVideoId,
                     creator: pseudo || 'Anonyme',
-                    url: `https://youtube.com/watch?v=${currentVideoId}&t=${currentTimeSecs}`
+                    url: remoteUrl || blobUrl,
+                    isLocal: !remoteUrl,
+                    isFeatured: isFeatured,
+                    keepForever: keepForever
                 };
 
-                // Save to API (Centralized Clips)
                 try {
                     await fetch('/api/clips/create', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(newClip)
                     });
-                } catch (e) {
-                    console.error('Failed to save clip to API', e);
-                }
+                } catch (e) { }
 
-                const updatedClips = [newClip, ...clips];
-                setClips(updatedClips);
-                localStorage.setItem('user_clips', JSON.stringify(updatedClips));
+                setClips(prev => [newClip, ...prev]);
+                setUserDrops(d => d + 25);
 
-                // Send bot message with clip link
                 try {
-                    // Reward Drops for clip generation
-                    setUserDrops(d => {
-                        const newD = d + 25; // 25 Drops for a clip
-                        localStorage.setItem('user_drops', String(newD));
-                        return newD;
-                    });
                     await fetch('/api/chat/messages', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             pseudo: 'DROPSIDERS BOT',
-                            message: `🎬 @${pseudo.toUpperCase()} vient de clipper un moment épique ! Regardez-le ici : [VOIR LE CLIP](#clip-${clipId})`,
+                            message: `🎬 @${pseudo.toUpperCase()} vient de capturer un moment en direct ! [VOIR LE CLIP](#clip-${clipId})`,
                             country: 'FR',
                             isBot: true,
                             color: '#00ffcc',
                             channel: currentVideoId
                         })
                     });
-                } catch (e) {
-                    console.error('Failed to send clip bot message', e);
+                } catch (e) { }
+
+                setIsClipping(false);
+                setClipProgress(0);
+                setClipTitle('');
+                setIsFeatured(false);
+                setKeepForever(false);
+                stream.getTracks().forEach((t: MediaStreamTrack) => t.stop());
+            };
+
+            recorder.start();
+
+            let elapsed = 0;
+            const step = 100;
+            const total = clipDuration * 1000;
+            const progressInterval = setInterval(() => {
+                elapsed += step;
+                setClipProgress(Math.min(100, Math.floor((elapsed / total) * 100)));
+                if (elapsed >= total) {
+                    clearInterval(progressInterval);
+                    if (recorder.state === 'recording') recorder.stop();
                 }
-            }
-        }, 150);
+            }, step);
+
+        } catch (err) {
+            setIsClipping(false);
+            setClipProgress(0);
+        }
     };
 
+
+
+
+
+
+
     const handleDownloadClip = (clip: any) => {
-        const videoId = clip.videoId || clip.channelId || settings.youtubeId;
-        if (!videoId) return alert("Erreur: ID Vidéo manquant");
+        const url = clip.isLocal ? clip.url : clip.url; // Use blob URL if local
+        if (!url) return alert("Fichier introuvable");
 
-        // notify user
-        alert(`Préparation du téléchargement HD pour "${clip.title}"...\nLe flux est en cours de traitement.`);
-
-        // For demonstration/finishing the feature, we could redirect to a downloader service (optional)
-        // window.open(`https://en.savefrom.net/1-youtube-video-downloader-386.html?url=${encodeURIComponent(downloadUrl)}`, '_blank');
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${clip.title.replace(/\s+/g, '_')}_${clip.id}.webm`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
     // Load announcement banner settings from API
@@ -3152,6 +3222,37 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         </div>
                                                     </div>
+
+                                                    {/* NEW OPTIONS: FEATURED & PERMANENT - MODS ONLY */}
+                                                    {hasModPowers && (
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                                                            <button
+                                                                onClick={() => setIsFeatured(!isFeatured)}
+                                                                className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${isFeatured ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:border-white/10'}`}
+                                                            >
+                                                                <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${isFeatured ? 'bg-neon-red border-neon-red' : 'border-white/20'}`}>
+                                                                    {isFeatured && <Star className="w-3 h-3 text-white fill-white" />}
+                                                                </div>
+                                                                <div className="flex flex-col text-left">
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest">Mettre à la une</span>
+                                                                    <span className="text-[8px] font-bold text-gray-600 uppercase">Affiché en priorité</span>
+                                                                </div>
+                                                            </button>
+
+                                                            <button
+                                                                onClick={() => setKeepForever(!keepForever)}
+                                                                className={`flex items-center gap-3 p-4 rounded-2xl border transition-all ${keepForever ? 'bg-neon-cyan/20 border-neon-cyan text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:border-white/10'}`}
+                                                            >
+                                                                <div className={`w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${keepForever ? 'bg-neon-cyan border-neon-cyan' : 'border-white/20'}`}>
+                                                                    {keepForever && <ShieldCheck className="w-3 h-3 text-black" />}
+                                                                </div>
+                                                                <div className="flex flex-col text-left">
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest">Garder à vie</span>
+                                                                    <span className="text-[8px] font-bold text-gray-600 uppercase">Pas de suppression auto</span>
+                                                                </div>
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <button
                                                     onClick={handleCreateClip}
@@ -4770,6 +4871,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 { id: 'audio', icon: Mic, label: 'Audio' },
                                                 { id: 'shop', icon: ShoppingBag, label: 'Shop' },
                                                 { id: 'leaderboard', icon: Trophy, label: 'Top' },
+                                                { id: 'clips', icon: Video, label: 'Clips' },
                                                 ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops' }] : [])
                                             ].map(tab => (
                                                 <button
@@ -4789,7 +4891,94 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <div className="relative flex-1 flex flex-col min-h-0">
                                             <GlitchTransition trigger={activeChatTab} />
                                             <AnimatePresence mode="wait">
-                                                {activeChatTab === 'drops-shop' ? (
+                                                {activeChatTab === 'clips' ? (
+                                                    <motion.div
+                                                        key="clips-view"
+                                                        initial={{ x: 50, opacity: 0 }}
+                                                        animate={{ x: 0, opacity: 1 }}
+                                                        exit={{ x: -50, opacity: 0 }}
+                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                        className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 pb-24"
+                                                    >
+                                                        <div className="flex flex-col gap-3">
+                                                            <div className="p-6 bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-2xl relative overflow-hidden group">
+                                                                <div className="absolute top-0 right-0 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full -mr-12 -mt-12" />
+                                                                <h4 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                    <Video className="w-4 h-4 text-neon-red" /> {t('takeover.clips.title')}
+                                                                </h4>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{t('takeover.clips.subtitle')}</p>
+                                                            </div>
+
+                                                            {clips.length === 0 ? (
+                                                                <div className="py-12 flex flex-col items-center justify-center text-center opacity-40">
+                                                                    <Video className="w-12 h-12 mb-4" />
+                                                                    <p className="text-[10px] font-black uppercase tracking-widest">{t('takeover.clips.empty')}</p>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="grid grid-cols-1 gap-3">
+                                                                    {clips
+                                                                        .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
+                                                                        .map(clip => (
+                                                                            <div key={clip.id} className={`group relative bg-[#111] border rounded-2xl p-3 transition-all ${clip.isFeatured ? 'border-neon-red/40 bg-neon-red/5' : 'border-white/5 hover:border-white/10'}`}>
+                                                                                {clip.isFeatured && (
+                                                                                    <div className="absolute -top-2 -left-2 z-10 bg-neon-red text-[7px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,0,51,0.3)] text-white">
+                                                                                        FEATURED
+                                                                                    </div>
+                                                                                )}
+                                                                                <div className="flex gap-4">
+                                                                                    <div className="w-24 aspect-video bg-black rounded-lg overflow-hidden relative shadow-lg">
+                                                                                        {clip.isLocal ? (
+                                                                                            <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                                                                                <span className="text-[8px] font-black text-neon-red opacity-60">LOCAL</span>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <video src={clip.url} className="w-full h-full object-cover opacity-60" />
+                                                                                        )}
+                                                                                        <button
+                                                                                            onClick={() => {
+                                                                                                setActiveClipToPlay(clip);
+                                                                                                setShowClipPlayer(true);
+                                                                                            }}
+                                                                                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                        >
+                                                                                            <div className="w-8 h-8 rounded-full bg-neon-red flex items-center justify-center shadow-lg shadow-neon-red/20">
+                                                                                                <Maximize className="w-4 h-4 text-white" />
+                                                                                            </div>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div className="flex-1 min-w-0">
+                                                                                        <h5 className="text-[10px] font-black text-white uppercase truncate mb-1">{clip.title}</h5>
+                                                                                        <div className="flex items-center gap-2 text-[8px] font-bold text-gray-500 uppercase">
+                                                                                            <span className="text-neon-cyan">@{clip.creator}</span>
+                                                                                            <span>•</span>
+                                                                                            <span>{clip.date}</span>
+                                                                                        </div>
+                                                                                        <div className="mt-2 flex gap-2">
+                                                                                            <button
+                                                                                                onClick={() => {
+                                                                                                    setActiveClipToPlay(clip);
+                                                                                                    setShowClipPlayer(true);
+                                                                                                }}
+                                                                                                className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest transition-all"
+                                                                                            >
+                                                                                                {t('takeover.clips.watch')}
+                                                                                            </button>
+                                                                                            <button
+                                                                                                onClick={() => handleDownloadClip(clip)}
+                                                                                                className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-md text-[8px] font-black text-gray-400 hover:text-white uppercase tracking-widest transition-all"
+                                                                                            >
+                                                                                                {t('takeover.clips.dl')}
+                                                                                            </button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                ) : activeChatTab === 'drops-shop' ? (
                                                     <motion.div
                                                         key="drops-shop-view"
                                                         initial={{ x: 50, opacity: 0 }}
@@ -5667,14 +5856,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                                 </button>
                             </div>
-                            <div className="w-full h-full bg-black">
-                                <iframe
-                                    className="w-full h-full"
-                                    src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
-                                    title="Clip Player"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
+                            <div className="w-full h-full bg-black flex items-center justify-center">
+                                {activeClipToPlay.isLocal ? (
+                                    <video
+                                        src={activeClipToPlay.url}
+                                        controls
+                                        autoPlay
+                                        className="w-full h-full object-contain"
+                                    />
+                                ) : (
+                                    <iframe
+                                        className="w-full h-full"
+                                        src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
+                                        title="Clip Player"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    ></iframe>
+                                )}
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
                                 <div className="flex items-center gap-4">

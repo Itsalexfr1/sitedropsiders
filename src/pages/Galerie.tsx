@@ -1,26 +1,43 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { Camera, Calendar, ArrowRight, Filter, ChevronLeft, ChevronRight, Edit2 } from 'lucide-react';
+import { Camera, Calendar, ArrowRight, Filter, ChevronLeft, ChevronRight, Edit2, Video, Play, Star } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getGalleryLink } from '../utils/slugify';
+import { MediaInteractions } from '../components/shared/MediaInteractions';
 
 const ALBUMS_PER_PAGE = 8;
 
 export function Galerie() {
     const { t } = useLanguage();
     const navigate = useNavigate();
-    const [activeSegment, setActiveSegment] = useState<'OFFICIAL' | 'COMMUNITY'>('OFFICIAL');
+    const [activeSegment, setActiveSegment] = useState<'OFFICIAL' | 'COMMUNITY' | 'CLIPS'>('OFFICIAL');
     const [activeCategory, setActiveCategory] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const playHoverSound = useHoverSound();
     const [isAdmin, setIsAdmin] = useState(false);
+    const [clips, setClips] = useState<any[]>([]);
+    const [isLoadingClips, setIsLoadingClips] = useState(false);
+    const [selectedClip, setSelectedClip] = useState<any>(null);
 
     useEffect(() => {
-        setIsAdmin(localStorage.getItem('admin_auth') === 'true');
+        if (activeSegment === 'CLIPS') {
+            setIsLoadingClips(true);
+            fetch('/api/clips')
+                .then(res => res.json())
+                .then(data => {
+                    setClips(data);
+                    setIsLoadingClips(false);
+                })
+                .catch(() => setIsLoadingClips(false));
+        }
+    }, [activeSegment]);
+
+    useEffect(() => {
+        setIsAdmin(localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('modo_auth') === 'true');
     }, []);
 
     const CATEGORIES = [
@@ -48,7 +65,6 @@ export function Galerie() {
 
     const totalPages = Math.ceil(filteredAlbums.length / ALBUMS_PER_PAGE);
 
-    // Reset page when category or segment changes
     useEffect(() => {
         setCurrentPage(1);
     }, [activeCategory, activeSegment]);
@@ -113,7 +129,6 @@ export function Galerie() {
                 </motion.button>
             </motion.div>
 
-            {/* Main Tabs Segment */}
             <div className="flex items-center gap-1 p-1 bg-white/5 rounded-2xl w-fit mb-8">
                 <button
                     onClick={() => setActiveSegment('OFFICIAL')}
@@ -127,9 +142,14 @@ export function Galerie() {
                 >
                     Vos Photos de Festivals
                 </button>
+                <button
+                    onClick={() => setActiveSegment('CLIPS')}
+                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeSegment === 'CLIPS' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                >
+                    {t('communaute.clips_tab')}
+                </button>
             </div>
 
-            {/* Category Filter */}
             <div className="flex flex-wrap items-center gap-4 mb-12">
                 <div className="flex items-center gap-2 text-gray-500 mr-2">
                     <Filter className="w-4 h-4" />
@@ -139,7 +159,6 @@ export function Galerie() {
                     <motion.button
                         key={cat.id}
                         onClick={() => setActiveCategory(cat.id)}
-                        data-cursor-color="neon-red"
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
                         className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 border uppercase ${activeCategory === cat.id
@@ -153,7 +172,6 @@ export function Galerie() {
             </div>
 
             <div className="relative">
-                {/* Left Arrow */}
                 <AnimatePresence>
                     {currentPage > 1 && (
                         <motion.button
@@ -171,7 +189,7 @@ export function Galerie() {
                 <div className="min-h-[600px] w-full overflow-hidden">
                     <AnimatePresence mode="wait" custom={direction}>
                         <motion.div
-                            key={currentPage}
+                            key={activeSegment === 'CLIPS' ? 'clips' : currentPage}
                             custom={direction}
                             variants={variants}
                             initial="enter"
@@ -181,9 +199,84 @@ export function Galerie() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                            className={activeSegment === 'CLIPS' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"}
                         >
-                            {currentAlbums.length > 0 ? (
+                            {activeSegment === 'CLIPS' ? (
+                                clips.length > 0 ? (
+                                    clips
+                                        .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
+                                        .map((clip) => (
+                                            <motion.div
+                                                key={clip.id}
+                                                className={`group relative bg-[#0a0a0a] border rounded-3xl overflow-hidden hover:border-neon-red/50 transition-all duration-500 shadow-2xl ${clip.isFeatured ? 'border-neon-red/30 ring-1 ring-neon-red/20' : 'border-white/5'}`}
+                                            >
+                                                {clip.isFeatured && (
+                                                    <div className="absolute top-4 left-4 z-20 bg-neon-red text-white text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-[0_0_20px_rgba(255,0,51,0.4)] animate-pulse">
+                                                        <Star className="w-3 h-3 fill-white" />
+                                                        À LA UNE
+                                                    </div>
+                                                )}
+                                                <div
+                                                    className="aspect-video relative overflow-hidden bg-black cursor-pointer"
+                                                    onClick={() => setSelectedClip(clip)}
+                                                >
+                                                    <video
+                                                        src={clip.url}
+                                                        className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700"
+                                                        onMouseOver={e => e.currentTarget.play()}
+                                                        onMouseOut={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                                                        muted
+                                                        loop
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                                                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
+                                                        <span className="text-[10px] font-black text-white">{clip.duration}</span>
+                                                    </div>
+                                                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                        <div className="w-16 h-16 rounded-full bg-neon-red flex items-center justify-center shadow-[0_0_30px_rgba(255,0,0,0.5)]">
+                                                            <Play className="w-8 h-8 text-white fill-current" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="p-6">
+                                                    <div className="flex items-center gap-3 mb-4">
+                                                        <div className="w-8 h-8 rounded-full bg-neon-red/10 flex items-center justify-center border border-neon-red/20">
+                                                            <Video className="w-4 h-4 text-neon-red" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-sm font-black text-white uppercase italic tracking-wider line-clamp-1">{clip.title}</h3>
+                                                            <p className="text-[10px] font-bold text-neon-red uppercase tracking-widest mt-0.5">@{clip.creator}</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{clip.date}</span>
+                                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{clip.timestamp}</span>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setSelectedClip(clip)}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black text-white uppercase tracking-widest transition-all"
+                                                        >
+                                                            <Play className="w-3 h-3" /> VOIR
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))
+                                ) : isLoadingClips ? (
+                                    <div className="col-span-full py-32 flex flex-col items-center justify-center">
+                                        <div className="w-12 h-12 border-4 border-neon-red border-t-transparent rounded-full animate-spin mb-4" />
+                                        <p className="text-gray-400 font-display uppercase tracking-widest text-sm">{t('communaute.loading_clips')}</p>
+                                    </div>
+                                ) : (
+                                    <div className="col-span-full py-32 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md">
+                                        <Video className="w-16 h-16 text-gray-700 mb-6" />
+                                        <p className="text-gray-400 font-display uppercase tracking-widest text-lg">{t('communaute.no_clips')}</p>
+                                    </div>
+                                )
+                            ) : currentAlbums.length > 0 ? (
                                 currentAlbums.map((album) => (
                                     <motion.div
                                         key={album.id}
@@ -207,20 +300,13 @@ export function Galerie() {
                                                 to={getGalleryLink(album)}
                                                 className="group relative block aspect-square rounded-3xl overflow-hidden bg-white/5 border border-white/10 hover:border-neon-red hover:shadow-[0_0_35px_rgba(255,17,17,0.4)] transition-all duration-500 shadow-2xl"
                                             >
-                                                {/* Album Cover */}
                                                 <img
                                                     src={album.cover}
                                                     alt={album.title}
                                                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 opacity-100 group-hover:opacity-40"
                                                 />
-
-                                                {/* Overlay Gradient (Repos) */}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
-
-                                                {/* Red Hover Overlay (Hover) */}
                                                 <div className="absolute inset-0 bg-gradient-to-t from-neon-red/90 via-neon-red/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                                                {/* Hover Media (Video/Image) */}
                                                 {(album as any).hoverMedia && (
                                                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
                                                         {((album as any).hoverMedia.toLowerCase().endsWith('.mp4') || (album as any).hoverMedia.toLowerCase().endsWith('.webm')) ? (
@@ -242,8 +328,6 @@ export function Galerie() {
                                                         <div className="absolute inset-0 bg-gradient-to-t from-neon-red/80 via-transparent to-transparent" />
                                                     </div>
                                                 )}
-
-                                                {/* Content */}
                                                 <div className="absolute inset-0 p-8 flex flex-col justify-end transform transition-all duration-500">
                                                     <div className="flex items-center gap-2 mb-3">
                                                         <span className="px-2 py-0.5 bg-neon-red text-white text-[9px] font-black uppercase tracking-wider rounded">
@@ -253,11 +337,9 @@ export function Galerie() {
                                                             {album.images.length}+ {t('communaute.photos_suffix').toUpperCase()}
                                                         </span>
                                                     </div>
-
                                                     <h3 className="text-xl font-display font-black text-white group-hover:text-white transition-colors duration-300 leading-tight uppercase italic tracking-tighter">
                                                         {album.title}
                                                     </h3>
-
                                                     <div className="mt-4 flex items-center justify-between opacity-60 group-hover:opacity-100 transition-all duration-500">
                                                         <div className="flex items-center gap-2 text-white/80">
                                                             <Calendar className="w-3 h-3" />
@@ -281,7 +363,6 @@ export function Galerie() {
                     </AnimatePresence>
                 </div>
 
-                {/* Right Arrow */}
                 <AnimatePresence>
                     {currentPage < totalPages && (
                         <motion.button
@@ -297,46 +378,47 @@ export function Galerie() {
                 </AnimatePresence>
             </div>
 
-            {/* Pagination Controls */}
-            {
-                totalPages > 1 && (
-                    <div className="mt-16 flex justify-center items-center gap-4">
-                        <button
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                            onMouseEnter={playHoverSound}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neon-red hover:border-neon-red transition-all duration-300 group"
-                        >
-                            <ChevronLeft className="w-5 h-5 text-white" />
-                        </button>
-
-                        <div className="flex gap-2">
-                            {[...Array(totalPages)].map((_, i) => (
-                                <button
-                                    key={i + 1}
-                                    onClick={() => handlePageChange(i + 1)}
-                                    onMouseEnter={playHoverSound}
-                                    className={`w-12 h-12 rounded-xl border font-black transition-all duration-300 ${currentPage === i + 1
-                                        ? 'bg-neon-red border-neon-red text-white shadow-[0_0_20px_rgba(255,0,51,0.4)]'
-                                        : 'border-white/10 bg-white/5 text-gray-400 hover:border-neon-red/50 hover:text-white'
-                                        }`}
-                                >
-                                    {i + 1}
-                                </button>
-                            ))}
-                        </div>
-
-                        <button
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                            onMouseEnter={playHoverSound}
-                            className="p-3 rounded-xl border border-white/10 bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-neon-red hover:border-neon-red transition-all duration-300 group"
-                        >
-                            <ChevronRight className="w-5 h-5 text-white" />
-                        </button>
+            {activeSegment !== 'CLIPS' && totalPages > 1 && (
+                <div className="mt-16 flex justify-center items-center gap-4">
+                    <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="p-3 rounded-xl border border-white/10 bg-white/5 disabled:opacity-30 hover:bg-neon-red transition-all"
+                    >
+                        <ChevronLeft className="w-5 h-5 text-white" />
+                    </button>
+                    <div className="flex gap-2">
+                        {[...Array(totalPages)].map((_, i) => (
+                            <button
+                                key={i + 1}
+                                onClick={() => handlePageChange(i + 1)}
+                                className={`w-12 h-12 rounded-xl border font-black transition-all ${currentPage === i + 1 ? 'bg-neon-red border-neon-red text-white' : 'border-white/10 bg-white/5 text-gray-400'}`}
+                            >
+                                {i + 1}
+                            </button>
+                        ))}
                     </div>
-                )
-            }
-        </div >
+                    <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="p-3 rounded-xl border border-white/10 bg-white/5 disabled:opacity-30 hover:bg-neon-red transition-all"
+                    >
+                        <ChevronRight className="w-5 h-5 text-white" />
+                    </button>
+                </div>
+            )}
+
+            <AnimatePresence>
+                {selectedClip && (
+                    <MediaInteractions
+                        type="clip"
+                        id={selectedClip.url}
+                        videoUrl={selectedClip.url}
+                        onClose={() => setSelectedClip(null)}
+                        isAdmin={isAdmin}
+                    />
+                )}
+            </AnimatePresence>
+        </div>
     );
 }

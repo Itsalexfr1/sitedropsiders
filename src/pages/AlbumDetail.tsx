@@ -1,13 +1,13 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Calendar, Share2, Download, Maximize2, X, Edit2, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Mail, Edit2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import { useLanguage } from '../context/LanguageContext';
 import { NewsletterForm } from '../components/widgets/NewsletterForm';
-import { Mail } from 'lucide-react';
 import { extractIdFromSlug } from '../utils/slugify';
 import { trackPageView } from '../utils/analytics';
+import { MediaInteractions } from '../components/shared/MediaInteractions';
 
 export function AlbumDetail() {
     const { t } = useLanguage();
@@ -221,32 +221,15 @@ export function AlbumDetail() {
             {/* Lightbox / Modal */}
             <AnimatePresence>
                 {selectedPhoto && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 md:p-8"
-                        onClick={() => setSelectedPhoto(null)}
-                    >
-                        <button
-                            className="absolute top-8 right-8 p-3 bg-white/10 text-white rounded-full hover:bg-neon-red transition-colors"
-                            onClick={(e) => { e.stopPropagation(); setSelectedPhoto(null); }}
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
-
-                        <motion.img
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            src={selectedPhoto}
-                            alt="Full size"
-                            className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
-                        />
-                    </motion.div>
+                    <MediaInteractions
+                        type="photo"
+                        id={selectedPhoto}
+                        onClose={() => setSelectedPhoto(null)}
+                        isAdmin={isAdmin}
+                    />
                 )}
             </AnimatePresence>
+
             {/* Newsletter Section */}
             <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-20 border-t border-white/5">
                 <motion.div

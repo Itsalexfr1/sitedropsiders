@@ -1,12 +1,16 @@
 import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Video, Calendar, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Video, Calendar, Clock, Play } from 'lucide-react';
+import { MediaInteractions } from '../components/shared/MediaInteractions';
 
 export function ClipsPage() {
     const [clips, setClips] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [selectedClip, setSelectedClip] = useState<any>(null);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
+        setIsAdmin(localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('modo_auth') === 'true');
         const fetchClips = async () => {
             try {
                 const res = await fetch('/api/clips');
@@ -14,7 +18,6 @@ export function ClipsPage() {
                     const data = await res.json();
                     setClips(data);
                 } else {
-                    // Fallback to localStorage if API fails
                     const savedClips = JSON.parse(localStorage.getItem('user_clips') || '[]');
                     setClips(savedClips);
                 }
@@ -62,7 +65,8 @@ export function ClipsPage() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="relative group overflow-hidden bg-white/[0.02] border border-white/10 rounded-3xl p-6 hover:bg-white/[0.04] hover:border-white/20 transition-all"
+                                className="relative group overflow-hidden bg-white/[0.02] border border-white/10 rounded-3xl p-6 hover:bg-white/[0.04] hover:border-white/20 transition-all cursor-pointer"
+                                onClick={() => setSelectedClip(clip)}
                             >
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-0 pointer-events-none" />
                                 <div className="relative z-10">
@@ -85,9 +89,9 @@ export function ClipsPage() {
                                     </div>
 
                                     <div className="flex gap-3">
-                                        <a href={clip.url} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-neon-purple rounded-2xl text-[10px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(188,19,254,0.3)]">
-                                            <Video className="w-4 h-4" /> Voir le Clip
-                                        </a>
+                                        <button className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-neon-purple rounded-2xl text-[10px] font-black uppercase text-white hover:opacity-90 transition-all shadow-[0_0_20px_rgba(188,19,254,0.3)]">
+                                            <Play className="w-4 h-4" /> Voir le Clip
+                                        </button>
                                     </div>
                                 </div>
                             </motion.div>
@@ -95,6 +99,18 @@ export function ClipsPage() {
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {selectedClip && (
+                    <MediaInteractions
+                        type="clip"
+                        id={selectedClip.url}
+                        videoUrl={selectedClip.url}
+                        onClose={() => setSelectedClip(null)}
+                        isAdmin={isAdmin}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

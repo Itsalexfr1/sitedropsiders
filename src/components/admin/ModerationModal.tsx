@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin } from 'lucide-react';
+import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 
 interface Submission {
@@ -8,6 +8,7 @@ interface Submission {
     userName: string;
     festivalName: string;
     instagram?: string;
+    anecdote?: string;
     imageUrl: string;
     timestamp: string;
     status: 'pending' | 'approved' | 'rejected';
@@ -161,6 +162,18 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                                                     {new Date(sub.timestamp).toLocaleDateString()}
                                                 </div>
                                             </div>
+
+                                            {sub.anecdote && (
+                                                <div className="p-3 bg-white/5 border-l-2 border-neon-green rounded-r-xl">
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-2 items-center">
+                                                        <MessageSquare className="w-3 h-3 text-neon-green" />
+                                                        ANECDOTE :
+                                                    </p>
+                                                    <p className="text-[11px] text-white italic leading-relaxed">
+                                                        "{sub.anecdote}"
+                                                    </p>
+                                                </div>
+                                            )}
 
                                             <div className="flex gap-2 pt-2">
                                                 <button

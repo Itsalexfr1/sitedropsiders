@@ -7,7 +7,7 @@ export type TranslationKey =
     | 'recaps.badge' | 'recaps.title' | 'recaps.title_span' | 'recaps.subtitle' | 'recaps.no_recaps'
     | 'interviews.badge' | 'interviews.title' | 'interviews.title_span' | 'interviews.read_more' | 'interviews.no_interviews' | 'interviews.no_interviews_subtitle'
     | 'team.title' | 'team.join_title' | 'team.join_desc' | 'team.contact_btn'
-    | 'communaute.badge' | 'communaute.title' | 'communaute.title_span' | 'communaute.filter_by' | 'communaute.view_album' | 'communaute.no_albums' | 'communaute.photos_suffix' | 'communaute.filter_all' | 'communaute.filter_festivals' | 'communaute.filter_clubs' | 'communaute.filter_concerts' | 'communaute.filter_portraits' | 'communaute.filter_others'
+    | 'communaute.badge' | 'communaute.title' | 'communaute.title_span' | 'communaute.filter_by' | 'communaute.view_album' | 'communaute.no_albums' | 'communaute.photos_suffix' | 'communaute.filter_all' | 'communaute.filter_festivals' | 'communaute.filter_clubs' | 'communaute.filter_concerts' | 'communaute.filter_portraits' | 'communaute.filter_others' | 'communaute.clips_tab' | 'communaute.no_clips' | 'communaute.loading_clips' | 'takeover.clips.title' | 'takeover.clips.subtitle' | 'takeover.clips.watch' | 'takeover.clips.dl' | 'takeover.clips.empty'
     | 'common.read_more' | 'common.by' | 'common.on' | 'common.date' | 'common.location' | 'common.search' | 'common.no_results' | 'common.photo' | 'common.gallery_alt' | 'common.min_read'
     | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results' | 'agenda.infos_tickets' | 'agenda.no_events_selection' | 'agenda.loading'
     | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.video_subtitle' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.other_interviews' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
@@ -127,6 +127,14 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'communaute.filter_concerts': { fr: 'CONCERTS', en: 'CONCERTS' },
     'communaute.filter_portraits': { fr: 'PORTRAITS', en: 'PORTRAITS' },
     'communaute.filter_others': { fr: 'OTHERS', en: 'OTHERS' },
+    'communaute.clips_tab': { fr: 'Vidéos & Clips', en: 'Videos & Clips' },
+    'communaute.no_clips': { fr: 'Aucun clip disponible', en: 'No clips available' },
+    'communaute.loading_clips': { fr: 'Chargement des clips...', en: 'Loading clips...' },
+    'takeover.clips.title': { fr: 'Moments Épiques', en: 'Epic Moments' },
+    'takeover.clips.subtitle': { fr: 'Les clips récents de la communauté', en: 'Recent community clips' },
+    'takeover.clips.watch': { fr: 'REGARDER', en: 'WATCH' },
+    'takeover.clips.dl': { fr: 'DL', en: 'DL' },
+    'takeover.clips.empty': { fr: 'Aucun clip disponible', en: 'No clips available' },
 
     'common.read_more': { fr: 'Lire la suite', en: 'Read more' },
     'common.by': { fr: 'Par', en: 'By' },

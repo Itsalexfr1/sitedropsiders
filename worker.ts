@@ -2278,7 +2278,7 @@ export default {
         if (path === '/api/photos/submit' && request.method === 'POST') {
             try {
                 const body = await request.json();
-                const { imageUrl, userName, festivalName, instagram } = body;
+                const { imageUrl, userName, festivalName, instagram, anecdote } = body;
                 if (!imageUrl) return new Response(JSON.stringify({ error: 'Image URL required' }), { status: 400, headers });
 
                 const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH) || { content: [], sha: null };
@@ -2290,6 +2290,7 @@ export default {
                     userName: userName || 'Anonyme',
                     festivalName: festivalName || 'Inconnu',
                     instagram: instagram || '',
+                    anecdote: anecdote || '',
                     timestamp: new Date().toISOString(),
                     status: 'pending'
                 };
@@ -2352,6 +2353,13 @@ export default {
                     }
 
                     await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha);
+
+                    // Save anecdote to KV
+                    const finalAnecdote = anecdote !== undefined ? anecdote : submission.anecdote;
+                    if (finalAnecdote) {
+                        const safeId = btoa(submission.imageUrl).substring(0, 100).replace(/\//g, '_');
+                        await env.CHAT_KV.put(`anecdote:${safeId}`, finalAnecdote);
+                    }
                 } else if (action === 'reject') {
                     // Physical deletion from Cloudflare R2
                     if (env.R2 && submission.imageUrl.includes('/uploads/')) {
@@ -2374,6 +2382,94 @@ export default {
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+
+        }
+
+        // --- API: MEDIA INTERACTIONS (LIKES, SHARES, COMMENTS) ---
+        if (path.startsWith('/api/media/') && request.method === 'GET') {
+            const type = url.searchParams.get('type'); // 'photo' or 'clip'
+            const id = url.searchParams.get('id'); // ID or URL
+            if (!type || !id) return new Response(JSON.stringify({ error: 'Missing type or id' }), { status: 400, headers });
+
+            const safeId = btoa(id).substring(0, 100).replace(/\//g, '_');
+
+            if (path === '/api/media/stats') {
+                const likes = await env.CHAT_KV.get(`likes:${type}:${safeId}`) || "0";
+                const shares = await env.CHAT_KV.get(`shares:${type}:${safeId}`) || "0";
+                const commentsRaw = await env.CHAT_KV.get(`comments:${type}:${safeId}`) || "[]";
+                const comments = JSON.parse(commentsRaw);
+                const anecdote = await env.CHAT_KV.get(`anecdote:${safeId}`) || null;
+
+                return new Response(JSON.stringify({
+                    likes: parseInt(likes),
+                    shares: parseInt(shares),
+                    commentsCount: comments.length,
+                    anecdote
+                }), { status: 200, headers });
+            }
+
+            if (path === '/api/media/comments') {
+                const commentsRaw = await env.CHAT_KV.get(`comments:${type}:${safeId}`) || "[]";
+                return new Response(commentsRaw, { status: 200, headers });
+            }
+        }
+
+        if (path.startsWith('/api/media/') && request.method === 'POST') {
+            const body = await request.json();
+            const { type, id } = body;
+            if (!type || !id) return new Response(JSON.stringify({ error: 'Missing type or id' }), { status: 400, headers });
+
+            const safeId = btoa(id).substring(0, 100).replace(/\//g, '_');
+
+            if (path === '/api/media/like') {
+                const key = `likes:${type}:${safeId}`;
+                const current = parseInt(await env.CHAT_KV.get(key) || "0");
+                await env.CHAT_KV.put(key, (current + 1).toString());
+                return new Response(JSON.stringify({ success: true, likes: current + 1 }), { status: 200, headers });
+            }
+
+            if (path === '/api/media/share') {
+                const key = `shares:${type}:${safeId}`;
+                const current = parseInt(await env.CHAT_KV.get(key) || "0");
+                await env.CHAT_KV.put(key, (current + 1).toString());
+                return new Response(JSON.stringify({ success: true, shares: current + 1 }), { status: 200, headers });
+            }
+
+            if (path === '/api/media/comment') {
+                const { user, text } = body;
+                if (!user || !text) return new Response(JSON.stringify({ error: 'Missing user or text' }), { status: 400, headers });
+
+                const key = `comments:${type}:${safeId}`;
+                const commentsRaw = await env.CHAT_KV.get(key) || "[]";
+                const comments = JSON.parse(commentsRaw);
+
+                const newComment = {
+                    id: Date.now().toString(),
+                    user,
+                    text,
+                    timestamp: new Date().toISOString()
+                };
+
+                comments.push(newComment);
+                await env.CHAT_KV.put(key, JSON.stringify(comments));
+
+                return new Response(JSON.stringify({ success: true, comment: newComment }), { status: 200, headers });
+            }
+
+            if (path === '/api/media/comment/delete') {
+                if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                const { commentId } = body;
+                if (!commentId) return new Response(JSON.stringify({ error: 'Missing commentId' }), { status: 400, headers });
+
+                const key = `comments:${type}:${safeId}`;
+                const commentsRaw = await env.CHAT_KV.get(key) || "[]";
+                const comments = JSON.parse(commentsRaw);
+
+                const updated = comments.filter(c => c.id !== commentId);
+                await env.CHAT_KV.put(key, JSON.stringify(updated));
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             }
         }
 
