@@ -224,14 +224,7 @@ export function Musique() {
 
     const handleTrackClick = (track: Track) => {
         if (activeTab === '1001tracklists') {
-            setSelectedTracklist({
-                id: track.id,
-                title: track.title,
-                artist: track.artist,
-                tracks: track.tracks || [],
-                embedUrl: track.embedUrl
-            });
-            setSelectedTrack(null);
+            window.open(track.url, '_blank');
         } else {
             if (selectedTrack?.id === track.id) {
                 if (isPlaying) {
