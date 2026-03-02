@@ -64,6 +64,17 @@
     "permission": "publications"
   },
   {
+    "title": "Modération",
+    "description": "Photos Communauté",
+    "icon": "CheckCircle2",
+    "link": "moderation",
+    "color": "border-neon-green/20 hover:border-neon-green",
+    "bg": "bg-neon-green/5",
+    "permission": "superadmin",
+    "baseColor": "#e29d9d",
+    "columns": 1
+  },
+  {
     "title": "Musique",
     "description": "Gérer les articles musique",
     "icon": "Music",
@@ -134,27 +145,5 @@
     "baseColor": "#007aa3",
     "permission": "all",
     "columns": 1
-  },
-  {
-    "title": "Modération",
-    "description": "Photos Communauté",
-    "icon": "CheckCircle2",
-    "link": "moderation",
-    "color": "border-neon-green/20 hover:border-neon-green",
-    "bg": "bg-neon-green/5",
-    "permission": "superadmin",
-    "baseColor": "#e29d9d",
-    "columns": 1
-  },
-  {
-    "title": "LIVE / TAKEOVER",
-    "description": "Réglages & Contrôle Live",
-    "icon": "Youtube",
-    "link": "/live",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "takeover_modo",
-    "baseColor": "red",
-    "columns": 2
   }
 ]
