@@ -229,6 +229,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [downloaderUrl, setDownloaderUrl] = useState('');
     const [clipTitle, setClipTitle] = useState('');
     const [clipDuration, setClipDuration] = useState(30);
+    const processedGiveIds = useRef<Set<number>>(new Set());
+
 
 
 
@@ -629,6 +631,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 setIsClipping(false);
                 const clipId = Math.random().toString(36).substr(2, 9);
                 const currentVideoId = channelItems[activeVideoIndex]?.id;
+                const player = playersRef.current[currentVideoId];
+                const currentTimeSecs = player && typeof player.getCurrentTime === 'function' ? Math.floor(player.getCurrentTime()) : 0;
+
                 const artist = fluxCurrentArtist?.artist || settings.currentArtist || "Live";
                 const newClip = {
                     id: clipId,
@@ -639,7 +644,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     channelId: currentVideoId,
                     creator: pseudo || 'Anonyme',
-                    url: `https://youtube.com/watch?v=${currentVideoId}` // YouTube URL for the downloader
+                    url: `https://youtube.com/watch?v=${currentVideoId}&t=${currentTimeSecs}`
                 };
 
                 // Save to API (Centralized Clips)
@@ -821,6 +826,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [customCountry] = useState('');
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
+    const [pollDuration, setPollDuration] = useState('1'); // '1', '3', '5', 'custom'
+    const [customPollDuration, setCustomPollDuration] = useState(1);
+    const pollTimerRef = useRef<any>(null);
     const isFocusMode = false;
     const [messages, setMessages] = useState<any[]>([]);
     const [newMessage, setNewMessage] = useState('');
@@ -1032,7 +1040,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         }
     }, [activeChatTab, currentVideoId]);
 
-    // Fetch messages from server每 3 seconds
+    // Fetch messages from server periodically (every 3 seconds)
     useEffect(() => {
         const fetchMessages = () => {
             fetch(`/api/chat/messages?channel=${currentVideoId}`)
@@ -1056,6 +1064,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             setActivePoll(null);
                         }
 
+                        // Detect drops for local user
+                        const latestGiveMsg = [...data].reverse().find(m =>
+                            m.pseudo === 'DROPSIDERS BOT' && m.message.includes('💎 DON DE DROPS : @')
+                        );
+                        if (latestGiveMsg && !processedGiveIds.current.has(latestGiveMsg.id)) {
+                            const target = latestGiveMsg.message.split('@')[1].split(' ')[0].toUpperCase();
+                            const amountMatch = latestGiveMsg.message.match(/recevoir (\d+) Drops/);
+                            const amount = amountMatch ? parseInt(amountMatch[1]) : 0;
+                            if (target === pseudo.toUpperCase() && amount > 0) {
+                                setUserDrops(prev => {
+                                    const next = prev + amount;
+                                    localStorage.setItem('user_drops', String(next));
+                                    return next;
+                                });
+                                processedGiveIds.current.add(latestGiveMsg.id);
+                            }
+                        }
+
                         // Auto-scroll
                         const chatContainer = document.getElementById('chat-messages');
                         if (chatContainer) {
@@ -1076,7 +1102,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         fetchMessages();
         const interval = setInterval(fetchMessages, 3000);
         return () => clearInterval(interval);
-    }, [currentVideoId, activePoll, userColor, pseudo, country]); // Added activePoll, userColor, pseudo, country to dependencies for parseLineup to be stable
+    }, [currentVideoId, activePoll, pseudo, forceScroll]);
+    // Added activePoll, userColor, pseudo, country to dependencies for parseLineup to be stable
 
     // Polling Settings periodically to sync Shop, Pinned Message, etc globally
     useEffect(() => {
@@ -1296,6 +1323,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         if (!pollQuestion) return;
         let msg = `📊 SONDAGE : ${pollQuestion}\n`;
         msg += pollOptions.filter(o => o.trim()).map((o, i) => `${i + 1}. ${o}`).join('\n');
+
+        let durationMin = 1;
+        if (pollDuration === 'custom') durationMin = customPollDuration;
+        else durationMin = parseInt(pollDuration);
+
+        msg += `\n⏱️ DURÉE : ${durationMin} MIN`;
         msg += "\n(Répondez avec le chiffre correspondant dans le chat)";
 
         const password = localStorage.getItem('admin_password') || '';
@@ -1318,41 +1351,68 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 channel: currentVideoId
             })
         });
+
+        // Auto-stop poll after duration
+        if (pollTimerRef.current) clearTimeout(pollTimerRef.current);
+        pollTimerRef.current = setTimeout(() => {
+            handleStopPoll();
+        }, durationMin * 60 * 1000);
+
         setPollQuestion("");
         setPollOptions(["", ""]);
     };
 
     const handleStopPoll = async () => {
-        if (!activePoll) return;
+        if (pollTimerRef.current) {
+            clearTimeout(pollTimerRef.current);
+            pollTimerRef.current = null;
+        }
+
+        // Use a ref to check if a poll is actually active, but we'll fetch messages to confirm
+        // To be safe, we just send the stop message
         const password = localStorage.getItem('admin_password') || '';
         const username = localStorage.getItem('admin_user') || 'alex';
         const sessionId = localStorage.getItem('admin_session_id') || '';
 
         // Calculate results before stopping
-        const pollTakers = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim()));
-        const uniquePollTakers = pollTakers.filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
-        const totalVotes = uniquePollTakers.length;
+        // We need to fetch the current messages to get the poll data
+        try {
+            const res = await fetch(`/api/chat/messages?channel=${currentVideoId}`);
+            if (res.ok) {
+                const currentData = await res.json();
+                const latestPollMsg = [...currentData].reverse().find((m: any) => m.pseudo === 'DROPSIDERS' && m.message.startsWith('📊 SONDAGE :'));
 
-        if (totalVotes > 0 && activePoll) {
-            let maxVotes = 0;
-            let winnerIdx = 0;
-            activePoll.options.forEach((_, i) => {
-                const optVotes = uniquePollTakers.filter(m => m.message.trim() === String(i + 1)).length;
-                if (optVotes > maxVotes) {
-                    maxVotes = optVotes;
-                    winnerIdx = i;
+                if (latestPollMsg) {
+                    const lines = latestPollMsg.message.split('\n');
+                    const question = lines[0].replace('📊 SONDAGE : ', '').trim();
+                    const options = lines.slice(1).filter((l: string) => /^\d+\./.test(l)).map((l: string) => l.replace(/^\d+\.\s*/, '').trim());
+
+                    const pollTakers = currentData.filter((m: any) => /^[1-9][0-9]*$/.test(m.message.trim()) && m.id > latestPollMsg.id);
+                    const uniquePollTakers = pollTakers.filter((v: any, i: number, a: any[]) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
+                    const totalVotes = uniquePollTakers.length;
+
+                    if (totalVotes > 0) {
+                        let maxVotes = 0;
+                        let winnerIdx = 0;
+                        options.forEach((_: any, i: number) => {
+                            const optVotes = uniquePollTakers.filter((m: any) => m.message.trim() === String(i + 1)).length;
+                            if (optVotes > maxVotes) {
+                                maxVotes = optVotes;
+                                winnerIdx = i;
+                            }
+                        });
+                        const percentage = Math.round((maxVotes / totalVotes) * 100);
+                        setLastPollResult({
+                            question: question,
+                            winner: options[winnerIdx],
+                            percentage
+                        });
+                        setTimeout(() => setLastPollResult(null), 10000); // Hide after 10s
+                    }
                 }
-            });
-            const percentage = Math.round((maxVotes / totalVotes) * 100);
-            setLastPollResult({
-                question: activePoll.question,
-                winner: activePoll.options[winnerIdx],
-                percentage
-            });
-            setTimeout(() => setLastPollResult(null), 10000); // Hide after 10s
-        }
+            }
+        } catch (e) { }
 
-        // Optional: you can just send a flag message or delete the message
         await fetch('/api/chat/messages', {
             method: 'POST',
             headers: {
@@ -1742,6 +1802,30 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             }
         };
     }, []);
+
+    const handleGiveDrops = async (targetPseudo: string) => {
+        const amount = prompt(`Combien de Drops donner à @${targetPseudo} ?`, "500");
+        if (!amount) return;
+        const num = parseInt(amount);
+        if (isNaN(num)) return alert("Montant invalide");
+
+        try {
+            await fetch('/api/chat/messages', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    pseudo: 'DROPSIDERS BOT',
+                    message: `💎 DON DE DROPS : @${targetPseudo.toUpperCase()} vient de recevoir ${num} Drops de la part de l'administration ! ⚡`,
+                    country: 'FR',
+                    isBot: true,
+                    color: '#00ffcc',
+                    channel: currentVideoId
+                })
+            });
+        } catch (e) {
+            console.error('Failed to give drops', e);
+        }
+    };
 
     const handlePromote = async (name: string) => {
         if (!promotedModos.includes(name.toUpperCase())) {
@@ -2722,9 +2806,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </div>
                                                     <div>
                                                         <h4 className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">{blindTestState.category || 'QUIZ'}</h4>
-                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">Électro Trivia</p>
+                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter mt-1">{blindTestState.question}</p>
                                                     </div>
-                                                    <button onClick={() => setShowBlindTest(false)} className="ml-auto p-2 text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
+                                                    <button onClick={() => setShowBlindTest(false)} className="ml-auto p-2 text-gray-500 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
                                                 </div>
 
                                                 {!blindTestAnswered ? (
@@ -3835,6 +3919,42 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                             >
                                                                                 <Plus className="w-3 h-3" /> Nouvelle Option
                                                                             </button>
+                                                                        )}
+                                                                    </div>
+
+                                                                    <div className="space-y-2">
+                                                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1">Durée du sondage</label>
+                                                                        <div className="flex gap-2">
+                                                                            {['1', '3', '5'].map(d => (
+                                                                                <button
+                                                                                    key={d}
+                                                                                    type="button"
+                                                                                    onClick={() => setPollDuration(d)}
+                                                                                    className={`flex-1 py-2 rounded-xl text-[10px] font-black border transition-all ${pollDuration === d ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                                                                                >
+                                                                                    {d} MIN
+                                                                                </button>
+                                                                            ))}
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={() => setPollDuration('custom')}
+                                                                                className={`flex-1 py-2 rounded-xl text-[10px] font-black border transition-all ${pollDuration === 'custom' ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}
+                                                                            >
+                                                                                PERSO
+                                                                            </button>
+                                                                        </div>
+                                                                        {pollDuration === 'custom' && (
+                                                                            <div className="flex items-center gap-3 mt-2 bg-white/5 border border-white/10 rounded-xl p-2 animate-in fade-in slide-in-from-top-2">
+                                                                                <input
+                                                                                    type="number"
+                                                                                    min="1"
+                                                                                    max="60"
+                                                                                    value={customPollDuration}
+                                                                                    onChange={e => setCustomPollDuration(parseInt(e.target.value) || 1)}
+                                                                                    className="flex-1 bg-transparent border-none text-white text-[10px] font-black outline-none px-2"
+                                                                                />
+                                                                                <span className="text-[9px] font-bold text-gray-500 uppercase pr-2">MINUTES</span>
+                                                                            </div>
                                                                         )}
                                                                     </div>
 
@@ -5401,6 +5521,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     </div>
                                                                                 </div>
 
+                                                                                {isAdmin && pseudo !== u.pseudo && (
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleGiveDrops(u.pseudo); }}
+                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                    >
+                                                                                        <Zap className="w-3.5 h-3.5" />
+                                                                                        Donner DROPS
+                                                                                    </button>
+                                                                                )}
+
                                                                                 {isAdmin && isUserModo && pseudo !== u.pseudo && (
                                                                                     <button
                                                                                         onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
@@ -5777,6 +5907,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     >
                                                         <Plus className="w-4 h-4" /> Ajouter une option
                                                     </button>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Durée du sondage</label>
+                                                <div className="grid grid-cols-4 gap-2 px-2">
+                                                    {['1', '3', '5', 'custom'].map(d => (
+                                                        <button
+                                                            key={d}
+                                                            type="button"
+                                                            onClick={() => setPollDuration(d)}
+                                                            className={`py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${pollDuration === d ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                        >
+                                                            {d === 'custom' ? 'Perso' : `${d} Min`}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {pollDuration === 'custom' && (
+                                                    <div className="mt-3 px-2">
+                                                        <input
+                                                            type="number"
+                                                            min="1"
+                                                            value={customPollDuration}
+                                                            onChange={e => setCustomPollDuration(parseInt(e.target.value) || 1)}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-white outline-none focus:border-neon-cyan"
+                                                        />
+                                                    </div>
                                                 )}
                                             </div>
                                         </div>

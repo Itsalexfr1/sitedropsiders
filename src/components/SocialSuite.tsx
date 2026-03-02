@@ -501,12 +501,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             if (logoRef.current) {
                 const logo = logoRef.current;
                 const w = 320;
-                // Move 100px more to the left for video backgrounds to avoid cropping in Reels/Post-video
+                // Move left and down for video backgrounds to avoid cropping and match requested safety margins
                 const xOffset = bgVideo ? 140 : 40;
+                const yOffset = bgVideo ? 70 : 20;
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 20;
-                ctx.drawImage(logo, canvas.width - w - xOffset, 20, w, (logo.height * w) / logo.width);
+                ctx.drawImage(logo, canvas.width - w - xOffset, yOffset, w, (logo.height * w) / logo.width);
                 ctx.restore();
             }
 
