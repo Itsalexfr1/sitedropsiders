@@ -123,10 +123,9 @@ const KitMedia = () => {
     ], [language, socials]);
 
     const services: ServiceItem[] = useMemo(() => [
-        { title: language === 'fr' ? "Social Studio" : "Social Studio", desc: language === 'fr' ? "Studio de création de contenu intelligent pour réseaux sociaux." : "Intelligent content creation studio for social media.", icon: <Zap className="w-6 h-6" /> },
-        { title: language === 'fr' ? "Live Takeover" : "Live Takeover", desc: language === 'fr' ? "Système de direct immersif avec interaction temps-réel." : "Immersive live system with real-time interaction.", icon: <ExternalLink className="w-6 h-6" /> },
-        { title: language === 'fr' ? "Community Hub" : "Community Hub", desc: language === 'fr' ? "Quiz, Blind Test et espace communautaire engagé." : "Quiz, Blind Test and engaged community space.", icon: <Users className="w-6 h-6" /> },
-        { title: language === 'fr' ? "Interviews" : "Interviews", desc: language === 'fr' ? "Rencontres exclusives avec les plus grands DJs." : "Exclusive meetings with the world's biggest DJs.", icon: <Mic className="w-6 h-6" /> }
+        { title: language === 'fr' ? "Community Hub" : "Community Hub", desc: language === 'fr' ? "Engagement maximal avec Blind Tests, Quiz interactifs et un système de soumission de questions par les utilisateurs." : "Maximum engagement with Blind Tests, interactive Quizzes, and a user question submission system.", icon: <Users className="w-6 h-6" /> },
+        { title: language === 'fr' ? "Utility Tools" : "Utility Tools", desc: language === 'fr' ? "Plateforme collaborative incluant Covoiturage, Guide du festivalier et Alertes Line-up en temps réel." : "Collaborative platform including Carpooling, Festival Guide, and Real-time Line-up Alerts.", icon: <ExternalLink className="w-6 h-6" /> },
+        { title: language === 'fr' ? "Live Takeover" : "Live Takeover", desc: language === 'fr' ? "Système de direct immersif avec BPM temps-réel, sondages interactifs et clips communautaires." : "Immersive live system with real-time BPM, interactive polls, and community clips.", icon: <Mic className="w-6 h-6" /> }
     ], [language]);
 
     const featuredArtists = [
@@ -527,6 +526,65 @@ const KitMedia = () => {
                                     </div>
                                 </motion.a>
                             ))}
+                        </div>
+                    </div>
+                </section>
+
+                <section className="py-32 px-6 lg:px-12 xl:px-16 2xl:px-24 w-full bg-white/[0.02]">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <p className="text-neon-red text-[10px] font-black tracking-[0.5em] uppercase mb-4">{language === 'fr' ? 'Écosystème Numérique' : 'Digital Ecosystem'}</p>
+                            <h2 className="text-4xl md:text-5xl font-display font-black uppercase tracking-tighter mb-8 leading-tight">
+                                {language === 'fr' ? "UNE PLATEFORME UNIQUE POUR LES FANS D'ELECTRO" : "A UNIQUE PLATFORM FOR ELECTRO FANS"}
+                            </h2>
+                            <div className="space-y-6">
+                                {[
+                                    { title: language === 'fr' ? "Avis & Notes" : "Reviews & Ratings", desc: language === 'fr' ? "Les utilisateurs notent l'organisation, le son et la nourriture des festivals." : "Users rate festival organization, sound, and food." },
+                                    { title: language === 'fr' ? "Covoiturage" : "Carpooling", desc: language === 'fr' ? "Un outil direct pour organiser ses trajets vers les plus grands événements." : "A direct tool to organize trips to the biggest events." },
+                                    { title: language === 'fr' ? "Alertes Line-up" : "Line-up Alerts", desc: language === 'fr' ? "Notification instantanée dès qu'une tête d'affiche est annoncée." : "Instant notification as soon as a headliner is announced." },
+                                    { title: language === 'fr' ? "Social Studio" : "Social Studio", desc: language === 'fr' ? "Notre outil interne devenu une application publique pour créer des visuels premium." : "Our internal tool turned public app for creating premium visuals." }
+                                ].map((feature, i) => (
+                                    <div key={i} className="flex gap-4 group">
+                                        <div className="w-1.5 h-1.5 bg-neon-red rounded-full mt-2 group-hover:scale-150 transition-transform"></div>
+                                        <div>
+                                            <h4 className="font-bold uppercase tracking-widest text-xs text-white mb-1">{feature.title}</h4>
+                                            <p className="text-gray-500 text-xs leading-relaxed group-hover:text-gray-300 transition-colors">{feature.desc}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-neon-red/10 blur-[100px] rounded-full"></div>
+                            <div className="relative bg-black/40 border border-white/10 rounded-[3rem] p-8 backdrop-blur-3xl overflow-hidden group">
+                                <div className="aspect-video bg-gradient-to-br from-neon-red/20 to-blue-900/20 rounded-2xl flex items-center justify-center p-8 overflow-hidden">
+                                    {/* Simple creative visual representation of the app */}
+                                    <motion.div
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ repeat: Infinity, duration: 4 }}
+                                        className="relative z-10 w-full h-full border-4 border-white/20 rounded-3xl flex flex-col p-4 bg-black/60 shadow-2xl"
+                                    >
+                                        <div className="h-6 w-1/3 bg-white/10 rounded-full mb-4"></div>
+                                        <div className="flex-1 bg-gradient-to-br from-neon-red via-black to-blue-900 rounded-xl mb-4 relative overflow-hidden">
+                                            <div className="absolute inset-x-0 bottom-4 text-center">
+                                                <div className="h-3 w-3/4 bg-white/40 mx-auto rounded-full mb-2"></div>
+                                                <div className="h-2 w-1/2 bg-white/20 mx-auto rounded-full"></div>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-between gap-4">
+                                            <div className="h-8 w-1/4 bg-white/5 rounded-lg"></div>
+                                            <div className="h-8 w-1/4 bg-white/5 rounded-lg"></div>
+                                            <div className="h-8 w-1/2 bg-neon-red rounded-lg"></div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+                                <div className="mt-8 text-center">
+                                    <p className="text-[10px] font-black tracking-[0.3em] uppercase text-neon-cyan mb-2">Social Studio App</p>
+                                    <p className="text-gray-400 text-xs leading-relaxed">
+                                        {language === 'fr' ? "Une innovation Dropsiders pour professionnaliser le partage d'actualité électro." : "A Dropsiders innovation to professionalize electro news sharing."}
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>

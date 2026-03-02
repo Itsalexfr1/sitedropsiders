@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Plus, CheckCircle2, Info, Trash2, Mail } from 'lucide-react';
+import { Bell, Plus, CheckCircle2, Info, Trash2 } from 'lucide-react';
 
 interface Alert {
     id: string;
@@ -131,8 +131,8 @@ export function AlertsSection() {
                                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">{alert.artist}</span>
                                         </div>
                                         <div className="flex items-center gap-2 text-gray-400">
-                                            <Mail className="w-3 h-3" />
-                                            <span className="text-xs font-bold">{alert.email}</span>
+                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                            <span className="text-xs font-bold uppercase tracking-tighter">Surveillance Active</span>
                                         </div>
                                     </div>
                                     <button className="p-2 text-gray-600 hover:text-neon-red transition-all">

@@ -222,16 +222,7 @@ export function Musique() {
 
     const handleTrackClick = (track: Track) => {
         if (activeTab === '1001tracklists') {
-            setSelectedTracklist({
-                id: track.id,
-                title: track.title,
-                artist: track.artist || 'Various Artists',
-                embedUrl: track.embedUrl,
-                tracks: track.tracks || [
-                    { title: 'Opening Track', artist: track.artist, time: '00:00' },
-                    { title: 'Electronic Anthem', artist: 'Dropsiders Favorite', time: '10:15' }
-                ]
-            });
+            window.open(track.url, '_blank');
             setSelectedTrack(null);
         } else {
             if (selectedTrack?.id === track.id) {
@@ -265,7 +256,7 @@ export function Musique() {
                         <EqualizerLoader count={8} className="scale-75 opacity-50" />
                     </div>
                     <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-none">
-                        DROPSIDERS CHARTS <span className="text-neon-red">MASTERCLASS</span>
+                        DROPSIDERS CHARTS
                     </h1>
                     <p className="text-gray-500 max-w-2xl mx-auto text-xs md:text-sm font-black uppercase tracking-[0.3em]">
                         LES CHARTS LES PLUS INFLUENTS DE LA PLANÈTE

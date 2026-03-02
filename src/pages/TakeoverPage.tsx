@@ -10,7 +10,7 @@ import {
     Star, ShieldCheck
 } from 'lucide-react';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
-import { Downloader } from './Downloader';
+
 
 const XIcon = ({ className }: { className?: string }) => (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -211,7 +211,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [forceScroll, setForceScroll] = useState(false);
     const isFirstJoinFetch = useRef(true);
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const [showDownloader, setShowDownloader] = useState(false);
+
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [_totalWatchTime, setTotalWatchTime] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -229,7 +229,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const analyserRef = useRef<AnalyserNode | null>(null);
     const bpmStreamRef = useRef<MediaStream | null>(null);
     const [lastPollResult, setLastPollResult] = useState<{ question: string, winner: string, percentage: number } | null>(null);
-    const [downloaderUrl, setDownloaderUrl] = useState('');
+
     const [clipTitle, setClipTitle] = useState('');
     const [clipDuration, setClipDuration] = useState(30);
     const [isFeatured, setIsFeatured] = useState(false);
@@ -523,6 +523,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
         return { artist: '', instagram: '' };
     }, [currentFluxLineup, currentTime]);
+
+    const getVisiblePlayers = useCallback(() => {
+        if (playersOption === 1) {
+            return [channelItems[activeVideoIndex]].filter(Boolean);
+        }
+        return channelItems.slice(0, playersOption);
+    }, [activeVideoIndex, channelItems, playersOption]);
 
     useEffect(() => {
         if (!("Notification" in window)) return;
@@ -2442,183 +2449,137 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </div>
                 )}
 
-                {/* Live Banner Header - Conditionally based on top banner enabled */}
-                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
-                    <div className={`w-full bg-[#111] border-b border-white/10 px-6 py-16 md:py-20 flex items-center justify-between z-[200] shadow-[0_10px_30px_rgba(0,0,0,0.5)] shrink-0 transition-all duration-700 ease-in-out md:mt-20 mt-32`}>
-                        <div className="flex items-center gap-6">
-                            <div className="flex flex-col items-center gap-2">
-                                <div className="flex items-center gap-2.5 px-4 py-1.5 bg-red-600/20 border border-red-500/30 rounded-full shrink-0">
-                                    <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(239,68,68,1)]" />
-                                    <span className="text-[11px] font-black text-red-500 uppercase tracking-[0.2em] leading-none">DIRECT</span>
-                                </div>
-                                <div
-                                    className="flex items-center gap-1.5 px-2.5 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all shadow-lg"
-                                    onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                >
-                                    <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] leading-none flex items-center gap-2">
-                                        <Users className="w-3.5 h-3.5" />
-                                        {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : (allActiveUsers.length || '...')}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="flex flex-col min-w-0">
-                                <h1 id="takeover-title" className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-widest truncate leading-tight">
-                                    {displayTitle}
-                                </h1>
-                                {settings.isOnline && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -5 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="flex flex-wrap items-center gap-2 mt-0.5"
-                                    >
-                                        <div className="flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full backdrop-blur-md">
-                                            <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
-                                            <span className="text-[10px] font-black text-white uppercase tracking-[0.2em] whitespace-nowrap">
-                                                NOW: <span className="text-neon-cyan">{fluxCurrentArtist.artist ? fluxCurrentArtist.artist.toUpperCase() : 'LIVE'}</span>
-                                            </span>
-                                        </div>
-                                        {settings.currentShazam && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                className="flex items-center gap-2 px-3 py-1 bg-neon-purple/20 border border-neon-purple/30 rounded-full backdrop-blur-md cursor-pointer hover:bg-neon-purple/30 transition-all"
-                                                onClick={() => window.open(settings.currentShazam!.spotify, '_blank')}
-                                            >
-                                                <Music2 className="w-3 h-3 text-neon-purple" />
-                                                <span className="text-[9px] font-black text-white uppercase tracking-widest truncate max-w-[150px]">
-                                                    {settings.currentShazam!.artist} - {settings.currentShazam!.title}
-                                                </span>
-                                            </motion.div>
-                                        )}
-                                    </motion.div>
-                                )}
-                            </div>
 
+
+                {/* Flux Selection & Info Bar - Always visible above video */}
+                {!isFullScreen && (
+                    <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-4 py-2 flex items-center justify-between z-40 relative">
+                        <div className="flex items-center gap-4 flex-1">
+                            {/* Live Badge */}
+                            <div className="flex items-center gap-2 px-3 py-1 bg-red-600/10 border border-red-500/20 rounded-full shrink-0">
+                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]" />
+                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
+                            </div>
 
                             {/* Multi-Video Switcher */}
                             {channelItems.length > 1 && (
-                                <div className="flex items-center flex-wrap gap-2">
-                                    <div id="channel-switcher" className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1">
-                                        {channelItems.map((item: any, idx) => {
-                                            const isDisabled = settings.disableMainPlayer !== false;
-                                            if (item.isMain && isDisabled && playersOption === 1) return null;
-                                            return (
-                                                <button
-                                                    key={idx}
-                                                    id={`channel-btn-${idx}`}
-                                                    onClick={() => {
-                                                        if (activeVideoIndex === idx) return;
-                                                        setIsTransitioning(true);
-                                                        setTimeout(() => {
-                                                            setActiveVideoIndex(idx);
-                                                            setPlayersOption(1);
-                                                            setTimeout(() => setIsTransitioning(false), 500);
-                                                        }, 150);
-                                                    }}
-                                                    className={`px-3 h-6 rounded flex items-center justify-center text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:bg-white/10'}`}
-                                                >
-                                                    {item.title}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg p-1 h-8">
-                                        {[1, 2, 3, 4, 5, 6].filter(n => n <= channelItems.length).map(n => (
+                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
+                                    {channelItems.map((item: any, idx) => {
+                                        const isDisabled = settings.disableMainPlayer !== false;
+                                        if (item.isMain && isDisabled && playersOption === 1) return null;
+                                        return (
                                             <button
-                                                key={n}
-                                                onClick={() => setPlayersOption(n)}
-                                                className={`min-w-[28px] h-full rounded flex items-center justify-center text-[10px] font-black transition-all ${playersOption === n ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:bg-white/10'}`}
-                                                title={n > 1 ? `Vue ${n} écrans` : `Vue unique`}
+                                                key={idx}
+                                                onClick={() => {
+                                                    if (activeVideoIndex === idx) return;
+                                                    setIsTransitioning(true);
+                                                    setTimeout(() => {
+                                                        setActiveVideoIndex(idx);
+                                                        setPlayersOption(1);
+                                                        setTimeout(() => setIsTransitioning(false), 500);
+                                                    }, 150);
+                                                }}
+                                                className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                {n === 1 ? <Maximize className="w-3 h-3" /> : <LayoutGrid className="w-3 h-3 mr-0.5" />} {n > 1 && n}
+                                                {item.title}
                                             </button>
-                                        ))}
-                                    </div>
+                                        );
+                                    })}
                                 </div>
                             )}
-                            <div className="flex items-center gap-2">
 
-                                <button
-                                    onClick={() => setShowClipModal(!showClipModal)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showClipModal ? 'bg-neon-purple text-white border-neon-purple' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-purple hover:border-neon-purple/30'}`}
-                                    title="Clip & VOD"
-                                >
-                                    <Video className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline">Clip / VOD</span>
-                                </button>
-                                {hasModPowers && (
-                                    <button
-                                        onClick={() => setShowDownloader(true)}
-                                        className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showDownloader ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30'}`}
-                                        title="Social Downloader"
-                                    >
-                                        <Download className="w-3.5 h-3.5" />
-                                        <span className="hidden sm:inline">Downloader</span>
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => {
-                                        if (showLineup) {
-                                            setShowLineup(false);
-                                        } else {
-                                            setShowVideoEdit(false);
-                                            setShowLineup(true);
-                                        }
-                                    }}
-                                    className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${showLineup ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-red hover:border-neon-red/30 animate-glow'}`}
-                                >
-                                    <List className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline">Planning</span>
-                                </button>
-                                <button
-                                    onClick={() => setIsFullScreen(!isFullScreen)}
-                                    className={`flex items-center gap-2 px-3 py-1.5 border rounded-lg text-[10px] font-black uppercase tracking-widest transition-all shadow-lg ${isFullScreen ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30'}`}
-                                    title={isFullScreen ? "Quitter le plein écran" : "Mode plein écran"}
-                                >
-                                    {isFullScreen ? <Minimize className="w-3.5 h-3.5" /> : <Maximize className="w-3.5 h-3.5" />}
-                                    <span className="hidden sm:inline">{isFullScreen ? "Réduire" : "Plein écran"}</span>
-                                </button>
-                            </div>
-                            <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-9">
-                                <a
-                                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1.5 text-gray-500 hover:text-blue-500 transition-colors"
-                                    title="Partager sur Facebook"
-                                >
-                                    <Facebook className="w-3.5 h-3.5" />
-                                </a>
-                                <div className="w-[1px] h-3 bg-white/10" />
-                                <a
-                                    href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(settings.title || 'Dropsiders Live')}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1.5 text-gray-500 hover:text-white transition-colors"
-                                    title="Partager sur X"
-                                >
-                                    <XIcon className="w-3.5 h-3.5" />
-                                </a>
-                                <div className="w-[1px] h-3 bg-white/10" />
-                                <a
-                                    href={`https://www.snapchat.com/share?url=${encodeURIComponent(window.location.href)}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="p-1.5 text-gray-500 hover:text-yellow-400 transition-colors"
-                                    title="Partager sur Snapchat"
-                                >
-                                    <SnapchatIcon className="w-3.5 h-3.5" />
-                                </a>
+                            {/* HYPE & BPM Display (Repositioned) */}
+                            <div className="flex items-center gap-4 px-4 border-l border-white/10 ml-2 overflow-hidden">
+                                <div className="flex items-baseline gap-2 shrink-0">
+                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">HYPE</span>
+                                    <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                        <motion.div
+                                            animate={{ width: `${hypeLevel}%` }}
+                                            className={`h-full ${isOverdrive ? 'bg-neon-red shadow-[0_0_10px_#ff0033]' : 'bg-neon-purple'}`}
+                                        />
+                                    </div>
+                                    <span className={`text-[10px] font-black ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
+                                </div>
+
+                                <div className="flex items-baseline gap-2 shrink-0">
+                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">BPM</span>
+                                    <span className="text-[10px] font-black text-white italic">{bpm}</span>
+                                </div>
                             </div>
                         </div>
+
+                        {/* Layout Select (moved from header) */}
                         <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 h-7">
+                                {[1, 2, 3, 4].filter(n => n <= channelItems.length).map(n => (
+                                    <button
+                                        key={n}
+                                        onClick={() => setPlayersOption(n)}
+                                        className={`w-7 h-full rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${playersOption === n ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
+                                        title={`Vue ${n} écrans`}
+                                    >
+                                        {n === 1 ? <Maximize className="w-3 h-3" /> : n}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Live Banner Header - REDUCED SIZE */}
+                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
+                    <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shadow-xl shrink-0">
+                        <div className="flex items-center gap-6 overflow-hidden">
+                            <div className="flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
+                                onClick={() => setShowUsersPanel(!showUsersPanel)}>
+                                <Users className="w-3 h-3 text-neon-red" />
+                                <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length}
+                                </span>
+                            </div>
+
+                            <div className="flex flex-col min-w-0">
+                                <h1 className="text-sm font-black text-white uppercase italic tracking-widest truncate leading-tight">
+                                    {displayTitle}
+                                </h1>
+                                {settings.isOnline && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-1 h-1 bg-neon-cyan rounded-full animate-pulse" />
+                                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">
+                                            NOW: <span className="text-neon-cyan">{fluxCurrentArtist.artist || 'LIVE'}</span>
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 border-r border-white/10 pr-4 mr-2 hidden sm:flex">
+                                <button
+                                    onClick={() => setShowClipModal(!showClipModal)}
+                                    className={`p-2 rounded-lg transition-all ${showClipModal ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    title="Clips & VOD"
+                                >
+                                    <Video className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setShowLineup(!showLineup)}
+                                    className={`p-2 rounded-lg transition-all ${showLineup ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    title="Planning"
+                                >
+                                    <List className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-8">
+                                <a href={`https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-blue-500"><Facebook className="w-3.5 h-3.5" /></a>
+                                <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-white"><XIcon className="w-3.5 h-3.5" /></a>
+                                <a href={`https://snapchat.com/share?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-yellow-400"><SnapchatIcon className="w-3.5 h-3.5" /></a>
+                            </div>
+
                             <button
-                                onClick={() => {
-                                    sessionStorage.setItem('exited_live', 'true');
-                                    window.location.href = '/';
-                                }}
-                                className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 hover:border-neon-red/30 rounded-full text-gray-400 hover:text-neon-red transition-all"
-                                title="Quitter le Live"
+                                onClick={() => { sessionStorage.setItem('exited_live', 'true'); window.location.href = '/'; }}
+                                className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-full text-gray-400 hover:text-neon-red transition-all ml-2"
                             >
                                 <X className="w-4 h-4" />
                             </button>
@@ -2636,459 +2597,169 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </button>
                 )}
 
-                <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0">
+                <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
                     <div className={`flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
-                        <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
-                            {/* Stream Name Badge */}
-                            {/* Redundant Stream Name Badge removed */}
-                            <div className="absolute inset-0 z-0 bg-black">
-                                <AnimatePresence mode="wait">
-                                    {(settings.disableMainPlayer === false || activeVideoIndex !== 0 || playersOption > 1) ? (
-                                        <motion.div
-                                            key={`view-mode-${playersOption}-${activeVideoIndex}`}
-                                            initial={{ opacity: 0, filter: 'blur(20px) brightness(2)' }}
-                                            animate={{ opacity: 1, filter: 'blur(0px) brightness(1)' }}
-                                            exit={{ opacity: 0, filter: 'blur(20px) brightness(2)' }}
-                                            transition={{ duration: 0.5, ease: "easeOut" }}
-                                            className={`w-full h-full grid ${playersOption === 1 ? 'grid-cols-1 grid-rows-1' : playersOption === 2 ? 'grid-cols-2 grid-rows-1' : playersOption === 3 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-2'} gap-1 bg-white/5 backdrop-blur-sm relative ${isTransitioning ? 'before:absolute before:inset-0 before:z-50 before:bg-neon-cyan/20 before:animate-pulse before:pointer-events-none' : ''} ${!isJoined ? 'blur-2xl grayscale brightness-[0.3] pointer-events-none' : ''}`}
-                                        >
-                                            {Array.from({ length: Math.min(playersOption, channelItems.length) }).map((_, i) => {
-                                                const cIdx = playersOption === 1 ? (activeVideoIndex + i) % channelItems.length : i;
-                                                const channel = channelItems[cIdx];
-                                                if (!channel) return null;
-                                                return (
-                                                    <motion.div
-                                                        layout
-                                                        initial={{ opacity: 0, scale: 0.9 }}
-                                                        animate={{ opacity: 1, scale: 1 }}
-                                                        key={`${channel.id}-${i}`}
-                                                        className="relative bg-black w-full h-full"
-                                                    >
-                                                        {playersOption > 1 && (
-                                                            <div className="absolute top-2 left-2 z-10 bg-black/60 backdrop-blur-md px-2 py-1 rounded border border-white/20 text-[9px] font-black text-white uppercase tracking-widest shadow-lg pointer-events-none">
-                                                                {channel.title}
-                                                            </div>
-                                                        )}
-                                                        <div className="w-full h-full overflow-hidden relative">
-                                                            <div className="absolute right-4 top-1/2 -translate-y-1/2 z-[60] flex flex-col items-center gap-2 group/volume hidden sm:flex pointer-events-auto">
-                                                                <div className="h-0 opacity-0 group-hover/volume:h-32 group-hover/volume:opacity-100 transition-all duration-300 bg-black/60 backdrop-blur-md rounded-full w-8 flex flex-col items-center justify-end py-3 overflow-hidden border border-white/10 shadow-[0_0_15px_rgba(0,0,0,0.5)]">
-                                                                    <input
-                                                                        type="range"
-                                                                        min="0"
-                                                                        max="1"
-                                                                        step="0.01"
-                                                                        value={volume}
-                                                                        onChange={(e) => {
-                                                                            e.stopPropagation();
-                                                                            const v = parseFloat(e.target.value);
-                                                                            setVolume(v);
-                                                                            if (v > 0 && isMutedGlobal) {
-                                                                                setIsMutedGlobal(false);
-                                                                            } else if (v === 0 && !isMutedGlobal) {
-                                                                                setIsMutedGlobal(true);
-                                                                            }
-                                                                            Object.values(playersRef.current).forEach(p => {
-                                                                                if (p && p.setVolume) {
-                                                                                    if (v === 0) {
-                                                                                        p.mute();
-                                                                                        p.setVolume(0);
-                                                                                    } else {
-                                                                                        p.unMute();
-                                                                                        p.setVolume(v * 100);
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        }}
-                                                                        className="appearance-none bg-transparent w-24 h-1 -rotate-90 origin-center translate-y-[40px] [&::-webkit-slider-runnable-track]:bg-white/20 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:-mt-1 cursor-pointer focus:outline-none"
-                                                                    />
-                                                                </div>
-                                                                <div className="flex flex-col gap-2">
-                                                                    <select
-                                                                        className="w-16 h-8 bg-black/60 backdrop-blur-md border border-white/10 rounded-lg text-[10px] font-black text-white outline-none cursor-pointer hover:bg-white/10 transition-colors"
-                                                                        defaultValue="1080p"
-                                                                        onChange={(e) => {
-                                                                            e.stopPropagation();
-                                                                            const quality = e.target.value;
-                                                                            Object.values(playersRef.current).forEach(p => {
-                                                                                if (p && p.setPlaybackQuality) p.setPlaybackQuality(quality);
-                                                                            });
-                                                                        }}
-                                                                    >
-                                                                        <option value="auto">Auto</option>
-                                                                        <option value="hd1080">1080p</option>
-                                                                        <option value="hd720">720p</option>
-                                                                        <option value="large">480p</option>
-                                                                        <option value="medium">360p</option>
-                                                                        <option value="small">240p</option>
-                                                                    </select>
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            const nextMute = !isMutedGlobal;
-                                                                            setIsMutedGlobal(nextMute);
-                                                                            const targetVolume = nextMute ? 0 : (volume > 0 ? volume : 1);
-                                                                            if (!nextMute && volume === 0) setVolume(1);
 
-                                                                            Object.values(playersRef.current).forEach(p => {
-                                                                                if (p && p.setVolume) {
-                                                                                    if (nextMute) {
-                                                                                        p.mute();
-                                                                                        p.setVolume(0);
-                                                                                    } else {
-                                                                                        p.unMute();
-                                                                                        p.setVolume(targetVolume * 100);
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        }}
-                                                                        className="w-16 h-10 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-colors shadow-lg"
-                                                                    >
-                                                                        {isMutedGlobal || volume === 0 ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-
-                                                            <iframe
-                                                                id={`yt-player-${channel.id}`}
-                                                                className="w-full h-full border-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none sm:pointer-events-auto scale-[1.12]"
-                                                                src={`https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=${(i > 0 || isMutedGlobal || showClipPlayer || volume === 0) ? '1' : '0'}&rel=0&modestbranding=1&controls=0&showinfo=0&iv_load_policy=3&enablejsapi=1`}
-                                                                title={channel.title}
-                                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                                allowFullScreen
-                                                            ></iframe>
-                                                        </div>
-                                                    </motion.div>
-                                                );
-                                            })}
-                                        </motion.div>
-                                    ) : (
-                                        <div className="w-full h-full relative overflow-hidden">
-                                            {/* Removed redundant offline view inside video container as it is now full-page blanket */}
-                                            {/* Removed Door Effect */}
-
-                                            <div className="w-full h-full flex flex-col items-center justify-center bg-black/80 backdrop-blur-3xl p-10 text-center">
-                                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-4">Flux Principal <span className="text-neon-red">Désactivé</span></h3>
-                                                <p className="text-gray-400 text-sm max-w-md">Veuillez sélectionner un autre flux dans le switcher ci-dessus (Stage 1, 2, 3 ou 4) pour continuer le visionnage.</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-
-                            {/* BPM WIDGET & HYPE GAUGE */}
-                            <div className="absolute bottom-6 left-6 right-6 lg:bottom-12 lg:left-12 lg:right-12 z-20 pointer-events-none flex flex-col lg:flex-row items-end justify-between gap-6">
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="flex flex-col gap-3 pointer-events-auto"
-                                >
-                                    {/* BPM WIDGET */}
-                                    {showBPM ? (
-                                        <div className={`p-4 rounded-3xl backdrop-blur-3xl border-2 transition-all flex items-center gap-6 shadow-2xl relative overflow-hidden group/bpm ${isOverdrive ? 'bg-black/80 border-neon-red/50 shadow-neon-red/20' : 'bg-black/60 border-white/20'}`}>
-                                            <div className="flex flex-col relative z-20">
-                                                <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">BPM ANALYZER</span>
-                                                    <div className="flex items-baseline gap-1">
-                                                        <span className={`text-3xl font-black italic tracking-tighter ${isOverdrive ? 'text-neon-red drop-shadow-[0_0_15px_#ff0033]' : 'text-white'}`}>{bpm}</span>
-                                                        <span className="text-[10px] font-black text-white/40 uppercase">bpm</span>
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => setShowBPM(false)}
-                                                    className="absolute -top-2 -right-2 p-1.5 hover:bg-white/10 rounded-full transition-colors opacity-0 group-hover/bpm:opacity-100"
-                                                    title="Masquer le BPM"
-                                                >
-                                                    <X className="w-3 h-3 text-gray-400 hover:text-white" />
-                                                </button>
-                                            </div>
-                                            <div className="flex gap-1 items-end h-8 ml-2 relative z-20">
-                                                {[...Array(8)].map((_, i) => (
-                                                    <motion.div
-                                                        key={i}
-                                                        animate={{
-                                                            height: isOverdrive ? [15, 32, 12, 28, 10] : [10, 20, 8, 24, 12],
-                                                        }}
-                                                        transition={{
-                                                            duration: 0.2, // Faster pulse
-                                                            repeat: Infinity,
-                                                            delay: i * 0.05
-                                                        }}
-                                                        className={`w-1.5 rounded-full ${isOverdrive ? 'bg-gradient-to-t from-neon-red to-white shadow-[0_0_10px_#ff0033]' : 'bg-gradient-to-t from-neon-cyan to-white shadow-[0_0_10px_#00ffff44]'}`}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <button
-                                                onClick={handleSyncBPM}
-                                                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border ${isSyncingBPM ? 'bg-neon-cyan/10 border-neon-cyan text-neon-cyan animate-pulse shadow-[0_0_15px_#00ffff44]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-neon-cyan hover:border-neon-cyan/30 hover:scale-105'}`}
-                                                title={isSyncingBPM ? "Désactiver la synchronisation" : "Synchroniser avec le son du live"}
-                                            >
-                                                <Mic className={`w-5 h-5 ${isSyncingBPM ? 'animate-bounce' : ''}`} />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <button
-                                            onClick={() => setShowBPM(true)}
-                                            className="p-3 bg-black/60 backdrop-blur-xl border border-white/20 rounded-2xl text-white/40 hover:text-neon-cyan transition-all hover:border-neon-cyan/40 shadow-xl group"
-                                            title="Afficher le BPM"
-                                        >
-                                            <Zap className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                                        </button>
-                                    )}
-
-                                    {/* HYPE GAUGE */}
-                                    <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-[0_0_30px_rgba(0,0,0,0.5)] min-w-[200px] hover:border-neon-red/50 transition-all">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                                                <Activity className={`w-3 h-3 ${isOverdrive ? 'text-neon-red' : 'text-white'}`} />
-                                                HYPE ENERGY
-                                            </span>
-                                            <span className={`text-[10px] font-black tracking-widest ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
-                                        </div>
-                                        <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                            <motion.div
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${hypeLevel}%` }}
-                                                className={`h-full ${isOverdrive ? 'bg-gradient-to-r from-neon-red via-white to-neon-red' : 'bg-gradient-to-r from-neon-purple to-neon-red'} relative`}
-                                            >
-                                                <div className="absolute inset-0 bg-white/30 animate-pulse" />
-                                            </motion.div>
-                                        </div>
-                                        {isOverdrive && (
-                                            <div className="text-[8px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse flex items-center gap-1">
-                                                <Zap className="w-3 h-3" /> OVERDRIVE ACTIVE
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* BLIND TEST WIDGET */}
-                                    <AnimatePresence>
-                                        {showBlindTest && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                                className="bg-black/95 backdrop-blur-3xl border-2 border-neon-cyan/50 rounded-3xl p-6 shadow-[0_0_50px_rgba(0,255,255,0.2)] max-w-sm pointer-events-auto"
-                                            >
-                                                <div className="flex items-center gap-3 mb-4">
-                                                    <div className="w-10 h-10 rounded-full bg-neon-cyan/10 flex items-center justify-center">
-                                                        <Music2 className="w-5 h-5 text-neon-cyan animate-pulse" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">{blindTestState.category || 'QUIZ'}</h4>
-                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter mt-1">{blindTestState.question}</p>
-                                                    </div>
-                                                    <button onClick={() => setShowBlindTest(false)} className="ml-auto p-2 text-gray-500 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
-                                                </div>
-
-                                                {!blindTestAnswered ? (
-                                                    <div className="space-y-2">
-                                                        {blindTestState.options.map((opt: string, i: number) => (
-                                                            <button
-                                                                key={i}
-                                                                onClick={() => {
-                                                                    if (i === blindTestState.correct) {
-                                                                        setUserDrops(d => {
-                                                                            const reward = (blindTestState as any).reward || 50;
-                                                                            const newD = d + reward;
-                                                                            localStorage.setItem('user_drops', String(newD));
-                                                                            return newD;
-                                                                        });
-                                                                        alert("🔥 GAGNÉ ! +50 Drops !");
-                                                                    } else alert("❌ Perdu !");
-                                                                    setBlindTestAnswered(true);
-                                                                    setTimeout(() => { setShowBlindTest(false); setBlindTestAnswered(false); }, 3000);
-                                                                }}
-                                                                className="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-left hover:bg-neon-cyan/20 hover:border-neon-cyan/40 transition-all font-display"
-                                                            >
-                                                                {opt}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                ) : <div className="py-6 text-center text-neon-cyan font-black uppercase text-xs">Vérification...</div>}
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-
-                                    {/* USER PIN OVERLAY */}
-                                    <AnimatePresence>
-                                        {activeUserPin && (
-                                            <motion.div
-                                                initial={{ opacity: 0, scale: 0.8, y: 100, x: '-50%' }}
-                                                animate={{ opacity: 1, scale: 1, y: -50, x: '-50%' }}
-                                                exit={{ opacity: 0, scale: 0.8, y: 100, x: '-50%' }}
-                                                className="fixed top-1/2 left-1/2 z-[500] w-[95vw] max-w-xl pointer-events-none"
-                                            >
-                                                <div className="bg-black/95 backdrop-blur-3xl border-2 border-neon-cyan rounded-[3rem] p-12 shadow-[0_0_150px_rgba(0,255,255,0.5)] text-center relative overflow-hidden ring-4 ring-black">
-                                                    <div className="absolute top-0 left-0 w-full h-2 bg-neon-cyan shadow-[0_0_20px_#00ffff]" />
-                                                    <div className="mb-8 px-6 py-2 bg-neon-cyan text-black text-[12px] font-black uppercase tracking-[0.5em] rounded-full inline-block shadow-lg">MESSAGE MIS EN AVANT</div>
-                                                    <h2 className="text-3xl lg:text-4xl font-black italic tracking-tighter mb-6" style={{ color: activeUserPin.color }}>@{activeUserPin.pseudo.toUpperCase()}</h2>
-                                                    <p className="text-4xl lg:text-6xl font-black text-white uppercase italic tracking-tighter leading-[0.9] mb-4">
-                                                        "{activeUserPin.message}"
-                                                    </p>
-                                                    <div className="absolute bottom-0 left-0 h-1.5 bg-neon-cyan/50 animate-shrink-width" style={{ width: '100%' }} />
-                                                </div>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
-                            </div>
-                        </div>
 
                         {/* Mini Planning Widget */}
                         <AnimatePresence>
-                            {!isFocusMode && showLineup && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                                    className="absolute inset-0 z-30 bg-black/40 backdrop-blur-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden pointer-events-auto flex flex-col items-center p-6 lg:p-12"
-                                    onClick={e => e.stopPropagation()}
-                                >
-                                    <div className="w-full max-w-5xl flex flex-col h-full relative">
-                                        <div className="flex items-center justify-between mb-8 shrink-0">
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                                    <List className="w-6 h-6 text-neon-red drop-shadow-lg" />
-                                                </div>
-                                                <div>
-                                                    <h2 className="text-3xl lg:text-5xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-md">LINE UP <span className="text-neon-red">LIVE</span></h2>
-                                                    <p className="text-[10px] lg:text-xs text-gray-300 font-bold uppercase tracking-[0.2em] mt-1 drop-shadow-md">Horaires et passages artistes en temps réel</p>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => setShowLineup(false)} className="p-4 bg-white/10 border border-white/20 rounded-full hover:bg-neon-red hover:border-neon-red transition-all shadow-lg active:scale-95 group">
-                                                <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-20 mt-4">
-                                            {/* Header Grid */}
-                                            <div className="grid grid-cols-[100px_1fr_1fr] gap-8 px-10 mb-6 text-[9px] font-black text-white/30 uppercase tracking-[0.3em] hidden lg:grid">
-                                                <div className="text-left">HEURE</div>
-                                                <div className="text-left">ARTISTE</div>
-                                                <div className="text-right pr-10">SCÈNE</div>
-                                            </div>
-
-                                            {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
-                                                <div
-                                                    key={idx}
-                                                    className={`group grid grid-cols-[80px_1fr_1fr] lg:grid-cols-[100px_1fr_1fr] gap-4 lg:gap-8 items-center border transition-all duration-500 mb-3 relative overflow-hidden p-5 lg:p-7 rounded-[2rem] ${fluxCurrentArtist.artist === item.artist ? 'bg-white/[0.04] border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.05)]' : 'bg-white/[0.015] border-white/5 hover:border-white/10'}`}
-                                                >
-                                                    {/* Progress Background for current artist - FULL TAB */}
-                                                    {fluxCurrentArtist.artist === item.artist && item.progress > 0 && (
-                                                        <div
-                                                            className="absolute inset-0 bg-neon-red/10 border-l border-neon-red/30 z-0 transition-all duration-1000 ease-linear pointer-events-none"
-                                                            style={{ width: `${item.progress}%` }}
-                                                        >
-                                                            <div className="absolute right-0 top-0 bottom-0 w-1 bg-neon-red shadow-[0_0_15px_#ff0033]" />
-                                                        </div>
-                                                    )}
-
-                                                    <div className="absolute inset-0 bg-gradient-to-r from-neon-red/0 via-white/0 to-white/0 group-hover:from-white/[0.02] transition-colors pointer-events-none" />
-                                                    {/* Time Column */}
-                                                    <div className="flex flex-col relative z-10">
-                                                        <span className={`font-black text-[13px] lg:text-[15px] tracking-tight transition-colors duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/40 group-hover:text-white/70'}`}>
-                                                            {item.time?.replace(':', 'H') || '--H--'}
-                                                            {item.endTime && (
-                                                                <span className="block opacity-40 text-[10px] lg:text-[11px] mt-0.5">
-                                                                    {item.endTime.replace(':', 'H')}
-                                                                </span>
-                                                            )}
-                                                        </span>
+                            {
+                                !isFocusMode && showLineup && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                        className="absolute inset-0 z-30 bg-black/40 backdrop-blur-[30px] border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.9)] overflow-hidden pointer-events-auto flex flex-col items-center p-6 lg:p-12"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <div className="w-full max-w-5xl flex flex-col h-full relative">
+                                            <div className="flex items-center justify-between mb-8 shrink-0">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-3 bg-neon-red/20 rounded-2xl border border-neon-red/30 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                                        <List className="w-6 h-6 text-neon-red drop-shadow-lg" />
                                                     </div>
+                                                    <div>
+                                                        <h2 className="text-3xl lg:text-5xl font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-md">LINE UP <span className="text-neon-red">LIVE</span></h2>
+                                                        <p className="text-[10px] lg:text-xs text-gray-300 font-bold uppercase tracking-[0.2em] mt-1 drop-shadow-md">Horaires et passages artistes en temps réel</p>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => setShowLineup(false)} className="p-4 bg-white/10 border border-white/20 rounded-full hover:bg-neon-red hover:border-neon-red transition-all shadow-lg active:scale-95 group">
+                                                    <X className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
+                                                </button>
+                                            </div>
 
-                                                    {/* Artist Column */}
-                                                    <div className="flex items-center gap-4 min-w-0 relative z-10">
-                                                        <h3 className={`font-black uppercase italic tracking-wider text-[7px] lg:text-[10px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/80 group-hover:text-white'}`}>
-                                                            {item.artist || '---'}
-                                                        </h3>
-                                                        {fluxCurrentArtist.artist === item.artist && settings.isOnline && (
-                                                            <div className="px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded text-[7px] font-black text-red-500 uppercase tracking-widest animate-pulse flex items-center gap-1">
-                                                                <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
-                                                                EN DIRECT
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 pb-20 mt-4">
+                                                {/* Header Grid */}
+                                                <div className="grid grid-cols-[100px_1fr_1fr] gap-8 px-10 mb-6 text-[9px] font-black text-white/30 uppercase tracking-[0.3em] hidden lg:grid">
+                                                    <div className="text-left">HEURE</div>
+                                                    <div className="text-left">ARTISTE</div>
+                                                    <div className="text-right pr-10">SCÈNE</div>
+                                                </div>
+
+                                                {currentFluxLineup.filter(item => !item.isPast).map((item, idx) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`group grid grid-cols-[80px_1fr_1fr] lg:grid-cols-[100px_1fr_1fr] gap-4 lg:gap-8 items-center border transition-all duration-500 mb-3 relative overflow-hidden p-5 lg:p-7 rounded-[2rem] ${fluxCurrentArtist.artist === item.artist ? 'bg-white/[0.04] border-white/20 shadow-[0_0_40px_rgba(255,255,255,0.05)]' : 'bg-white/[0.015] border-white/5 hover:border-white/10'}`}
+                                                    >
+                                                        {/* Progress Background for current artist - FULL TAB */}
+                                                        {fluxCurrentArtist.artist === item.artist && item.progress > 0 && (
+                                                            <div
+                                                                className="absolute inset-0 bg-neon-red/10 border-l border-neon-red/30 z-0 transition-all duration-1000 ease-linear pointer-events-none"
+                                                                style={{ width: `${item.progress}%` }}
+                                                            >
+                                                                <div className="absolute right-0 top-0 bottom-0 w-1 bg-neon-red shadow-[0_0_15px_#ff0033]" />
                                                             </div>
                                                         )}
-                                                        {item.instagram && (
-                                                            <motion.a
-                                                                whileHover={{ scale: 1.2, rotate: 5 }}
-                                                                href={item.instagram}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                onClick={e => e.stopPropagation()}
-                                                                className="w-7 h-7 flex items-center justify-center bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-full p-1.5 shadow-lg opacity-60 hover:opacity-100 transition-opacity"
-                                                            >
-                                                                <Instagram className="w-full h-full text-white" />
-                                                            </motion.a>
-                                                        )}
-                                                        <button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                if (!item.artist) return;
-                                                                const newFavs = favorites.includes(item.artist)
-                                                                    ? favorites.filter(f => f !== item.artist)
-                                                                    : [...favorites, item.artist];
-                                                                setFavorites(newFavs);
-                                                                localStorage.setItem('favorited_artists', JSON.stringify(newFavs));
-                                                            }}
-                                                            className={`w-7 h-7 flex items-center justify-center rounded-full p-1.5 shadow-lg transition-all ${favorites.includes(item.artist) ? 'bg-neon-red opacity-100' : 'bg-white/10 opacity-60 hover:opacity-100 hover:bg-white/20'}`}
-                                                            title={favorites.includes(item.artist) ? "Retirer des favoris" : "Mettre en favoris pour recevoir une notification"}
-                                                        >
-                                                            <Heart className={`w-full h-full ${favorites.includes(item.artist) ? 'text-white fill-white' : 'text-white'}`} />
-                                                        </button>
-                                                    </div>
 
-                                                    {/* Stage Column */}
-                                                    <div className="flex items-center justify-end pr-8 relative z-10">
-                                                        <span className={`text-[9px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 border rounded-full whitespace-nowrap transition-all duration-500 ${fluxCurrentArtist.artist === item.artist ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/5 text-white/30 group-hover:border-white/10 group-hover:text-white/70'}`}>
-                                                            {item.stage || '---'}
-                                                        </span>
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red/0 via-white/0 to-white/0 group-hover:from-white/[0.02] transition-colors pointer-events-none" />
+                                                        {/* Time Column */}
+                                                        <div className="flex flex-col relative z-10">
+                                                            <span className={`font-black text-[13px] lg:text-[15px] tracking-tight transition-colors duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/40 group-hover:text-white/70'}`}>
+                                                                {item.time?.replace(':', 'H') || '--H--'}
+                                                                {item.endTime && (
+                                                                    <span className="block opacity-40 text-[10px] lg:text-[11px] mt-0.5">
+                                                                        {item.endTime.replace(':', 'H')}
+                                                                    </span>
+                                                                )}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Artist Column */}
+                                                        <div className="flex items-center gap-4 min-w-0 relative z-10">
+                                                            <h3 className={`font-black uppercase italic tracking-wider text-[7px] lg:text-[10px] leading-tight truncate group-hover:translate-x-1 transition-transform duration-500 ${fluxCurrentArtist.artist === item.artist ? 'text-white' : 'text-white/80 group-hover:text-white'}`}>
+                                                                {item.artist || '---'}
+                                                            </h3>
+                                                            {fluxCurrentArtist.artist === item.artist && settings.isOnline && (
+                                                                <div className="px-2 py-0.5 bg-red-600/20 border border-red-500/30 rounded text-[7px] font-black text-red-500 uppercase tracking-widest animate-pulse flex items-center gap-1">
+                                                                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+                                                                    EN DIRECT
+                                                                </div>
+                                                            )}
+                                                            {item.instagram && (
+                                                                <motion.a
+                                                                    whileHover={{ scale: 1.2, rotate: 5 }}
+                                                                    href={item.instagram}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    onClick={e => e.stopPropagation()}
+                                                                    className="w-7 h-7 flex items-center justify-center bg-gradient-to-tr from-[#f09433] via-[#e6683c] to-[#bc1888] rounded-full p-1.5 shadow-lg opacity-60 hover:opacity-100 transition-opacity"
+                                                                >
+                                                                    <Instagram className="w-full h-full text-white" />
+                                                                </motion.a>
+                                                            )}
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (!item.artist) return;
+                                                                    const newFavs = favorites.includes(item.artist)
+                                                                        ? favorites.filter(f => f !== item.artist)
+                                                                        : [...favorites, item.artist];
+                                                                    setFavorites(newFavs);
+                                                                    localStorage.setItem('favorited_artists', JSON.stringify(newFavs));
+                                                                }}
+                                                                className={`w-7 h-7 flex items-center justify-center rounded-full p-1.5 shadow-lg transition-all ${favorites.includes(item.artist) ? 'bg-neon-red opacity-100' : 'bg-white/10 opacity-60 hover:opacity-100 hover:bg-white/20'}`}
+                                                                title={favorites.includes(item.artist) ? "Retirer des favoris" : "Mettre en favoris pour recevoir une notification"}
+                                                            >
+                                                                <Heart className={`w-full h-full ${favorites.includes(item.artist) ? 'text-white fill-white' : 'text-white'}`} />
+                                                            </button>
+                                                        </div>
+
+                                                        {/* Stage Column */}
+                                                        <div className="flex items-center justify-end pr-8 relative z-10">
+                                                            <span className={`text-[9px] font-bold uppercase tracking-[0.2em] px-4 py-1.5 border rounded-full whitespace-nowrap transition-all duration-500 ${fluxCurrentArtist.artist === item.artist ? 'bg-white/10 border-white/20 text-white' : 'bg-white/5 border-white/5 text-white/30 group-hover:border-white/10 group-hover:text-white/70'}`}>
+                                                                {item.stage || '---'}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))}
-                                            {parseLineup(editLineup || settings.lineup || '').length === 0 && (
-                                                <div className="py-20 text-center">
-                                                    <p className="text-sm font-black text-white/30 uppercase tracking-[0.3em] italic drop-shadow-md">
-                                                        PROGRAMME À VENIR
-                                                    </p>
-                                                </div>
-                                            )}
+                                                ))}
+                                                {parseLineup(editLineup || settings.lineup || '').length === 0 && (
+                                                    <div className="py-20 text-center">
+                                                        <p className="text-sm font-black text-white/30 uppercase tracking-[0.3em] italic drop-shadow-md">
+                                                            PROGRAMME À VENIR
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                    </motion.div>
+                                )
+                            }
+                        </AnimatePresence >
 
                         {/* Admin: Change Video popover */}
                         <AnimatePresence>
-                            {!isFocusMode && showVideoEdit && hasModPowers && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-[#111] border border-white/20 rounded-2xl p-4 shadow-2xl w-80"
-                                    onClick={e => e.stopPropagation()}
-                                >
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">YouTube ID ou URL</p>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={newVideoId}
-                                            onChange={e => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
-                                            placeholder="dQw4w9WgXcQ"
-                                            className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-neon-red outline-none"
-                                            autoFocus
-                                        />
-                                        <button
-                                            onClick={() => handleUpdateSettings({ youtubeId: newVideoId })}
-                                            disabled={isSaving}
-                                            className="px-4 py-2 bg-neon-red text-white rounded-xl text-xs font-black hover:bg-neon-red/80 transition-all disabled:opacity-50"
-                                        >
-                                            {isSaving ? '...' : 'OK'}
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                            {
+                                !isFocusMode && showVideoEdit && hasModPowers && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-[#111] border border-white/20 rounded-2xl p-4 shadow-2xl w-80"
+                                        onClick={e => e.stopPropagation()}
+                                    >
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">YouTube ID ou URL</p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={newVideoId}
+                                                onChange={e => setNewVideoId(e.target.value.split('v=').pop()?.split('&')[0] || e.target.value)}
+                                                placeholder="dQw4w9WgXcQ"
+                                                className="flex-1 bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:border-neon-red outline-none"
+                                                autoFocus
+                                            />
+                                            <button
+                                                onClick={() => handleUpdateSettings({ youtubeId: newVideoId })}
+                                                disabled={isSaving}
+                                                className="px-4 py-2 bg-neon-red text-white rounded-xl text-xs font-black hover:bg-neon-red/80 transition-all disabled:opacity-50"
+                                            >
+                                                {isSaving ? '...' : 'OK'}
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                )
+                            }
+                        </AnimatePresence >
 
                         <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                             <button
@@ -5743,8 +5414,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 )}
                             </AnimatePresence>
                         </div>
-                    </div>
-                </div>
+                    </div >
+                </div >
             </div >
 
             {/* Ticker Banner */}
