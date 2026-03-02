@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Clock, Play, BarChart3, Zap, User } from 'lucide-react';
 
-type QuizType = 'QCM' | 'BLIND_TEST';
+type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE' | 'VIDEO';
 type GameLength = 5 | 10 | 20;
 
 interface Quiz {
@@ -13,6 +13,8 @@ interface Quiz {
     correctAnswer: string;
     category: string;
     audioUrl?: string;
+    imageUrl?: string;
+    youtubeId?: string;
     author: string;
 }
 
@@ -108,6 +110,10 @@ export function QuizSection() {
         if (selectedTheme !== 'ALL') {
             if (selectedTheme === 'Blind Test') {
                 filtered = filtered.filter(q => q.type === 'BLIND_TEST');
+            } else if (selectedTheme === 'Images') {
+                filtered = filtered.filter(q => q.type === 'IMAGE');
+            } else if (selectedTheme === 'Videos') {
+                filtered = filtered.filter(q => q.type === 'VIDEO');
             } else if (selectedTheme === 'Bass Music') {
                 filtered = filtered.filter(q => q.category === 'Bass');
             } else {
@@ -207,7 +213,7 @@ export function QuizSection() {
     };
 
     const themes = [
-        'ALL', 'Blind Test', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
+        'ALL', 'Blind Test', 'Images', 'Videos', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
     ];
 
     if (loading) {
@@ -369,6 +375,30 @@ export function QuizSection() {
                                                         <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
                                                     </audio>
                                                 )}
+                                            </div>
+                                        )}
+
+                                        {gameQuizzes[currentQuizIndex].type === 'IMAGE' && gameQuizzes[currentQuizIndex].imageUrl && (
+                                            <div className="mb-8 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl max-w-2xl mx-auto">
+                                                <img
+                                                    src={gameQuizzes[currentQuizIndex].imageUrl}
+                                                    alt="Quiz"
+                                                    className="w-full h-auto object-cover max-h-[400px]"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {gameQuizzes[currentQuizIndex].type === 'VIDEO' && gameQuizzes[currentQuizIndex].youtubeId && (
+                                            <div className="mb-8 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl aspect-video max-w-2xl mx-auto">
+                                                <iframe
+                                                    width="100%"
+                                                    height="100%"
+                                                    src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1`}
+                                                    title="YouTube video player"
+                                                    frameBorder="0"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                ></iframe>
                                             </div>
                                         )}
                                     </div>
