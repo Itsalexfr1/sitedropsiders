@@ -71,58 +71,58 @@ export function Musique() {
 
         if (platform === 'beatport') {
             return [
-                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42', embedUrl: 'https://embed.beatport.com/player/?id=18654321&type=track' },
-                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '6:12', embedUrl: 'https://embed.beatport.com/player/?id=18654322&type=track' },
-                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: 'Filth on Acid', url: '#', duration: '7:01', embedUrl: 'https://embed.beatport.com/player/?id=18654323&type=track' },
-                { id: 'bp-4', rank: 4, title: 'Misbehave (Extended Mix)', artist: 'Aluna, SIDEPIECE', label: 'Mad Decent', url: '#', duration: '5:23', embedUrl: 'https://embed.beatport.com/player/?id=18654324&type=track' },
-                { id: 'bp-5', rank: 5, title: 'Feel This Way', artist: 'Josh Baker, Paige Cavell', label: 'Hype', url: '#', duration: '5:30', embedUrl: 'https://embed.beatport.com/player/?id=18654325&type=track' },
-                { id: 'bp-6', rank: 6, title: 'Just Like That', artist: 'SOSA (UK)', label: 'COCO', url: '#', duration: '6:04', embedUrl: 'https://embed.beatport.com/player/?id=18654326&type=track' },
-                { id: 'bp-7', rank: 7, title: 'Swagger', artist: 'HILLS (US), WELKER (BR)', label: 'HITS HARD', url: '#', duration: '5:15', embedUrl: 'https://embed.beatport.com/player/?id=18654327&type=track' },
-                { id: 'bp-8', rank: 8, title: 'Never Alone', artist: 'Odd Mob, Lizzy Land', label: 'Tinted Records', url: '#', duration: '5:38', embedUrl: 'https://embed.beatport.com/player/?id=18654328&type=track' },
-                { id: 'bp-9', rank: 9, title: 'Vision Blurred', artist: 'Kaskade, CID', label: 'Arkade', url: '#', duration: '5:38', embedUrl: 'https://embed.beatport.com/player/?id=18654329&type=track' },
-                { id: 'bp-10', rank: 10, title: 'Satisfaction (Remix)', artist: 'David Guetta vs. Benny Benassi', label: 'Spinnin', url: '#', duration: '6:21', embedUrl: 'https://embed.beatport.com/player/?id=18654330&type=track' },
+                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Black Book Records', url: 'https://www.beatport.com/fr/track/neck/23308330' },
+                { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'ESSEntial.', url: 'https://www.beatport.com/fr/track/make-my-day/23451068' },
+                { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036' },
+                { id: 'bp-4', rank: 4, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: '8Bit', url: 'https://www.beatport.com/fr/track/good-time/23443670' },
+                { id: 'bp-5', rank: 5, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Hellbent Records', url: 'https://www.beatport.com/fr/track/out-of-my-mind/23451235' },
+                { id: 'bp-6', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'You&Me Records', url: 'https://www.beatport.com/fr/track/just-like-that/23965405' },
+                { id: 'bp-7', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'Higher Ground', url: 'https://www.beatport.com/fr/track/swagger/23996197' },
+                { id: 'bp-8', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'MoBlack Records', url: 'https://www.beatport.com/fr/track/jamaican-bam-bam/22357262' },
+                { id: 'bp-9', rank: 9, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Experts Only', url: 'https://www.beatport.com/fr/track/vision-blurred/23648337' },
+                { id: 'bp-10', rank: 10, title: 'Lifting (Extended)', artist: 'Riordan, Silva Bumpa', label: 'Room Two Recordings', url: 'https://www.beatport.com/fr/track/lifting/24441099' },
             ];
         }
         if (platform === 'traxsource') {
             return [
-                { id: 'ts-1', rank: 1, title: 'Each Step (Powerhouse Mix)', artist: 'Deetron, Seth Troxler', label: 'Defected', url: '#', duration: '6:30', embedUrl: 'https://embed.traxsource.com/player/track/9543160' },
-                { id: 'ts-2', rank: 2, title: 'Eyes For You (Migs Remix)', artist: 'Miguel Migs', label: 'Salted Music', url: '#', duration: '5:55', embedUrl: 'https://embed.traxsource.com/player/track/9543161' },
-                { id: 'ts-3', rank: 3, title: 'Music Is My Way Of Life', artist: 'The Lab Rats, Lisa Millett', label: 'Soulful', url: '#', duration: '4:20', embedUrl: 'https://embed.traxsource.com/player/track/9543162' },
-                { id: 'ts-4', rank: 4, title: 'Cool Calm Collected', artist: 'Jeff Bros', label: 'Tech House', url: '#', duration: '7:15', embedUrl: 'https://embed.traxsource.com/player/track/9543163' },
-                { id: 'ts-5', rank: 5, title: 'Good Stuff', artist: 'Definite Grooves', label: 'House', url: '#', duration: '5:45', embedUrl: 'https://embed.traxsource.com/player/track/9543164' },
-                { id: 'ts-6', rank: 6, title: 'The Deal', artist: '6th Borough Project', label: 'Deep House', url: '#', duration: '6:02', embedUrl: 'https://embed.traxsource.com/player/track/9543165' },
-                { id: 'ts-7', rank: 7, title: 'Charleen (Main Mix)', artist: 'Deon Cole, Stacy Kidd', label: 'Soulful House', url: '#', duration: '6:33', embedUrl: 'https://embed.traxsource.com/player/track/9543166' },
-                { id: 'ts-8', rank: 8, title: 'Judgement Dance', artist: 'Culoe de Song', label: 'Afro House', url: '#', duration: '3:45', embedUrl: 'https://embed.traxsource.com/player/track/9543167' },
-                { id: 'ts-9', rank: 9, title: 'Mystic Loop', artist: 'Unknown', label: 'House', url: '#', duration: '6:18', embedUrl: 'https://embed.traxsource.com/player/track/9543168' },
-                { id: 'ts-10', rank: 10, title: 'Moments Original Vocal Mix', artist: 'David Diaz', label: 'Deep House', url: '#', duration: '5:50', embedUrl: 'https://embed.traxsource.com/player/track/9543169' },
+                { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025' },
+                { id: 'ts-14384124', rank: 2, title: 'I Love U (Afro Mix)', artist: 'Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14384124/i-love-u-afro-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384124' },
+                { id: 'ts-14283333', rank: 3, title: 'Carry Us Away (Extended Mix)', artist: 'DJ Fudge', label: "Fool's Paradise", url: 'https://traxsource.com/track/14283333/carry-us-away-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14283333' },
+                { id: 'ts-14403274', rank: 4, title: 'Charleen (Main Mix)', artist: 'Deon Cole, Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14403274/charleen-main-mix', embedUrl: 'https://embed.traxsource.com/player/track/14403274' },
+                { id: 'ts-14324830', rank: 5, title: 'Stand Up (Extended)', artist: 'Da Lukas, Stella Brown', label: 'Groove Culture', url: 'https://traxsource.com/track/14324830/stand-up-extended', embedUrl: 'https://embed.traxsource.com/player/track/14324830' },
+                { id: 'ts-14330028', rank: 6, title: '"U" (Klassik Jazz Mix)', artist: "K' Alexi Shelby", label: 'Klassik Blueprint Muzik Digital', url: 'https://traxsource.com/track/14330028/u-klassik-jazz-mix', embedUrl: 'https://embed.traxsource.com/player/track/14330028' },
+                { id: 'ts-14235719', rank: 7, title: 'Luv Musica (Luca Guerrieri Remix)', artist: 'Ridney, Luca Guerrieri', label: 'Paharas Musica', url: 'https://traxsource.com/track/14235719/luv-musica-luca-guerrieri-remix', embedUrl: 'https://embed.traxsource.com/player/track/14235719' },
+                { id: 'ts-14384931', rank: 8, title: 'Good Stuff (Extended Mix)', artist: 'Definite Grooves', label: 'Nervous', url: 'https://traxsource.com/track/14384931/good-stuff-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384931' },
+                { id: 'ts-14334069', rank: 9, title: 'Better Days (Extended Mix)', artist: 'Jimi Polo, Michael Gray', label: 'Toolroom', url: 'https://traxsource.com/track/14334069/better-days-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14334069' },
+                { id: 'ts-14410945', rank: 10, title: 'My Mistake', artist: 'DJ Spen, Thommy Davis', label: 'Quantize Recordings', url: 'https://traxsource.com/track/14410945/my-mistake-spen-and-thommys-chi-philly-dub', embedUrl: 'https://embed.traxsource.com/player/track/14410945' },
             ];
         }
         if (platform === 'hardtunes') {
             return [
-                { id: 'ht-1', rank: 1, title: 'Tides of Tyranny (MOH Anthem)', artist: 'D-Fence & Alee', label: 'Masters of Hardcore', url: '#', duration: '4:15', embedUrl: 'https://www.hardtunes.com/embed/track/d-fence-alee-tides-of-tyranny-official-masters-of-hardcore-2026-anthem' },
-                { id: 'ht-2', rank: 2, title: 'Accelerate It', artist: 'MT & Complex', label: 'Hardcore', url: '#', duration: '3:58', embedUrl: 'https://www.hardtunes.com/embed/track/mt-complex-accelerate-it' },
-                { id: 'ht-3', rank: 3, title: 'King Of The Jungle', artist: 'Satirized & Manifest Destiny', label: 'Manifest', url: '#', duration: '4:05', embedUrl: 'https://www.hardtunes.com/embed/track/satirized-manifest-destiny-king-of-the-jungle' },
-                { id: 'ht-4', rank: 4, title: 'Bass Go Boom', artist: 'N-Vitral & Dither', label: 'Masters of Hardcore', url: '#', duration: '4:22', embedUrl: 'https://www.hardtunes.com/embed/track/n-vitral-dither-bass-go-boom' },
-                { id: 'ht-5', rank: 5, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Hardcore', url: '#', duration: '4:10', embedUrl: 'https://www.hardtunes.com/embed/track/missy-damaxy-koffiepauze' },
-                { id: 'ht-6', rank: 6, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Bricks', url: '#', duration: '3:45', embedUrl: 'https://www.hardtunes.com/embed/track/dmrc-bang-to-the-bricks' },
-                { id: 'ht-7', rank: 7, title: 'Max Ammo', artist: 'Roosterz & Kili', label: 'Ammo', url: '#', duration: '4:30', embedUrl: 'https://www.hardtunes.com/embed/track/roosterz-kili-max-ammo' },
-                { id: 'ht-8', rank: 8, title: 'Illusion', artist: 'Screecher & Deviation', label: 'Hardcore', url: '#', duration: '4:02', embedUrl: 'https://www.hardtunes.com/embed/track/screecher-deviation-illusion' },
-                { id: 'ht-9', rank: 9, title: 'My Time', artist: 'T.M.O.', label: 'Hardcore', url: '#', duration: '3:55', embedUrl: 'https://www.hardtunes.com/embed/track/t.m.o.-my-time' },
-                { id: 'ht-10', rank: 10, title: 'Gameroni', artist: 'Akimbo & Complex', label: 'Hardcore', url: '#', duration: '4:08', embedUrl: 'https://www.hardtunes.com/embed/track/akimbo-complex-gameroni' },
+                { id: 'ht-96997', rank: 1, title: 'Accelerate It (Extended Mix)', artist: 'MT & Complex', label: 'Gearbox Overdrive', url: 'https://www.hardtunes.com/tunes/mt-and-complex-accelerate-it-extended-mix/96997' },
+                { id: 'ht-97375', rank: 2, title: 'King Of The Jungle (Extended Mix)', artist: 'Satirized & Manifest Destiny', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/satirized-and-manifest-destiny-king-of-the-jungle-extended-mix/97375' },
+                { id: 'ht-97336', rank: 3, title: 'Koffiepauze', artist: 'Missy & Damaxy', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/missy-and-damaxy-koffiepauze/97336' },
+                { id: 'ht-99441', rank: 4, title: 'Bang To The Bricks', artist: 'DMRC', label: 'Annihilation Records', url: 'https://www.hardtunes.com/tunes/dmrc-bang-to-the-bricks/99441' },
+                { id: 'ht-99602', rank: 5, title: 'Max Ammo (Extended Mix)', artist: 'Roosterz & Kili', label: 'Snakepit Music', url: 'https://www.hardtunes.com/tunes/roosterz-and-kili-max-ammo-extended-mix/99602' },
+                { id: 'ht-99486', rank: 6, title: 'Speaker Attack (Original Mix)', artist: 'Catscan', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/catscan-speaker-attack-original-mix/99486' },
+                { id: 'ht-99611', rank: 7, title: 'The Hunt', artist: 'S-Kill', label: 'Partyraiser Recordings', url: 'https://www.hardtunes.com/tunes/s-kill-the-hunt/99611' },
+                { id: 'ht-99507', rank: 8, title: 'Death By Gabber', artist: 'Neox', label: 'NeoX Music Records', url: 'https://www.hardtunes.com/tunes/neox-death-by-gabber/99507' },
+                { id: 'ht-99612', rank: 9, title: 'Self-Destroyed', artist: 'Mad Dog', label: 'Masters of Hardcore', url: 'https://www.hardtunes.com/tunes/mad-dog-self-destroyed/99612' },
+                { id: 'ht-97486', rank: 10, title: 'Sins', artist: 'Unproven', label: 'Barbaric Records', url: 'https://www.hardtunes.com/tunes/unproven-sins/97486' },
             ];
         }
         if (platform === 'juno') {
             return [
-                { id: 'jn-1', rank: 1, title: 'Cry Me A River', artist: '3 Are Legend, Timbaland & W&W', label: 'Tomorrowland', url: '#', duration: '6:12', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890123-02' },
-                { id: 'jn-2', rank: 2, title: 'Aspirin', artist: 'HBz, BIG TIM', label: 'Club', url: '#', duration: '5:48', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890124-02' },
-                { id: 'jn-3', rank: 3, title: 'So Bist Du', artist: 'Oli.P & Felix Harrer', label: 'Club', url: '#', duration: '3:30', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890125-02' },
-                { id: 'jn-4', rank: 4, title: 'Komodo', artist: 'Lilly Palmer', label: 'Techno', url: '#', duration: '5:12', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890126-02' },
-                { id: 'jn-5', rank: 5, title: 'Set Me Free', artist: 'Armin Van Buuren', label: 'ASOT', url: '#', duration: '6:04', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890127-02' },
-                { id: 'jn-6', rank: 6, title: 'When The Beat Drops Out', artist: 'Neptunica', label: 'Dance', url: '#', duration: '6:25', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890128-02' },
-                { id: 'jn-7', rank: 7, title: 'Miss Fatty (Techno Mix)', artist: 'LUNAX, D.T.E', label: 'Techno', url: '#', duration: '4:18', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890129-02' },
-                { id: 'jn-8', rank: 8, title: 'The Tide Is High', artist: 'Salvatore Mancuso', label: 'Dance', url: '#', duration: '6:01', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890130-02' },
-                { id: 'jn-9', rank: 9, title: 'Bugatti (CID Remix)', artist: 'Tiga', label: 'Techno', url: '#', duration: '5:52', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890131-02' },
-                { id: 'jn-10', rank: 10, title: 'Lick It (Remix)', artist: 'WILL K', label: 'Club', url: '#', duration: '5:45', embedUrl: 'https://www.junodownload.com/player/?ref=s-player&track_id=5890132-02' },
+                { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/' },
+                { id: 'jn-7463901-02', rank: 2, title: 'Mandem', artist: 'Jhitzu', label: 'Sweet Tooth Recordings', url: 'https://www.junodownload.com/products/mandem-tied-up/7463901-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7463901-02.m3u/' },
+                { id: 'jn-7440888-02', rank: 3, title: 'Axiom', artist: 'Simula / Kasra', label: 'Critical Music', url: 'https://www.junodownload.com/products/axiom-intuition/7440888-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7440888-02.m3u/' },
+                { id: 'jn-7472783-02', rank: 4, title: 'Crocodiles', artist: 'Benny L', label: 'Audioporn', url: 'https://www.junodownload.com/products/crocodiles/7472783-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7472783-02.m3u/' },
+                { id: 'jn-7443508-02', rank: 5, title: 'Get Em Heartbroke (Audit remix)', artist: 'PA', label: 'Dub Damage Recordings UK', url: 'https://www.junodownload.com/products/get-em-heartbroke-audit-remix/7443508-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7443508-02.m3u/' },
+                { id: 'jn-7441844-02', rank: 6, title: 'Chase The Lights', artist: 'Kings Of The Rollers ft Marns', label: 'Souped Up', url: 'https://www.junodownload.com/products/chase-the-lights/7441844-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7441844-02.m3u/' },
+                { id: 'jn-7361340-02', rank: 7, title: 'Everyday Junglist (VIP DUB)', artist: 'Marvellous Cain & Bizzy B', label: 'RIQYARDROCK', url: 'https://www.junodownload.com/products/hard-shellerz-album/7361340-02/?track_number=6', embedUrl: 'https://www.junodownload.com/player-embed/7361340-02.m3u/' },
+                { id: 'jn-7479307-02', rank: 8, title: 'LEGENDARY (Sub Zero & Burntboi edit)', artist: 'Sigma, Dynamite MC', label: 'Day Ones', url: 'https://www.junodownload.com/products/day-one-explicit-edits/7479307-02/?track_number=10', embedUrl: 'https://www.junodownload.com/player-embed/7479307-02.m3u/' },
+                { id: 'jn-7415007-02', rank: 9, title: 'Ramp', artist: 'Counter Culture', label: 'Symmetry Recordings', url: 'https://www.junodownload.com/products/parallel-vol-1/7415007-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7415007-02.m3u/' },
+                { id: 'jn-7437401-02', rank: 10, title: 'Heli Dubz', artist: 'Clipz', label: 'Philly Blunt', url: 'https://www.junodownload.com/products/2hi-heli-dubz/7437401-02/?track_number=2', embedUrl: 'https://www.junodownload.com/player-embed/7437401-02.m3u/' },
             ];
         }
         if (platform === '1001tracklists') {
@@ -404,40 +404,57 @@ export function Musique() {
                                                         {track.embedUrl ? (
                                                             <iframe
                                                                 src={track.embedUrl}
-                                                                className="w-full h-[180px] border-none overflow-hidden"
+                                                                className="w-full h-[220px] border-none overflow-hidden"
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />
                                                         ) : (
-                                                            <div className="p-8 space-y-4">
-                                                                <div className="flex items-center justify-between">
-                                                                    <div className="flex-1">
-                                                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                            <div className="p-12 space-y-8 bg-gradient-to-br from-black/80 to-black/40">
+                                                                <div className="flex flex-col items-center gap-6">
+                                                                    <div className="text-center">
+                                                                        <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">{track.title}</h4>
+                                                                        <p className="text-neon-cyan font-black text-sm uppercase tracking-widest">{track.artist}</p>
+                                                                    </div>
+
+                                                                    <div className="w-full max-w-md">
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <span className="text-[10px] font-black text-gray-500 tracking-[0.3em]">PREVIEW MODE</span>
+                                                                            <span className="text-[10px] font-black text-neon-red tracking-[0.3em] animate-pulse">HQ AUDIO</span>
+                                                                        </div>
+                                                                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
                                                                             <motion.div
-                                                                                className="h-full bg-neon-red"
+                                                                                className="h-full bg-gradient-to-r from-neon-red to-neon-cyan shadow-[0_0_10px_rgba(255,18,65,0.5)]"
                                                                                 initial={{ width: "0%" }}
                                                                                 animate={{ width: isPlaying ? "100%" : "0%" }}
                                                                                 transition={{ duration: 30, ease: "linear" }}
                                                                             />
                                                                         </div>
                                                                     </div>
-                                                                    <span className="ml-4 text-[10px] font-black text-gray-400">PREVIEW</span>
-                                                                </div>
-                                                                <div className="flex justify-center">
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (isPlaying) {
-                                                                                audioRef.current?.pause();
-                                                                                setIsPlaying(false);
-                                                                            } else {
-                                                                                audioRef.current?.play();
-                                                                                setIsPlaying(true);
-                                                                            }
-                                                                        }}
-                                                                        className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-                                                                    >
-                                                                        {isPlaying ? <Pause className="w-6 h-6 text-white" /> : <Play className="w-6 h-6 text-white" />}
-                                                                    </button>
+
+                                                                    <div className="flex items-center gap-8">
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                if (isPlaying) {
+                                                                                    audioRef.current?.pause();
+                                                                                    setIsPlaying(false);
+                                                                                } else {
+                                                                                    audioRef.current?.play();
+                                                                                    setIsPlaying(true);
+                                                                                }
+                                                                            }}
+                                                                            className="w-20 h-20 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red hover:border-neon-red hover:scale-110 transition-all duration-500 group/play shadow-2xl"
+                                                                        >
+                                                                            {isPlaying ? <Pause className="w-10 h-10 text-white" /> : <Play className="w-10 h-10 text-white ml-1" />}
+                                                                        </button>
+
+                                                                        <a
+                                                                            href={track.url}
+                                                                            target="_blank"
+                                                                            className="px-8 py-3 rounded-full bg-white text-black font-black text-xs uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all duration-300 shadow-xl"
+                                                                        >
+                                                                            Full Track & Shop
+                                                                        </a>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         )}
