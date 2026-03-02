@@ -1012,11 +1012,15 @@ export function NewsCreate() {
     };
 
     const extractSingleImageUrlAndRatio = (html: string) => {
-        const srcMatch = html.match(/src="([^"]+)"/);
-        const aspectMatch = html.match(/aspect-\[([^\]]+)\]/);
+        const imgMatch = html.match(/src="([^"]+)"/);
+        const ratioMatch = html.match(/aspect-\[([^\]]+)\]/);
+        const alignMatch = html.match(/data-align="([^"]+)"/);
+        const widthMatch = html.match(/width:\s*(\d+)%/);
         return {
-            url: srcMatch ? srcMatch[1] : '',
-            ratio: aspectMatch ? aspectMatch[1] : 'auto'
+            url: imgMatch ? imgMatch[1] : '',
+            ratio: ratioMatch ? ratioMatch[1] : 'auto',
+            alignment: (alignMatch ? alignMatch[1] : 'center') as 'left' | 'center' | 'right',
+            width: widthMatch ? parseInt(widthMatch[1]) : 100
         };
     };
 
@@ -1194,38 +1198,6 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             }
         }
         setMediaModal({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto', widgetId: undefined, cols: 4, alignment: 'center', width: 100 });
-    };
-
-    const extractSingleImageUrlAndRatio = (html: string) => {
-        const imgMatch = html.match(/src="([^"]+)"/);
-        const ratioMatch = html.match(/aspect-\[([^\]]+)\]/);
-        const alignMatch = html.match(/data-align="([^"]+)"/);
-        const widthMatch = html.match(/width:\s*(\d+)%/);
-        return {
-            url: imgMatch ? imgMatch[1] : '',
-            ratio: ratioMatch ? ratioMatch[1] : 'auto',
-            alignment: (alignMatch ? alignMatch[1] : 'center') as 'left' | 'center' | 'right',
-            width: widthMatch ? parseInt(widthMatch[1]) : 100
-        };
-    };
-
-    const extractDuoUrls = (html: string) => {
-        const urls: string[] = [];
-        const matches = html.matchAll(/src="([^"]+)"/g);
-        for (const match of matches) {
-            urls.push(match[1]);
-        }
-        const ratioMatch = html.match(/aspect-\[([^\]]+)\]/);
-        return { urls, ratio: ratioMatch ? ratioMatch[1] : '3/4' };
-    };
-
-    const extractVideoUrls = (html: string) => {
-        const urls: string[] = [];
-        const matches = html.matchAll(/src="([^"]+)"/g);
-        for (const match of matches) {
-            urls.push(match[1]);
-        }
-        return { urls, count: urls.length };
     };
 
     const generateSocialsHtml = (customName?: string, customColor?: string) => {
