@@ -23,7 +23,7 @@
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
-    "pinnedMessage": "",
+    "pinnedMessage": "TEST",
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
