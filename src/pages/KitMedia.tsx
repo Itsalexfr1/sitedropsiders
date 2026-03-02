@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import {
-    Lock, Instagram, ArrowRight, Users, Globe, ExternalLink,
+    Lock, Instagram, ArrowRight, Users, ExternalLink,
     Facebook, Zap, Mic
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
