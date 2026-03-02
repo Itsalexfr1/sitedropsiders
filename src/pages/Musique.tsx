@@ -13,7 +13,8 @@ interface Track {
     url: string;
     preview?: string;
     duration?: string;
-    embedUrl?: string; // New field for iframe player
+    embedUrl?: string;
+    tracks?: { title: string; artist: string; time?: string }[];
 }
 
 interface TracklistContent {
@@ -24,21 +25,7 @@ interface TracklistContent {
     embedUrl?: string;
 }
 
-const TRACKLIST_MOCK: Record<string, TracklistContent> = {
-    '1001-1': {
-        id: '1001-1',
-        title: 'ALESSA.A @ TOMORROWLAND 2026',
-        artist: 'ALESSA.A',
-        embedUrl: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&light=1&feed=%2Ftomorrowland%2Falessa-a-tomorrowland-belgium-2023-weekend-2%2F',
-        tracks: [
-            { title: 'Innerbloom', artist: 'RÜFÜS DU SOL', time: '00:00' },
-            { title: 'The Feeling', artist: 'Adam Port & Stryv', time: '04:20' },
-            { title: 'Neck (Extended Mix)', artist: 'Mau P', time: '08:15' },
-            { title: 'Loco Loco', artist: 'Reinier Zonneveld', time: '12:30' },
-            { title: 'Move', artist: 'Anyma', time: '15:45' }
-        ]
-    }
-};
+
 
 export function Musique() {
     const [activeTab, setActiveTab] = useState('beatport');
@@ -80,7 +67,6 @@ export function Musique() {
     ];
 
     const getMockData = (platform: string): Track[] => {
-        // Sample preview URL for testing
         const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
         if (platform === 'beatport') {
@@ -99,16 +85,16 @@ export function Musique() {
         }
         if (platform === 'traxsource') {
             return [
-                { id: 'ts-1', rank: 1, title: 'No Hesitating (Max Dean Remix)', artist: 'Joe Rolét', label: 'Solid Grooves', url: '#', duration: '6:30', preview: samplePreview },
-                { id: 'ts-2', rank: 2, title: 'Positive (Extended Mix)', artist: 'Jamback', label: 'Piv', url: '#', duration: '5:55', preview: samplePreview },
-                { id: 'ts-3', rank: 3, title: 'The Feeling', artist: 'Adam Port, Stryv', label: 'Keinemusik', url: '#', duration: '4:20', preview: samplePreview },
-                { id: 'ts-4', rank: 4, title: 'Move', artist: 'Keinemusik', label: 'Keinemusik', url: '#', duration: '7:15', preview: samplePreview },
-                { id: 'ts-5', rank: 5, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:45', preview: samplePreview },
-                { id: 'ts-6', rank: 6, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:02', preview: samplePreview },
-                { id: 'ts-7', rank: 7, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:33', preview: samplePreview },
-                { id: 'ts-8', rank: 8, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:45', preview: samplePreview },
-                { id: 'ts-9', rank: 9, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:18', preview: samplePreview },
-                { id: 'ts-10', rank: 10, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:50', preview: samplePreview },
+                { id: 'ts-1', rank: 1, title: 'No Hesitating (Max Dean Remix)', artist: 'Joe Rolét', label: 'Solid Grooves', url: '#', duration: '6:30', embedUrl: 'https://embed.traxsource.com/player/track/9543128' },
+                { id: 'ts-2', rank: 2, title: 'Positive (Extended Mix)', artist: 'Jamback', label: 'Piv', url: '#', duration: '5:55', embedUrl: 'https://embed.traxsource.com/player/track/9543130' },
+                { id: 'ts-3', rank: 3, title: 'The Feeling', artist: 'Adam Port, Stryv', label: 'Keinemusik', url: '#', duration: '4:20', embedUrl: 'https://embed.traxsource.com/player/track/9543135' },
+                { id: 'ts-4', rank: 4, title: 'Move', artist: 'Keinemusik', label: 'Keinemusik', url: '#', duration: '7:15', embedUrl: 'https://embed.traxsource.com/player/track/9543140' },
+                { id: 'ts-5', rank: 5, title: 'Shiver', artist: 'John Summit', label: 'Experts Only', url: '#', duration: '5:45', embedUrl: 'https://embed.traxsource.com/player/track/9543145' },
+                { id: 'ts-6', rank: 6, title: 'Honey', artist: 'Anyma', label: 'Afterlife', url: '#', duration: '6:02', embedUrl: 'https://embed.traxsource.com/player/track/9543150' },
+                { id: 'ts-7', rank: 7, title: 'Dominos', artist: 'Vintage Culture', label: 'BOMA', url: '#', duration: '6:33', embedUrl: 'https://embed.traxsource.com/player/track/9543155' },
+                { id: 'ts-8', rank: 8, title: 'Mwaki', artist: 'Zerb', label: 'Sthlm', url: '#', duration: '3:45', embedUrl: 'https://embed.traxsource.com/player/track/9543160' },
+                { id: 'ts-9', rank: 9, title: 'Control', artist: 'Mochakk', label: 'CircoLoco', url: '#', duration: '6:18', embedUrl: 'https://embed.traxsource.com/player/track/9543165' },
+                { id: 'ts-10', rank: 10, title: 'Beat Goes On', artist: 'Cloonee', label: 'Hellbent', url: '#', duration: '5:50', embedUrl: 'https://embed.traxsource.com/player/track/9543170' },
             ];
         }
         if (platform === 'hardtunes') {
@@ -141,18 +127,85 @@ export function Musique() {
         }
         if (platform === '1001tracklists') {
             return [
-                { id: '1001-1', rank: 1, title: 'ALESSA.A @ TOMORROWLAND 2026', artist: 'ALESSA.A', label: 'MAINSTAGE', url: '#', embedUrl: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&feed=%2Ftomorrowland%2Falessa-a-tomorrowland-belgium-2023-weekend-2%2F' },
-                { id: '1001-2', rank: 2, title: 'DAVID GUETTA @ ULTRA MIAMI 2026', artist: 'DAVID GUETTA', label: 'MAIN STAGE', url: '#' },
-                { id: '1001-3', rank: 3, title: 'FISHER @ COACHELLA 2026', artist: 'FISHER', label: 'OUTDOOR STAGE', url: '#' },
-                { id: '1001-4', rank: 4, title: 'ANYMA @ SPHERE LAS VEGAS', artist: 'ANYMA', label: 'AFTERLIFE', url: '#' },
-                { id: '1001-5', rank: 5, title: 'CHARLOTTE DE WITTE @ AWAKENINGS', artist: 'CHARLOTTE DE WITTE', label: 'KNTXT', url: '#' },
-                { id: '1001-6', rank: 6, title: 'VINTAGE CULTURE @ HI IBIZA', artist: 'VINTAGE CULTURE', label: 'THEATRE', url: '#' },
-                { id: '1001-7', rank: 7, title: 'FRED AGAIN.. @ READING 2026', artist: 'FRED AGAIN..', label: 'MAIN STAGE', url: '#' },
-                { id: '1001-8', rank: 8, title: 'MAU P @ SPACE MIAMI', artist: 'MAU P', label: 'TERRACE', url: '#' },
-                { id: '1001-9', rank: 9, title: 'DOM DOLLA @ PARLOUX', artist: 'DOM DOLLA', label: 'CLUB', url: '#' },
-                { id: '1001-10', rank: 10, title: 'CARL COX @ RESISTANCE', artist: 'CARL COX', label: 'MEGASTRUCTURE', url: '#' },
+                {
+                    id: '1001-trending-1', rank: 1, title: 'ARMIN VAN BUUREN @ AREA ONE, ASOT FESTIVAL', artist: 'ARMIN VAN BUUREN', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/armin-van-buuren-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
+                    tracks: [
+                        { title: 'Always You (ASOT 2026 Elevation Anthem)', artist: 'Armin van Buuren', time: '00:00' },
+                        { title: 'Mouth Go LaLa', artist: 'Armin van Buuren & Maddix', time: '04:30' },
+                        { title: 'Don\'t Be Afraid', artist: 'Moonman & Ferry Corsten & Joris Voorn', time: '08:15' },
+                        { title: 'Destiny', artist: 'Layton Giordani ft. Camden Cox', time: '12:45' }
+                    ]
+                },
+                {
+                    id: '1001-trending-2', rank: 2, title: 'FRED AGAIN.. & THOMAS BANGALTER @ USB002', artist: 'FRED AGAIN.., THOMAS BANGALTER', label: 'ALEXANDRA PALACE', url: 'https://www.1001tracklists.com/tracklist/1ybr6v2k/fred-again-thomas-bangalter-usb002-alexandra-palace-london-united-kingdom-2026-02-27.html',
+                    embedUrl: 'https://www.youtube.com/embed/YF0RmSy8FmY',
+                    tracks: [
+                        { title: 'Turn On The Lights again..', artist: 'Fred again..', time: '00:00' },
+                        { title: 'Music Sounds Better With You', artist: 'Stardust', time: '05:12' },
+                        { title: 'Adored (Thomas Bangalter Remix)', artist: 'Fred again..', time: '09:45' },
+                        { title: 'Human After All', artist: 'Daft Punk (2026 Edit)', time: '14:30' }
+                    ]
+                },
+                {
+                    id: '1001-trending-3', rank: 3, title: 'ARMIN VAN BUUREN & OLIVER HELDENS & MADDIX @ AREA ONE', artist: 'ARMIN VAN BUUREN, OLIVER HELDENS, MADDIX', label: 'ASOT FESTIVAL', url: 'https://www.1001tracklists.com/tracklist/1z6k8vj1/armin-van-buuren-oliver-heldens-maddix-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
+                    tracks: [
+                        { title: 'High On Emotion', artist: 'Maddix', time: '00:00' },
+                        { title: 'Bucovina', artist: 'Oliver Heldens', time: '05:20' },
+                        { title: 'Elevation Anthem', artist: 'Armin van Buuren', time: '10:45' }
+                    ]
+                },
+                {
+                    id: '1001-trending-4', rank: 4, title: 'ARMIN VAN BUUREN @ 25 YEARS CELEBRATION SET', artist: 'ARMIN VAN BUUREN', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/armin-van-buuren-25-years-celebration-set-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-27.html',
+                    tracks: [
+                        { title: 'Communication (Classic Mix)', artist: 'Armin van Buuren', time: '00:00' },
+                        { title: 'Shivers', artist: 'Armin van Buuren', time: '06:15' },
+                        { title: 'Great Spirit', artist: 'Armin van Buuren vs. Vini Vici', time: '12:30' }
+                    ]
+                },
+                {
+                    id: '1001-trending-5', rank: 5, title: 'MEDUZA & DREYA V - AETERNA RADIO 011', artist: 'MEDUZA', label: 'AETERNA', url: 'https://www.1001tracklists.com/tracklist/1l5u2v8k/meduza-dreya-v-aeterna-radio-011-2026-03-01.html',
+                    embedUrl: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&feed=%2Fmeduzamusic%2Faeterna-radio-011%2F',
+                    tracks: [
+                        { title: 'Addicted To Bass (Dom Dolla Remix)', artist: 'Puretone', time: '00:00' },
+                        { title: 'Never Alone', artist: 'Odd Mob ft. Lizzy Land', time: '05:45' }
+                    ]
+                },
+                {
+                    id: '1001-trending-6', rank: 6, title: 'TIËSTO - PRISMATIC 009', artist: 'TIËSTO', label: 'MUSICAL FREEDOM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/tiesto-prismatic-009-2026-02-28.html',
+                    tracks: [
+                        { title: 'Beautiful Places', artist: 'Tiësto & Brieanna Grace', time: '00:00' },
+                        { title: 'BOOM', artist: 'Tiësto', time: '04:12' }
+                    ]
+                },
+                {
+                    id: '1001-trending-7', rank: 7, title: 'RICHARD DURAND @ AREA TWO, ASOT FESTIVAL', artist: 'RICHARD DURAND', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/richard-durand-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    tracks: [
+                        { title: 'Always You (Richard Durand Remix)', artist: 'Armin van Buuren', time: '00:00' }
+                    ]
+                },
+                {
+                    id: '1001-trending-8', rank: 8, title: 'COSMIC GATE @ AREA TWO, ASOT FESTIVAL', artist: 'COSMIC GATE', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/cosmic-gate-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    tracks: [
+                        { title: 'Exploration of Space (2026 Edit)', artist: 'Cosmic Gate', time: '00:00' }
+                    ]
+                },
+                {
+                    id: '1001-trending-9', rank: 9, title: 'NIFRA @ AREA ONE, ASOT FESTIVAL', artist: 'NIFRA', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/nifra-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    tracks: [
+                        { title: 'Resistance', artist: 'Nifra', time: '00:00' }
+                    ]
+                },
+                {
+                    id: '1001-trending-10', rank: 10, title: 'ANDREW RAYEL PRES. EXTASIA @ AREA TWO, ASOT FESTIVAL', artist: 'ANDREW RAYEL', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/andrew-rayel-pres.-extasia-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
+                    tracks: [
+                        { title: 'Extasia (Official Anthem)', artist: 'Andrew Rayel', time: '00:00' }
+                    ]
+                }
             ];
         }
+
         return Array.from({ length: 10 }, (_, i) => ({
             id: `${platform}-${i}`,
             rank: i + 1,
@@ -166,18 +219,34 @@ export function Musique() {
 
     const handleTrackClick = (track: Track) => {
         if (activeTab === '1001tracklists') {
-            setSelectedTracklist(TRACKLIST_MOCK[track.id] || {
+            setSelectedTracklist({
                 id: track.id,
                 title: track.title,
                 artist: track.artist,
                 embedUrl: track.embedUrl,
-                tracks: [
+                tracks: track.tracks || [
                     { title: 'Intro (Live Edit)', artist: track.artist, time: '00:00' },
                     { title: 'Electronic Anthem', artist: 'Dropsiders Favorite', time: '10:15' }
                 ]
             });
         } else {
-            setPlayingTrack(track);
+            // Toggle expanded player
+            if (playingTrack?.id === track.id) {
+                setPlayingTrack(null);
+                if (isPlaying) {
+                    setIsPlaying(false);
+                    audioRef.current?.pause();
+                }
+            } else {
+                setPlayingTrack(track);
+                if (track.preview) {
+                    if (audioRef.current) {
+                        audioRef.current.src = track.preview;
+                        audioRef.current.play();
+                        setIsPlaying(true);
+                    }
+                }
+            }
         }
     };
 
@@ -259,49 +328,106 @@ export function Musique() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
-                                        className="group flex items-center gap-6 p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300"
+                                        className="group flex flex-col gap-0 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300"
                                     >
-                                        <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
-                                            <div className="absolute inset-0 bg-white/5 rounded-2xl rotate-45 group-hover:rotate-90 transition-transform duration-500" />
-                                            <span className="relative text-2xl font-black italic text-white/10 group-hover:text-neon-red transition-colors">
-                                                {track.rank}
-                                            </span>
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <button
-                                                onClick={() => handleTrackClick(track)}
-                                                className="block hover:underline text-left group/title"
-                                            >
-                                                <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover:text-neon-red transition-colors flex items-center gap-3">
-                                                    {track.title}
-                                                    {activeTab !== '1001tracklists' && (
-                                                        <div className="invisible group-hover:visible flex items-center gap-1">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-ping" />
-                                                            <span className="text-[9px] font-black tracking-[0.2em] text-neon-red">LISTEN</span>
-                                                        </div>
-                                                    )}
-                                                </h3>
-                                            </button>
-                                            <div className="flex items-center gap-3 mt-1">
-                                                <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                    {track.artist}
-                                                </span>
-                                                <span className="w-1 h-1 rounded-full bg-white/20" />
-                                                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                                                    {track.label}
+                                        <div className="flex items-center gap-6 p-6">
+                                            <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
+                                                <div className="absolute inset-0 bg-white/5 rounded-2xl rotate-45 group-hover:rotate-90 transition-transform duration-500" />
+                                                <span className="relative text-2xl font-black italic text-white/10 group-hover:text-neon-red transition-colors">
+                                                    {track.rank}
                                                 </span>
                                             </div>
+
+                                            <div className="flex-1 min-w-0">
+                                                <button
+                                                    onClick={() => handleTrackClick(track)}
+                                                    className="block hover:underline text-left group/title"
+                                                >
+                                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover:text-neon-red transition-colors flex items-center gap-3">
+                                                        {track.title}
+                                                        {activeTab !== '1001tracklists' && (
+                                                            <div className={`flex items-center gap-1 ${playingTrack?.id === track.id ? 'visible' : 'invisible group-hover:visible'}`}>
+                                                                <div className={`w-1.5 h-1.5 rounded-full ${playingTrack?.id === track.id ? 'bg-neon-green' : 'bg-neon-red'} animate-ping`} />
+                                                                <span className={`text-[9px] font-black tracking-[0.2em] ${playingTrack?.id === track.id ? 'text-neon-green' : 'text-neon-red'}`}>
+                                                                    {playingTrack?.id === track.id ? 'PLAYING' : 'LISTEN'}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </h3>
+                                                </button>
+                                                <div className="flex items-center gap-3 mt-1">
+                                                    <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
+                                                        {track.artist}
+                                                    </span>
+                                                    <span className="w-1 h-1 rounded-full bg-white/20" />
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                                        {track.label}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <a
+                                                href={track.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
+                                            >
+                                                <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                            </a>
                                         </div>
 
-                                        <a
-                                            href={track.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
-                                        >
-                                            <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-                                        </a>
+                                        <AnimatePresence>
+                                            {playingTrack?.id === track.id && activeTab !== '1001tracklists' && (
+                                                <motion.div
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="px-6 pb-6 overflow-hidden"
+                                                >
+                                                    <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-xl">
+                                                        {track.embedUrl ? (
+                                                            <iframe
+                                                                src={track.embedUrl}
+                                                                className="w-full h-[150px] border-none"
+                                                                allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                            />
+                                                        ) : (
+                                                            <div className="p-8 space-y-4">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex-1">
+                                                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                                            <motion.div
+                                                                                className="h-full bg-neon-red"
+                                                                                initial={{ width: "0%" }}
+                                                                                animate={{ width: isPlaying ? "100%" : "0%" }}
+                                                                                transition={{ duration: 30, ease: "linear" }}
+                                                                            />
+                                                                        </div>
+                                                                    </div>
+                                                                    <span className="ml-4 text-[10px] font-black text-gray-400">PREVIEW</span>
+                                                                </div>
+                                                                <div className="flex justify-center">
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (isPlaying) {
+                                                                                audioRef.current?.pause();
+                                                                                setIsPlaying(false);
+                                                                            } else {
+                                                                                audioRef.current?.play();
+                                                                                setIsPlaying(true);
+                                                                            }
+                                                                        }}
+                                                                        className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                                                                    >
+                                                                        {isPlaying ? <Pause className="w-6 h-6 text-white" /> : <Play className="w-6 h-6 text-white" />}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </motion.div>
                                 ))}
                             </motion.div>
@@ -325,92 +451,7 @@ export function Musique() {
                 </div>
             </motion.div>
 
-            {/* Audio Mini-Player Floating */}
-            <AnimatePresence>
-                {playingTrack && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 100 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 100 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[95%] md:w-[700px] z-[200]"
-                    >
-                        <div className="relative bg-black border-2 border-white/10 rounded-3xl p-4 md:p-6 shadow-[0_30px_60px_rgba(0,0,0,0.8)] backdrop-blur-xl overflow-hidden group">
-                            {/* Player BG Glow */}
-                            <div className="absolute inset-0 bg-neon-red/5" />
 
-                            {/* Header Player */}
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                    <span className="text-[10px] font-black text-white uppercase tracking-widest">Studio Player 2026</span>
-                                </div>
-                                <button onClick={() => setPlayingTrack(null)} className="text-gray-500 hover:text-white transition-colors">
-                                    <X className="w-5 h-5" />
-                                </button>
-                            </div>
-
-                            <div className="relative flex flex-col md:flex-row items-center gap-6">
-                                {playingTrack.embedUrl ? (
-                                    <div className="w-full h-[120px] rounded-2xl overflow-hidden bg-white/5 border border-white/10">
-                                        <iframe
-                                            src={playingTrack.embedUrl}
-                                            width="100%"
-                                            height="100%"
-                                            frameBorder="0"
-                                            allow="autoplay"
-                                            className="grayscale hover:grayscale-0 transition-all duration-700"
-                                        ></iframe>
-                                    </div>
-                                ) : (
-                                    <>
-                                        <div className="w-20 h-20 bg-neon-red rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(255,17,17,0.3)] animate-spin-slow">
-                                            <Disc className="w-10 h-10 text-white" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="text-lg font-black text-white uppercase italic tracking-tight truncate">
-                                                {playingTrack.title}
-                                            </h4>
-                                            <p className="text-[11px] font-black text-neon-cyan uppercase tracking-[0.2em] mb-4">
-                                                {playingTrack.artist}
-                                            </p>
-
-                                            {/* Progress Bar */}
-                                            <div className="space-y-2">
-                                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                                    <motion.div
-                                                        className="h-full bg-neon-red"
-                                                        initial={{ width: "0%" }}
-                                                        animate={{ width: isPlaying ? "100%" : "0%" }}
-                                                        transition={{ duration: 30, ease: "linear" }}
-                                                    />
-                                                </div>
-                                                <div className="flex justify-between text-[8px] font-bold text-gray-500">
-                                                    <span>LIVE PREVIEW</span>
-                                                    <span>{playingTrack.duration || '05:30'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() => setIsPlaying(!isPlaying)}
-                                                className="p-4 bg-white text-black rounded-2xl shadow-xl"
-                                            >
-                                                {isPlaying ? (
-                                                    <Pause className="w-6 h-6 fill-black" />
-                                                ) : (
-                                                    <Play className="w-6 h-6 fill-black" />
-                                                )}
-                                            </motion.button>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Tracklist Stylish Pop-up */}
             <AnimatePresence>
