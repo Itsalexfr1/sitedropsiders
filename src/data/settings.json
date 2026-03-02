@@ -3,7 +3,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "",
     "title": "LIVE TAKEOVER",
     "moderators": "",
@@ -27,7 +27,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "off"
+    "status": "edit"
   },
   "socials": {
     "instagram": "dropsiders.eu",
