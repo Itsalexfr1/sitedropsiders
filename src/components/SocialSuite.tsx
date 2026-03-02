@@ -160,10 +160,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 await new Promise((res, rej) => { img!.onload = res; img!.onerror = rej; });
             }
 
-            canvas.width = 1100;
-            canvas.height = activeTab === 'REEL' ? 1920 : 1000;
-            const safeTop = (activeTab === 'REEL') ? (canvas.height - 1080) / 2 : 0;
-            const safeBottom = (activeTab === 'REEL') ? safeTop + 1080 : canvas.height;
+            canvas.width = 1080;
+            canvas.height = activeTab === 'REEL' ? 1920 : 1440;
+            const safeTop = (activeTab === 'REEL') ? (canvas.height - 1080) / 2 : (canvas.height - 1080) / 2;
+            const safeBottom = safeTop + 1080;
 
             if (bgVideo) {
                 const scale = Math.max(canvas.width / bgVideo.videoWidth, canvas.height / bgVideo.videoHeight);
@@ -352,7 +352,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = activeTab === 'PUBLICATION' ? safeBottom - 280 : safeBottom - 320;
+                const labelY = activeTab === 'PUBLICATION' ? safeTop + 300 : safeBottom - 320;
                 const startY = labelY + 160;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + 50;
