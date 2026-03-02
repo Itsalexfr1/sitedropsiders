@@ -1,5 +1,15 @@
 [
   {
+    "id": "test",
+    "title": "TEST",
+    "category": "Festivals",
+    "cover": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772422499812-53779486_155987838746438_3767280256734461952_n_155987835413105.jpg",
+    "images": [
+      "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772422512228-54517156_155987638746458_2066773365602910208_n_155987635413125.jpg"
+    ],
+    "date": "2026"
+  },
+  {
     "id": "top-100-djs-mag-unvrs-ibiza-2025-espagne",
     "title": "TOP 100 DJS MAG @ UNVRS IBIZà 2025 – ESPAGNE",
     "category": "Clubs & Events",
