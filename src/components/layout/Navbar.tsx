@@ -59,19 +59,20 @@ export function Navbar() {
     }, []);
 
     const navItems = [
-        { name: t('nav.news'), path: '/news' },
-        { name: t('nav.music'), path: '/musique' },
-        { name: t('nav.recaps'), path: '/recaps' },
-        { name: t('nav.agenda'), path: '/agenda' },
-        { name: t('nav.communaute'), path: '/communaute' },
-        { name: t('nav.interviews'), path: '/interviews' },
-        { name: t('nav.team'), path: '/team' },
-        ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop' }] : []),
+        { name: t('nav.news'), path: '/news', color: 'neon-red' },
+        { name: t('nav.music'), path: '/musique', color: 'neon-green' },
+        { name: t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
+        { name: t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
+        { name: t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
+        { name: t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
+        { name: t('nav.team'), path: '/team', color: 'neon-yellow' },
+        ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop', color: 'neon-red' }] : []),
         ...((takeoverEnabled || isAdmin) && (takeoverSettings as any)?.status === 'live' && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
             name: 'LIVE',
             path: '/live',
             icon: Video,
             isLive: true,
+            color: 'neon-red',
             onClick: () => {
                 sessionStorage.removeItem('exited_live');
             }
@@ -472,7 +473,7 @@ export function Navbar() {
 }
 
 interface NavItemProps {
-    item: { name: string; path: string; icon?: any; isLive?: boolean };
+    item: { name: string; path: string; icon?: any; isLive?: boolean, color?: string };
     isActive: boolean;
 }
 
@@ -493,6 +494,7 @@ function NavItem({ item, isActive }: NavItemProps) {
         >
             <Link
                 to={item.path}
+                data-cursor-color={item.color}
                 onClick={() => {
                     if ((item as any).onClick) (item as any).onClick();
                     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -500,8 +502,14 @@ function NavItem({ item, isActive }: NavItemProps) {
                 className={twMerge(
                     "relative block px-4 py-2 text-sm font-bold tracking-wider transition-all duration-300",
                     isActive
-                        ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]"
-                        : "text-gray-400 hover:text-neon-red hover:drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]"
+                        ? (item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
+                            item.color === 'neon-purple' ? "text-neon-purple drop-shadow-[0_0_8px_rgba(191,0,255,0.5)]" :
+                                item.color === 'neon-cyan' ? "text-neon-cyan drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]" :
+                                    item.color === 'neon-pink' ? "text-neon-pink drop-shadow-[0_0_8px_rgba(255,0,153,0.5)]" :
+                                        item.color === 'neon-blue' ? "text-neon-blue drop-shadow-[0_0_8px_rgba(0,191,255,0.5)]" :
+                                            item.color === 'neon-yellow' ? "text-neon-yellow drop-shadow-[0_0_8px_rgba(255,240,31,0.5)]" :
+                                                "text-neon-red drop-shadow-[0_0_8px_rgba(255,18,65,0.5)]")
+                        : "text-gray-400 hover:text-white"
                 )}
             >
                 <span className="relative z-10 flex items-center gap-2">

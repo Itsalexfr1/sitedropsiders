@@ -221,6 +221,13 @@ export function Interviews() {
                             <motion.button
                                 key={tab.key}
                                 onClick={() => handleTabChange(tab.key)}
+                                data-cursor-color={
+                                    tab.key === 'written' ? 'neon-purple' :
+                                        tab.key === 'video' ? 'neon-blue' :
+                                            tab.key === 'fast-quizz' ? 'neon-cyan' :
+                                                tab.key === 'playlist' ? 'neon-pink' :
+                                                    tab.key === 'drop-talk' ? 'neon-yellow' : 'neon-red'
+                                }
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
                                 className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border ${isActive

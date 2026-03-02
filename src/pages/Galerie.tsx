@@ -139,6 +139,7 @@ export function Galerie() {
                     <motion.button
                         key={cat.id}
                         onClick={() => setActiveCategory(cat.id)}
+                        data-cursor-color="neon-red"
                         whileHover={{ scale: 1.05 }}
                         onMouseEnter={playHoverSound}
                         className={`px-6 py-2 rounded-full text-[10px] font-black tracking-widest transition-all duration-300 border uppercase ${activeCategory === cat.id

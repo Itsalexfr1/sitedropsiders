@@ -3,6 +3,7 @@ import { motion, useSpring, useMotionValue, AnimatePresence } from 'framer-motio
 
 export function CustomCursor() {
     const [isHovering, setIsHovering] = useState(false);
+    const [hoverColor, setHoverColor] = useState('#FF1241'); // Default neon-red
     const [isPressed, setIsPressed] = useState(false);
     const cursorX = useMotionValue(-100);
     const cursorY = useMotionValue(-100);
@@ -26,15 +27,30 @@ export function CustomCursor() {
             cursorY.set(e.clientY);
 
             const target = e.target as HTMLElement;
-            const isClickable =
-                target.closest('a') ||
-                target.closest('button') ||
-                target.closest('input[type="submit"]') ||
-                target.closest('input[type="button"]') ||
-                target.closest('.cursor-pointer') ||
-                window.getComputedStyle(target).cursor === 'pointer';
+            const clickableElement = target.closest('a, button, [role="button"], .cursor-pointer') as HTMLElement;
 
-            setIsHovering(!!isClickable);
+            if (clickableElement) {
+                setIsHovering(true);
+                const colorAttr = clickableElement.getAttribute('data-cursor-color');
+                if (colorAttr) {
+                    // Handle both hex and tailwind-like names
+                    if (colorAttr.startsWith('#')) {
+                        setHoverColor(colorAttr);
+                    } else if (colorAttr === 'neon-red') setHoverColor('#FF1241');
+                    else if (colorAttr === 'neon-green') setHoverColor('#39FF14');
+                    else if (colorAttr === 'neon-cyan') setHoverColor('#00FFFF');
+                    else if (colorAttr === 'neon-purple') setHoverColor('#BF00FF');
+                    else if (colorAttr === 'neon-pink') setHoverColor('#FF0099');
+                    else if (colorAttr === 'neon-blue') setHoverColor('#00BFFF');
+                    else if (colorAttr === 'neon-yellow') setHoverColor('#FFF01F');
+                    else setHoverColor(colorAttr);
+                } else {
+                    // Default fallback
+                    setHoverColor('#FF1241');
+                }
+            } else {
+                setIsHovering(false);
+            }
         };
 
         const handleMouseDown = () => setIsPressed(true);
@@ -86,18 +102,40 @@ export function CustomCursor() {
                         className="relative w-full h-full flex items-center justify-center"
                     >
                         {/* USB Metal Head - Slimmer */}
-                        <div className={`absolute top-0 w-[30%] h-[30%] border-2 rounded-t-sm transition-all duration-300 ${isHovering ? 'border-neon-red bg-neon-red/20 shadow-[0_0_10px_rgba(255,17,17,0.5)]' : 'border-white/40 bg-white/10'}`} />
+                        <div
+                            className={`absolute top-0 w-[30%] h-[30%] border-2 rounded-t-sm transition-all duration-300 ${isHovering ? 'bg-opacity-20 shadow-lg' : 'border-white/40 bg-white/10'}`}
+                            style={{
+                                borderColor: isHovering ? hoverColor : undefined,
+                                backgroundColor: isHovering ? `${hoverColor}33` : undefined,
+                                boxShadow: isHovering ? `0 0 10px ${hoverColor}80` : undefined
+                            }}
+                        />
 
                         {/* USB Body - Slimmer */}
-                        <div className={`absolute top-[30%] w-[45%] h-[60%] rounded-b-md border-2 transition-all duration-300 ${isHovering ? 'border-neon-red bg-black shadow-[0_0_15px_rgba(255,17,17,0.3)]' : 'border-white/20 bg-[#050505]'}`}>
+                        <div
+                            className={`absolute top-[30%] w-[45%] h-[60%] rounded-b-md border-2 transition-all duration-300 ${isHovering ? 'bg-black shadow-lg' : 'border-white/20 bg-[#050505]'}`}
+                            style={{
+                                borderColor: isHovering ? hoverColor : undefined,
+                                boxShadow: isHovering ? `0 0 15px ${hoverColor}4D` : undefined
+                            }}
+                        >
                             {/* Tiny details on USB body */}
-                            <div className={`absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${isHovering ? 'bg-neon-red animate-pulse' : 'bg-white/20'}`} />
+                            <div
+                                className={`absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${isHovering ? 'animate-pulse' : 'bg-white/20'}`}
+                                style={{ backgroundColor: isHovering ? hoverColor : undefined }}
+                            />
                         </div>
 
                         {/* Connection pins inside head */}
                         <div className="absolute top-[5%] w-[20%] h-[15%] flex justify-between px-0.5">
-                            <div className={`w-[25%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
-                            <div className={`w-[25%] h-full rounded-full ${isHovering ? 'bg-neon-red' : 'bg-white/20'}`} />
+                            <div
+                                className={`w-[25%] h-full rounded-full ${isHovering ? '' : 'bg-white/20'}`}
+                                style={{ backgroundColor: isHovering ? hoverColor : undefined }}
+                            />
+                            <div
+                                className={`w-[25%] h-full rounded-full ${isHovering ? '' : 'bg-white/20'}`}
+                                style={{ backgroundColor: isHovering ? hoverColor : undefined }}
+                            />
                         </div>
                     </motion.div>
                 </div>
@@ -109,7 +147,8 @@ export function CustomCursor() {
                             initial={{ opacity: 0, scale: 0.8 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.8 }}
-                            className="absolute inset-0 bg-neon-red rounded-full blur-[20px] opacity-20"
+                            className="absolute inset-0 rounded-full blur-[20px] opacity-20"
+                            style={{ backgroundColor: hoverColor }}
                         />
                     )}
                 </AnimatePresence>

@@ -198,6 +198,7 @@ export function News() {
                             <motion.button
                                 key={tab.key}
                                 onClick={() => handleTabChange(tab.key)}
+                                data-cursor-color={tab.key === 'musique' ? 'neon-green' : tab.key === 'focus' ? 'neon-yellow' : 'neon-red'}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.96 }}
                                 className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border
