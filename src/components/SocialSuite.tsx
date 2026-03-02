@@ -184,7 +184,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             // Shrunk gradient for Top 5 (Request 6), restored for others
             const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
                 ? canvas.height * 0.8
-                : canvas.height * 0.5;
+                : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
 
             const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
             grad.addColorStop(0, 'rgba(0,0,0,0)');
@@ -354,7 +354,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = activeTab === 'PUBLICATION' ? 980 : safeBottom - 320;
+                const labelY = activeTab === 'PUBLICATION' ? 880 : safeBottom - 450;
                 const startY = labelY + 130;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
                 const labelW = ctx.measureText(labelText).width + (activeTab === 'PUBLICATION' ? 80 : 50);
@@ -886,7 +886,26 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 <button onClick={() => setShowDownloader(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all"><X className="w-6 h-6" /></button>
                             </div>
                             <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                <Downloader isPopup={true} />
+                                <Downloader
+                                    isPopup={true}
+                                    onSelect={(url) => {
+                                        const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('tiktok') || url.includes('googlevideo') || url.includes('video');
+                                        if (isVideo) {
+                                            const video = document.createElement('video');
+                                            video.src = url;
+                                            video.muted = true;
+                                            video.loop = true;
+                                            video.crossOrigin = "anonymous";
+                                            video.play().catch(e => console.error("Auto-play failed", e));
+                                            setBgVideo(video);
+                                            setBgImage('');
+                                        } else {
+                                            setBgImage(url);
+                                            setBgVideo(null);
+                                        }
+                                        setShowDownloader(false);
+                                    }}
+                                />
                             </div>
                         </motion.div>
                     </motion.div>

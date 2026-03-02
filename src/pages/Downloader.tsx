@@ -4,9 +4,10 @@ import { Download, Instagram, Music, Twitter, Youtube, Link, AlertCircle, CheckC
 
 interface DownloaderProps {
     isPopup?: boolean;
+    onSelect?: (url: string) => void;
 }
 
-export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
+export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelect }) => {
     const [url, setUrl] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
@@ -65,7 +66,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
     };
 
     return (
-        <div className={`${isPopup ? 'p-6' : 'min-h-screen bg-black pt-32 pb-20 px-4'}`}>
+        <div className={`${isPopup ? 'p-2' : 'min-h-screen bg-black pt-32 pb-20 px-4'}`}>
             {!isPopup && (
                 <>
                     {/* Background Effects */}
@@ -76,19 +77,21 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
                 </>
             )}
 
-            <div className={`max-w-4xl mx-auto relative z-10 ${isPopup ? '' : ''}`}>
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`text-center space-y-6 ${isPopup ? 'mb-8' : 'mb-12'}`}
-                >
-                    <h1 className={`${isPopup ? 'text-4xl' : 'text-5xl md:text-7xl'} font-black italic tracking-tighter text-white`}>
-                        SOCIAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red to-neon-cyan">DOWNLOADER</span>
-                    </h1>
-                    <p className={`text-gray-400 ${isPopup ? 'text-sm' : 'text-lg'} max-w-2xl mx-auto font-medium`}>
-                        Téléchargez vos vidéos et photos Instagram, TikTok, Twitter et plus encore en haute qualité, instantanément.
-                    </p>
-                </motion.div>
+            <div className={`max-w-4xl mx-auto relative z-10`}>
+                {!isPopup && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`text-center space-y-6 mb-12`}
+                    >
+                        <h1 className="text-5xl md:text-7xl font-black italic tracking-tighter text-white">
+                            SOCIAL <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-red to-neon-cyan">DOWNLOADER</span>
+                        </h1>
+                        <p className="text-lg text-gray-400 max-w-2xl mx-auto font-medium">
+                            Téléchargez vos vidéos et photos Instagram, TikTok, Twitter et plus encore en haute qualité, instantanément.
+                        </p>
+                    </motion.div>
+                )}
 
                 {/* Main Input Card */}
                 <motion.div
@@ -190,7 +193,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
                                             {item.thumb && (
                                                 <img src={item.thumb} alt={`Media ${i}`} className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" />
                                             )}
-                                            <div className="p-4">
+                                            <div className="p-4 space-y-2">
                                                 <a
                                                     href={item.url}
                                                     target="_blank"
@@ -198,8 +201,16 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
                                                     className="w-full py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan hover:text-white transition-all"
                                                 >
                                                     <Download className="w-3 h-3" />
-                                                    TELECHARGER {i + 1}
+                                                    TÉLÉCHARGER {i + 1}
                                                 </a>
+                                                {onSelect && (
+                                                    <button
+                                                        onClick={() => onSelect(item.url)}
+                                                        className="w-full py-3 bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/30 transition-all"
+                                                    >
+                                                        UTILISER DANS LE STUDIO
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -207,15 +218,25 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false }) => {
                             ) : (
                                 // Single item
                                 <div className="space-y-4">
-                                    <a
-                                        href={result.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="w-full py-5 bg-gradient-to-r from-neon-red to-neon-cyan text-white rounded-2xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:shadow-[0_0_30px_rgba(255,18,65,0.4)] transition-all animate-pulse-slow"
-                                    >
-                                        <Download className="w-5 h-5" />
-                                        CLIQUEZ POUR TÉLÉCHARGER LE FICHIER
-                                    </a>
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        <a
+                                            href={result.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex-1 py-5 bg-gradient-to-r from-neon-red to-neon-cyan text-white rounded-2xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:shadow-[0_0_30px_rgba(255,18,65,0.4)] transition-all"
+                                        >
+                                            <Download className="w-5 h-5" />
+                                            TÉLÉCHARGER
+                                        </a>
+                                        {onSelect && (
+                                            <button
+                                                onClick={() => onSelect(result.url)}
+                                                className="flex-1 py-5 bg-white/10 border border-white/20 text-white rounded-2xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-white/20 transition-all"
+                                            >
+                                                UTILISER DANS LE STUDIO
+                                            </button>
+                                        )}
+                                    </div>
                                     <p className="text-center text-gray-500 text-[10px] font-medium">
                                         Note: Si la vidéo s'ouvre dans le navigateur, faites un clic droit (ou appui long) et "Enregistrer sous".
                                     </p>

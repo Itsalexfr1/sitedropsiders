@@ -43,14 +43,19 @@ export default {
             // Extensive list of Cobalt v10+ instances (Community verified)
             // We rotate through these to find one that isn't rate-limited
             const instances = [
+                'https://api.cobalt.tools/',
                 'https://cobalt.pervage.me/',
                 'https://cobalt.k69.ch/',
                 'https://cobalt.v0.sh/',
                 'https://cobalt.qwer.sh/',
                 'https://cobalt.hotis.moe/',
-                'https://co.wuk.sh/',
+                'https://cobalt.media/',
                 'https://cobalt.im/',
-                'https://api.cobalt.tools/'
+                'https://co.wuk.sh/',
+                'https://cobalt.onl/',
+                'https://cobalt.sneaky.sh/',
+                'https://cobalt.pablo.pw/',
+                'https://api.cobalt.red/'
             ];
 
             // Shuffle instances slightly to distribute load
@@ -70,14 +75,14 @@ export default {
                             videoQuality: '1080',
                             downloadMode: 'auto'
                         }),
-                        signal: AbortSignal.timeout(5000) // 5s timeout
+                        signal: AbortSignal.timeout(10000) // Increase to 10s timeout
                     });
 
                     if (response.ok) {
                         const text = await response.text();
                         if (text.trim().startsWith('{')) {
                             const data = JSON.parse(text);
-                            if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect') {
+                            if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect' || data.status === 'picker') {
                                 return new Response(JSON.stringify(data), { headers });
                             }
                         }
@@ -104,7 +109,7 @@ export default {
 
             return new Response(JSON.stringify({
                 status: 'error',
-                text: 'Tous les serveurs sont temporairement occupés. Réessayez avec un autre lien ou dans quelques secondes (Instagram limite parfois les accès).'
+                text: 'Tous les serveurs sont temporairement occupés ou limités par Instagram. Réessayez dans quelques secondes ou avec un autre lien.'
             }), { status: 500, headers });
         }
 
