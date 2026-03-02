@@ -608,17 +608,26 @@ export function AdminDashboard() {
                     const mergedActions = [...data];
 
                     defaultActions.forEach(defaultAction => {
-                        const exists = mergedActions.find(a => a.title === defaultAction.title);
+                        const exists = mergedActions.find(a => a.title.toLowerCase() === defaultAction.title.toLowerCase());
                         if (!exists) {
                             mergedActions.push(defaultAction);
                         }
                     });
 
                     // Filter out 'Bandeau' and also deleted actions that might be in the saved layout
-                    const finalActions = mergedActions.filter(savedAction =>
-                        savedAction.title !== 'Bandeau' &&
-                        defaultActions.some(def => def.title === savedAction.title)
-                    );
+                    // Also sync category, permission, icon, bg, color from defaults
+                    const finalActions = mergedActions
+                        .filter(savedAction =>
+                            savedAction.title !== 'Bandeau' &&
+                            defaultActions.some(def => def.title.toLowerCase() === savedAction.title.toLowerCase())
+                        )
+                        .map(savedAction => {
+                            const def = defaultActions.find(d => d.title.toLowerCase() === savedAction.title.toLowerCase());
+                            if (def) {
+                                return { ...savedAction, title: def.title ?? savedAction.title, category: def.category, permission: def.permission, icon: def.icon, bg: def.bg, color: def.color, baseColor: def.baseColor };
+                            }
+                            return savedAction;
+                        });
 
                     setActions(finalActions);
                 } else {
@@ -1101,7 +1110,7 @@ export function AdminDashboard() {
                 </motion.div>
 
                 <div className="space-y-16 relative">
-                    {["CONTENU & ÉDITORIAL", "STUDIO & ANALYTICS", "COMMUNAUTÉ & ENGAGEMENT", "SHOP & CONTACT", "SYSTÈME & TEAM"].map((cat) => {
+                    {["LIVE", "CONTENU & ÉDITORIAL", "STUDIO & ANALYTICS", "COMMUNAUTÉ & ENGAGEMENT", "SHOP & CONTACT", "SYSTÈME & TEAM"].map((cat) => {
                         const catActions = filteredActions.filter(a => (a as any).category === cat);
                         if (catActions.length === 0) return null;
 
