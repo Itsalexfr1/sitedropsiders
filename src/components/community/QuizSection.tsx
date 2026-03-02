@@ -106,7 +106,13 @@ export function QuizSection() {
         }
 
         if (selectedTheme !== 'ALL') {
-            filtered = filtered.filter(q => q.category === selectedTheme);
+            if (selectedTheme === 'Blind Test') {
+                filtered = filtered.filter(q => q.type === 'BLIND_TEST');
+            } else if (selectedTheme === 'Bass Music') {
+                filtered = filtered.filter(q => q.category === 'Bass');
+            } else {
+                filtered = filtered.filter(q => q.category === selectedTheme);
+            }
         }
 
         // Shuffle
@@ -201,7 +207,7 @@ export function QuizSection() {
     };
 
     const themes = [
-        'ALL', 'Big Room', 'Trance', 'Hardstyle', 'Tech House', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs'
+        'ALL', 'Blind Test', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
     ];
 
     if (loading) {
