@@ -390,31 +390,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             festSocialsContainer.remove();
         }
 
-        // Limit text to 1100 characters while preserving HTML tags
-        let charCount = 0;
-        const limit = 1100;
-        const contentNodes = Array.from(doc.body.childNodes);
-        let finalHtml = '';
-
-        for (const node of contentNodes) {
-            const textLen = node.textContent?.length || 0;
-            if (charCount + textLen > limit) {
-                const remaining = limit - charCount;
-                if (node.nodeType === Node.TEXT_NODE) {
-                    finalHtml += node.textContent?.substring(0, remaining) + '...';
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    const clone = (node as HTMLElement).cloneNode(true) as HTMLElement;
-                    // This is a simple truncation for one level, could be more complex but matches typical article structure
-                    clone.textContent = clone.textContent?.substring(0, remaining) + '...';
-                    finalHtml += clone.outerHTML;
-                }
-                break;
-            }
-            finalHtml += (node as HTMLElement).outerHTML || node.textContent || '';
-            charCount += textLen;
-        }
-
-        return { cleanHtml: finalHtml || doc.body.innerHTML, socials, artistLabel, festivalSocials, festivalLabel };
+        return { cleanHtml: doc.body.innerHTML, socials, artistLabel, festivalSocials, festivalLabel };
     };
 
     const rawDisplayContent = language === 'en' && translatedBody ? cleanHTML(translatedBody) : cleanHTML(content);
@@ -677,7 +653,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             {/* LEFT COLUMN: Main Content (9 spans) */}
                             <div className="lg:col-span-9">
                                 <div
-                                    className="article-body-premium w-full max-w-[1100px] mx-auto uppercase"
+                                    className="article-body-premium w-full"
                                     dangerouslySetInnerHTML={{ __html: displayContent }}
                                 />
                                 {artistSocials && artistSocials.length > 0 && (
