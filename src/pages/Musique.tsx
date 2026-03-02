@@ -71,7 +71,7 @@ export function Musique() {
 
         if (platform === 'beatport') {
             return [
-                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42', preview: samplePreview, embedUrl: 'https://player.beatport.com/?id=18654321&type=track' },
+                { id: 'bp-1', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Repopulate Mars', url: 'https://www.beatport.com/track/neck/18654321', duration: '5:42', preview: samplePreview, embedUrl: 'https://embed.beatport.com/player/?id=18654321&type=track' },
                 { id: 'bp-2', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'SOLOTOKO', url: '#', duration: '6:12', preview: samplePreview },
                 { id: 'bp-3', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: 'Filth on Acid', url: '#', duration: '7:01', preview: samplePreview },
                 { id: 'bp-4', rank: 4, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Insomniac Records', url: '#', duration: '5:23', preview: samplePreview },
