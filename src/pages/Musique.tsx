@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Disc, ExternalLink, ListMusic, TrendingUp, Zap, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
+import { Music, Disc, ExternalLink, ListMusic, TrendingUp, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 
@@ -61,14 +61,12 @@ export function Musique() {
     const platforms = [
         { id: 'beatport', name: 'Beatport Top 10', icon: Music, color: '#39ff14' },
         { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
-        { id: 'hardstyle', name: 'Hardstyle.com Top 10', icon: Zap, color: '#ff4b00' },
         { id: 'juno', name: 'Juno Download Top 10', icon: ListMusic, color: '#00f0ff' },
         { id: '1001tracklists', name: 'TOP 10 TRACKLISTS BY 1001 TRACKLISTS', icon: TrendingUp, color: '#ff0033' },
     ];
 
     const getMockData = (platform: string): Track[] => {
         // Premium high-energy tech-house / techno preview fallback
-        const hardstylePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-15.mp3';
         const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
         if (platform === 'beatport') {
@@ -99,20 +97,7 @@ export function Musique() {
                 { id: 'ts-14410945', rank: 10, title: 'My Mistake', artist: 'DJ Spen, Thommy Davis', label: 'Quantize Recordings', url: 'https://traxsource.com/track/14410945/my-mistake-spen-and-thommys-chi-philly-dub', embedUrl: 'https://embed.traxsource.com/player/track/14410945?autoplay=1&play=1' },
             ];
         }
-        if (platform === 'hardstyle') {
-            return [
-                { id: 'hs-1', rank: 1, title: 'GOD_MODE (PRO_MIX)', artist: 'Kruelty, SLVL', label: 'TC Records', url: 'https://www.hardstyle.com/en/tracks/kruelty-slvl-god-mode-pro-mix', preview: hardstylePreview },
-                { id: 'hs-2', rank: 2, title: 'Save The Day (Extended Mix)', artist: 'D-Block & S-te-Fan, Rebelion', label: 'Acid Reign', url: 'https://www.hardstyle.com/en/tracks/d-block-s-te-fan-rebelion-save-the-day-extended-mix', preview: hardstylePreview },
-                { id: 'hs-3', rank: 3, title: 'Rave Mode (Pro Mix)', artist: 'Dual Damage', label: 'Ravage Records', url: 'https://www.hardstyle.com/en/tracks/dual-damage-rave-mode-pro-mix', preview: hardstylePreview },
-                { id: 'hs-4', rank: 4, title: '1, 2 Polizei (Extended Mix)', artist: 'Fraw', label: 'Gearbox Digital', url: 'https://www.hardstyle.com/en/tracks/fraw-1-2-polizei-extended-mix', preview: hardstylePreview },
-                { id: 'hs-5', rank: 5, title: 'Right Here (Extended Mix)', artist: 'D-Sturb, DEEZL', label: 'End Of Line Recordings', url: 'https://www.hardstyle.com/en/tracks/d-sturb-deezl-right-here-extended-mix', preview: hardstylePreview },
-                { id: 'hs-6', rank: 6, title: 'Endless Voyage (Extended Mix)', artist: 'Act of Rage', label: 'Minus Is More', url: 'https://www.hardstyle.com/en/tracks/act-of-rage-endless-voyage-extended-mix', preview: hardstylePreview },
-                { id: 'hs-7', rank: 7, title: 'The Next Dimension (APEX 2026 OST) (Extended Mix)', artist: 'D-Block & S-te-Fan', label: 'Scantraxx', url: 'https://www.hardstyle.com/en/tracks/d-block-s-te-fan-the-next-dimension-apex-2026-ost-extended-mix', preview: hardstylePreview },
-                { id: 'hs-8', rank: 8, title: 'Dangerous (Extended Hard Version)', artist: 'Devin Wild, Creeds', label: 'Scantraxx', url: 'https://www.hardstyle.com/en/tracks/devin-wild-creeds-dangerous-extended-hard-version', preview: hardstylePreview },
-                { id: 'hs-9', rank: 9, title: 'The Devil (Extended Mix)', artist: 'Rejecta', label: 'Roughstate', url: 'https://www.hardstyle.com/en/tracks/rejecta-the-devil-extended-mix', preview: hardstylePreview },
-                { id: 'hs-10', rank: 10, title: 'RUNNIN\' AROUND! (Extended Mix)', artist: 'Sanctuary', label: 'Acid Reign', url: 'https://www.hardstyle.com/en/tracks/sanctuary-runnin-around-extended-mix', preview: hardstylePreview },
-            ];
-        }
+
         if (platform === 'juno') {
             return [
                 { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/?autoplay=1' },
@@ -406,7 +391,7 @@ export function Musique() {
                                                             <iframe
                                                                 key={track.id}
                                                                 src={track.embedUrl}
-                                                                className="w-full h-[480px] border-none overflow-hidden"
+                                                                className={`w-full ${activeTab === 'juno' ? 'h-[180px]' : activeTab === 'beatport' ? 'h-[162px]' : 'h-[180px]'} border-none overflow-hidden`}
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />
