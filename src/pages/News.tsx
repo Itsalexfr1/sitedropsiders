@@ -294,11 +294,11 @@ export function News() {
                                                     </div>
                                                 </div>
                                                 <h2
-                                                    className="text-[10px] md:text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors"
+                                                    className="text-[4px] md:text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                 />
                                                 <p
-                                                    className="text-gray-400 text-[8px] md:text-sm line-clamp-3"
+                                                    className="text-gray-400 text-[3px] md:text-sm line-clamp-3"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
                                                 />
 
