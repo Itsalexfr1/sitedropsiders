@@ -1634,6 +1634,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
         if (msgText.startsWith('!')) {
             await processBotCommand(msgText);
+            // !quizz et !quiz : popup discrète uniquement, pas de message dans le chat
+            const cmdLower = msgText.trim().toLowerCase();
+            if (cmdLower === '!quizz' || cmdLower === '!quiz') {
+                setIsSending(false);
+                return;
+            }
         }
 
         try {
