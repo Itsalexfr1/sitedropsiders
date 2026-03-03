@@ -107,6 +107,12 @@ export function QuizSection() {
                             .replace(/\s+/g, ' ')
                             .trim();
 
+                        // Add author_name if title doesn't seem to contain it
+                        const author = data.author_name?.replace(' - Topic', '').replace(' VEVO', '').trim();
+                        if (author && !cleanTitle.toUpperCase().includes(author.toUpperCase())) {
+                            cleanTitle = `${author} - ${cleanTitle}`;
+                        }
+
                         // Get 3 distractors from existing quizzes
                         const blindTestQuizzes = quizzes.filter(q => q.type === 'BLIND_TEST' && q.correctAnswer !== cleanTitle);
                         let distractors = [...blindTestQuizzes]
@@ -179,7 +185,7 @@ export function QuizSection() {
             if (selectedTheme === 'Blind Test') {
                 filtered = filtered.filter(q => q.type === 'BLIND_TEST');
             } else {
-                filtered = filtered.filter(q => q.category === selectedTheme);
+                filtered = filtered.filter(q => q.category?.toUpperCase() === selectedTheme.toUpperCase());
             }
         }
 
@@ -261,10 +267,37 @@ export function QuizSection() {
         setSubmitStatus('loading');
 
         try {
+            // Check if admin or modo for auto-approval
+            const adminAuth = localStorage.getItem('admin_auth') === 'true';
+            const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
+            const adminUser = localStorage.getItem('admin_user')?.toUpperCase() || '';
+            const chatPseudo = localStorage.getItem('chat_pseudo')?.toUpperCase() || '';
+            const author = formData.author.toUpperCase();
+
+            let isAutoApproved = adminAuth || editeurAuth || (adminUser && author === adminUser);
+
+            // Fetch settings to check for moderators
+            try {
+                const settRes = await fetch('/api/settings');
+                if (settRes.ok) {
+                    const settingsBody = await settRes.json();
+                    const mods = settingsBody.moderators?.split(',').map((s: string) => s.trim().toUpperCase()) || [];
+                    if (mods.includes(author) || (chatPseudo && mods.includes(chatPseudo))) {
+                        isAutoApproved = true;
+                    }
+                }
+            } catch (e) { }
+
+            const payload = {
+                ...formData,
+                approved: isAutoApproved,
+                status: isAutoApproved ? 'active' : 'pending'
+            };
+
             const res = await fetch('/api/quiz/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {

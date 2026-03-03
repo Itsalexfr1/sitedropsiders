@@ -75,6 +75,8 @@ export function AdminDashboard() {
     const [isQuizLoading, setIsQuizLoading] = useState(false);
     const [quizTab, setQuizTab] = useState<'active' | 'pending'>('active');
     const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
+    const [quizFilter, setQuizFilter] = useState('ALL');
+    const [quizSearch, setQuizSearch] = useState('');
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
     interface TakeoverState {
         enabled: boolean;
@@ -4102,12 +4104,24 @@ export function AdminDashboard() {
                                         {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => (
                                             <button
                                                 key={filter}
-                                                onClick={() => (window as any)._quizFilter = filter}
-                                                className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${((window as any)._quizFilter || 'ALL') === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                                                onClick={() => setQuizFilter(filter)}
+                                                className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${quizFilter === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'}`}
                                             >
                                                 {filter.replace('_', ' ')}
                                             </button>
                                         ))}
+
+                                        <div className="h-6 w-[1px] bg-white/10 mx-2" />
+
+                                        <div className="relative">
+                                            <input
+                                                type="text"
+                                                placeholder="FILTRER PAR THÈME / ARTISTE..."
+                                                value={quizSearch}
+                                                onChange={(e) => setQuizSearch(e.target.value)}
+                                                className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[9px] font-black text-white w-48 outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
+                                            />
+                                        </div>
                                     </div>
 
                                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -4119,14 +4133,28 @@ export function AdminDashboard() {
                                         ) : (
                                             <div className="space-y-4">
                                                 {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
-                                                    .filter(q => !((window as any)._quizFilter) || (window as any)._quizFilter === 'ALL' || q.type === (window as any)._quizFilter)
+                                                    .filter(q => {
+                                                        const matchType = quizFilter === 'ALL' || q.type === quizFilter;
+                                                        const matchSearch = !quizSearch ||
+                                                            q.category?.toUpperCase().includes(quizSearch.toUpperCase()) ||
+                                                            q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
+                                                            q.author?.toUpperCase().includes(quizSearch.toUpperCase());
+                                                        return matchType && matchSearch;
+                                                    })
                                                     .length === 0 ? (
                                                     <div className="p-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[2rem] text-center">
                                                         <p className="text-sm text-gray-500 font-bold uppercase tracking-widest italic">Aucune question dans cette liste</p>
                                                     </div>
                                                 ) : (
                                                     (quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
-                                                        .filter(q => !((window as any)._quizFilter) || (window as any)._quizFilter === 'ALL' || q.type === (window as any)._quizFilter)
+                                                        .filter(q => {
+                                                            const matchType = quizFilter === 'ALL' || q.type === quizFilter;
+                                                            const matchSearch = !quizSearch ||
+                                                                q.category?.toUpperCase().includes(quizSearch.toUpperCase()) ||
+                                                                q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
+                                                                q.author?.toUpperCase().includes(quizSearch.toUpperCase());
+                                                            return matchType && matchSearch;
+                                                        })
                                                         .map((quiz: any) => (
                                                             <div
                                                                 key={quiz.id}
@@ -4302,13 +4330,19 @@ export function AdminDashboard() {
                                                                     const data = await resp.json();
                                                                     if (data.title) {
                                                                         let cleanTitle = data.title
-                                                                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit).*?(\]|\))/gi, '')
-                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit)/gi, '')
+                                                                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit|Vevo).*?(\]|\))/gi, '')
+                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit|Vevo)/gi, '')
                                                                             .replace(/\s+/g, ' ')
                                                                             .trim();
 
                                                                         // Extra fallback for typical parens
                                                                         cleanTitle = cleanTitle.replace(/\(Extended Vocal Mix\)/gi, '').trim();
+
+                                                                        // Add author_name if title doesn't seem to contain it
+                                                                        const author = data.author_name?.replace(' - Topic', '').replace(' VEVO', '').trim();
+                                                                        if (author && !cleanTitle.toUpperCase().includes(author.toUpperCase())) {
+                                                                            cleanTitle = `${author} - ${cleanTitle}`;
+                                                                        }
 
                                                                         // If question is empty or matches generic, fill it
                                                                         if (!quizToEdit.question || quizToEdit.question === 'Blind Test' || quizToEdit.question.includes('?')) {
@@ -4321,7 +4355,7 @@ export function AdminDashboard() {
                                                                             setQuizToEdit((prev: any) => ({ ...prev, correctAnswer: cleanTitle }));
                                                                             const newOpts = [...quizToEdit.options];
                                                                             if (!newOpts.includes(cleanTitle)) {
-                                                                                const emptyIdx = newOpts.findIndex(o => !o);
+                                                                                const emptyIdx = newOpts.findIndex((o: string) => !o);
                                                                                 if (emptyIdx !== -1) {
                                                                                     newOpts[emptyIdx] = cleanTitle;
                                                                                 } else {
@@ -4360,6 +4394,19 @@ export function AdminDashboard() {
                                                     </div>
                                                 </div>
                                             </div>
+                                            {quizToEdit.youtubeId && quizToEdit.youtubeId.length === 11 && (
+                                                <div className="mt-4 rounded-xl overflow-hidden border border-white/10 aspect-video bg-black">
+                                                    <iframe
+                                                        width="100%"
+                                                        height="100%"
+                                                        src={`https://www.youtube.com/embed/${quizToEdit.youtubeId}?start=${quizToEdit.startTime || 0}&autoplay=0`}
+                                                        title="YouTube video player"
+                                                        frameBorder="0"
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 

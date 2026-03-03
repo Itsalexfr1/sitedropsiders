@@ -1532,8 +1532,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             } else if (cmd === '!sondage' && hasModPowers) {
                 setShowPollModal(true);
                 response = "📊 Ouverture du panneau de gestion des sondages...";
-            } else if ((cmd === '!quizz' || cmd === '!quiz') && hasModPowers) {
+            } else if ((cmd === '!quizz' || cmd === '!quiz' || cmd.startsWith('!quiz ') || cmd.startsWith('!quizz ')) && hasModPowers) {
                 // Réservé aux admins et modos — pas de message bot, popup discrète
+                const args = command.split(' ');
+                const requestedTheme = args.length > 1 ? args[1].toUpperCase() : 'ALL';
+
                 setQuizPopupLoading(true);
                 setQuizPopupAnswer(null);
                 setShowQuizPopup(true);
@@ -1542,7 +1545,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     if (res.ok) {
                         const data = await res.json();
                         // Only select questions that have question text AND options
-                        const valid = Array.isArray(data) ? data.filter((q: any) => q && q.question && Array.isArray(q.options) && q.options.length > 0) : [];
+                        let valid = Array.isArray(data) ? data.filter((q: any) => q && q.question && Array.isArray(q.options) && q.options.length > 0) : [];
+
+                        // Theme filtering
+                        if (requestedTheme !== 'ALL') {
+                            valid = valid.filter((q: any) =>
+                                (q.category && q.category.toUpperCase() === requestedTheme) ||
+                                (q.type && q.type.toUpperCase() === requestedTheme) ||
+                                (requestedTheme === 'BLIND_TEST' && q.type === 'BLIND_TEST') ||
+                                (requestedTheme === 'BLINDTEST' && q.type === 'BLIND_TEST')
+                            );
+                        }
+
                         if (valid.length > 0) {
                             const random = valid[Math.floor(Math.random() * valid.length)];
                             setQuizPopupQuestion(random);
@@ -5570,7 +5584,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </h3>
 
                                         {/* Audio for blind test */}
-                                        {quizPopupQuestion.type === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
+                                        {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
                                             <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex items-center gap-3">
                                                 <span className="text-2xl">🎵</span>
                                                 <audio autoPlay controls className="flex-1 h-8 opacity-80">
@@ -5580,14 +5594,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         )}
 
                                         {/* Image */}
-                                        {quizPopupQuestion.type === 'IMAGE' && quizPopupQuestion.imageUrl && (
+                                        {quizPopupQuestion.type?.toUpperCase() === 'IMAGE' && quizPopupQuestion.imageUrl && (
                                             <div className="rounded-xl overflow-hidden border border-white/10 max-h-32">
                                                 <img src={quizPopupQuestion.imageUrl} alt="Quiz" className="w-full h-auto object-cover max-h-32" />
                                             </div>
                                         )}
 
                                         {/* Video / Blind Test Vidéo */}
-                                        {(quizPopupQuestion.type === 'VIDEO' || quizPopupQuestion.type === 'BLIND_TEST') && quizPopupQuestion.youtubeId && (
+                                        {(quizPopupQuestion.type?.toUpperCase() === 'VIDEO' || quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST') && quizPopupQuestion.youtubeId && (
                                             <div className="relative rounded-xl overflow-hidden border border-white/10" style={{ aspectRatio: '16/9' }}>
                                                 <iframe
                                                     width="100%"
