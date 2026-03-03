@@ -634,26 +634,70 @@ export function QuizSection() {
                     </div>
 
                     {/* Sidebar Leaderboard */}
-                    <div className="w-full lg:w-80 shrink-0">
-                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 sticky top-32">
-                            <div className="flex items-center gap-3 mb-8">
+                    <div className="w-full lg:w-96 shrink-0">
+                        <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 sticky top-32 backdrop-blur-3xl">
+                            <div className="flex items-center gap-3 mb-10">
                                 <Trophy className="w-6 h-6 text-yellow-500" />
-                                <h4 className="text-xs font-black text-white uppercase tracking-[0.3em]">CLASSEMENT GLOBAL</h4>
+                                <h4 className="text-sm font-black text-white uppercase tracking-[0.3em]">CLASSEMENT GLOBAL</h4>
                             </div>
 
-                            <div className="space-y-4">
-                                {leaderboard.slice(0, 10).map((record, idx) => (
-                                    <div key={record.id || idx} className="flex items-center justify-between group">
-                                        <div className="flex items-center gap-3">
-                                            <span className={`w-6 text-[10px] font-black ${idx < 3 ? 'text-neon-red' : 'text-gray-600'}`}>0{idx + 1}</span>
-                                            <div className="flex flex-col">
-                                                <span className="text-[11px] font-black text-white group-hover:text-neon-red transition-colors">{record.pseudo}</span>
-                                                <span className="text-[8px] text-gray-600 font-bold tracking-widest">{record.score}/{record.total} • {record.time.toFixed(1)}s</span>
+                            {/* Podium for top 3 */}
+                            {leaderboard.length >= 3 && (
+                                <div className="flex items-end justify-center gap-2 mb-12 h-44">
+                                    {/* 2nd Place */}
+                                    <div className="flex flex-col items-center flex-1">
+                                        <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 overflow-hidden">
+                                            <span className="text-white font-black text-[10px]">{leaderboard[1].pseudo.charAt(0)}</span>
+                                        </div>
+                                        <div className="w-full bg-gradient-to-t from-gray-500/20 to-gray-500/40 rounded-t-xl h-24 flex flex-col items-center justify-center p-2 border-x border-t border-white/10">
+                                            <span className="text-[9px] font-black text-white uppercase truncate w-full text-center">{leaderboard[1].pseudo}</span>
+                                            <span className="text-[14px] font-black text-gray-300">{leaderboard[1].score}/{leaderboard[1].total}</span>
+                                            <div className="mt-1 px-2 py-0.5 bg-gray-500/20 rounded-full text-[8px] font-black text-gray-400">2ND</div>
+                                        </div>
+                                    </div>
+
+                                    {/* 1st Place */}
+                                    <div className="flex flex-col items-center flex-1 -mb-4">
+                                        <div className="w-14 h-14 rounded-full bg-neon-red/20 border-2 border-neon-red flex items-center justify-center mb-2 overflow-hidden shadow-[0_0_20px_rgba(255,18,65,0.3)]">
+                                            <span className="text-white font-black text-lg italic">{leaderboard[0].pseudo.charAt(0)}</span>
+                                        </div>
+                                        <div className="w-full bg-gradient-to-t from-neon-red/20 to-neon-red/40 rounded-t-2xl h-36 flex flex-col items-center justify-center p-2 border-x border-t border-neon-red/30">
+                                            <Zap className="w-4 h-4 text-neon-red mb-1 animate-pulse" />
+                                            <span className="text-[11px] font-black text-white uppercase truncate w-full text-center">{leaderboard[0].pseudo}</span>
+                                            <span className="text-[18px] font-black text-white">{leaderboard[0].score}/{leaderboard[0].total}</span>
+                                            <div className="mt-1 px-3 py-1 bg-neon-red rounded-full text-[10px] font-black text-white shadow-lg">WINNER</div>
+                                        </div>
+                                    </div>
+
+                                    {/* 3rd Place */}
+                                    <div className="flex flex-col items-center flex-1">
+                                        <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 overflow-hidden">
+                                            <span className="text-white font-black text-[10px]">{leaderboard[2].pseudo.charAt(0)}</span>
+                                        </div>
+                                        <div className="w-full bg-gradient-to-t from-orange-500/30 to-orange-500/10 rounded-t-xl h-20 flex flex-col items-center justify-center p-2 border-x border-t border-white/10">
+                                            <span className="text-[9px] font-black text-white uppercase truncate w-full text-center">{leaderboard[2].pseudo}</span>
+                                            <span className="text-[13px] font-black text-orange-400">{leaderboard[2].score}/{leaderboard[2].total}</span>
+                                            <div className="mt-1 px-2 py-0.5 bg-orange-500/20 rounded-full text-[8px] font-black text-orange-400">3RD</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="space-y-3">
+                                {leaderboard.slice(leaderboard.length >= 3 ? 3 : 0, 10).map((record, idx) => {
+                                    const actualIdx = (leaderboard.length >= 3 ? 3 : 0) + idx;
+                                    return (
+                                        <div key={record.id || actualIdx} className="flex items-center justify-between group p-3 bg-white/[0.02] rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+                                            <div className="flex items-center gap-4">
+                                                <span className="w-8 text-[12px] font-black text-gray-600 group-hover:text-gray-400">#{actualIdx + 1}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[15px] font-black text-white group-hover:text-neon-red transition-colors uppercase italic tracking-tighter">{record.pseudo}</span>
+                                                    <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">{record.score}/{record.total} • {record.time.toFixed(1)}s</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        {idx === 0 && <Zap className="w-3 h-3 text-neon-red animate-pulse" />}
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>

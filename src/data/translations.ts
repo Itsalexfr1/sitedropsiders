@@ -288,7 +288,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'cookies.accept': { fr: 'Tout ACcepter', en: 'Accept All' },
     'cookies.refuse': { fr: 'Refuser', en: 'Refuse' },
     'cookies.manage': { fr: 'Gérer', en: 'Manage' },
-    'article_reader.play': { fr: "ÉCOUTER L'ARTICLE", en: 'LISTEN TO ARTICLE' },
+    'article_reader.play': { fr: 'VERSION AUDIO', en: 'AUDIO VERSION' },
     'article_reader.stop': { fr: 'ARRÊTER LA LECTURE', en: 'STOP READING' },
     'article_reader.playing': { fr: 'LECTURE EN COURS...', en: 'READING...' },
     'galerie.badge': { fr: 'Photos & Albums', en: 'Photos & Albums' },
