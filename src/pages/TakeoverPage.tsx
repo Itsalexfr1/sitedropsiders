@@ -5591,18 +5591,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </div>
                                         )}
 
-                                        {/* Video */}
-                                        {quizPopupQuestion.type === 'VIDEO' && quizPopupQuestion.youtubeId && (
-                                            <div className="rounded-xl overflow-hidden border border-white/10" style={{ aspectRatio: '16/9' }}>
+                                        {/* Video / Blind Test Vidéo */}
+                                        {(quizPopupQuestion.type === 'VIDEO' || quizPopupQuestion.type === 'BLIND_TEST') && quizPopupQuestion.youtubeId && (
+                                            <div className="relative rounded-xl overflow-hidden border border-white/10" style={{ aspectRatio: '16/9' }}>
                                                 <iframe
                                                     width="100%"
                                                     height="100%"
-                                                    src={`https://www.youtube.com/embed/${quizPopupQuestion.youtubeId}?autoplay=1`}
+                                                    src={`https://www.youtube.com/embed/${quizPopupQuestion.youtubeId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=0`}
                                                     title="YouTube video player"
                                                     frameBorder="0"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
+                                                    style={{ display: 'block', width: '100%', height: '100%' }}
                                                 />
+                                                {/* Overlay pour masquer le titre YouTube (bande noire en haut) */}
+                                                <div
+                                                    className="absolute top-0 left-0 right-0 pointer-events-none"
+                                                    style={{ height: '18%', background: 'linear-gradient(to bottom, #000 60%, transparent)' }}
+                                                />
+                                                {/* Overlay bas pour masquer les suggestions */}
+                                                <div
+                                                    className="absolute bottom-0 left-0 right-0 pointer-events-none"
+                                                    style={{ height: '12%', background: 'linear-gradient(to top, #000 60%, transparent)' }}
+                                                />
+                                                {/* Bandeau "BLIND TEST" centré en haut */}
+                                                <div className="absolute top-0 left-0 right-0 flex items-center justify-center pointer-events-none" style={{ height: '18%' }}>
+                                                    <span className="text-[9px] font-black text-yellow-400 uppercase tracking-[0.3em] opacity-70">🎵 Blind Test</span>
+                                                </div>
                                             </div>
                                         )}
 
