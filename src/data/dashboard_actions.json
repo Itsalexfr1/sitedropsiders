@@ -4,29 +4,48 @@
     "description": "Vidéos & Stories",
     "icon": "Instagram",
     "link": "social-studio",
-    "color": "border-neon-pink/20 hover:border-pink-500",
-    "bg": "bg-pink-500/5",
-    "permission": "news",
-    "baseColor": "#fff700",
-    "columns": 1
+    "color": "border-neon-pink/20 hover:border-neon-pink",
+    "bg": "bg-neon-pink/5",
+    "permission": "social_studio",
+    "baseColor": "pink",
+    "columns": 1,
+    "category": "STUDIO & ANALYTICS"
   },
   {
     "title": "Accueil",
     "description": "Vues & Sections",
     "icon": "LayoutDashboard",
     "link": "/admin/home",
-    "baseColor": "#ff0000",
+    "baseColor": "cyan",
     "permission": "superadmin",
+    "columns": 1,
+    "category": "SYSTÈME & TEAM",
+    "bg": "bg-neon-cyan/5",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan"
+  },
+  {
+    "title": "Contenu",
+    "description": "News, Musique, Interviews...",
+    "icon": "FileText",
+    "category": "CONTENU & ÉDITORIAL",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "news",
+    "baseColor": "cyan",
     "columns": 1
   },
   {
-    "title": "Statistiques",
-    "description": "Analyse du site",
-    "icon": "BarChart3",
-    "link": "/admin/stats",
-    "baseColor": "#ff7b00",
-    "permission": "stats",
-    "columns": 1
+    "title": "Communauté",
+    "description": "Gérer les albums",
+    "icon": "ImageIcon",
+    "link": "/admin/manage?tab=Communauté",
+    "baseColor": "pink",
+    "permission": "galeries",
+    "columns": 1,
+    "category": "COMMUNAUTÉ & ENGAGEMENT",
+    "bg": "bg-neon-pink/5",
+    "color": "border-neon-pink/20 hover:border-neon-pink"
   },
   {
     "title": "MESSAGERIE & CONTACT",
@@ -36,52 +55,43 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages",
-    "baseColor": "#ffb81f",
-    "columns": 1
-  },
-  {
-    "title": "News",
-    "description": "Gérer les actualités",
-    "icon": "FileText",
-    "link": "/admin/manage?tab=News",
-    "baseColor": "#37ff00",
-    "permission": "publications"
-  },
-  {
-    "title": "Récaps",
-    "description": "Gérer les reportages",
-    "icon": "Video",
-    "link": "/admin/manage?tab=Recaps",
-    "baseColor": "#00ffd5",
-    "permission": "publications"
+    "baseColor": "orange",
+    "columns": 1,
+    "category": "SHOP & CONTACT"
   },
   {
     "title": "Agenda",
     "description": "Gérer les dates",
     "icon": "Calendar",
     "link": "/admin/manage?tab=Agenda",
-    "baseColor": "#0091ff",
-    "permission": "publications"
+    "baseColor": "yellow",
+    "permission": "agenda",
+    "category": "CONTENU & ÉDITORIAL",
+    "bg": "bg-neon-yellow/5",
+    "color": "border-neon-yellow/20 hover:border-neon-yellow"
   },
   {
-    "title": "Modération",
-    "description": "Photos Communauté",
-    "icon": "CheckCircle2",
-    "link": "moderation",
-    "color": "border-neon-green/20 hover:border-neon-green",
-    "bg": "bg-neon-green/5",
-    "permission": "superadmin",
-    "baseColor": "#e29d9d",
-    "columns": 1
+    "title": "Statistiques",
+    "description": "Analyse du site",
+    "icon": "BarChart3",
+    "link": "/admin/stats",
+    "baseColor": "cyan",
+    "permission": "stats",
+    "columns": 1,
+    "category": "STUDIO & ANALYTICS",
+    "bg": "bg-neon-cyan/5",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan"
   },
   {
-    "title": "Musique",
-    "description": "Gérer les articles musique",
-    "icon": "Music",
-    "link": "/admin/manage?tab=Musique",
-    "baseColor": "#9900ff",
-    "permission": "publications",
-    "columns": 1
+    "title": "Shop",
+    "description": "Gérer le shop",
+    "icon": "ShoppingBag",
+    "link": "/admin/shop",
+    "baseColor": "pink",
+    "permission": "shop",
+    "category": "SHOP & CONTACT",
+    "bg": "bg-neon-pink/5",
+    "color": "border-neon-pink/20 hover:border-neon-pink"
   },
   {
     "title": "Notifications",
@@ -89,61 +99,58 @@
     "icon": "Bell",
     "link": "push-notifications",
     "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-red-500/5",
-    "permission": "superadmin",
-    "baseColor": "#004cff",
-    "columns": 1
-  },
-  {
-    "title": "Shop",
-    "description": "Gérer le shop",
-    "icon": "ShoppingBag",
-    "link": "/admin/shop",
-    "baseColor": "#e100ff",
-    "permission": "shop"
-  },
-  {
-    "title": "Interviews",
-    "description": "Gérer les interviews",
-    "icon": "Mic",
-    "link": "/admin/manage?tab=Interviews",
-    "baseColor": "#ff0059",
-    "permission": "publications"
-  },
-  {
-    "title": "Communauté",
-    "description": "Gérer les albums",
-    "icon": "ImageIcon",
-    "link": "/admin/manage?tab=Communauté",
-    "baseColor": "#ff0000",
-    "permission": "publications",
-    "columns": 1
+    "bg": "bg-neon-red/5",
+    "permission": "notifications",
+    "baseColor": "red",
+    "columns": 1,
+    "category": "COMMUNAUTÉ & ENGAGEMENT"
   },
   {
     "title": "Spotify",
     "description": "Playlists accueil",
     "icon": "Music",
     "link": "/admin/spotify",
-    "baseColor": "#00ff11",
+    "baseColor": "green",
     "permission": "spotify",
-    "columns": 1
+    "columns": 1,
+    "category": "STUDIO & ANALYTICS",
+    "bg": "bg-neon-green/5",
+    "color": "border-neon-green/20 hover:border-neon-green"
   },
   {
     "title": "Newsletter",
     "description": "Studio de création",
     "icon": "Mail",
     "link": "/newsletter/studio",
-    "baseColor": "#000000",
-    "permission": "newsletter",
-    "columns": 1
+    "baseColor": "green",
+    "permission": "messages",
+    "columns": 1,
+    "category": "SHOP & CONTACT",
+    "bg": "bg-green-400/5",
+    "color": "border-green-400/20 hover:border-green-400"
   },
   {
     "title": "Team",
     "description": "Gérer l'équipe (Menu)",
     "icon": "Users",
     "link": "/admin/team",
-    "baseColor": "#007aa3",
-    "permission": "all",
-    "columns": 1
+    "baseColor": "blue",
+    "permission": "team",
+    "columns": 1,
+    "category": "SYSTÈME & TEAM",
+    "bg": "bg-neon-blue/5",
+    "color": "border-neon-blue/20 hover:border-neon-blue"
+  },
+  {
+    "title": "LIVE / TAKEOVER",
+    "description": "Réglages & Contrôle Live",
+    "icon": "Youtube",
+    "category": "LIVE",
+    "link": "/live",
+    "color": "border-neon-red/20 hover:border-neon-red flex-col md:flex-row col-span-1 md:col-span-2",
+    "bg": "bg-neon-red/10",
+    "permission": "takeover_modo",
+    "baseColor": "red",
+    "columns": 2
   }
 ]
