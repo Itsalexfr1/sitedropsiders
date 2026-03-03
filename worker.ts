@@ -3074,6 +3074,7 @@ export default {
                     { id: 'set19', type: 'VIDEO', question: '🎧 Quel artiste joue ce set Highland ?', options: ['Gesaffelstein', 'Kavinsky', 'SebastiAn', 'Para One'], correctAnswer: 'Gesaffelstein', category: 'Sets DJ', youtubeId: 'J3mXBbp0G-E', author: 'Dropsiders', timestamp: now },
                     { id: 'set20', type: 'VIDEO', question: '🎧 Ce set Melodic House live est de ?', options: ['Moderat', 'Bicep', 'Nils Frahm', 'Khruangbin'], correctAnswer: 'Bicep', category: 'Sets DJ', youtubeId: 'jz0UxP6fNAY', author: 'Dropsiders', timestamp: now }];
                 activeRaw = JSON.stringify(defaultQuizzes);
+            }
             return new Response(activeRaw, { status: 200, headers });
         }
 
