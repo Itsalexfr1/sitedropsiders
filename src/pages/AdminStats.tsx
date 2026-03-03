@@ -193,6 +193,9 @@ export function AdminStats() {
                 if (res.ok) {
                     const data = await res.json();
                     setServerStats(data);
+                    if (data.onlineUsers !== undefined) {
+                        setOnlineUsers(data.onlineUsers);
+                    }
                 }
             } catch (e) {
                 console.error("Failed to fetch server stats", e);
@@ -202,14 +205,8 @@ export function AdminStats() {
         };
 
         fetchData();
-        const interval = setInterval(() => {
-            setOnlineUsers(prev => {
-                const change = Math.random() > 0.8 ? 1 : (Math.random() > 0.8 ? -1 : 0);
-                const newValue = prev + change;
-                return newValue >= 0 ? newValue : 0;
-            });
-        }, 10000);
-        return () => { clearInterval(interval); };
+        const interval = setInterval(fetchData, 30000); // Actualiser toutes les 30s
+        return () => clearInterval(interval);
     }, []);
 
     const stats = useMemo(() => {
@@ -671,7 +668,7 @@ export function AdminStats() {
                         <div className="lg:col-span-4 bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl flex flex-col">
                             <h3 className="text-2xl font-display font-black text-white uppercase italic mb-10">{language === 'fr' ? "Top Marchés" : "Top Markets"}</h3>
                             <div className="space-y-8 flex-1">
-                                {stats.community.countries.map((country, idx) => {
+                                {stats.community.countries.map((country: any, idx: number) => {
                                     const hasData = !!CITIES_DATA[country.name];
                                     const isSelected = selectedCountry === country.name;
                                     return (
