@@ -30,15 +30,15 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="min-w-[200px] aspect-[4/5] relative rounded-[2rem] overflow-hidden snap-center border border-white/10 group shadow-2xl"
+                            className="min-w-[140px] aspect-[4/5] relative rounded-3xl overflow-hidden snap-center border border-white/10 group shadow-xl"
                         >
                             <img src={news.image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-active:scale-110" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-6">
-                                <span className="px-2 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-md mb-2 inline-block">
+                            <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+                                <span className="px-1.5 py-0.5 bg-neon-red text-white text-[7px] font-black uppercase rounded mb-1.5 inline-block">
                                     {news.category}
                                 </span>
-                                <h3 className="text-lg font-display font-black text-white italic leading-tight uppercase line-clamp-2">
+                                <h3 className="text-[11px] md:text-xs font-display font-black text-white italic leading-tight uppercase line-clamp-3">
                                     {news.title}
                                 </h3>
                             </div>
@@ -86,17 +86,17 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-3xl active:bg-white/10 transition-all shadow-lg"
+                            className="flex items-center gap-3 p-2.5 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all shadow-md"
                         >
-                            <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0">
+                            <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0">
                                 <img src={news.image} className="w-full h-full object-cover" alt="" />
                             </div>
-                            <div className="flex flex-col gap-1 overflow-hidden">
+                            <div className="flex flex-col gap-0.5 overflow-hidden flex-1">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[8px] font-black text-neon-red uppercase">{news.category}</span>
-                                    <span className="text-[8px] text-gray-500 font-bold uppercase">{news.date}</span>
+                                    <span className="text-[7px] font-black text-neon-red uppercase">{news.category}</span>
+                                    <span className="text-[7px] text-gray-500 font-bold uppercase">{news.date}</span>
                                 </div>
-                                <h3 className="text-xs font-black text-white uppercase italic leading-tight line-clamp-2">{news.title}</h3>
+                                <h3 className="text-[10px] font-black text-white uppercase italic leading-snug line-clamp-2">{news.title}</h3>
                             </div>
                         </Link>
                     ))}

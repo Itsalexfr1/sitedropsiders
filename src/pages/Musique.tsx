@@ -319,7 +319,7 @@ export function Musique() {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
-                                        className="group flex flex-col gap-0 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-white/10 transition-all duration-300"
+                                        className="group flex flex-col gap-0 rounded-xl md:rounded-3xl bg-white/[0.02] border border-white/5 md:hover:bg-white/[0.05] md:hover:border-white/10 transition-all duration-300"
                                     >
                                         <div
                                             className="flex flex-row items-center cursor-pointer group/track"
@@ -327,19 +327,19 @@ export function Musique() {
                                         >
                                             <div className="flex items-center gap-2 md:gap-6 p-2 md:p-6 flex-1">
                                                 <div
-                                                    className={`w-6 h-6 md:w-12 md:h-12 rounded-lg flex items-center justify-center font-black transition-all duration-300 relative text-[10px] md:text-base ${selectedTrack?.id === track.id
+                                                    className={`w-6 h-6 md:w-12 md:h-12 rounded-md md:rounded-lg flex items-center justify-center font-black transition-all duration-300 relative text-[10px] md:text-base ${selectedTrack?.id === track.id
                                                         ? 'bg-neon-red text-white'
-                                                        : 'bg-white/5 text-gray-500 group-hover/track:bg-neon-red/20 group-hover/track:text-neon-red'
+                                                        : 'bg-white/5 text-gray-500 md:group-hover/track:bg-neon-red/20 md:group-hover/track:text-neon-red'
                                                         }`}
                                                 >
                                                     <span>{track.rank}</span>
                                                 </div>
 
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-xs md:text-lg font-black text-white uppercase italic tracking-tight truncate group-hover/track:text-neon-red transition-colors flex items-center gap-1.5 md:gap-3">
+                                                    <h3 className="text-xs md:text-lg font-black text-white uppercase italic tracking-tight truncate md:group-hover/track:text-neon-red transition-colors flex items-center gap-1.5 md:gap-3">
                                                         {track.title}
                                                         {activeTab !== '1001tracklists' && (
-                                                            <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'visible' : 'invisible group-hover/track:visible'}`}>
+                                                            <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'flex' : 'hidden md:flex md:invisible md:group-hover/track:visible'}`}>
                                                                 <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-0.5 animate-pulse' : 'bg-neon-red'}`} />
                                                                 <span className={`text-[6px] md:text-[9px] font-black tracking-[0.1em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
                                                                     {selectedTrack?.id === track.id && isPlaying ? 'PLAY' : 'LISTEN'}
@@ -363,9 +363,9 @@ export function Musique() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className="p-2 md:p-4 bg-white/5 rounded-lg md:rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
+                                                    className="p-1.5 md:p-4 bg-white/5 rounded-md md:rounded-2xl border border-white/10 md:hover:bg-neon-red md:hover:border-neon-red md:hover:text-white transition-all group/btn"
                                                 >
-                                                    <ExternalLink className="w-3 h-3 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
+                                                    <ExternalLink className="w-3 h-3 md:w-5 md:h-5 md:group-hover/btn:scale-110 transition-transform" />
                                                 </a>
                                             </div>
                                         </div>
@@ -383,7 +383,7 @@ export function Musique() {
                                                             <iframe
                                                                 key={track.id}
                                                                 src={track.embedUrl}
-                                                                className={`w-full ${activeTab === 'juno' ? 'h-[80px] md:h-[180px]' : activeTab === 'beatport' ? 'h-[120px] md:h-[162px]' : activeTab === 'traxsource' ? 'h-[160px] md:h-[240px]' : 'h-[120px] md:h-[180px]'} border-none overflow-hidden`}
+                                                                className={`w-full ${activeTab === 'juno' ? 'h-[60px] md:h-[180px]' : activeTab === 'beatport' ? 'h-[80px] md:h-[162px]' : activeTab === 'traxsource' ? 'h-[120px] md:h-[240px]' : 'h-[80px] md:h-[180px]'} border-none overflow-hidden`}
                                                                 scrolling="no"
                                                                 allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             />

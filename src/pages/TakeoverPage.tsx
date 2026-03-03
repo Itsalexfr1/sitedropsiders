@@ -2434,66 +2434,66 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Flux Selection & Info Bar - Always visible above video */}
                 {!isFullScreen && (
-                    <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-4 z-40 relative">
-                        <div className="flex items-center gap-4 flex-1">
-                            {/* LIVE TITLE MOVED HERE */}
+                    <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-2 md:px-4 py-2 flex items-center justify-between gap-2 z-40 relative overflow-hidden">
+                        <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
+                            {/* LIVE TITLE */}
                             <div className="flex flex-col min-w-0 py-0.5">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 md:gap-3">
                                     {(settings.enabled || settings.isOnline || isServerAdmin) && (
-                                        <div className="flex items-center gap-2 bg-red-600 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(255,0,0,0.4)] border border-white/20">
+                                        <div className="flex items-center gap-1.5 md:gap-2 bg-red-600 px-2 md:px-3 py-0.5 md:py-1 rounded-full shadow-[0_0_15px_rgba(255,0,0,0.4)] border border-white/20 shrink-0">
                                             <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">
+                                            <span className="text-[8px] md:text-[10px] font-black text-white uppercase tracking-widest leading-none">
                                                 LIVE
                                             </span>
                                         </div>
                                     )}
-                                    <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none">
+                                    <h1 className="text-sm md:text-2xl font-display font-black text-white uppercase italic tracking-tighter truncate leading-none">
                                         {displayTitle}
                                     </h1>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            {/* HYPE & BPM Display - Moved here for persistent visibility */}
-                            <div className="flex items-center gap-4 px-4 border-x border-white/10 mx-2">
+                        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+                            {/* HYPE & BPM Display - Compact on mobile */}
+                            <div className="flex items-center gap-2 md:gap-4 px-2 md:px-4 border-x border-white/10 mx-1 md:mx-2 hidden sm:flex">
                                 <div className="flex flex-col items-center justify-center">
-                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">HYPE</span>
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 shrink-0">
+                                    <span className="text-[7px] md:text-[8px] font-black text-gray-600 uppercase tracking-widest mb-0.5 md:mb-1">HYPE</span>
+                                    <div className="flex items-center gap-1 md:gap-2">
+                                        <div className="w-8 md:w-12 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 shrink-0">
                                             <motion.div
                                                 animate={{ width: `${hypeLevel}%` }}
                                                 className={`h-full ${isOverdrive ? 'bg-neon-red shadow-[0_0_10px_#ff0033]' : 'bg-neon-purple'}`}
                                             />
                                         </div>
-                                        <span className={`text-[9px] font-black w-7 text-right ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
+                                        <span className={`text-[8px] md:text-[9px] font-black w-6 md:w-7 text-right ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-col items-center justify-center">
-                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">BPM</span>
-                                    <span className="text-[10px] font-black text-white italic">{bpm}</span>
+                                    <span className="text-[7px] md:text-[8px] font-black text-gray-600 uppercase tracking-widest mb-0.5 md:mb-1">BPM</span>
+                                    <span className="text-[9px] md:text-[10px] font-black text-white italic">{bpm}</span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 md:gap-2">
                                 <button
                                     onClick={() => setShowClipModal(!showClipModal)}
-                                    className={`p-2 rounded-lg transition-all ${showClipModal ? 'bg-neon-purple text-white shadow-[0_0_10px_#bd00ff33]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    className={`p-1.5 md:p-2 rounded-lg transition-all ${showClipModal ? 'bg-neon-purple text-white shadow-[0_0_10px_#bd00ff33]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                     title="Clips & VOD"
                                 >
-                                    <Video className="w-4 h-4" />
+                                    <Video className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                 </button>
                                 <button
                                     onClick={() => setShowLineup(!showLineup)}
-                                    className={`p-2 rounded-lg transition-all ${showLineup ? 'bg-neon-red text-white shadow-[0_0_10px_#ff003333]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    className={`p-1.5 md:p-2 rounded-lg transition-all ${showLineup ? 'bg-neon-red text-white shadow-[0_0_10px_#ff003333]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                     title="Planning"
                                 >
-                                    <List className="w-4 h-4" />
+                                    <List className="w-3.5 h-3.5 md:w-4 md:h-4" />
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-8">
+                            <div className="hidden md:flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-8">
                                 <a href={`https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-blue-500 transition-colors"><Facebook className="w-3.5 h-3.5" /></a>
                                 <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-white transition-colors"><XIcon className="w-3.5 h-3.5" /></a>
                                 <a href={`https://snapchat.com/share?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-yellow-400 transition-colors"><SnapchatIcon className="w-3.5 h-3.5" /></a>
@@ -2501,9 +2501,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                             <button
                                 onClick={() => { sessionStorage.setItem('exited_live', 'true'); window.location.href = '/'; }}
-                                className="p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-full text-gray-400 hover:text-neon-red transition-all ml-2"
+                                className="p-1.5 md:p-2 bg-white/5 hover:bg-neon-red/20 border border-white/10 rounded-full text-gray-400 hover:text-neon-red transition-all md:ml-2"
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             </button>
                         </div>
                     </div>
@@ -2511,7 +2511,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Live Banner Header - REDUCED SIZE */}
                 {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
-                    <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-2 flex items-center justify-between z-30 shadow-xl shrink-0">
+                    <div className="hidden lg:flex w-full bg-[#080808] border-b border-white/10 px-6 py-2 items-center justify-between z-30 shadow-xl shrink-0">
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-md shadow-[0_0_15px_rgba(37,99,235,0.2)]">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">EN DIRECT:</span>
@@ -4203,23 +4203,23 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         {/* Glossy Header */}
                         {
                             !isFocusMode && (
-                                <div className="p-1 lg:p-1 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
-                                    <div className="flex-1 flex items-center gap-2">
+                                <div className="p-1 md:p-2 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                                    <div className="flex-1 flex items-center gap-1.5 md:gap-2">
                                         {/* Back Button for mobile users since navbar is hidden */}
                                         <button
                                             onClick={() => navigate('/')}
-                                            className="lg:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all mr-2"
+                                            className="lg:hidden p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all mr-1 md:mr-2"
                                             title="Retour à l'accueil"
                                         >
-                                            <ArrowLeft className="w-4 h-4" />
+                                            <ArrowLeft className="w-3.5 h-3.5" />
                                         </button>
-                                        <div className="w-7 h-7 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg md:rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
                                             <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-2">
+                                            <h2 className="text-[9px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-1.5 md:gap-2">
                                                 {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Shop Officiel' : activeChatTab === 'drops-shop' ? 'Boutique Drops' : 'Classement'}
-                                                {isSlowMode && <span className="px-1.5 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
+                                                {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[6px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
                                             </h2>
                                             {/* Hype Energy Mini Gauge */}
                                             <div
@@ -4495,8 +4495,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
-                                        <div className="px-4 pt-4 pb-0 shrink-0 z-[60]">
-                                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 overflow-x-auto no-scrollbar shadow-lg">
+                                        <div className="px-2 md:px-4 pt-2 md:pt-4 pb-0 shrink-0 z-[60]">
+                                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg md:rounded-xl p-0.5 md:p-1 overflow-x-auto no-scrollbar shadow-lg">
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
                                                     if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -4508,7 +4508,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-2 md:px-3 py-1.5 md:py-2 rounded-md md:rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[60px] md:min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
@@ -4518,11 +4518,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
 
                                         {/* Tab Switcher - Persistent at Top */}
-                                        <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-3 relative z-20 shrink-0">
+                                        <div className="flex items-center gap-0.5 md:gap-1 p-0.5 md:p-1 bg-white/[0.02] border border-white/10 rounded-lg md:rounded-xl mb-0 mx-2 md:mx-4 mt-2 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
                                             {[
                                                 { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                                                { id: 'shazam', icon: Headphones, label: 'Shazam' },
-                                                { id: 'audio', icon: Mic, label: 'Audio' },
+                                                { id: 'shazam', icon: Headphones, label: 'Shz' },
+                                                { id: 'audio', icon: Mic, label: 'Aud' },
                                                 { id: 'shop', icon: ShoppingBag, label: 'Shop' },
                                                 { id: 'leaderboard', icon: Trophy, label: 'Top' },
                                                 { id: 'clips', icon: Video, label: 'Clips' },
@@ -4531,10 +4531,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <button
                                                     key={tab.id}
                                                     onClick={() => setActiveChatTab(tab.id as any)}
-                                                    className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                    className={`flex-1 flex items-center justify-center gap-1 md:gap-1.5 py-1.5 md:py-2 rounded-md md:rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                                 >
                                                     <tab.icon className="w-3.5 h-3.5" />
-                                                    <span className="hidden sm:inline">{tab.label}</span>
+                                                    <span className="hidden sm:inline text-[7px] md:text-[9px]">{tab.label}</span>
                                                     {activeChatTab === tab.id && (
                                                         <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
                                                     )}
@@ -5196,7 +5196,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 )}
 
                                                                 {/* Chat Messages */}
-                                                                <div id="chat-messages" className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
+                                                                <div id="chat-messages" className="flex-1 overflow-y-auto p-2 md:p-4 lg:p-5 space-y-1 md:space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
                                                                     {messages
                                                                         .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
                                                                         .map((msg, idx) => {
@@ -5212,21 +5212,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     animate={{ opacity: 1, x: 0 }}
                                                                                     className="group relative min-w-0 overflow-hidden"
                                                                                 >
-                                                                                    <div className="flex items-center gap-2 mb-1 px-1">
-                                                                                        <div className="w-4 flex items-center justify-center opacity-80">
+                                                                                    <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1 px-1">
+                                                                                        <div className="w-3.5 md:w-4 flex items-center justify-center opacity-80">
                                                                                             {getCountryFlag(msg.country || 'FR')}
                                                                                         </div>
                                                                                         <span
-                                                                                            className="text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                            className="text-[10px] md:text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
                                                                                             style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                                         >
                                                                                             {msg.pseudo}
                                                                                         </span>
-                                                                                        {isMsgAdmin && <span className="px-2 py-0.5 rounded text-white text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                                                        <span className="text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                                        {isMsgAdmin && <span className="px-1.5 md:px-2 py-0.5 rounded text-white text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
+                                                                                        <span className="text-[8px] md:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                                     </div>
                                                                                     <div
-                                                                                        className={`p-2 px-3 rounded-xl text-[11px] font-medium leading-relaxed break-words overflow-hidden relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                                        className={`p-1.5 md:p-2 px-2.5 md:px-3 rounded-lg md:rounded-xl text-[10px] md:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                                         style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                                                     >
                                                                                         {/* Message with clickable links */}
@@ -5290,49 +5290,46 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
 
                                                                 {/* Chat Input Area */}
-                                                                <div className="p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)]">
-                                                                    <form onSubmit={handleSendMessage} className="relative group/input px-2 py-1">
+                                                                <div className="p-2 md:p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
+                                                                    <form onSubmit={handleSendMessage} className="relative group/input px-1 md:px-2 py-0.5 md:py-1">
                                                                         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                         <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                                            <div className="flex items-center px-2 py-0.5 lg:py-1">
-                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-5 h-5" /></button>
-                                                                                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                                                                            <div className="flex items-center px-1.5 md:px-2 py-0.5 lg:py-1">
+                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1.5 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                                                                <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
 
                                                                                 <input
                                                                                     type="text"
                                                                                     value={newMessage}
                                                                                     onChange={(e) => setNewMessage(e.target.value)}
                                                                                     placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
-                                                                                    className="flex-1 bg-transparent px-3 py-1.5 text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                                    className="flex-1 bg-transparent px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
                                                                                 />
 
-                                                                                <button type="button" onClick={handleShazam} className={`p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                                    <Headphones className="w-5 h-5" />
+                                                                                <button type="button" onClick={handleShazam} className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                                    <Headphones className="w-4 h-4 md:w-5 md:h-5" />
                                                                                 </button>
 
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
                                                                                     title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                                                    className={`p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                                    className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
                                                                                 >
-                                                                                    <Bell className={`w-5 h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                                                    <Bell className={`w-4 h-4 md:w-5 md:h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
                                                                                 </button>
 
-                                                                                <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                                                                                <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
 
-
-
-
-                                                                                <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
-                                                                                    <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                                                <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-1.5 md:p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-lg md:rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                                    <Send className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isSending ? 'animate-pulse' : ''}`} />
                                                                                 </button>
                                                                             </div>
                                                                         </div>
                                                                         {showEmojiPicker && (
                                                                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
                                                                                 {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
-                                                                                    <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-2xl hover:bg-white/10 p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
+                                                                                    <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-xl md:text-2xl hover:bg-white/10 p-2 md:p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
                                                                                 ))}
                                                                             </motion.div>
                                                                         )}
