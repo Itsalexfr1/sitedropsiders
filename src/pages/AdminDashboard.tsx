@@ -7,11 +7,11 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type, Activity,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    RotateCcw, VideoOff, Play, Download, Gamepad2, Camera, Upload
+    RotateCcw, VideoOff, Play, Download, Gamepad2, Upload
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
-import { uploadFile } from '../utils/upload';
+import { uploadFile } from '../utils/uploadService';
 import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
@@ -395,18 +395,7 @@ export function AdminDashboard() {
 
 
 
-    const colors = [
-        { name: 'Red', value: 'red' },
-        { name: 'Blue', value: 'blue' },
-        { name: 'Cyan', value: 'cyan' },
-        { name: 'Purple', value: 'purple' },
-        { name: 'Yellow', value: 'yellow' },
-        { name: 'Pink', value: 'pink' },
-        { name: 'Green', value: 'green' },
-        { name: 'Emerald', value: 'emerald' },
-        { name: 'Orange', value: 'orange' },
-        { name: 'White', value: 'white' }
-    ];
+
 
     useEffect(() => {
         const auth = localStorage.getItem('admin_auth');
@@ -4197,12 +4186,12 @@ export function AdminDashboard() {
 
                                                                         // If question is empty or matches generic, fill it
                                                                         if (!quizToEdit.question || quizToEdit.question === 'Blind Test' || quizToEdit.question.includes('?')) {
-                                                                            setQuizToEdit(prev => ({ ...prev, question: cleanTitle, youtubeId: val }));
+                                                                            setQuizToEdit((prev: any) => ({ ...prev, question: cleanTitle, youtubeId: val }));
                                                                         }
 
                                                                         // Also fill the correct answer if empty
                                                                         if (!quizToEdit.correctAnswer) {
-                                                                            setQuizToEdit(prev => ({ ...prev, correctAnswer: cleanTitle }));
+                                                                            setQuizToEdit((prev: any) => ({ ...prev, correctAnswer: cleanTitle }));
                                                                             if (!quizToEdit.options.includes(cleanTitle)) {
                                                                                 const newOpts = [...quizToEdit.options];
                                                                                 const emptyIdx = newOpts.findIndex(o => !o);
@@ -4211,7 +4200,7 @@ export function AdminDashboard() {
                                                                                 } else {
                                                                                     newOpts[0] = cleanTitle;
                                                                                 }
-                                                                                setQuizToEdit(prev => ({ ...prev, options: newOpts }));
+                                                                                setQuizToEdit((prev: any) => ({ ...prev, options: newOpts }));
                                                                             }
                                                                         }
                                                                     }
