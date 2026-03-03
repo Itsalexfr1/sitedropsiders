@@ -45,8 +45,8 @@
   "announcement_banner": {
     "enabled": true,
     "text": "BIENVENUE SUR DROPSIDERS V2 - LA PLATEFORME INTERACTIVE  CONSACRÉE AUX FESTIVALS ET A LA MUSIQUE ELECTRONIQUE - RECRUTEMENT OUVERT ",
-    "text_en": "WELCOME TO DROPSIDERS V2 - THE PLATFORM",
-    "color": "#ffffff",
+    "text_en": "WELCOME TO DROPSIDERS V2 - THE INTERACTIVE PLATFORM DEDICATED TO FESTIVALS AND ELECTRONIC MUSIC - OPEN RECRUITMENT",
+    "color": "#ff5757",
     "bgColor": "#000000",
     "size": "medium",
     "link": "/contact"
