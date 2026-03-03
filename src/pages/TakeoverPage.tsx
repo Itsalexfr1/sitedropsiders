@@ -163,19 +163,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [clips, setClips] = useState<any[]>([]);
     const [_activeClipPopup, _setActiveClipPopup] = useState<any>(null);
     const [newVideoId, setNewVideoId] = useState('');
-    const [confirmModal, setConfirmModal] = useState<{
-        isOpen: boolean,
-        title: string,
-        message: string,
-        onConfirm: () => void,
-        type: 'danger' | 'warning' | 'info'
-    }>({
-        isOpen: false,
-        title: '',
-        message: '',
-        onConfirm: () => { },
-        type: 'danger'
-    });
+
     const [showLineup, setShowLineup] = useState(false);
     const [showVideoEdit, setShowVideoEdit] = useState(false);
     const [showClipModal, setShowClipModal] = useState(false);
