@@ -4188,9 +4188,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                     {/* Chat Section */}
                     <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
-                        {/* MULTIVUE - NEW PERSISTENT TOP POSITION */}
+                        {/* MULTIVUE - hidden on mobile, visible on desktop */}
                         {channelItems.length >= 2 && !isFocusMode && (
-                            <div className="p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
+                            <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
                                 <button
                                     onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
                                     className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3 active:scale-95 ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_25px_rgba(189,0,255,0.4)] border border-neon-purple/50' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white-20'}`}
@@ -4217,9 +4217,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <h2 className="text-[9px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-tight flex items-center gap-1.5 md:gap-2">
-                                                {activeChatTab === 'chat' ? 'Chat en direct' : activeChatTab === 'shop' ? 'Shop Officiel' : activeChatTab === 'drops-shop' ? 'Boutique Drops' : 'Classement'}
-                                                {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[6px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
+                                            <h2 className="text-[6px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
+                                                {activeChatTab === 'chat' ? 'Chat' : activeChatTab === 'shop' ? 'Shop' : activeChatTab === 'drops-shop' ? 'Drops' : activeChatTab === 'shazam' ? 'Shazam' : activeChatTab === 'audio' ? 'Audio' : activeChatTab === 'leaderboard' ? 'Top' : 'Clips'}
+                                                {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[5px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
                                             </h2>
                                             {/* Hype Energy Mini Gauge */}
                                             <div
@@ -4495,7 +4495,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
-                                        <div className="px-1 md:px-4 pt-1 md:pt-4 pb-0 shrink-0 z-[60]">
+                                        <div className="px-1 md:px-4 pt-0.5 md:pt-4 pb-0 shrink-0 z-[60]">
                                             <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-md md:rounded-xl p-0.5 md:p-1 overflow-x-auto no-scrollbar shadow-lg">
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
@@ -4508,7 +4508,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-1 md:px-3 py-0.5 md:py-2 rounded-sm md:rounded-lg text-[4px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[20px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-1 md:px-3 py-[1px] md:py-2 rounded-sm md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[20px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
@@ -4518,7 +4518,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
 
                                         {/* Tab Switcher - Persistent at Top */}
-                                        <div className="flex items-center gap-0.5 md:gap-1 p-0.5 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
+                                        <div className="flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
                                             {[
                                                 { id: 'chat', icon: MessageSquare, label: 'Chat' },
                                                 { id: 'shazam', icon: Headphones, label: 'Shz' },
@@ -4531,12 +4531,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <button
                                                     key={tab.id}
                                                     onClick={() => setActiveChatTab(tab.id as any)}
-                                                    className={`flex-1 flex items-center justify-center gap-0.5 md:gap-1.5 py-0.5 md:py-2 rounded-sm md:rounded-lg text-[4px] md:text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                    className={`flex-1 flex flex-col items-center justify-center gap-0 md:gap-1.5 py-[2px] md:py-2 rounded-sm md:rounded-lg transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                                 >
-                                                    <tab.icon className="w-2 h-2 md:w-3.5 md:h-3.5" />
-                                                    <span className="hidden md:inline text-[4px] md:text-[9px]">{tab.label.substring(0, 3)}</span>
+                                                    <tab.icon className="w-1.5 h-1.5 md:w-3.5 md:h-3.5" />
+                                                    <span className="text-[6px] md:text-[9px] font-black uppercase leading-none">{tab.label.substring(0, 3)}</span>
                                                     {activeChatTab === tab.id && (
-                                                        <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
+                                                        <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-[1px] bg-neon-red" />
                                                     )}
                                                 </button>
                                             ))}
