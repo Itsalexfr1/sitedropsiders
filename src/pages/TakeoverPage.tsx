@@ -4202,8 +4202,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {/* Hype Energy Mini Gauge */}
                                             <div
                                                 className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1 cursor-pointer hover:border-white/20 transition-all"
-                                                onClick={() => setActiveChatTab('hype')}
-                                                title="Voir Hype Energy"
+                                                onClick={() => setActiveChatTab('shazam')}
+                                                title="Voir Shazam"
                                             >
                                                 <motion.div
                                                     className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
