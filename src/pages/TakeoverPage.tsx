@@ -5668,7 +5668,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     id={`yt-blindtest-${quizPopupQuestion.id}`}
                                                     ref={(el) => {
                                                         if (!el) return;
-                                                        const containerId = `yt-blindtest-${quizPopupQuestion.id}`;
                                                         const playerId = `yt-player-${quizPopupQuestion.id}`;
                                                         // Avoid re-initializing
                                                         if ((el as any).__ytInitialized) return;
