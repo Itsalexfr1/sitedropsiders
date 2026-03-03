@@ -5226,7 +5226,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                         <span className="text-[6px] md:text-[8px] lg:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                                     </div>
                                                                                     <div
-                                                                                        className={`p-0 md:p-2 px-1 md:px-3 rounded-none md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative ${isBot ? '' : isMsgAdmin ? '' : 'text-gray-200'}`}
+                                                                                        className={`p-0 md:p-2 px-1 md:px-3 rounded-none md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-tight md:leading-relaxed break-words relative ${isBot ? '' : isMsgAdmin ? '' : 'text-gray-200'}`}
                                                                                         style={isBot ? { color: botColor } : isMsgAdmin ? { color: '#ffffff' } : {}}
                                                                                     >
                                                                                         {/* Message with clickable links */}
