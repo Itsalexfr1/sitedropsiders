@@ -4223,7 +4223,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </h2>
                                             {/* Hype Energy Mini Gauge */}
                                             <div
-                                                className="w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1 cursor-pointer hover:border-white/20 transition-all"
+                                                className="hidden lg:block w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1 cursor-pointer hover:border-white/20 transition-all"
                                                 onClick={() => setActiveChatTab('shazam')}
                                                 title="Voir Shazam"
                                             >
@@ -4237,7 +4237,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </div>
 
                                     {/* MES DROPS - CENTERED */}
-                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                                         <button
                                             onClick={() => setActiveChatTab(activeChatTab === 'drops-shop' ? 'chat' : 'drops-shop')}
                                             className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'drops-shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
@@ -4517,21 +4517,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </div>
                                         </div>
 
-                                        {/* Tab Switcher - Persistent at Top */}
-                                        <div className="flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
+                                        {/* Tab Switcher - Persistent at Top - Hidden on mobile */}
+                                        <div className="hidden lg:flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
                                             {[
-                                                { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                                                { id: 'shazam', icon: Headphones, label: 'Shz' },
-                                                { id: 'audio', icon: Mic, label: 'Aud' },
-                                                { id: 'shop', icon: ShoppingBag, label: 'Shop' },
-                                                { id: 'leaderboard', icon: Trophy, label: 'Top' },
-                                                { id: 'clips', icon: Video, label: 'Clips' },
-                                                ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops' }] : [])
+                                                { id: 'chat', icon: MessageSquare, label: 'Chat', mobileVisible: true },
+                                                { id: 'shazam', icon: Headphones, label: 'Shz', mobileVisible: false },
+                                                { id: 'audio', icon: Mic, label: 'Aud', mobileVisible: false },
+                                                { id: 'shop', icon: ShoppingBag, label: 'Shop', mobileVisible: false },
+                                                { id: 'leaderboard', icon: Trophy, label: 'Top', mobileVisible: false },
+                                                { id: 'clips', icon: Video, label: 'Clips', mobileVisible: false },
+                                                ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops', mobileVisible: false }] : [])
                                             ].map(tab => (
                                                 <button
                                                     key={tab.id}
                                                     onClick={() => setActiveChatTab(tab.id as any)}
-                                                    className={`flex-1 flex flex-col items-center justify-center gap-0 md:gap-1.5 py-[2px] md:py-2 rounded-sm md:rounded-lg transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                    className={`flex-1 ${(tab as any).mobileVisible === false ? 'hidden md:flex' : 'flex'} flex-col items-center justify-center gap-0 md:gap-1.5 py-[2px] md:py-2 rounded-sm md:rounded-lg transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                                 >
                                                     <tab.icon className="w-1.5 h-1.5 md:w-3.5 md:h-3.5" />
                                                     <span className="text-[6px] md:text-[9px] font-black uppercase leading-none">{tab.label.substring(0, 3)}</span>
@@ -5217,7 +5217,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                             {getCountryFlag(msg.country || 'FR')}
                                                                                         </div>
                                                                                         <span
-                                                                                            className="text-[7px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                            className="text-[4px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
                                                                                             style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                                         >
                                                                                             {msg.pseudo}
@@ -5226,7 +5226,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                         <span className="text-[6px] md:text-[8px] lg:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                                     </div>
                                                                                     <div
-                                                                                        className={`p-1.5 md:p-2 px-2 md:px-3 rounded-md md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                                        className={`p-1 md:p-2 px-1.5 md:px-3 rounded-md md:rounded-xl text-[4px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                                         style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                                                     >
                                                                                         {/* Message with clickable links */}
