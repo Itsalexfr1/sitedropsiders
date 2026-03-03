@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -239,7 +239,7 @@ export function AdminDashboard() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Supprimer Quizz',
-                message: 'Voulez-vous vraiment supprimer définitivement cette question ?',
+                message: 'Voulez-vous vraiment supprimer dÃ©finitivement cette question ?',
                 type: 'danger',
                 onConfirm: () => performModerateQuiz(id, action)
             });
@@ -322,7 +322,7 @@ export function AdminDashboard() {
             });
 
             if (resp.ok) {
-                alert('Notification envoyée avec succès à tous les abonnés !');
+                alert('Notification envoyÃ©e avec succÃ¨s Ã  tous les abonnÃ©s !');
                 setIsNotificationModalOpen(false);
             } else {
                 throw new Error('Erreur lors de l\'envoi');
@@ -587,7 +587,7 @@ export function AdminDashboard() {
         setConfirmModal({
             isOpen: true,
             title: 'Supprimer Extrait',
-            message: 'Supprimer définitivement cet extrait ? Cette action est irréversible.',
+            message: 'Supprimer dÃ©finitivement cet extrait ? Cette action est irrÃ©versible.',
             type: 'danger',
             onConfirm: () => performDeleteClip(id)
         });
@@ -707,28 +707,28 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        // CONTENU & ÉDITORIAL
-        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        // CONTENU & Ã‰DITORIAL
+        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & Ã‰DITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & Ã‰DITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
         { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
 
-        // COMMUNAUTÉ & ENGAGEMENT
-        { title: "Communauté", description: "Modération & Jeux", icon: "ImageIcon", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        // COMMUNAUTÃ‰ & ENGAGEMENT
+        { title: "CommunautÃ©", description: "ModÃ©ration & Jeux", icon: "ImageIcon", category: "COMMUNAUTÃ‰ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÃ‰ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails ReÃ§us", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
-        // SYSTÈME & TEAM
-        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
-        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Team", description: "Équipe & Accès", icon: "Users", category: "SYSTÈME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        // SYSTÃˆME & TEAM
+        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÃˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÃˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Team", description: "Ã‰quipe & AccÃ¨s", icon: "Users", category: "SYSTÃˆME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
     ];
 
 
@@ -760,7 +760,7 @@ export function AdminDashboard() {
                 }
             }
 
-            // Si l'API répond avec une erreur explicite
+            // Si l'API rÃ©pond avec une erreur explicite
             if (response.status === 401) {
                 setError('Identifiants incorrects');
                 return;
@@ -770,7 +770,7 @@ export function AdminDashboard() {
 
         } catch (err: any) {
             // FALLBACK LOCAL (DEV MODE)
-            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vérifie en dur ici pour débloquer
+            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vÃ©rifie en dur ici pour dÃ©bloquer
             console.log("API Login failed, trying local check...", err);
 
             if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026') {
@@ -812,10 +812,10 @@ export function AdminDashboard() {
                         </div>
 
                         <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
-                            Accès Restreint
+                            AccÃ¨s Restreint
                         </h2>
                         <p className="text-center text-gray-400 text-sm mb-8">
-                            Veuillez vous identifier pour accéder au tableau de bord.
+                            Veuillez vous identifier pour accÃ©der au tableau de bord.
                         </p>
 
                         <form onSubmit={handleLogin} className="space-y-4">
@@ -865,8 +865,8 @@ export function AdminDashboard() {
 
                         <div className="mt-8 pt-6 border-t border-white/5">
                             <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
-                                Espace d'administration réservé à l'équipe Dropsiders.
-                                Ce portail permet la gestion des actualités, des reportages festivals,
+                                Espace d'administration rÃ©servÃ© Ã  l'Ã©quipe Dropsiders.
+                                Ce portail permet la gestion des actualitÃ©s, des reportages festivals,
                                 de la billetterie et des statistiques d'audience du site.
                             </p>
                         </div>
@@ -890,12 +890,12 @@ export function AdminDashboard() {
     const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
-        // Permission Maître (Alex ou Administrateur "all" pour superadmin)
+        // Permission MaÃ®tre (Alex ou Administrateur "all" pour superadmin)
         if (p === 'superadmin') return isAlex || storedPermissions.includes('all');
 
         if (storedPermissions.includes('all')) return true;
 
-        // Séparation des permissions d'action (create, edit, delete)
+        // SÃ©paration des permissions d'action (create, edit, delete)
         const actionPermissions = ['create', 'edit', 'delete'];
         if (actionPermissions.includes(p)) {
             return storedPermissions.includes(p);
@@ -903,13 +903,13 @@ export function AdminDashboard() {
 
         if (storedPermissions.includes(p)) return true;
 
-        // Si l'utilisateur possède 'publications', il a accès par défaut aux sous-sections éditoriales
+        // Si l'utilisateur possÃ¨de 'publications', il a accÃ¨s par dÃ©faut aux sous-sections Ã©ditoriales
         if (storedPermissions.includes('publications')) {
             const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries', 'social_studio'];
             if (editorialSubsets.includes(p)) return true;
         }
 
-        // Accès complet au Live Takeover par défaut si on a takeover_full
+        // AccÃ¨s complet au Live Takeover par dÃ©faut si on a takeover_full
         if (storedPermissions.includes('takeover_full')) {
             const liveSubsets = ['takeover_modo', 'clips', 'audio_rooms', 'hype_drops', 'shazam'];
             if (liveSubsets.includes(p)) return true;
@@ -1022,7 +1022,7 @@ export function AdminDashboard() {
                             </h1>
                         </div>
                         <p className="text-gray-400 text-lg max-w-2xl">
-                            Bienvenue dans votre espace d'administration. {isAdminAcc && "Déplacez les cartes pour réorganiser."}
+                            Bienvenue dans votre espace d'administration. {isAdminAcc && "DÃ©placez les cartes pour rÃ©organiser."}
                         </p>
                         <div className="mt-4 flex flex-wrap items-center gap-6">
                             <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group">
@@ -1034,7 +1034,7 @@ export function AdminDashboard() {
                                 className="inline-flex items-center gap-2 text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-black transition-all group"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
-                                Déconnexion
+                                DÃ©connexion
                             </button>
                         </div>
                     </div>
@@ -1065,7 +1065,7 @@ export function AdminDashboard() {
                                             className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"
                                         >
                                             <Paintbrush className="w-3.5 h-3.5" />
-                                            Mode Édition
+                                            Mode Ã‰dition
                                         </button>
                                     )}
                                 </>
@@ -1098,7 +1098,7 @@ export function AdminDashboard() {
                             <button
                                 onClick={fetchActions}
                                 className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center gap-2"
-                                title="Rafraîchir les données"
+                                title="RafraÃ®chir les donnÃ©es"
                             >
                                 <RefreshCw className="w-4 h-4" />
                                 Actualiser
@@ -1125,7 +1125,7 @@ export function AdminDashboard() {
                                         className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         <Youtube className="w-4 h-4" />
-                                        Accès Live
+                                        AccÃ¨s Live
                                     </Link>
 
                                     {/* Live Status Controls */}
@@ -1142,7 +1142,7 @@ export function AdminDashboard() {
                                             disabled={isUpdatingTakeover}
                                             className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            ÉDITION
+                                            Ã‰DITION
                                         </button>
                                         <button
                                             onClick={() => updateLiveStatus('live')}
@@ -1290,7 +1290,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Agenda') {
                                                     e.preventDefault();
                                                     setIsAgendaModalOpen(true);
-                                                } else if (action.title === 'Communauté') {
+                                                } else if (action.title === 'CommunautÃ©') {
                                                     e.preventDefault();
                                                     setIsCommunauteModalOpen(true);
                                                 } else if (action.title === 'Team') {
@@ -1300,7 +1300,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Contenu') {
                                                     e.preventDefault();
                                                     setIsContenuModalOpen(true);
-                                                } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
+                                                } else if (action.title === 'Newsletter' || action.title === 'AbonnÃ©s') {
                                                     e.preventDefault();
                                                     setIsNewsletterModalOpen(true);
                                                 } else if (action.title === 'LIVE / TAKEOVER') {
@@ -1351,7 +1351,7 @@ export function AdminDashboard() {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                                     {getIcon(action.icon, action.baseColor)}
-                                                    {action.title === 'Modération' && pendingPhotosCount > 0 && (
+                                                    {action.title === 'ModÃ©ration' && pendingPhotosCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                         </div>
@@ -1366,7 +1366,7 @@ export function AdminDashboard() {
                                                             <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
                                                         </div>
                                                     )}
-                                                    {action.title === 'Communauté' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
+                                                    {action.title === 'CommunautÃ©' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount + pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
                                                         </div>
@@ -1453,7 +1453,7 @@ export function AdminDashboard() {
                                                     value={bannerState.text}
                                                     onChange={(e) => setBannerState({ ...bannerState, text: e.target.value.toUpperCase() })}
                                                     className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
-                                                    placeholder="Message en Français..."
+                                                    placeholder="Message en FranÃ§ais..."
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -1476,7 +1476,7 @@ export function AdminDashboard() {
                                             </label>
                                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                                 {[
-                                                    { label: 'Aucun (Désactivé)', val: '' },
+                                                    { label: 'Aucun (DÃ©sactivÃ©)', val: '' },
                                                     { label: 'Accueil', val: '/' },
                                                     { label: 'News', val: '/news' },
                                                     { label: 'Agenda', val: '/agenda' },
@@ -1495,7 +1495,7 @@ export function AdminDashboard() {
                                             <div className="relative">
                                                 <input
                                                     type="text"
-                                                    placeholder="URL personnalisée ou lien externe (https://...)"
+                                                    placeholder="URL personnalisÃ©e ou lien externe (https://...)"
                                                     value={bannerState.link}
                                                     onChange={(e) => setBannerState({ ...bannerState, link: e.target.value })}
                                                     className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-[11px] focus:outline-none focus:border-neon-orange transition-all font-mono"
@@ -1573,7 +1573,7 @@ export function AdminDashboard() {
 
                                         {/* Preview */}
                                         <div className="pt-4 border-t border-white/5">
-                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct (taille approx.)</div>
+                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">AperÃ§u direct (taille approx.)</div>
                                             <div
                                                 className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
                                                 style={{
@@ -1649,7 +1649,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-purple" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Écrite</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Ã‰crite</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format texte</p>
                                     </Link>
 
@@ -1660,8 +1660,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Youtube className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vidéo</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format vidéo</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">VidÃ©o</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format vidÃ©o</p>
                                     </Link>
                                 </div>
 
@@ -1674,20 +1674,20 @@ export function AdminDashboard() {
                                             <Settings2 className="w-5 h-5 text-gray-400" />
                                         </div>
                                         <div className="text-left">
-                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes interviews</h3>
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer mes interviews</h3>
                                             <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                 </Link>
 
-                                {/* Section Sélection Home */}
+                                {/* Section SÃ©lection Home */}
                                 <div className="pt-8 border-t border-white/5">
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
-                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">À la une sur l'accueil</h3>
+                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Ã€ la une sur l'accueil</h3>
                                             <div className="flex items-center gap-4 mt-1">
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews à afficher</p>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews Ã  afficher</p>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setSelectedInterviews([])}
@@ -1699,7 +1699,7 @@ export function AdminDashboard() {
                                                         onClick={() => setSelectedInterviews(allInterviews.slice(0, 4).map(i => i.id))}
                                                         className="text-[9px] font-black text-gray-400 hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/10"
                                                     >
-                                                        4 Dernières
+                                                        4 DerniÃ¨res
                                                     </button>
                                                 </div>
                                             </div>
@@ -1814,7 +1814,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-blue/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-blue" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Actualité</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">ActualitÃ©</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article news</p>
                                     </Link>
 
@@ -1841,7 +1841,7 @@ export function AdminDashboard() {
                                             <Settings2 className="w-5 h-5 text-gray-400" />
                                         </div>
                                         <div className="text-left">
-                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes articles</h3>
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer mes articles</h3>
                                             <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                         </div>
                                     </div>
@@ -1869,7 +1869,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Social <span className="text-neon-pink">Studio</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Générez des visuels pour vos réseaux</p>
+                                        <p className="text-gray-400 font-medium">GÃ©nÃ©rez des visuels pour vos rÃ©seaux</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSocialModalOpen(false)}
@@ -1880,7 +1880,7 @@ export function AdminDashboard() {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sélectionner un article récent ou créer à vide</div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">SÃ©lectionner un article rÃ©cent ou crÃ©er Ã  vide</div>
                                     <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                                         <button
                                             onClick={() => {
@@ -1894,7 +1894,7 @@ export function AdminDashboard() {
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="font-black text-white uppercase italic text-lg tracking-tighter">Visuel Vide / Manuel</h3>
-                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">Démarrer sans article</p>
+                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">DÃ©marrer sans article</p>
                                             </div>
                                             <ArrowRight className="w-6 h-6 text-neon-pink" />
                                         </button>
@@ -1924,7 +1924,7 @@ export function AdminDashboard() {
                                                 </button>
                                             ))
                                         ) : (
-                                            <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouvé</div>
+                                            <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouvÃ©</div>
                                         )}
                                     </div>
 
@@ -1989,7 +1989,7 @@ export function AdminDashboard() {
                                             <Plus className="w-6 h-6 text-neon-yellow" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel événement</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel Ã©vÃ©nement</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Ajouter une date</p>
                                         </div>
                                     </Link>
@@ -2004,7 +2004,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer l'agenda</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer l'agenda</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -2016,7 +2016,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Communauté */}
+                {/* Modal CommunautÃ© */}
                 <AnimatePresence>
                     {isGalerieModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2031,7 +2031,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-pink">Communauté</span>
+                                            Gestion <span className="text-neon-pink">CommunautÃ©</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -2054,12 +2054,12 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="text-left">
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel album</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une galerie photo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÃ©er une galerie photo</p>
                                         </div>
                                     </Link>
 
                                     <Link
-                                        to="/admin/manage?tab=Communauté"
+                                        to="/admin/manage?tab=CommunautÃ©"
                                         onClick={() => setIsGalerieModalOpen(false)}
                                         className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
                                     >
@@ -2068,7 +2068,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer les galeries</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer les galeries</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -2127,7 +2127,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">GÃ©rer</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les articles</p>
                                     </Link>
                                 </div>
@@ -2136,7 +2136,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Récaps */}
+                {/* Modal RÃ©caps */}
                 <AnimatePresence>
                     {isRecapModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
@@ -2151,7 +2151,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-red">Récaps</span>
+                                            Gestion <span className="text-neon-red">RÃ©caps</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -2172,7 +2172,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Plus className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau Récap</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau RÃ©cap</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Reportage Festival</p>
                                     </Link>
 
@@ -2184,8 +2184,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les récaps</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">GÃ©rer</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les rÃ©caps</p>
                                     </Link>
                                 </div>
                             </motion.div>
@@ -2210,7 +2210,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-orange">Messages</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Accès directs</p>
+                                        <p className="text-gray-400 font-medium">AccÃ¨s directs</p>
                                     </div>
                                     <button
                                         onClick={() => setIsMessagesModalOpen(false)}
@@ -2230,7 +2230,7 @@ export function AdminDashboard() {
                                             <Mail className="w-6 h-6 text-neon-orange" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Boîte de réception</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">BoÃ®te de rÃ©ception</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les messages</p>
                                         </div>
                                     </Link>
@@ -2244,7 +2244,7 @@ export function AdminDashboard() {
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Contact</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">ParamÃ¨tres Contact</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
                                         </div>
                                     </Link>
@@ -2353,7 +2353,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vues Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les sections & le live</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÃ©rer les sections & le live</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2415,7 +2415,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Google Analytics</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse détaillée</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse dÃ©taillÃ©e</p>
                                         </div>
                                     </a>
                                 </div>
@@ -2462,7 +2462,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Playlists Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer le top 10 hebdo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÃ©rer le top 10 hebdo</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2488,7 +2488,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-green-400">Newsletter</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Campagnes & Abonnés</p>
+                                        <p className="text-gray-400 font-medium">Campagnes & AbonnÃ©s</p>
                                     </div>
                                     <button
                                         onClick={() => setIsNewsletterModalOpen(false)}
@@ -2508,7 +2508,7 @@ export function AdminDashboard() {
                                             <Mail className="w-6 h-6 text-green-400" />
                                         </div>
                                         <h3 className="text-xl font-bold text-white uppercase italic mb-1">Studio</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une campagne</p>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÃ©er une campagne</p>
                                     </Link>
 
                                     <Link
@@ -2519,8 +2519,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Users className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Abonnés</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer la liste mail</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">AbonnÃ©s</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÃ©rer la liste mail</p>
                                     </Link>
                                 </div>
                             </motion.div>
@@ -2528,7 +2528,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Contenu (Éditorial) */}
+                {/* Modal Contenu (Ã‰ditorial) */}
                 <AnimatePresence>
                     {isContenuModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2545,7 +2545,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-cyan">Contenu Editorial</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Contrôle des articles et médias</p>
+                                        <p className="text-gray-400 font-medium">ContrÃ´le des articles et mÃ©dias</p>
                                     </div>
                                     <button
                                         onClick={() => setIsContenuModalOpen(false)}
@@ -2603,7 +2603,7 @@ export function AdminDashboard() {
                                             <Video className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Récaps</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">RÃ©caps</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Reportages</p>
                                         </div>
                                     </button>
@@ -2626,7 +2626,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Communauté */}
+                {/* Modal CommunautÃ© */}
                 <AnimatePresence>
                     {isCommunauteModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2641,7 +2641,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            COMMUNAUTÉ
+                                            COMMUNAUTÃ‰
                                         </h2>
                                         <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Espace de partage et galeries</p>
                                     </div>
@@ -2689,7 +2689,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             TEAM
                                         </h2>
-                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et accès</p>
+                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et accÃ¨s</p>
                                     </div>
                                     <button
                                         onClick={() => setIsTeamModalOpen(false)}
@@ -2726,7 +2726,7 @@ export function AdminDashboard() {
                                             <Users className="w-6 h-6 text-neon-blue" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Équipe</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Ã‰quipe</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Actifs</p>
                                         </div>
                                     </button>
@@ -2738,7 +2738,7 @@ export function AdminDashboard() {
                                             <Pencil className="w-6 h-6 text-neon-purple" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Éditeurs</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Ã‰diteurs</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Droits & Profils</p>
                                         </div>
                                     </button>
@@ -2750,7 +2750,7 @@ export function AdminDashboard() {
                                             <Shield className="w-6 h-6 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Sécurité</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">SÃ©curitÃ©</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Logs & Banlist</p>
                                         </div>
                                     </button>
@@ -2760,7 +2760,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Éditeurs */}
+                {/* Modal Ã‰diteurs */}
                 <AnimatePresence>
                     {isEditorsModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
@@ -2775,9 +2775,9 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-red">Éditeurs</span>
+                                            Gestion <span className="text-neon-red">Ã‰diteurs</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Contrôle des accès</p>
+                                        <p className="text-gray-400 font-medium">ContrÃ´le des accÃ¨s</p>
                                     </div>
                                     <button
                                         onClick={() => setIsEditorsModalOpen(false)}
@@ -2797,8 +2797,8 @@ export function AdminDashboard() {
                                             <Lock className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes Éditeurs</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer & Gérer les permissions</p>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes Ã‰diteurs</h3>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÃ©er & GÃ©rer les permissions</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2822,9 +2822,9 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Sécurité <span className="text-neon-purple">& Accès</span>
+                                            SÃ©curitÃ© <span className="text-neon-purple">& AccÃ¨s</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Paramètres système</p>
+                                        <p className="text-gray-400 font-medium">ParamÃ¨tres systÃ¨me</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSettingsModalOpen(false)}
@@ -2845,7 +2845,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mots de passe</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accès globaux</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accÃ¨s globaux</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2870,7 +2870,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
                                             Live <span className="text-neon-red">Takeover</span>
                                         </h2>
-                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrôle de la page d'accueil</p>
+                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrÃ´le de la page d'accueil</p>
                                     </div>
                                     <button
                                         onClick={() => { }}
@@ -2882,14 +2882,14 @@ export function AdminDashboard() {
 
                                 <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 overflow-x-auto z-20 relative no-scrollbar">
                                     <div className="flex min-w-max">
-                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VIDÉO</button>
+                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VIDÃ‰O</button>
                                         <button onClick={() => setTakeoverTab('ticker')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'ticker' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}>BANDEAU</button>
-                                        <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MODÉRATION</button>
+                                        <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MODÃ‰RATION</button>
                                         <button onClick={() => setTakeoverTab('planning')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'planning' ? 'bg-neon-purple/10 text-neon-purple shadow-lg' : 'text-gray-500 hover:text-white'}`}>PLANNING</button>
-                                        <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>ÉQUIPE</button>
+                                        <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>Ã‰QUIPE</button>
                                         <button onClick={() => setTakeoverTab('bot')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'bot' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>BOT</button>
-                                        <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACCÈS</button>
-                                        <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÉS</button>
+                                        <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACCÃˆS</button>
+                                        <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÃ‰S</button>
                                         <button
                                             onClick={() => {
                                                 setTakeoverTab('clips');
@@ -2897,7 +2897,7 @@ export function AdminDashboard() {
                                             }}
                                             className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'clips' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            VIDÉO / CLIPS
+                                            VIDÃ‰O / CLIPS
                                         </button>
                                     </div>
                                 </div>
@@ -2912,7 +2912,7 @@ export function AdminDashboard() {
                                                     </div>
                                                     <div>
                                                         <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le système Live est opérationnel</p>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le systÃ¨me Live est opÃ©rationnel</p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -2944,7 +2944,7 @@ export function AdminDashboard() {
                                                 <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
                                                     <div className="flex flex-col">
                                                         <p className="text-[11px] font-black text-white uppercase tracking-widest">Afficher dans le Menu</p>
-                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Icône Video en haut du site</p>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">IcÃ´ne Video en haut du site</p>
                                                     </div>
                                                     <button
                                                         onClick={() => setTakeoverState({ ...takeoverState, showInNavbar: !takeoverState.showInNavbar })}
@@ -2992,7 +2992,7 @@ export function AdminDashboard() {
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-2">
                                                         <Video className="w-5 h-5 text-neon-red" />
-                                                        <h3 className="text-[11px] font-black text-white uppercase tracking-widest">Chaînes / Caméras</h3>
+                                                        <h3 className="text-[11px] font-black text-white uppercase tracking-widest">ChaÃ®nes / CamÃ©ras</h3>
                                                     </div>
                                                     <button
                                                         onClick={() => {
@@ -3029,7 +3029,7 @@ export function AdminDashboard() {
                                                             <div key={idx} className="grid grid-cols-12 gap-2 bg-black/20 p-2 rounded-xl border border-white/5 group">
                                                                 <div className="col-span-5">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID Vidéo / Lien</label>
+                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID VidÃ©o / Lien</label>
                                                                         <input
                                                                             type="text"
                                                                             value={id}
@@ -3041,7 +3041,7 @@ export function AdminDashboard() {
                                                                 </div>
                                                                 <div className="col-span-6">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre Caméra</label>
+                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre CamÃ©ra</label>
                                                                         <input
                                                                             type="text"
                                                                             value={title}
@@ -3062,7 +3062,7 @@ export function AdminDashboard() {
 
                                                     {(!takeoverState.channels || takeoverState.channels.trim() === '') && (
                                                         <div className="p-4 bg-black/20 border border-dashed border-white/10 rounded-xl text-center">
-                                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune caméra configurée</p>
+                                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune camÃ©ra configurÃ©e</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -3085,7 +3085,7 @@ export function AdminDashboard() {
                                                 <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Calendar className="w-4 h-4 text-neon-cyan" />
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de Début</label>
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de DÃ©but</label>
                                                     </div>
                                                     <input
                                                         type="datetime-local"
@@ -3150,7 +3150,7 @@ export function AdminDashboard() {
                                                     <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3">
                                                         <Activity className="w-5 h-5 text-neon-red" /> Activer le Bandeau
                                                     </p>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau défilant sous le player</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau dÃ©filant sous le player</p>
                                                 </div>
                                                 <button
                                                     onClick={() => setTakeoverState({ ...takeoverState, showTickerBanner: !takeoverState.showTickerBanner })}
@@ -3189,7 +3189,7 @@ export function AdminDashboard() {
                                                 <div className="grid grid-cols-1 gap-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Message Perso</label>
-                                                        <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte à faire défiler..." />
+                                                        <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte Ã  faire dÃ©filer..." />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Lien au clic (Optionnel)</label>
@@ -3204,13 +3204,13 @@ export function AdminDashboard() {
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
                                                 <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3 mb-4">
-                                                    <ShieldAlert className="w-5 h-5 text-red-500" /> Sécurité des Liens
+                                                    <ShieldAlert className="w-5 h-5 text-red-500" /> SÃ©curitÃ© des Liens
                                                 </p>
                                                 <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl">
                                                     <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Bloqueur auto de liens</span>
                                                     <span className="px-3 py-1 bg-green-500/10 text-green-500 rounded-lg text-[9px] font-black uppercase border border-green-500/20">Toujours Actif</span>
                                                 </div>
-                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les modérateurs peuvent partager des liens.</p>
+                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les modÃ©rateurs peuvent partager des liens.</p>
                                             </div>
 
                                             <div className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
@@ -3218,7 +3218,7 @@ export function AdminDashboard() {
                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
                                                         <Pin className="w-5 h-5 text-neon-red" />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">Épinglé</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">Ã‰pinglÃ©</span></h3>
                                                 </div>
 
                                                 <div className="space-y-3">
@@ -3227,7 +3227,7 @@ export function AdminDashboard() {
                                                         <textarea
                                                             value={takeoverState.pinnedMessage || ''}
                                                             onChange={(e) => setTakeoverState({ ...takeoverState, pinnedMessage: e.target.value })}
-                                                            placeholder="Ex: ⚠️ Début du set dans 5 minutes ! ⚠️"
+                                                            placeholder="Ex: âš ï¸ DÃ©but du set dans 5 minutes ! âš ï¸"
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white font-bold focus:border-neon-red outline-none min-h-[80px] resize-none"
                                                         />
                                                     </div>
@@ -3237,10 +3237,10 @@ export function AdminDashboard() {
                                                             className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-[9px] font-black text-gray-400 hover:text-red-500 transition-all uppercase"
                                                         >
                                                             <PinOff className="w-3.5 h-3.5" />
-                                                            Retirer l'épingle
+                                                            Retirer l'Ã©pingle
                                                         </button>
                                                     )}
-                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message apparaîtra en haut du chat pour tous les utilisateurs.</p>
+                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message apparaÃ®tra en haut du chat pour tous les utilisateurs.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -3249,7 +3249,7 @@ export function AdminDashboard() {
                                     {takeoverTab === 'planning' && (
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Éditeur de <span className="text-neon-red">Planning</span></h3>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Ã‰diteur de <span className="text-neon-red">Planning</span></h3>
                                                 <button
                                                     onClick={() => {
                                                         const currentLines = (takeoverState.lineup || '').split('\n');
@@ -3281,10 +3281,10 @@ export function AdminDashboard() {
                                             <div className="space-y-2">
                                                 {takeoverState.lineup && takeoverState.lineup.trim() !== '' && (
                                                     <div className="grid grid-cols-12 gap-2 px-3 pb-1">
-                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Début</div>
+                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">DÃ©but</div>
                                                         <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Fin</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</div>
-                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</div>
+                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">ScÃ¨ne</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</div>
                                                         <div className="col-span-1"></div>
                                                     </div>
@@ -3365,7 +3365,7 @@ export function AdminDashboard() {
                                                                     type="text"
                                                                     value={row.stage}
                                                                     onChange={e => updateRow({ stage: e.target.value })}
-                                                                    placeholder="Scène"
+                                                                    placeholder="ScÃ¨ne"
                                                                     className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
@@ -3409,14 +3409,14 @@ export function AdminDashboard() {
 
                                                 {(!takeoverState.lineup || takeoverState.lineup.trim() === '') && (
                                                     <div className="text-center py-6 bg-white/5 border border-white/5 rounded-2xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configuré</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configurÃ©</p>
                                                     </div>
                                                 )}
                                             </div>
 
                                             <div className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl">
                                                 <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">
-                                                    * Le planning sera affiché sur le player et accessible via la commande chat !lineup.
+                                                    * Le planning sera affichÃ© sur le player et accessible via la commande chat !lineup.
                                                 </p>
                                             </div>
                                         </div>
@@ -3427,21 +3427,21 @@ export function AdminDashboard() {
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <Shield className="w-5 h-5 text-neon-red" />
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">Modérateurs</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">ModÃ©rateurs</span></h3>
                                                 </div>
                                                 <input
                                                     type="text"
                                                     value={takeoverState.moderators}
                                                     onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
                                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-neon-red outline-none"
-                                                    placeholder="Séparez par des virgules (EX: ALEX, TANGUY, EMMA)"
+                                                    placeholder="SÃ©parez par des virgules (EX: ALEX, TANGUY, EMMA)"
                                                 />
                                                 <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                                                     <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-widest">
-                                                        LES UTILISATEURS LISTÉS ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
-                                                        <br /><span className="text-white">• SUPPRIMER DES MESSAGES</span>
-                                                        <br /><span className="text-white">• ENVOYER DES LIENS</span>
-                                                        <br /><span className="text-white">• BANNIR DES VIEWERS (SI ADMIN)</span>
+                                                        LES UTILISATEURS LISTÃ‰S ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
+                                                        <br /><span className="text-white">â€¢ SUPPRIMER DES MESSAGES</span>
+                                                        <br /><span className="text-white">â€¢ ENVOYER DES LIENS</span>
+                                                        <br /><span className="text-white">â€¢ BANNIR DES VIEWERS (SI ADMIN)</span>
                                                     </p>
                                                 </div>
                                             </div>
@@ -3484,7 +3484,7 @@ export function AdminDashboard() {
                                                     </div>
                                                 </div>
                                                 <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic text-center">
-                                                    * LAISSEZ LE MESSAGE VIDE POUR DÉSACTIVER L'AUTO-MESSAGE.
+                                                    * LAISSEZ LE MESSAGE VIDE POUR DÃ‰SACTIVER L'AUTO-MESSAGE.
                                                 </p>
                                             </div>
 
@@ -3496,14 +3496,14 @@ export function AdminDashboard() {
                                                             const parts = line.split(':');
                                                             return { cmd: parts[0] || '', res: parts[1] || '' };
                                                         });
-                                                        const newRow = { cmd: '!nouveau', res: 'Votre réponse ici' };
+                                                        const newRow = { cmd: '!nouveau', res: 'Votre rÃ©ponse ici' };
                                                         const newRows = [...rows, newRow];
                                                         const newText = newRows.map(r => `${r.cmd}:${r.res}`).join('\n');
                                                         setTakeoverState({ ...takeoverState, customCommands: newText });
                                                     }}
                                                     className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
                                                 >
-                                                    + Créer une commande
+                                                    + CrÃ©er une commande
                                                 </button>
                                             </div>
 
@@ -3548,7 +3548,7 @@ export function AdminDashboard() {
                                                             </div>
                                                             <div className="col-span-8">
                                                                 <div className="flex flex-col gap-1.5">
-                                                                    <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">Réponse du bot</label>
+                                                                    <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">RÃ©ponse du bot</label>
                                                                     <input
                                                                         type="text"
                                                                         value={row.res}
@@ -3571,7 +3571,7 @@ export function AdminDashboard() {
 
                                                 {(!takeoverState.customCommands || takeoverState.customCommands.trim() === '') && (
                                                     <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalisée</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalisÃ©e</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -3585,7 +3585,7 @@ export function AdminDashboard() {
                                                     <div className="p-2 bg-neon-purple/20 rounded-xl">
                                                         <Lock className="w-5 h-5 text-neon-purple" />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Accès <span className="text-neon-purple">Restreint</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AccÃ¨s <span className="text-neon-purple">Restreint</span></h3>
                                                 </div>
 
                                                 <div className="space-y-4">
@@ -3603,7 +3603,7 @@ export function AdminDashboard() {
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'accès secret</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'accÃ¨s secret</label>
                                                         <input
                                                             type="text"
                                                             value={takeoverState.password}
@@ -3660,7 +3660,7 @@ export function AdminDashboard() {
                                                             }}
                                                             className="px-4 py-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
                                                         >
-                                                            Débloquer
+                                                            DÃ©bloquer
                                                         </button>
                                                     </div>
                                                 ))
@@ -3673,7 +3673,7 @@ export function AdminDashboard() {
                                             <div className="flex items-center justify-between mb-2">
                                                 <div>
                                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-cyan">Clips</span></h3>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Extraits créés par la communauté</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Extraits crÃ©Ã©s par la communautÃ©</p>
                                                 </div>
                                                 <button
                                                     onClick={fetchClips}
@@ -3694,7 +3694,7 @@ export function AdminDashboard() {
                                                         <VideoOff className="w-8 h-8 text-gray-600" />
                                                     </div>
                                                     <p className="text-gray-500 font-black uppercase italic tracking-widest">Aucun clip pour le moment</p>
-                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits créés en live apparaîtront ici</p>
+                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits crÃ©Ã©s en live apparaÃ®tront ici</p>
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
@@ -3727,7 +3727,7 @@ export function AdminDashboard() {
                                                             </div>
                                                             <div className="p-5 flex-1 flex flex-col">
                                                                 <h4 className="text-[11px] font-black text-white uppercase italic tracking-tight mb-1 truncate">{clip.title}</h4>
-                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-4">{clip.date} • {clip.timestamp}</p>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-4">{clip.date} â€¢ {clip.timestamp}</p>
 
                                                                 <div className="mt-auto grid grid-cols-2 gap-2">
                                                                     <a
@@ -3762,9 +3762,9 @@ export function AdminDashboard() {
                                     className="w-full mt-8 py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-[2rem] transition-all shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50 relative z-30"
                                 >
                                     {isUpdatingTakeover ? (
-                                        <><Loader2 className="w-5 h-5 animate-spin" /> Mise à jour...</>
+                                        <><Loader2 className="w-5 h-5 animate-spin" /> Mise Ã  jour...</>
                                     ) : (
-                                        <><Save className="w-5 h-5" /> Enregistrer les réglages</>
+                                        <><Save className="w-5 h-5" /> Enregistrer les rÃ©glages</>
                                     )}
                                 </button>
                             </motion.div>
@@ -3790,7 +3790,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Push <span className="text-neon-red">Notifications</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Gérer les alertes en direct</p>
+                                        <p className="text-gray-400 font-medium">GÃ©rer les alertes en direct</p>
                                     </div>
                                     <button
                                         onClick={() => setIsNotificationModalOpen(false)}
@@ -3806,8 +3806,8 @@ export function AdminDashboard() {
                                         <div className="w-16 h-16 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500">
                                             <Bell className="w-8 h-8 text-neon-red" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-white uppercase italic mb-1">Système Actif</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est opérationnel</p>
+                                        <h3 className="text-2xl font-bold text-white uppercase italic mb-1">SystÃ¨me Actif</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est opÃ©rationnel</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
@@ -3834,7 +3834,7 @@ export function AdminDashboard() {
                                     <div className="p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl flex gap-4 items-start">
                                         <Zap className="w-5 h-5 text-neon-purple shrink-0 mt-0.5" />
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                                            Le nouveau système demande désormais l'accord pour les notifications et la newsletter dès l'entrée sur le site.
+                                            Le nouveau systÃ¨me demande dÃ©sormais l'accord pour les notifications et la newsletter dÃ¨s l'entrÃ©e sur le site.
                                         </p>
                                     </div>
 
@@ -3844,7 +3844,7 @@ export function AdminDashboard() {
                                             <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Envoi Manuel Sur Mesure</h4>
                                         </div>
 
-                                        {/* Sélecteur de News */}
+                                        {/* SÃ©lecteur de News */}
                                         <div className="space-y-2">
                                             <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">1. Cible (Optionnel)</label>
                                             <div className="relative group/select">
@@ -3883,7 +3883,7 @@ export function AdminDashboard() {
                                             <textarea
                                                 value={pushCustomBody}
                                                 onChange={(e) => setPushCustomBody(e.target.value)}
-                                                placeholder="Message personnalisé pour les abonnés..."
+                                                placeholder="Message personnalisÃ© pour les abonnÃ©s..."
                                                 rows={2}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all resize-none"
                                             />
@@ -3906,7 +3906,7 @@ export function AdminDashboard() {
                                             ) : (
                                                 <>
                                                     <Zap className="w-4 h-4" />
-                                                    Diffuser aux {pushSubscribersCount || 0} abonnés
+                                                    Diffuser aux {pushSubscribersCount || 0} abonnÃ©s
                                                     <ArrowRight className="w-4 h-4 group-hover/push:translate-x-1 transition-transform" />
                                                 </>
                                             )}
@@ -3917,7 +3917,7 @@ export function AdminDashboard() {
                                         onClick={() => setIsNotificationModalOpen(false)}
                                         className="w-full py-4 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[8px] transition-all border border-white/10"
                                     >
-                                        Annuler l'opération
+                                        Annuler l'opÃ©ration
                                     </button>
                                 </div>
                             </motion.div>
@@ -3942,7 +3942,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-cyan">Clips</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Extraits créés par la communauté</p>
+                                        <p className="text-gray-400 font-medium">Extraits crÃ©Ã©s par la communautÃ©</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <button
@@ -3969,8 +3969,8 @@ export function AdminDashboard() {
                                     ) : clips.length === 0 ? (
                                         <div className="py-32 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02]">
                                             <VideoOff className="w-12 h-12 text-gray-600 mx-auto mb-6" />
-                                            <h3 className="text-xl font-black text-white/40 uppercase italic tracking-widest">Aucun clip trouvé</h3>
-                                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits apparaîtront dès qu'un viewer en créera en live</p>
+                                            <h3 className="text-xl font-black text-white/40 uppercase italic tracking-widest">Aucun clip trouvÃ©</h3>
+                                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits apparaÃ®tront dÃ¨s qu'un viewer en crÃ©era en live</p>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -4000,7 +4000,7 @@ export function AdminDashboard() {
                                                     </div>
                                                     <div className="p-5 flex-1 flex flex-col">
                                                         <h4 className="text-[11px] font-black text-white uppercase italic tracking-tight mb-1 truncate">{clip.title}</h4>
-                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-4">{clip.date} • {clip.timestamp}</p>
+                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mb-4">{clip.date} â€¢ {clip.timestamp}</p>
 
                                                         <div className="mt-auto grid grid-cols-2 gap-2">
                                                             <a
@@ -4065,7 +4065,7 @@ export function AdminDashboard() {
                                                 <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
                                                     Gestion <span className="text-neon-red">Quizz</span>
                                                 </h2>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & proposées</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & proposÃ©es</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -4116,7 +4116,7 @@ export function AdminDashboard() {
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                placeholder="FILTRER PAR THÈME / ARTISTE..."
+                                                placeholder="FILTRER PAR THÃˆME / ARTISTE..."
                                                 value={quizSearch}
                                                 onChange={(e) => setQuizSearch(e.target.value)}
                                                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[9px] font-black text-white w-48 outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
@@ -4204,7 +4204,18 @@ export function AdminDashboard() {
                                                                             <Pencil className="w-5 h-5" />
                                                                         </button>
                                                                         <button
-                                                                            onClick={() => handleModerateQuiz(quiz.id, 'delete')}
+                                                                            onClick={async () => {
+                                                                                if (!window.confirm('Voulez-vous vraiment supprimer cette question ?')) return;
+                                                                                try {
+                                                                                    const res = await apiFetch('/api/quiz/delete', {
+                                                                                        method: 'POST',
+                                                                                        headers: getAuthHeaders(),
+                                                                                        body: JSON.stringify({ id: quiz.id })
+                                                                                    });
+                                                                                    if (res.ok) fetchQuizzes();
+                                                                                    else console.error('Delete failed:', await res.text());
+                                                                                } catch (err) { console.error('Delete error:', err); }
+                                                                            }}
                                                                             className="p-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-neon-red/10"
                                                                             title="Supprimer"
                                                                         >
@@ -4240,171 +4251,156 @@ export function AdminDashboard() {
                                 className="relative w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-[2rem] p-8 shadow-2xl"
                             >
                                 <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Modifier la Question</h3>
-                                <div className="space-y-4">
+
+                                {/* TYPE TABS */}
+                                <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-2xl p-1 mb-6">
+                                    {(['QCM', 'BLIND_TEST', 'IMAGE'] as const).map(t => (
+                                        <button
+                                            key={t}
+                                            onClick={() => setQuizToEdit({ ...quizToEdit, type: t })}
+                                            className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            {t === 'QCM' ? 'QCM' : t === 'BLIND_TEST' ? 'BLIND TEST' : 'IMAGE'}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
                                     <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Titre du morceau / Question</label>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
+                                            {quizToEdit.type === 'BLIND_TEST' ? 'Titre du morceau' : 'Question'}
+                                        </label>
                                         <input
                                             type="text"
                                             value={quizToEdit.question}
                                             onChange={(e) => setQuizToEdit({ ...quizToEdit, question: e.target.value })}
                                             className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                            placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Swedish House Mafia - One' : 'Ex: Quel DJ est headliner ?'}
                                         />
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Catégorie</label>
-                                            <input
-                                                type="text"
-                                                value={quizToEdit.category}
-                                                onChange={(e) => setQuizToEdit({ ...quizToEdit, category: e.target.value })}
-                                                className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Type</label>
-                                            <select
-                                                value={quizToEdit.type}
-                                                onChange={(e) => setQuizToEdit({ ...quizToEdit, type: e.target.value })}
-                                                className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                            >
-                                                <option value="QCM">QCM</option>
-                                                <option value="BLIND_TEST">BLIND_TEST</option>
-                                                <option value="IMAGE">IMAGE</option>
-                                            </select>
-                                        </div>
+
+                                    {/* Theme dropdown with auto-question */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">ThÃ¨me</label>
+                                        <select
+                                            value={quizToEdit.category || 'Festivals'}
+                                            onChange={(e) => {
+                                                const theme = e.target.value;
+                                                const updates: any = { ...quizToEdit, category: theme };
+                                                if (quizToEdit.type === 'QCM') {
+                                                    const q: Record<string, string> = {
+                                                        'Techno': 'Quel est ce titre Techno ?', 'Bass Music': 'Quel est ce titre Bass ?',
+                                                        'Hardcore': 'Quel est ce titre Hardcore ?', 'Tech House': 'Quel est ce titre Tech House ?',
+                                                        'Big Room': 'Quel est ce titre Big Room ?', 'Trance': 'Quel est ce titre Trance ?',
+                                                        'Hardstyle': 'Quel est ce titre Hardstyle ?', 'Afro House': 'Quel est ce titre Afro House ?',
+                                                        'Progressive': 'Quel est ce titre Progressive ?', 'House': 'Quel est ce titre House ?',
+                                                        'Festivals': 'Quel est ce festival ?', 'DJs': 'Quel est ce DJ ?',
+                                                        'Classics': 'Quel est ce classique ?', 'Production': 'Quel outil est utilisÃ© ?',
+                                                    };
+                                                    if (q[theme]) updates.question = q[theme];
+                                                } else if (quizToEdit.type === 'IMAGE') {
+                                                    if (theme === 'Festivals') { updates.question = 'Quel est ce festival ?'; updates.imageType = 'FESTIVAL'; }
+                                                    else if (theme === 'DJs') { updates.question = 'Qui est cet artiste ?'; updates.imageType = 'ARTIST'; }
+                                                    else updates.question = `Quel est ce ${theme} ?`;
+                                                } else if (quizToEdit.type === 'BLIND_TEST') {
+                                                    updates.question = 'Quelle est ce Banger ?';
+                                                }
+                                                setQuizToEdit(updates);
+                                            }}
+                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
+                                        >
+                                            {['Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'].map(t => (
+                                                <option key={t} value={t}>{t}</option>
+                                            ))}
+                                        </select>
                                     </div>
+
                                     <div>
                                         <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Options</label>
                                         <div className="space-y-2">
                                             {quizToEdit.options.map((opt: string, i: number) => (
-                                                <input
-                                                    key={i}
-                                                    type="text"
-                                                    value={opt}
-                                                    onChange={(e) => {
-                                                        const newOpts = [...quizToEdit.options];
-                                                        newOpts[i] = e.target.value;
-                                                        setQuizToEdit({ ...quizToEdit, options: newOpts });
-                                                    }}
+                                                <input key={i} type="text" value={opt}
+                                                    onChange={(e) => { const o = [...quizToEdit.options]; o[i] = e.target.value; setQuizToEdit({ ...quizToEdit, options: o }); }}
                                                     className={`w-full bg-black border rounded-xl p-2.5 text-xs text-white focus:border-neon-red outline-none ${opt === quizToEdit.correctAnswer ? 'border-neon-green/50' : 'border-white/10'}`}
-                                                    autoComplete="off" // Disable autofill for options
+                                                    autoComplete="off" placeholder={`Option ${i + 1}`}
                                                 />
                                             ))}
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Bonne Réponse</label>
-                                        <select
-                                            value={quizToEdit.correctAnswer}
-                                            onChange={(e) => setQuizToEdit({ ...quizToEdit, correctAnswer: e.target.value })}
-                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                        >
-                                            <option value="">-- Choisir la bonne réponse --</option>
-                                            {quizToEdit.options.map((opt: string, i: number) => (
-                                                <option key={i} value={opt}>{opt}</option>
-                                            ))}
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Bonne RÃ©ponse</label>
+                                        <select value={quizToEdit.correctAnswer} onChange={(e) => setQuizToEdit({ ...quizToEdit, correctAnswer: e.target.value })}
+                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none">
+                                            <option value="">-- Choisir la bonne rÃ©ponse --</option>
+                                            {quizToEdit.options.map((opt: string, i: number) => (<option key={i} value={opt}>{opt}</option>))}
                                         </select>
                                     </div>
 
                                     {quizToEdit.type === 'BLIND_TEST' && (
                                         <div className="space-y-4 pt-4 border-t border-white/5">
+                                            <div>
+                                                <label className="text-[10px] font-black text-green-400 uppercase tracking-widest block mb-2">ðŸŽ§ Spotify URL (RecommandÃ©)</label>
+                                                <input type="text" value={quizToEdit.spotifyUrl || ''}
+                                                    onChange={(e) => setQuizToEdit({ ...quizToEdit, spotifyUrl: e.target.value })}
+                                                    placeholder="https://open.spotify.com/track/..."
+                                                    className="w-full bg-black border border-green-500/30 rounded-xl p-3 text-white focus:border-green-500 outline-none" />
+                                                {quizToEdit.spotifyUrl && quizToEdit.spotifyUrl.includes('spotify.com/track/') && (
+                                                    <div className="mt-3 rounded-xl overflow-hidden border border-green-500/20">
+                                                        <iframe src={`https://open.spotify.com/embed/track/${quizToEdit.spotifyUrl.split('track/')[1]?.split('?')[0]}?theme=0`}
+                                                            width="100%" height="80" frameBorder="0"
+                                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-center text-[9px] text-gray-600 font-bold uppercase tracking-widest">â€” ou â€”</div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">YouTube ID</label>
-                                                    <input
-                                                        type="text"
-                                                        value={quizToEdit.youtubeId || ''}
+                                                    <input type="text" value={quizToEdit.youtubeId || ''}
                                                         onChange={async (e) => {
                                                             let val = e.target.value;
-                                                            if (val.includes('youtube.com/watch?v=')) {
-                                                                val = val.split('v=')[1].split('&')[0];
-                                                            } else if (val.includes('youtu.be/')) {
-                                                                val = val.split('youtu.be/')[1].split('?')[0];
-                                                            }
+                                                            if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
+                                                            else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
                                                             setQuizToEdit({ ...quizToEdit, youtubeId: val });
-
-                                                            // Auto-fill title
                                                             if (val.length === 11) {
                                                                 try {
                                                                     const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${val}`);
                                                                     const data = await resp.json();
                                                                     if (data.title) {
-                                                                        let cleanTitle = data.title
-                                                                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit|Vevo).*?(\]|\))/gi, '')
-                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit|Vevo)/gi, '')
-                                                                            .replace(/\s+/g, ' ')
-                                                                            .trim();
-
-                                                                        // Extra fallback for typical parens
-                                                                        cleanTitle = cleanTitle.replace(/\(Extended Vocal Mix\)/gi, '').trim();
-
-                                                                        // Add author_name if title doesn't seem to contain it
+                                                                        let ct = data.title.replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Original Mix|Extended Mix|Vocal Mix|Radio Edit|Vevo).*?(\]|\))/gi, '')
+                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Original Mix|Extended Mix|Vocal Mix|Radio Edit|Vevo)/gi, '').replace(/\s+/g, ' ').trim();
                                                                         const author = data.author_name?.replace(' - Topic', '').replace(' VEVO', '').trim();
-                                                                        if (author && !cleanTitle.toUpperCase().includes(author.toUpperCase())) {
-                                                                            cleanTitle = `${author} - ${cleanTitle}`;
-                                                                        }
-
-                                                                        // If question is empty or matches generic, fill it
-                                                                        if (!quizToEdit.question || quizToEdit.question === 'Blind Test' || quizToEdit.question.includes('?')) {
-                                                                            const autoQuestion = cleanTitle;
-                                                                            setQuizToEdit((prev: any) => ({ ...prev, question: autoQuestion, youtubeId: val }));
-                                                                        }
-
-                                                                        // Also fill the correct answer if empty
-                                                                        if (!quizToEdit.correctAnswer || quizToEdit.correctAnswer === '') {
-                                                                            setQuizToEdit((prev: any) => ({ ...prev, correctAnswer: cleanTitle }));
-                                                                            const newOpts = [...quizToEdit.options];
-                                                                            if (!newOpts.includes(cleanTitle)) {
-                                                                                const emptyIdx = newOpts.findIndex((o: string) => !o);
-                                                                                if (emptyIdx !== -1) {
-                                                                                    newOpts[emptyIdx] = cleanTitle;
-                                                                                } else {
-                                                                                    newOpts[0] = cleanTitle;
-                                                                                }
-                                                                            }
-                                                                            setQuizToEdit((prev: any) => ({ ...prev, options: newOpts }));
+                                                                        if (author && !ct.toUpperCase().includes(author.toUpperCase())) ct = `${author} - ${ct}`;
+                                                                        if (!quizToEdit.question || quizToEdit.question.includes('?')) setQuizToEdit((p: any) => ({ ...p, question: ct, youtubeId: val }));
+                                                                        if (!quizToEdit.correctAnswer) {
+                                                                            const o = [...quizToEdit.options]; const ei = o.findIndex((x: string) => !x);
+                                                                            if (!o.includes(ct)) { if (ei !== -1) o[ei] = ct; else o[0] = ct; }
+                                                                            setQuizToEdit((p: any) => ({ ...p, correctAnswer: ct, options: o }));
                                                                         }
                                                                     }
-                                                                } catch (err) {
-                                                                    console.error("Auto-fetch error:", err);
-                                                                }
+                                                                } catch (err) { console.error("Auto-fetch error:", err); }
                                                             }
                                                         }}
                                                         placeholder="ex: dQw4w9WgXcQ"
-                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                                    />
+                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Début (Sec)</label>
+                                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">DÃ©but (Sec)</label>
                                                     <div className="flex gap-2">
-                                                        <input
-                                                            type="number"
-                                                            value={quizToEdit.startTime || 0}
+                                                        <input type="number" value={quizToEdit.startTime || 0}
                                                             onChange={(e) => setQuizToEdit({ ...quizToEdit, startTime: parseInt(e.target.value) })}
-                                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                                        />
-                                                        <button
-                                                            onClick={() => setQuizToEdit({ ...quizToEdit, startTime: 90 })}
-                                                            className={`px-3 rounded-lg border text-[8px] font-bold uppercase transition-all ${quizToEdit.startTime === 90 ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}
-                                                        >1:30</button>
-                                                        <button
-                                                            onClick={() => setQuizToEdit({ ...quizToEdit, startTime: 105 })}
-                                                            className={`px-3 rounded-lg border text-[8px] font-bold uppercase transition-all ${quizToEdit.startTime === 105 ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}
-                                                        >1:45</button>
+                                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none" />
+                                                        <button onClick={() => setQuizToEdit({ ...quizToEdit, startTime: 90 })}
+                                                            className={`px-3 rounded-lg border text-[8px] font-bold uppercase transition-all ${quizToEdit.startTime === 90 ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>1:30</button>
+                                                        <button onClick={() => setQuizToEdit({ ...quizToEdit, startTime: 105 })}
+                                                            className={`px-3 rounded-lg border text-[8px] font-bold uppercase transition-all ${quizToEdit.startTime === 105 ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>1:45</button>
                                                     </div>
                                                 </div>
                                             </div>
                                             {quizToEdit.youtubeId && quizToEdit.youtubeId.length === 11 && (
-                                                <div className="mt-4 rounded-xl overflow-hidden border border-white/10 aspect-video bg-black">
-                                                    <iframe
-                                                        width="100%"
-                                                        height="100%"
-                                                        src={`https://www.youtube.com/embed/${quizToEdit.youtubeId}?start=${quizToEdit.startTime || 0}&autoplay=0`}
-                                                        title="YouTube video player"
-                                                        frameBorder="0"
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    />
+                                                <div className="mt-2 rounded-xl overflow-hidden border border-white/10 aspect-video bg-black">
+                                                    <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${quizToEdit.youtubeId}?start=${quizToEdit.startTime || 0}&autoplay=0`}
+                                                        title="YT" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                                                 </div>
                                             )}
                                         </div>
@@ -4415,29 +4411,11 @@ export function AdminDashboard() {
                                             <div>
                                                 <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Image URL</label>
                                                 <div className="flex gap-2">
-                                                    <input
-                                                        type="text"
-                                                        value={quizToEdit.imageUrl || ''}
-                                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, imageUrl: e.target.value })}
-                                                        className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                                    />
+                                                    <input type="text" value={quizToEdit.imageUrl || ''} onChange={(e) => setQuizToEdit({ ...quizToEdit, imageUrl: e.target.value })}
+                                                        className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none" />
                                                     <label className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all cursor-pointer flex items-center justify-center">
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            className="hidden"
-                                                            onChange={async (e) => {
-                                                                const file = e.target.files?.[0];
-                                                                if (file) {
-                                                                    try {
-                                                                        const url = await uploadFile(file);
-                                                                        setQuizToEdit({ ...quizToEdit, imageUrl: url });
-                                                                    } catch (err) {
-                                                                        console.error("Upload failed", err);
-                                                                    }
-                                                                }
-                                                            }}
-                                                        />
+                                                        <input type="file" accept="image/*" className="hidden"
+                                                            onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { const u = await uploadFile(f); setQuizToEdit({ ...quizToEdit, imageUrl: u }); } catch (err) { console.error("Upload failed", err); } } }} />
                                                         <Upload className="w-5 h-5" />
                                                     </label>
                                                 </div>
@@ -4445,24 +4423,18 @@ export function AdminDashboard() {
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
                                                     <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Type Image</label>
-                                                    <select
-                                                        value={quizToEdit.imageType}
-                                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, imageType: e.target.value })}
-                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                                    >
+                                                    <select value={quizToEdit.imageType} onChange={(e) => setQuizToEdit({ ...quizToEdit, imageType: e.target.value })}
+                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none">
                                                         <option value="FESTIVAL">FESTIVAL (NET)</option>
                                                         <option value="ARTIST">ARTISTE (FLOU)</option>
                                                     </select>
                                                 </div>
                                                 <div>
                                                     <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Effet Reveal</label>
-                                                    <select
-                                                        value={quizToEdit.revealEffect}
-                                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, revealEffect: e.target.value })}
-                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                                    >
+                                                    <select value={quizToEdit.revealEffect} onChange={(e) => setQuizToEdit({ ...quizToEdit, revealEffect: e.target.value })}
+                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none">
                                                         <option value="BLUR">FLOU</option>
-                                                        <option value="MOSAIC">MOSAÏQUE</option>
+                                                        <option value="MOSAIC">MOSAÃQUE</option>
                                                         <option value="SILHOUETTE">SILHOUETTE</option>
                                                     </select>
                                                 </div>
@@ -4471,18 +4443,10 @@ export function AdminDashboard() {
                                     )}
                                 </div>
                                 <div className="mt-8 flex gap-3">
-                                    <button
-                                        onClick={() => setIsEditQuizModalOpen(false)}
-                                        className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase text-[10px]"
-                                    >
-                                        Annuler
-                                    </button>
-                                    <button
-                                        onClick={() => handleUpdateQuiz(quizToEdit)}
-                                        className="flex-1 py-3 bg-neon-red text-white rounded-xl font-bold uppercase text-[10px] shadow-lg shadow-neon-red/20"
-                                    >
-                                        Enregistrer
-                                    </button>
+                                    <button onClick={() => setIsEditQuizModalOpen(false)}
+                                        className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase text-[10px]">Annuler</button>
+                                    <button onClick={() => handleUpdateQuiz(quizToEdit)}
+                                        className="flex-1 py-3 bg-neon-red text-white rounded-xl font-bold uppercase text-[10px] shadow-lg shadow-neon-red/20">Enregistrer</button>
                                 </div>
                             </motion.div>
                         </div>
@@ -4496,7 +4460,8 @@ export function AdminDashboard() {
                     onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                     type={confirmModal.type}
                 />
-            </div >
-        </div >
+            </div>
+        </div>
     );
 }
+
