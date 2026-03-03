@@ -36,7 +36,19 @@
     "adminColor": "#ff0033",
     "adminBgColor": "rgba(255, 0, 51, 0.05)",
     "currentArtist": "TOMORROWLAND ONE WORLD RADIO",
-    "artistInstagram": "@DROPSIDERS"
+    "artistInstagram": "@DROPSIDERS",
+    "stage1": "https://youtube.com/watch?v=DQHSj6cphm0",
+    "stage2": "https://youtube.com/watch?v=DQHSj6cphm0",
+    "stage3": "https://youtube.com/watch?v=DQHSj6cphm0",
+    "stage4": "https://youtube.com/watch?v=DQHSj6cphm0",
+    "stage5": "",
+    "stage6": "",
+    "stage1Name": "Stage 1",
+    "stage2Name": "Stage 2",
+    "stage3Name": "Stage 3",
+    "stage4Name": "Stage 4",
+    "stage5Name": "Stage 5",
+    "stage6Name": "Stage 6"
   },
   "socials": {
     "instagram": "dropsiders.eu",
