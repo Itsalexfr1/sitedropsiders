@@ -3,7 +3,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile,
-    HelpCircle, Lock, Pin, Edit2, Plus, Zap, CheckCircle2,
+    HelpCircle, Lock, Pin, Edit2, Plus, Zap, CheckCircle2, Activity,
     Facebook, Maximize, Minimize, Video, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
     ChevronUp, ChevronDown, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, CircleStop, Loader2,
@@ -2737,7 +2737,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 disabled={shazamLoading}
                                 className={`flex items-center gap-3 px-6 py-3 bg-black/80 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white transition-all backdrop-blur-md shadow-2xl active:scale-95 group ${shazamLoading ? 'border-neon-cyan' : 'hover:bg-neon-cyan hover:border-neon-cyan/50'}`}
                             >
-                                <Music2 className={`w-4 h-4 text-neon-cyan group-hover:text-white ${shazamLoading ? 'animate-spin' : ''}`} />
+                                <Headphones className={`w-4 h-4 text-neon-cyan group-hover:text-white ${shazamLoading ? 'animate-spin' : ''}`} />
                                 {shazamLoading ? "Écoute en cours..." : "Shazam"}
                             </button>
                             <button
@@ -2764,7 +2764,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <div className="relative w-16 h-16 shrink-0 aspect-square rounded-2xl overflow-hidden border border-white/10">
                                             <img src={shazamResult.image} className="w-full h-full object-cover" alt="Track" />
                                             <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-                                                <Music2 className="w-6 h-6 text-neon-cyan drop-shadow-[0_0_8px_#00ffff]" />
+                                                <Headphones className="w-6 h-6 text-neon-cyan drop-shadow-[0_0_8px_#00ffff]" />
                                             </div>
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -4756,7 +4756,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
-                                                                <Music2 className="w-6 h-6 text-neon-cyan mb-2" />
+                                                                <Headphones className="w-6 h-6 text-neon-cyan mb-2" />
                                                                 <span className="text-[8px] font-black text-gray-500 uppercase mb-1">BPM Actuel</span>
                                                                 <span className="text-xl font-black text-white italic">{bpm}</span>
                                                             </div>
@@ -5200,7 +5200,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 />
 
                                                                                 <button type="button" onClick={handleShazam} className={`p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                                    <Music2 className="w-5 h-5" />
+                                                                                    <Headphones className="w-5 h-5" />
                                                                                 </button>
 
                                                                                 <button

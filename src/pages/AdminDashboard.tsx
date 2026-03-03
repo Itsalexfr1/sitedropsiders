@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    RotateCcw, VideoOff, Play, Download, Gamepad2, Upload
+    RotateCcw, VideoOff, Play, Download, Gamepad2, Upload, Activity, Music2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -4439,7 +4439,7 @@ export function AdminDashboard() {
                                                                 {[30, 45, 60].map(s => (
                                                                     <button
                                                                         key={s}
-                                                                        onClick={() => setQuizToEdit(prev => prev ? { ...prev, startTime: s } : null)}
+                                                                        onClick={() => setQuizToEdit((prev: any) => prev ? { ...prev, startTime: s } : null)}
                                                                         className={`px-3 rounded-lg border text-[8px] font-black uppercase transition-all ${quizToEdit.startTime === s ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/20' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                                                     >
                                                                         {s}s
@@ -4470,7 +4470,7 @@ export function AdminDashboard() {
                                                         placeholder={`Option ${i + 1}`}
                                                     />
                                                     <button
-                                                        onClick={() => setQuizToEdit(prev => prev ? { ...prev, correctAnswer: opt } : null)}
+                                                        onClick={() => setQuizToEdit((prev: any) => prev ? { ...prev, correctAnswer: opt } : null)}
                                                         className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border flex items-center justify-center transition-all ${opt === quizToEdit.correctAnswer ? 'bg-neon-green border-neon-green text-black' : 'border-white/20 text-transparent hover:border-white/50'}`}
                                                     >
                                                         {opt === quizToEdit.correctAnswer && <CheckCircle2 className="w-2.5 h-2.5" />}
@@ -4485,11 +4485,11 @@ export function AdminDashboard() {
                                             <div>
                                                 <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-1">URL de l'image / Upload</label>
                                                 <div className="flex gap-2">
-                                                    <input type="text" value={quizToEdit.imageUrl || ''} onChange={(e) => setQuizToEdit(prev => prev ? { ...prev, imageUrl: e.target.value } : null)}
+                                                    <input type="text" value={quizToEdit.imageUrl || ''} onChange={(e) => setQuizToEdit((prev: any) => prev ? { ...prev, imageUrl: e.target.value } : null)}
                                                         className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-[10px]" />
                                                     <label className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all cursor-pointer">
                                                         <input type="file" accept="image/*" className="hidden"
-                                                            onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { const u = await uploadFile(f); setQuizToEdit(prev => prev ? { ...prev, imageUrl: u } : null); } catch (err) { } } }} />
+                                                            onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { const u = await uploadFile(f); setQuizToEdit((prev: any) => prev ? { ...prev, imageUrl: u } : null); } catch (err) { } } }} />
                                                         <Upload className="w-5 h-5" />
                                                     </label>
                                                 </div>
@@ -4497,7 +4497,7 @@ export function AdminDashboard() {
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
                                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1">Type Image</label>
-                                                    <select value={quizToEdit.imageType} onChange={(e) => setQuizToEdit(prev => prev ? { ...prev, imageType: e.target.value as any } : null)}
+                                                    <select value={quizToEdit.imageType} onChange={(e) => setQuizToEdit((prev: any) => prev ? { ...prev, imageType: e.target.value as any } : null)}
                                                         className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:border-neon-red outline-none text-[10px]">
                                                         <option value="FESTIVAL">FESTIVAL (NET)</option>
                                                         <option value="ARTIST">ARTISTE (FLOU)</option>
