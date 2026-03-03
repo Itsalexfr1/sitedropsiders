@@ -38,6 +38,7 @@ export function AdminDashboard() {
     const [isGalerieModalOpen, setIsGalerieModalOpen] = useState(false);
     const [isShopModalOpen, setIsShopModalOpen] = useState(false);
     const [isMessagesModalOpen, setIsMessagesModalOpen] = useState(false);
+    const [isCommunauteModalOpen, setIsCommunauteModalOpen] = useState(false);
     const [isAccueilModalOpen, setIsAccueilModalOpen] = useState(false);
     const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
     const [isSpotifyModalOpen, setIsSpotifyModalOpen] = useState(false);
@@ -68,6 +69,7 @@ export function AdminDashboard() {
     const [isLoadingClips, setIsLoadingClips] = useState(false);
     const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
     const [pendingQuizzesCount, setPendingQuizzesCount] = useState(0);
+    const [pendingMessagesCount, setPendingMessagesCount] = useState(0);
     const [allActiveQuizzes, setAllActiveQuizzes] = useState<any[]>([]);
     const [allPendingQuizzes, setAllPendingQuizzes] = useState<any[]>([]);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
@@ -469,12 +471,28 @@ export function AdminDashboard() {
 
     useEffect(() => {
         if (isAuthenticated) {
+            // Photos count
             fetch('/api/photos/pending', { headers: getAuthHeaders() })
                 .then(r => r.json())
                 .then(data => setPendingPhotosCount(Array.isArray(data) ? data.length : 0))
                 .catch(() => setPendingPhotosCount(0));
+
+            // Messages count
+            fetch('/api/contacts', { headers: getAuthHeaders() })
+                .then(r => r.json())
+                .then(data => {
+                    const count = Array.isArray(data) ? data.filter((m: any) => !m.read).length : 0;
+                    setPendingMessagesCount(count);
+                })
+                .catch(() => setPendingMessagesCount(0));
+
+            // Quizzes count
+            fetch('/api/quiz/pending', { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => setPendingQuizzesCount(Array.isArray(data) ? data.length : 0))
+                .catch(() => setPendingQuizzesCount(0));
         }
-    }, [isAuthenticated, isModerationModalOpen]);
+    }, [isAuthenticated, isModerationModalOpen, isMessagesModalOpen, isQuizModalOpen, isCommunauteModalOpen]);
 
     const saveTakeoverSettings = async () => {
         setIsUpdatingTakeover(true);
@@ -1233,6 +1251,38 @@ export function AdminDashboard() {
                                                                     ))}
                                                                 </div>
                                                             </div>
+
+                                                            <div className="space-y-2">
+                                                                <label className="text-[9px] font-black uppercase text-gray-400">Couleur de l'onglet</label>
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {['red', 'blue', 'purple', 'cyan', 'green', 'yellow', 'orange', 'pink', 'white'].map(color => (
+                                                                        <button
+                                                                            key={color}
+                                                                            onClick={(e) => {
+                                                                                e.preventDefault(); e.stopPropagation();
+                                                                                updateActionProp(action.title, { baseColor: color });
+                                                                            }}
+                                                                            className={`w-6 h-6 rounded-full border-2 transition-all ${action.baseColor === color ? 'border-white scale-110 shadow-lg' : 'border-white/10 hover:border-white/30'}`}
+                                                                            style={{
+                                                                                backgroundColor: color === 'white' ? '#fff' :
+                                                                                    color.startsWith('#') ? color : `var(--color-neon-${color})`
+                                                                            }}
+                                                                        />
+                                                                    ))}
+                                                                    <div className="relative group/picker">
+                                                                        <input
+                                                                            type="color"
+                                                                            value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
+                                                                            onChange={(e) => {
+                                                                                e.preventDefault(); e.stopPropagation();
+                                                                                updateActionProp(action.title, { baseColor: e.target.value });
+                                                                            }}
+                                                                            className="w-6 h-6 rounded-full overflow-hidden border-2 border-white/10 cursor-pointer"
+                                                                        />
+                                                                        <Paintbrush className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-white pointer-events-none mix-blend-difference" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </motion.div>
                                                     )}
                                                 </div>
@@ -1249,13 +1299,13 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Agenda') {
                                                     e.preventDefault();
                                                     setIsAgendaModalOpen(true);
-                                                } else if (action.title === 'Communauté' || action.title === 'Team') {
+                                                } else if (action.title === 'Communauté') {
                                                     e.preventDefault();
-                                                    setIsTeamModalOpen(true);
-                                                } else if (action.title === 'Shop') {
+                                                    setIsCommunauteModalOpen(true);
                                                 } else if (action.title === 'Team') {
                                                     e.preventDefault();
                                                     setIsTeamModalOpen(true);
+                                                } else if (action.title === 'Shop') {
                                                 } else if (action.title === 'Contenu') {
                                                     e.preventDefault();
                                                     setIsContenuModalOpen(true);
@@ -1315,9 +1365,19 @@ export function AdminDashboard() {
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                         </div>
                                                     )}
-                                                    {action.title === 'Quizz' && pendingQuizzesCount > 0 && (
+                                                    {(action.title === 'Quizz' || action.title === 'Contenu') && pendingQuizzesCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
+                                                        </div>
+                                                    )}
+                                                    {action.title === 'MESSAGERIE & CONTACT' && pendingMessagesCount > 0 && (
+                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                            <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
+                                                        </div>
+                                                    )}
+                                                    {action.title === 'Communauté' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
+                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                            <span className="text-[9px] font-black text-white">{pendingPhotosCount + pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -2575,7 +2635,53 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Team (Équipe & Accès) */}
+                {/* Modal Communauté */}
+                <AnimatePresence>
+                    {isCommunauteModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-white to-neon-pink" />
+
+                                <div className="flex justify-between items-start mb-12">
+                                    <div>
+                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                            COMMUNAUTÉ
+                                        </h2>
+                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Espace de partage et galeries</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsCommunauteModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                                    <button
+                                        onClick={() => { setIsGalerieModalOpen(true); setIsCommunauteModalOpen(false); }}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                    >
+                                        <div className="w-16 h-16 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
+                                            <ImageIcon className="w-8 h-8 text-neon-pink" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Albums</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Galeries Photos</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal Team */}
                 <AnimatePresence>
                     {isTeamModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2583,16 +2689,16 @@ export function AdminDashboard() {
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                                 animate={{ opacity: 1, scale: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
                             >
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-blue via-white to-neon-blue" />
 
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-blue">Team & Accès</span>
+                                            TEAM
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Administration des membres et accès</p>
+                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et accès</p>
                                     </div>
                                     <button
                                         onClick={() => setIsTeamModalOpen(false)}
@@ -2602,42 +2708,27 @@ export function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <button
-                                        onClick={() => { setIsGalerieModalOpen(true); setIsTeamModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
-                                            <ImageIcon className="w-6 h-6 text-neon-pink" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Albums</h3>
-                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none mt-1">Galerie Photos</p>
-                                        </div>
-                                    </button>
-
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
                                     <button
                                         onClick={() => { setIsModerationModalOpen(true); setIsTeamModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative"
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
                                     >
-                                        <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
-                                            <CheckCircle2 className="w-6 h-6 text-neon-green" />
+                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <ShieldAlert className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        {pendingPhotosCount > 0 && (
-                                            <div className="absolute top-4 right-8 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,11,62,0.6)]">
-                                                <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
-                                            </div>
-                                        )}
                                         <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Moderation</h3>
-                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none mt-1">Photos / Clips</p>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Photos Viewers</p>
                                         </div>
+                                        {pendingPhotosCount > 0 && (
+                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                                                <span className="text-[10px] font-black text-white">{pendingPhotosCount}</span>
+                                            </div>
+                                        )}
                                     </button>
 
-
-
                                     <button
-                                        onClick={() => { setIsTeamModalOpen(true); setIsTeamModalOpen(false); }}
+                                        onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
@@ -2645,33 +2736,31 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Équipe</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Dropsiders</p>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Actifs</p>
                                         </div>
                                     </button>
 
                                     <button
-                                        onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                                            <Lock className="w-6 h-6 text-neon-red" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Éditeurs</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Permissions</p>
-                                        </div>
-                                    </button>
-
-                                    <button
-                                        onClick={() => { setIsSettingsModalOpen(true); setIsTeamModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                                            <Settings2 className="w-6 h-6 text-neon-purple" />
+                                            <Pencil className="w-6 h-6 text-neon-purple" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Éditeurs</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Droits & Profils</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                            <Shield className="w-6 h-6 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Sécurité</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Mots de passe</p>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Logs & Banlist</p>
                                         </div>
                                     </button>
                                 </div>
