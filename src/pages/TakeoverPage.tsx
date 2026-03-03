@@ -4217,7 +4217,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <h2 className="text-[6px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
+                                            <h2 className="text-[3px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
                                                 {activeChatTab === 'chat' ? 'Chat' : activeChatTab === 'shop' ? 'Shop' : activeChatTab === 'drops-shop' ? 'Drops' : activeChatTab === 'shazam' ? 'Shazam' : activeChatTab === 'audio' ? 'Audio' : activeChatTab === 'leaderboard' ? 'Top' : 'Clips'}
                                                 {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[5px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
                                             </h2>
@@ -4508,7 +4508,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-1 md:px-3 py-[1px] md:py-2 rounded-sm md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[20px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-0.5 md:px-3 py-[1px] md:py-2 rounded-sm md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[10px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
@@ -5217,7 +5217,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                             {getCountryFlag(msg.country || 'FR')}
                                                                                         </div>
                                                                                         <span
-                                                                                            className="text-[4px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                            className="text-[8px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
                                                                                             style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                                         >
                                                                                             {msg.pseudo}
@@ -5226,7 +5226,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                         <span className="text-[6px] md:text-[8px] lg:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                                     </div>
                                                                                     <div
-                                                                                        className={`p-1 md:p-2 px-1.5 md:px-3 rounded-md md:rounded-xl text-[4px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                                        className={`p-1 md:p-2 px-1.5 md:px-3 rounded-md md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                                         style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                                                     >
                                                                                         {/* Message with clickable links */}
