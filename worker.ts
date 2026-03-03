@@ -2746,13 +2746,12 @@ export default {
         }
 
         if (path === '/api/quiz/active' && request.method === 'GET') {
-            let activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
             let active = JSON.parse(activeRaw);
 
             // If the list is empty or seems to be missing the default set (e.g. less than 50 items),
             // we merge the default quizzes but keep existing ones (deduplicated by ID).
-            const hasDefaults = active.some(q => q.id && (q.id.startsWith('t') || q.id.startsWith('nth') || q.id.startsWith('nba')));
-            if (!hasDefaults) {
+            if (active.length < 60) {
                 const now = new Date().toISOString();
                 const defaultQuizzes = [
                     // --- TECHNO ---
@@ -2885,33 +2884,35 @@ export default {
                     { id: 'mt19', type: 'QCM', question: 'Who produced "Hypnotized"?', options: ['Rufus Du Sol', 'Sophie Hunger', 'Ben Böhmer', 'Innellea'], correctAnswer: 'Rufus Du Sol', category: 'Melodic Techno', author: 'Dropsiders', timestamp: now },
                     { id: 'mt20', type: 'QCM', question: 'Which country is Ben Böhmer from?', options: ['Germany', 'France', 'Switzerland', 'Austria'], correctAnswer: 'Germany', category: 'Melodic Techno', author: 'Dropsiders', timestamp: now },
 
-                    // --- DEEP HOUSE ---
-                    { id: 'dh1', type: 'QCM', question: 'Qui est l\'auteur de "Coffee" ?', options: ['Black Coffee', 'Themba', 'Shimza', 'Culoe De Song'], correctAnswer: 'Black Coffee', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh2', type: 'QCM', question: 'Quel label a été fondé par Kerri Chandler ?', options: ['Madhouse Records', 'Kaoz Theory', 'Les deux', 'Nervous'], correctAnswer: 'Les deux', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh3', type: 'QCM', question: 'Qui a produit "Can You Feel It" ?', options: ['Larry Heard (Mr. Fingers)', 'Marshall Jefferson', 'Frankie Knuckles', 'Ron Hardy'], correctAnswer: 'Larry Heard (Mr. Fingers)', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh4', type: 'QCM', question: 'Quel est le berceau de la Deep House ?', options: ['Chicago', 'New York', 'Detroit', 'Ibiza'], correctAnswer: 'Chicago', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh5', type: 'QCM', question: 'Qui a produit "The Whistle Song" ?', options: ['Frankie Knuckles', 'Satoshi Tomiie', 'David Morales', 'Danny Tenaglia'], correctAnswer: 'Frankie Knuckles', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh6', type: 'QCM', question: 'Quel DJ est surnommé "The King of Afro House" ?', options: ['Black Coffee', 'Themba', 'Francis Mercier', 'Shimza'], correctAnswer: 'Black Coffee', category: 'Afro House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh7', type: 'QCM', question: 'Quel label est connu pour son son "Deep \u0026 Soulful" ?', options: ['Innervisions', 'Defected', 'Strictly Rhythm', 'Nervous'], correctAnswer: 'Innervisions', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh8', type: 'QCM', question: 'Qui a produit "Walking With Elephants" ?', options: ['Ten Walls', 'Maceo Plex', 'Solomun', 'Dixon'], correctAnswer: 'Ten Walls', category: 'Melodic House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh9', type: 'QCM', question: 'Quel DJ porte un masque de bois (Plague Doctor) ?', options: ['Claptone', 'Malaa', 'Boris Brejcha', 'Marshmello'], correctAnswer: 'Claptone', category: 'House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh10', type: 'QCM', question: 'Qui est l\'auteur du titre "Drive" avec David Guetta ?', options: ['Black Coffee', 'Brooks', 'Martin Garrix', 'Showtek'], correctAnswer: 'Black Coffee', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh11', type: 'QCM', question: 'Quel label appartient à Damian Lazarus ?', options: ['Crosstown Rebels', 'Hot Creations', 'All Day I Dream', 'CircoLoco'], correctAnswer: 'Crosstown Rebels', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh12', type: 'QCM', question: 'Qui a produit "Summer" (Deep House version) ?', options: ['Route 94', 'Calvin Harris', 'Duke Dumont', 'MK'], correctAnswer: 'Route 94', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh13', type: 'QCM', question: 'Qui a produit "Looking At You" ?', options: ['Cassian', 'Rufus Du Sol', 'Anyma', 'Yotto'], correctAnswer: 'Cassian', category: 'Melodic House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh14', type: 'QCM', question: 'Quel DJ est connu pour ses visuels d\'oiseaux dorés ?', options: ['Claptone', 'Goldish', 'Vandelux', 'ZHU'], correctAnswer: 'Claptone', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh15', type: 'QCM', question: 'Qui a produit "Faded" ?', options: ['ZHU', 'Alan Walker', 'Les deux', 'Kygo'], correctAnswer: 'ZHU', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh16', type: 'QCM', question: 'Quel label a été fondé par Lee Burridge ?', options: ['All Day I Dream', 'Innervisions', 'Diynamic', 'Anjunadeep'], correctAnswer: 'All Day I Dream', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh1', type: 'QCM', question: 'Who is the author of "Coffee"?', options: ['Black Coffee', 'Themba', 'Shimza', 'Culoe De Song'], correctAnswer: 'Black Coffee', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh2', type: 'QCM', question: 'Which label belongs to Bedouin?', options: ['Human By Default', 'Crosstown Rebels', 'All Day I Dream', 'Innervisions'], correctAnswer: 'Human By Default', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh3', type: 'QCM', question: 'Who produced "Walking On A Dream" (Remix)?', options: ['Sacha Braemer', 'Monkey Safari', 'Nora En Pure', 'Purple Disco Machine'], correctAnswer: 'Sacha Braemer', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh4', type: 'QCM', question: 'What is the name of Keinemusik\'s hit?', options: ['The Rapture Pt.III', 'Muye', 'Forms of Love', 'Les Gout'], correctAnswer: 'The Rapture Pt.III', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh5', type: 'QCM', question: 'Which duo is behind Keinemusik?', options: ['\u0026ME \u0026 Rampa', 'Adam Port \u0026 Reznik', 'Both', 'Solomun \u0026 Dixon'], correctAnswer: 'Both', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh6', type: 'QCM', question: 'Who produced "You \u0026 Me" (Remix)?', options: ['Flume', 'Disclosure', 'MEUTE', 'Rivo'], correctAnswer: 'Flume', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh7', type: 'QCM', question: 'Which label belongs to Maya Jane Coles?', options: ['I/AM/ME', 'Hypercolour', 'Defected', 'Toolroom'], correctAnswer: 'I/AM/ME', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh8', type: 'QCM', question: 'Who produced "Epikur"?', options: ['David August', 'Nicolas Jaar', 'Kolektiv Turmstrasse', 'Christian Löffler'], correctAnswer: 'David August', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh9', type: 'QCM', question: 'Which group is known for its techno brass band covers?', options: ['MEUTE', 'Black Coffee', 'WhoMadeWho', 'GHEIST'], correctAnswer: 'MEUTE', category: 'Deep House', author: 'Dropsiders', timestamp: now },
-                    { id: 'dh10', type: 'QCM', question: 'Who produced "Pink" (Album)?', options: ['Four Tet', 'Bonobo', 'Caribou', 'Floating Points'], correctAnswer: 'Four Tet', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    // --- DEEP HOUSE (FR) ---
+                    { id: 'dhfr1', type: 'QCM', question: 'Qui est l\'auteur de "Coffee" ?', options: ['Black Coffee', 'Themba', 'Shimza', 'Culoe De Song'], correctAnswer: 'Black Coffee', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr2', type: 'QCM', question: 'Quel label a été fondé par Kerri Chandler ?', options: ['Madhouse Records', 'Kaoz Theory', 'Les deux', 'Nervous'], correctAnswer: 'Les deux', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr3', type: 'QCM', question: 'Qui a produit "Can You Feel It" ?', options: ['Larry Heard (Mr. Fingers)', 'Marshall Jefferson', 'Frankie Knuckles', 'Ron Hardy'], correctAnswer: 'Larry Heard (Mr. Fingers)', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr4', type: 'QCM', question: 'Quel est le berceau de la Deep House ?', options: ['Chicago', 'New York', 'Detroit', 'Ibiza'], correctAnswer: 'Chicago', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr5', type: 'QCM', question: 'Qui a produit "The Whistle Song" ?', options: ['Frankie Knuckles', 'Satoshi Tomiie', 'David Morales', 'Danny Tenaglia'], correctAnswer: 'Frankie Knuckles', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr6', type: 'QCM', question: 'Quel DJ est surnommé "The King of Afro House" ?', options: ['Black Coffee', 'Themba', 'Francis Mercier', 'Shimza'], correctAnswer: 'Black Coffee', category: 'Afro House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr7', type: 'QCM', question: 'Quel label est connu pour son son "Deep & Soulful" ?', options: ['Innervisions', 'Defected', 'Strictly Rhythm', 'Nervous'], correctAnswer: 'Innervisions', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr8', type: 'QCM', question: 'Qui a produit "Walking With Elephants" ?', options: ['Ten Walls', 'Maceo Plex', 'Solomun', 'Dixon'], correctAnswer: 'Ten Walls', category: 'Melodic House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr9', type: 'QCM', question: 'Quel DJ porte un masque de bois (Plague Doctor) ?', options: ['Claptone', 'Malaa', 'Boris Brejcha', 'Marshmello'], correctAnswer: 'Claptone', category: 'House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr10', type: 'QCM', question: 'Qui est l\'auteur du titre "Drive" avec David Guetta ?', options: ['Black Coffee', 'Brooks', 'Martin Garrix', 'Showtek'], correctAnswer: 'Black Coffee', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr11', type: 'QCM', question: 'Quel label appartient à Damian Lazarus ?', options: ['Crosstown Rebels', 'Hot Creations', 'All Day I Dream', 'CircoLoco'], correctAnswer: 'Crosstown Rebels', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr12', type: 'QCM', question: 'Qui a produit "Summer" (Deep House version) ?', options: ['Route 94', 'Calvin Harris', 'Duke Dumont', 'MK'], correctAnswer: 'Route 94', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr13', type: 'QCM', question: 'Qui a produit "Looking At You" ?', options: ['Cassian', 'Rufus Du Sol', 'Anyma', 'Yotto'], correctAnswer: 'Cassian', category: 'Melodic House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr14', type: 'QCM', question: 'Quel DJ est connu pour ses visuels d\'oiseaux dorés ?', options: ['Claptone', 'Goldish', 'Vandelux', 'ZHU'], correctAnswer: 'Claptone', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr15', type: 'QCM', question: 'Qui a produit "Faded" ?', options: ['ZHU', 'Alan Walker', 'Les deux', 'Kygo'], correctAnswer: 'ZHU', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhfr16', type: 'QCM', question: 'Quel label a été fondé par Lee Burridge ?', options: ['All Day I Dream', 'Innervisions', 'Diynamic', 'Anjunadeep'], correctAnswer: 'All Day I Dream', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+
+                    // --- DEEP HOUSE (EN) ---
+                    { id: 'dhen1', type: 'QCM', question: 'Who is the author of "Coffee"?', options: ['Black Coffee', 'Themba', 'Shimza', 'Culoe De Song'], correctAnswer: 'Black Coffee', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen2', type: 'QCM', question: 'Which label belongs to Bedouin?', options: ['Human By Default', 'Crosstown Rebels', 'All Day I Dream', 'Innervisions'], correctAnswer: 'Human By Default', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen3', type: 'QCM', question: 'Who produced "Walking On A Dream" (Remix)?', options: ['Sacha Braemer', 'Monkey Safari', 'Nora En Pure', 'Purple Disco Machine'], correctAnswer: 'Sacha Braemer', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen4', type: 'QCM', question: 'What is the name of Keinemusik\'s hit?', options: ['The Rapture Pt.III', 'Muye', 'Forms of Love', 'Les Gout'], correctAnswer: 'The Rapture Pt.III', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen5', type: 'QCM', question: 'Which duo is behind Keinemusik?', options: ['&ME & Rampa', 'Adam Port & Reznik', 'Both', 'Solomun & Dixon'], correctAnswer: 'Both', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen6', type: 'QCM', question: 'Who produced "You & Me" (Remix)?', options: ['Flume', 'Disclosure', 'MEUTE', 'Rivo'], correctAnswer: 'Flume', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen7', type: 'QCM', question: 'Which label belongs to Maya Jane Coles?', options: ['I/AM/ME', 'Hypercolour', 'Defected', 'Toolroom'], correctAnswer: 'I/AM/ME', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen8', type: 'QCM', question: 'Who produced "Epikur"?', options: ['David August', 'Nicolas Jaar', 'Kolektiv Turmstrasse', 'Christian Löffler'], correctAnswer: 'David August', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen9', type: 'QCM', question: 'Which group is known for its techno brass band covers?', options: ['MEUTE', 'Black Coffee', 'WhoMadeWho', 'GHEIST'], correctAnswer: 'MEUTE', category: 'Deep House', author: 'Dropsiders', timestamp: now },
+                    { id: 'dhen10', type: 'QCM', question: 'Who produced "Pink" (Album)?', options: ['Four Tet', 'Bonobo', 'Caribou', 'Floating Points'], correctAnswer: 'Four Tet', category: 'Deep House', author: 'Dropsiders', timestamp: now },
 
                     // --- BASS HOUSE ---
                     { id: 'bh1', type: 'QCM', question: 'Who is nicknamed the "King of Bass House"?', options: ['Joyryde', 'Habstrakt', 'Jauz', 'AC Slater'], correctAnswer: 'Joyryde', category: 'Bass House', author: 'Dropsiders', timestamp: now },
@@ -2985,8 +2986,8 @@ export default {
                     { id: 'nba5', type: 'QCM', question: 'Which D\u0026B group is famous for its drum-only live sets?', options: ['The Caracal Project', 'Noisia', 'Koven', 'IMANU'], correctAnswer: 'The Caracal Project', category: 'Bass', author: 'Dropsiders', timestamp: now },
                 ];
 
-                // Merge existing questions into defaults (deduplicate by id)
-                const activeIds = new Set(active.map(q => q.id));
+                // Merge logic with deduplication
+                const activeIds = new Set(active.map((q: any) => q.id));
                 const merged = [...active];
                 for (const dq of defaultQuizzes) {
                     if (!activeIds.has(dq.id)) {
@@ -2994,10 +2995,30 @@ export default {
                     }
                 }
 
-                activeRaw = JSON.stringify(merged);
-                await env.CHAT_KV.put('quiz_active', activeRaw);
+                // Filtering: Only remove specific 'ALEX' quizzes if they exist in defaults (unlikely) 
+                // or if they were the ones requested for removal.
+                // As requested: "supprime moi les 2 blindtest de ALEX"
+                const finalQuizzes = merged.filter(q => {
+                    const isAlex = q.author?.toUpperCase() === 'ALEX';
+                    const isBlindTest = q.type === 'BLIND_TEST';
+                    // If it's a blind test by ALEX, we definitely remove it.
+                    // For other ALEX quizzes, we keep them unless they were explicitly requested to be wiped.
+                    if (isAlex && isBlindTest) return false;
+                    return true;
+                });
+
+                await env.CHAT_KV.put('quiz_active', JSON.stringify(finalQuizzes));
+                active = finalQuizzes;
             }
-            return new Response(activeRaw, { status: 200, headers });
+
+            // Always filter 'ALEX' Blind Tests just in case
+            const filtered = active.filter((q: any) => {
+                const isAlex = q.author?.toUpperCase() === 'ALEX';
+                const isBlindTest = q.type === 'BLIND_TEST';
+                return !(isAlex && isBlindTest);
+            });
+
+            return new Response(JSON.stringify(filtered), { status: 200, headers });
         }
 
         if (path === '/api/quiz/leaderboard' && request.method === 'GET') {

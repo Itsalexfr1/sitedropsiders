@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon, Activity } from 'lucide-react';
+import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -392,12 +392,12 @@ export function QuizSection() {
                             {gameState === 'playing' && (
                                 <motion.div
                                     key="playing"
-                                    initial={{ opacity: 0, x: 100 }}
+                                    initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -100 }}
+                                    exit={{ opacity: 0, x: -20 }}
                                     className="bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl min-h-[600px] flex flex-col"
                                 >
-                                    {/* Simplified Header: Prenom + Question count */}
+                                    {/* Header: User + Question count */}
                                     <div className="flex justify-between items-center mb-10">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-full bg-neon-red/20 border border-neon-red/40 flex items-center justify-center font-black text-neon-red text-sm italic">
@@ -409,9 +409,7 @@ export function QuizSection() {
                                             </h2>
                                         </div>
                                         <div className="flex items-center gap-3 bg-neon-red/10 px-4 py-2 rounded-2xl border border-neon-red/20">
-                                            <div className="w-4 h-4 text-neon-red flex items-center justify-center">
-                                                <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-ping" />
-                                            </div>
+                                            <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-ping" />
                                             <span className="text-base font-display font-black text-white tabular-nums">{questionTimer.toFixed(1)}s</span>
                                         </div>
                                     </div>
@@ -429,166 +427,134 @@ export function QuizSection() {
                                             {gameQuizzes[currentQuizIndex].question}
                                         </h3>
 
-                                        {/* Visual Hider for Video/Audio */}
-                                        <div className="relative w-full aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl group">
-                                            {/* BLIND TEST VISUAL OVERLAY */}
-                                            <div className="absolute inset-0 z-20 pointer-events-none flex flex-col items-center justify-center bg-[#0a0a0a]">
-                                                {/* Animated pulses in background */}
-                                                <div className="absolute inset-0 overflow-hidden">
-                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-neon-red/10 rounded-full blur-[120px] animate-pulse" />
-                                                </div>
+                                        {/* Visual Hider Area */}
+                                        <div className="relative w-full aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl bg-[#0a0a0a]">
+                                            {gameQuizzes[currentQuizIndex].type === 'BLIND_TEST' ? (
+                                                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center">
+                                                    {/* Deep Ambient Glow */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-neon-red/10 via-transparent to-neon-cyan/5" />
+                                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.03)_0%,transparent_70%)]" />
 
-                                                {/* Text Visual */}
-                                                <motion.div
-                                                    initial={{ scale: 0.9, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
-                                                    className="relative z-10 text-center"
-                                                >
-                                                    <h4 className="text-7xl md:text-9xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4 drop-shadow-[0_0_50px_rgba(255,255,255,0.2)]">
-                                                        BLIND <span className="text-neon-red">TEST</span>
-                                                    </h4>
-                                                    <div className="flex items-center justify-center gap-6 mt-8">
-                                                        <div className="h-[2px] w-20 bg-gradient-to-r from-transparent to-white/20" />
-                                                        <div className="p-4 bg-white/5 rounded-full border border-white/10 backdrop-blur-md animate-bounce">
-                                                            <Music2 className="w-8 h-8 text-neon-red" />
-                                                        </div>
-                                                        <div className="h-[2px] w-20 bg-gradient-to-l from-transparent to-white/20" />
-                                                    </div>
-                                                </motion.div>
-                                            </div>
-
-                                            {/* Background content (Hidden) */}
-                                            <div className="w-full h-full">
-                                                {gameQuizzes[currentQuizIndex].type === 'BLIND_TEST' && (
-                                                    <div className="w-full h-full flex items-center justify-center bg-black">
-                                                        {gameQuizzes[currentQuizIndex].audioUrl && (
-                                                            <audio
-                                                                autoPlay
-                                                                key={`${gameQuizzes[currentQuizIndex].id}-audio`}
-                                                                ref={(el) => {
-                                                                    if (el) {
-                                                                        const start = gameQuizzes[currentQuizIndex].startTime || 0;
-                                                                        el.currentTime = start;
-                                                                        const handleTime = () => {
-                                                                            if (el.currentTime > start + 45) el.pause();
-                                                                        };
-                                                                        el.addEventListener('timeupdate', handleTime);
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
-                                                            </audio>
-                                                        )}
-                                                        <div className="absolute inset-0 bg-[#060606] overflow-hidden flex items-center justify-center">
-                                                            {/* Deep Glow Layer */}
-                                                            <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-neon-red/10 via-transparent to-transparent" />
-                                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.08)_0%,transparent_70%)] scale-150" />
-
-                                                            {/* Visualizer Bars (Premium) */}
-                                                            <div className="flex items-end gap-2 h-44 px-16 relative z-10">
-                                                                {[...Array(28)].map((_, i) => (
-                                                                    <motion.div
-                                                                        key={i}
-                                                                        animate={{
-                                                                            height: [20, 35 + Math.random() * 85, 20],
-                                                                            opacity: [0.3, 1, 0.3],
-                                                                            backgroundColor: i % 2 === 0 ? '#ff0033' : '#00f2ff'
-                                                                        }}
-                                                                        transition={{
-                                                                            duration: 0.5 + Math.random() * 0.8,
-                                                                            repeat: Infinity,
-                                                                            ease: "easeInOut",
-                                                                            delay: i * 0.04
-                                                                        }}
-                                                                        className="w-2.5 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)]"
-                                                                    />
-                                                                ))}
-                                                            </div>
-
-                                                            {/* Center Branding Layer */}
-                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                                <div className="relative">
-                                                                    <div className="absolute inset-0 bg-neon-cyan/10 blur-3xl rounded-full scale-[2.5] animate-pulse" />
-                                                                    <Music2 className="w-32 h-32 text-white/10 rotate-[15deg] relative z-20" />
-                                                                </div>
-                                                            </div>
-
-                                                            {/* Scanning Effect */}
-                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-24 w-full animate-scan" style={{ top: '-100%' }} />
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {gameQuizzes[currentQuizIndex].type === 'QCM' && (
-                                                    <div className="w-full h-full bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] flex items-center justify-center">
-                                                        <Gamepad2 className="w-24 h-24 text-white/5 rotate-12" />
-                                                    </div>
-                                                )}
-                                                {gameQuizzes[currentQuizIndex].imageUrl && (
-                                                    <div className="flex-1 min-h-0 relative rounded-3xl overflow-hidden border border-white/10">
-                                                        {gameQuizzes[currentQuizIndex].imageType === 'ARTIST' ? (
-                                                            <div className="absolute inset-0">
-                                                                <img
-                                                                    src={gameQuizzes[currentQuizIndex].imageUrl}
-                                                                    alt="Quiz"
-                                                                    className="w-full h-full object-cover transition-all duration-300"
-                                                                    style={{
-                                                                        filter: (selectedAnswer || isRevealing)
-                                                                            ? 'none'
-                                                                            : gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
-                                                                                ? `brightness(0)`
-                                                                                : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
-                                                                                    ? `url(#pixelate-mosaic) blur(${Math.max(0, questionTimer / 2)}px)`
-                                                                                    : `blur(${Math.max(0, questionTimer * 2)}px)`
+                                                    <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
+                                                        {/* Premium Visualizer Bars */}
+                                                        <div className="flex items-end gap-2 h-48 px-24 relative z-10">
+                                                            {[...Array(32)].map((_, i) => (
+                                                                <motion.div
+                                                                    key={i}
+                                                                    animate={{
+                                                                        height: [20, 40 + Math.random() * 120, 20],
+                                                                        backgroundColor: i % 2 === 0 ? 'rgba(255, 0, 51, 0.4)' : 'rgba(0, 242, 255, 0.4)'
                                                                     }}
+                                                                    transition={{
+                                                                        duration: 0.5 + Math.random() * 0.8,
+                                                                        repeat: Infinity,
+                                                                        ease: "easeInOut",
+                                                                        delay: i * 0.04
+                                                                    }}
+                                                                    className="w-3 rounded-full shadow-[0_0_30px_rgba(0,0,0,0.5)]"
                                                                 />
-                                                                {!selectedAnswer && !isRevealing && (
-                                                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
-                                                                )}
+                                                            ))}
+                                                        </div>
+
+                                                        {/* Headphones Icon */}
+                                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                            <div className="relative group">
+                                                                <div className="absolute inset-0 bg-neon-cyan/20 blur-[80px] rounded-full scale-[2.5] animate-pulse" />
+                                                                <Headphones className="w-40 h-40 text-white/5 rotate-[12deg] relative z-20 group-hover:scale-110 transition-transform duration-700" />
                                                             </div>
-                                                        ) : (
-                                                            <img
-                                                                src={gameQuizzes[currentQuizIndex].imageUrl}
-                                                                alt="Quiz"
-                                                                className="w-full h-full object-cover"
-                                                            />
-                                                        )}
+                                                        </div>
+
+                                                        {/* Scanning Line */}
+                                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-32 w-full animate-scan" style={{ top: '-100%' }} />
+
+                                                        {/* Premium Badge */}
+                                                        <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-3 px-6 py-2 bg-black/60 border border-white/10 rounded-full backdrop-blur-xl">
+                                                            <div className="w-2 h-2 rounded-full bg-neon-red shadow-[0_0_10px_#ff0033]" />
+                                                            <span className="text-[10px] font-black text-white uppercase tracking-[0.4em] italic font-display">BLIND TEST PREMIUM</span>
+                                                            <div className="w-2 h-2 rounded-full bg-neon-cyan shadow-[0_0_10px_#00f2ff]" />
+                                                        </div>
                                                     </div>
-                                                )}
-                                            </div>
+
+                                                    {/* Hidden Audio Element */}
+                                                    {gameQuizzes[currentQuizIndex].audioUrl && (
+                                                        <audio
+                                                            autoPlay
+                                                            key={`${gameQuizzes[currentQuizIndex].id}-audio`}
+                                                            ref={(el) => {
+                                                                if (el) {
+                                                                    const start = gameQuizzes[currentQuizIndex].startTime || 0;
+                                                                    el.currentTime = start;
+                                                                    const handleTime = () => {
+                                                                        if (el.currentTime > start + 45) el.pause();
+                                                                    };
+                                                                    el.addEventListener('timeupdate', handleTime);
+                                                                }
+                                                            }}
+                                                        >
+                                                            <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
+                                                        </audio>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <div className="w-full h-full relative">
+                                                    {gameQuizzes[currentQuizIndex].imageUrl && (
+                                                        <img
+                                                            src={gameQuizzes[currentQuizIndex].imageUrl}
+                                                            alt="Quiz"
+                                                            className="w-full h-full object-cover transition-all duration-300"
+                                                            style={{
+                                                                filter: (selectedAnswer || isRevealing)
+                                                                    ? 'none'
+                                                                    : gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
+                                                                        ? `brightness(0)`
+                                                                        : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
+                                                                            ? `blur(${Math.max(0, questionTimer / 2)}px)`
+                                                                            : `blur(${Math.max(0, questionTimer * 2)}px)`
+                                                            }}
+                                                        />
+                                                    )}
+                                                    {gameQuizzes[currentQuizIndex].type === 'QCM' && !gameQuizzes[currentQuizIndex].imageUrl && (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]">
+                                                            <Gamepad2 className="w-24 h-24 text-white/5 rotate-12" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
-                                        {gameQuizzes[currentQuizIndex].options.map((option, idx) => {
-                                            const isSelected = selectedAnswer === option;
-                                            const isCorrectOpt = option === gameQuizzes[currentQuizIndex].correctAnswer;
+                                        {/* Options Grid */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-10">
+                                            {gameQuizzes[currentQuizIndex].options.map((option, idx) => {
+                                                const isSelected = selectedAnswer === option;
+                                                const isCorrectOpt = option === gameQuizzes[currentQuizIndex].correctAnswer;
 
-                                            let btnClass = "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/30";
-                                            if (isSelected) {
-                                                btnClass = isCorrectOpt ? "bg-green-500/20 border-green-500 text-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)]" : "bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)]";
-                                            } else if (selectedAnswer && isCorrectOpt) {
-                                                btnClass = "bg-green-500/20 border-green-500 text-green-500";
-                                            }
+                                                let btnClass = "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/30";
+                                                if (isSelected) {
+                                                    btnClass = isCorrectOpt ? "bg-green-500/20 border-green-500 text-green-500 shadow-[0_0_30px_rgba(34,197,94,0.2)]" : "bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_30px_rgba(239,68,68,0.2)]";
+                                                } else if (selectedAnswer && isCorrectOpt) {
+                                                    btnClass = "bg-green-500/20 border-green-500 text-green-500";
+                                                }
 
-                                            return (
-                                                <motion.button
-                                                    key={`${currentQuizIndex}-${idx}`}
-                                                    whileHover={{ scale: selectedAnswer ? 1 : 1.02 }}
-                                                    whileTap={{ scale: selectedAnswer ? 1 : 0.98 }}
-                                                    onClick={() => handleAnswer(option)}
-                                                    disabled={!!selectedAnswer}
-                                                    className={`p-6 rounded-2xl border text-left font-black uppercase tracking-widest text-xs transition-all flex items-center justify-between ${btnClass}`}
-                                                >
-                                                    <span>{option}</span>
-                                                    {isSelected && (
-                                                        isCorrectOpt ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />
-                                                    )}
-                                                    {selectedAnswer && !isSelected && isCorrectOpt && (
-                                                        <CheckCircle2 className="w-5 h-5 opacity-50" />
-                                                    )}
-                                                </motion.button>
-                                            );
-                                        })}
+                                                return (
+                                                    <motion.button
+                                                        key={`${currentQuizIndex}-${idx}`}
+                                                        whileHover={{ scale: selectedAnswer ? 1 : 1.02 }}
+                                                        whileTap={{ scale: selectedAnswer ? 1 : 0.98 }}
+                                                        onClick={() => handleAnswer(option)}
+                                                        disabled={!!selectedAnswer}
+                                                        className={`p-6 rounded-2xl border text-left font-black uppercase tracking-widest text-xs transition-all flex items-center justify-between ${btnClass}`}
+                                                    >
+                                                        <span>{option}</span>
+                                                        {isSelected && (
+                                                            isCorrectOpt ? <CheckCircle2 className="w-5 h-5" /> : <XCircle className="w-5 h-5" />
+                                                        )}
+                                                        {selectedAnswer && !isSelected && isCorrectOpt && (
+                                                            <CheckCircle2 className="w-5 h-5 opacity-50" />
+                                                        )}
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}

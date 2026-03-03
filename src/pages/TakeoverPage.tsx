@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Pencil, List, Instagram, Power, Smile, Activity,
-    HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
+    Pencil, List, Instagram, Power, Smile,
+    HelpCircle, Lock, Pin, Edit2, Plus, Zap, CheckCircle2,
     Facebook, Maximize, Minimize, Video, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
     ChevronUp, ChevronDown, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, CircleStop, Loader2,
@@ -238,6 +238,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [keepForever, setKeepForever] = useState(false);
     const recordedClipsBlobs = useRef<Record<string, string>>({});
     const processedGiveIds = useRef<Set<number>>(new Set());
+    const lastProcessedQuizId = useRef<number>(0);
 
 
 
@@ -1157,6 +1158,32 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 });
                                 processedGiveIds.current.add(latestGiveMsg.id);
                             }
+                        }
+
+                        // Detect automated quiz trigger
+                        const latestQuizTrigger = [...data].reverse().find(m =>
+                            m.isBot && (m.message.toLowerCase().trim() === '!quiz' || m.message.toLowerCase().trim() === '!quizz')
+                        );
+                        if (latestQuizTrigger && latestQuizTrigger.id > lastProcessedQuizId.current) {
+                            lastProcessedQuizId.current = latestQuizTrigger.id;
+                            // Trigger quiz popup fetch
+                            const triggerQuiz = async () => {
+                                setQuizPopupLoading(true);
+                                setQuizPopupAnswer(null);
+                                setShowQuizPopup(true);
+                                try {
+                                    const res = await fetch('/api/quiz/active');
+                                    if (res.ok) {
+                                        const qData = await res.json();
+                                        let valid = Array.isArray(qData) ? qData.filter((q: any) => q && q.question && Array.isArray(q.options) && q.options.length > 0) : [];
+                                        if (valid.length > 0) {
+                                            const random = valid[Math.floor(Math.random() * valid.length)];
+                                            setQuizPopupQuestion(random);
+                                        }
+                                    }
+                                } catch (e) { } finally { setQuizPopupLoading(false); }
+                            };
+                            triggerQuiz();
                         }
 
                         // Auto-scroll
@@ -5521,7 +5548,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="relative group">
                                         <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
                                         <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                            <Music2 className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                            <Headphones className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
                                         </div>
                                         <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
                                             <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
@@ -5714,7 +5741,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
                                                     <div className="relative">
                                                         <div className="absolute inset-0 bg-neon-cyan/20 blur-2xl rounded-full scale-150 animate-pulse" />
-                                                        <Music2 className="w-12 h-12 text-white/20 rotate-12 relative z-20" />
+                                                        <Headphones className="w-12 h-12 text-white/20 rotate-12 relative z-20" />
                                                     </div>
                                                 </div>
 
