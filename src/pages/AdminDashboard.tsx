@@ -76,7 +76,6 @@ export function AdminDashboard() {
     const [quizTab, setQuizTab] = useState<'active' | 'pending'>('active');
     const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
-    const [isTakeoverModalOpen, setIsTakeoverModalOpen] = useState(false);
     interface TakeoverState {
         enabled: boolean;
         youtubeId: string;
@@ -514,7 +513,7 @@ export function AdminDashboard() {
             });
 
             if (saveRes.ok) {
-                setIsTakeoverModalOpen(false);
+                // saved
             }
         } catch (e: any) {
             console.error('Failed to save takeover settings', e);
@@ -688,7 +687,7 @@ export function AdminDashboard() {
                         .map(savedAction => {
                             const def = defaultActions.find(d => d.title.toLowerCase() === savedAction.title.toLowerCase());
                             if (def) {
-                                return { ...savedAction, title: def.title ?? savedAction.title, category: def.category, permission: def.permission, icon: def.icon, bg: def.bg, color: def.color, baseColor: def.baseColor };
+                                return { ...savedAction, title: def.title ?? savedAction.title, category: def.category, permission: def.permission, icon: def.icon, bg: savedAction.bg || def.bg, color: savedAction.color || def.color, baseColor: savedAction.baseColor || def.baseColor };
                             }
                             return savedAction;
                         });
@@ -1118,13 +1117,6 @@ export function AdminDashboard() {
                                     >
                                         <Video className="w-4 h-4" />
                                         Gestion Clips
-                                    </button>
-                                    <button
-                                        onClick={() => setIsTakeoverModalOpen(true)}
-                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-neon-red`}
-                                    >
-                                        <Settings2 className="w-4 h-4" />
-                                        Réglages
                                     </button>
                                     <Link
                                         to="/live"
@@ -2859,9 +2851,9 @@ export function AdminDashboard() {
                         </div>
                     )}
                 </AnimatePresence>
-                {/* Modal Live / Takeover */}
+                {/* Modal Live / Takeover removed, merged to TakeoverPage */}
                 <AnimatePresence>
-                    {isTakeoverModalOpen && (
+                    {false && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -2879,7 +2871,7 @@ export function AdminDashboard() {
                                         <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrôle de la page d'accueil</p>
                                     </div>
                                     <button
-                                        onClick={() => setIsTakeoverModalOpen(false)}
+                                        onClick={() => { }}
                                         className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
                                     >
                                         <X className="w-6 h-6" />
