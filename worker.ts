@@ -2767,9 +2767,8 @@ export default {
             const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
             let active = JSON.parse(activeRaw);
 
-            // If the list is empty or seems to be missing the default set (e.g. less than 50 items),
-            // we merge the default quizzes but keep existing ones (deduplicated by ID).
-            if (active.length < 60) {
+            // Always sync default quizzes to ensure French translations are applied
+            {
                 const now = new Date().toISOString();
                 const defaultQuizzes = [
                     // --- TECHNO ---
@@ -3004,39 +3003,35 @@ export default {
                     { id: 'nba5', type: 'QCM', question: 'Quel groupe D\u0026B est célèbre pour ses live sets uniquement à la batterie ?', options: ['The Caracal Project', 'Noisia', 'Koven', 'IMANU'], correctAnswer: 'The Caracal Project', category: 'Bass', author: 'Dropsiders', timestamp: now },
                 ];
 
-                // Merge logic with deduplication
-                const activeIds = new Set(active.map((q: any) => q.id));
-                const merged = [...active];
+                // Build a map of default quizzes by ID for fast lookup
+                const defaultMap = new Map();
                 for (const dq of defaultQuizzes) {
-                    if (!activeIds.has(dq.id)) {
-                        merged.push(dq);
-                    }
+                    defaultMap.set(dq.id, dq);
                 }
 
-                // Filtering: Only remove specific 'ALEX' quizzes if they exist in defaults (unlikely) 
-                // or if they were the ones requested for removal.
-                // As requested: "supprime moi les 2 blindtest de ALEX"
-                const finalQuizzes = merged.filter(q => {
-                    const isAlex = q.author?.toUpperCase() === 'ALEX';
-                    const isBlindTest = q.type === 'BLIND_TEST';
-                    // If it's a blind test by ALEX, we definitely remove it.
-                    // For other ALEX quizzes, we keep them unless they were explicitly requested to be wiped.
-                    if (isAlex && isBlindTest) return false;
-                    return true;
-                });
+                // Filter out any existing 'Dropsiders' quizzes to purge old English content
+                // and keep only user-submitted or other non-default quizzes for now
+                const existingNonDefault = active.filter((q: any) =>
+                    q.author !== 'Dropsiders' && !defaultMap.has(q.id)
+                );
+
+                // Merge: start with our fresh French default set
+                const merged = [...defaultQuizzes];
+
+                // Add back user-submitted quizzes
+                for (const userQuiz of existingNonDefault) {
+                    merged.push(userQuiz);
+                }
+
+                // Filtering: No longer removing ALEX blind tests automatically. 
+                // Any removals should be done via actual deletions or moderation now.
+                const finalQuizzes = merged;
 
                 await env.CHAT_KV.put('quiz_active', JSON.stringify(finalQuizzes));
                 active = finalQuizzes;
             }
 
-            // Always filter 'ALEX' Blind Tests just in case
-            const filtered = active.filter((q: any) => {
-                const isAlex = q.author?.toUpperCase() === 'ALEX';
-                const isBlindTest = q.type === 'BLIND_TEST';
-                return !(isAlex && isBlindTest);
-            });
-
-            return new Response(JSON.stringify(filtered), { status: 200, headers });
+            return new Response(JSON.stringify(active), { status: 200, headers });
         }
 
         if (path === '/api/quiz/leaderboard' && request.method === 'GET') {
