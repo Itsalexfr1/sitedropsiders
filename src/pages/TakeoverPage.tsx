@@ -2414,12 +2414,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </span>
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-3">
-                                        <img src="/Logo.png" alt="Logo" className="h-6 md:h-8 object-contain" />
-                                        <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none">
-                                            {displayTitle}
-                                        </h1>
-                                    </div>
+                                    <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none">
+                                        {displayTitle}
+                                    </h1>
                                 </div>
                             </div>
                         </div>
