@@ -2403,44 +2403,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {!isFullScreen && (
                     <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-4 z-40 relative">
                         <div className="flex items-center gap-4 flex-1">
-                            {/* Live Badge */}
-                            <div className="flex items-center gap-2 px-3 py-1 bg-red-600/10 border border-red-500/20 rounded-full shrink-0">
-                                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]" />
-                                <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
-                            </div>
-
-                            {/* CHOIX DES FLUX */}
-                            {channelItems.length > 1 && (
-                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
-                                    {channelItems.map((item: any, idx) => {
-                                        const isDisabled = settings.disableMainPlayer !== false;
-                                        if (item.isMain && isDisabled && playersOption === 1) return null;
-                                        return (
-                                            <button
-                                                key={idx}
-                                                onClick={() => {
-                                                    if (activeVideoIndex === idx && playersOption === 1) return;
-                                                    setActiveVideoIndex(idx);
-                                                    setPlayersOption(1);
-                                                }}
-                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
-                                            >
-                                                {item.title}
-                                            </button>
-                                        );
-                                    })}
-
-                                    {/* Multivue Toggle */}
-                                    {channelItems.length >= 4 && (
-                                        <button
-                                            onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
-                                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
-                                        >
-                                            MULTIVUE
-                                        </button>
+                            {/* LIVE TITLE MOVED HERE */}
+                            <div className="flex flex-col min-w-0 py-0.5">
+                                <div className="flex items-center gap-3">
+                                    {settings.isOnline && (
+                                        <div className="flex items-center gap-2 bg-neon-red/10 px-2 py-0.5 rounded-md border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
+                                            <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse" />
+                                            <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">
+                                                LIVE
+                                            </span>
+                                        </div>
                                     )}
+                                    <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none">
+                                        {displayTitle}
+                                    </h1>
                                 </div>
-                            )}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -2503,27 +2481,46 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-2 flex items-center justify-between z-30 shadow-xl shrink-0">
                         <div className="flex items-center gap-6 min-w-0 flex-1">
                             <div className="flex items-center gap-4">
-                                {/* TITRE A COTE DE LIVE */}
-                                <div className="flex flex-col min-w-0 py-0.5">
-                                    <div className="flex items-center gap-3">
-                                        {settings.isOnline && (
-                                            <div className="flex items-center gap-2 bg-neon-red/10 px-2 py-0.5 rounded-md border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
-                                                <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse" />
-                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">
-                                                    LIVE
-                                                </span>
-                                            </div>
-                                        )}
-                                        <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none">
-                                            {displayTitle}
-                                        </h1>
-                                    </div>
+                                {/* FLUX SELECTION MOVED HERE */}
+                                <div className="flex items-center gap-2 px-3 py-1 bg-red-600/10 border border-red-500/20 rounded-full shrink-0">
+                                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]" />
+                                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
                                 </div>
+
+                                {channelItems.length > 1 && (
+                                    <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
+                                        {channelItems.map((item: any, idx) => {
+                                            const isDisabled = settings.disableMainPlayer !== false;
+                                            if (item.isMain && isDisabled && playersOption === 1) return null;
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => {
+                                                        if (activeVideoIndex === idx && playersOption === 1) return;
+                                                        setActiveVideoIndex(idx);
+                                                        setPlayersOption(1);
+                                                    }}
+                                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
+                                                >
+                                                    {item.title}
+                                                </button>
+                                            );
+                                        })}
+                                        {channelItems.length >= 4 && (
+                                            <button
+                                                onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
+                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
+                                            >
+                                                MULTIVUE
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3">
-                            {/* ARTISTE & VIEWERS DISPLAY */}
+                        <div className="flex items-center gap-3 ml-auto">
+                            {/* ARTISTE & VIEWERS DISPLAY - KEPT ON THE RIGHT */}
                             <div className="flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
                                 onClick={() => setShowUsersPanel(!showUsersPanel)}>
                                 <Users className="w-3.5 h-3.5 text-neon-red" />
@@ -2531,7 +2528,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length} SPECTATEURS
                                 </span>
                             </div>
-                            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-md shadow-[0_0_10px_rgba(0,255,204,0.15)]">
+                            <div className="flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-md shadow-[0_0_10px_rgba(0,255,204,0.15)]">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">EN DIRECT:</span>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">{fluxCurrentArtist.artist || '---'}</span>
                             </div>
