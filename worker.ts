@@ -2980,6 +2980,7 @@ export default {
                     { id: 'nba5', type: 'QCM', question: 'Which D\u0026B group is famous for its drum-only live sets?', options: ['The Caracal Project', 'Noisia', 'Koven', 'IMANU'], correctAnswer: 'The Caracal Project', category: 'Bass', author: 'Dropsiders', timestamp: now },
                 ];
                 activeRaw = JSON.stringify(defaultQuizzes);
+                await env.CHAT_KV.put('quiz_active', activeRaw);
             }
             return new Response(activeRaw, { status: 200, headers });
         }

@@ -5664,14 +5664,67 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 className="relative rounded-xl overflow-hidden border border-white/10"
                                                 style={{ aspectRatio: '16/9' }}
                                             >
-                                                <iframe
-                                                    width="100%"
-                                                    height="100%"
-                                                    src={`https://www.youtube.com/embed/${quizPopupQuestion.youtubeId}?autoplay=1&mute=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1&start=${quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' ? (Math.floor(Math.random() * 30) + 60) : 0}`}
-                                                    title="YouTube video player"
-                                                    frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    style={{ display: 'block', width: '100%', height: '100%' }}
+                                                <div
+                                                    id={`yt-blindtest-${quizPopupQuestion.id}`}
+                                                    ref={(el) => {
+                                                        if (!el) return;
+                                                        const containerId = `yt-blindtest-${quizPopupQuestion.id}`;
+                                                        const playerId = `yt-player-${quizPopupQuestion.id}`;
+                                                        // Avoid re-initializing
+                                                        if ((el as any).__ytInitialized) return;
+                                                        (el as any).__ytInitialized = true;
+
+                                                        const startSec = quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST'
+                                                            ? (Math.floor(Math.random() * 30) + 60)
+                                                            : 0;
+
+                                                        const initPlayer = () => {
+                                                            if (!(window as any).YT?.Player) return;
+                                                            const playerDiv = document.createElement('div');
+                                                            playerDiv.id = playerId;
+                                                            el.appendChild(playerDiv);
+                                                            new (window as any).YT.Player(playerId, {
+                                                                videoId: quizPopupQuestion.youtubeId,
+                                                                playerVars: {
+                                                                    autoplay: 1,
+                                                                    mute: 1,
+                                                                    controls: 0,
+                                                                    modestbranding: 1,
+                                                                    rel: 0,
+                                                                    iv_load_policy: 3,
+                                                                    fs: 0,
+                                                                    start: startSec,
+                                                                    disablekb: 1,
+                                                                },
+                                                                events: {
+                                                                    onReady: (event: any) => {
+                                                                        event.target.playVideo();
+                                                                        // Unmute after a short delay (user already interacted)
+                                                                        setTimeout(() => {
+                                                                            event.target.unMute();
+                                                                            event.target.setVolume(100);
+                                                                        }, 800);
+                                                                    }
+                                                                }
+                                                            });
+                                                        };
+
+                                                        if ((window as any).YT?.Player) {
+                                                            initPlayer();
+                                                        } else {
+                                                            if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+                                                                const tag = document.createElement('script');
+                                                                tag.src = 'https://www.youtube.com/iframe_api';
+                                                                document.head.appendChild(tag);
+                                                            }
+                                                            const prevCb = (window as any).onYouTubeIframeAPIReady;
+                                                            (window as any).onYouTubeIframeAPIReady = () => {
+                                                                if (prevCb) prevCb();
+                                                                initPlayer();
+                                                            };
+                                                        }
+                                                    }}
+                                                    style={{ width: '100%', height: '100%' }}
                                                 />
                                                 {/* Overlay pour masquer le titre YouTube (bande noire en haut) */}
                                                 <div

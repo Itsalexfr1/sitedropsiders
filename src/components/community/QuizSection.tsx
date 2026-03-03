@@ -513,13 +513,77 @@ export function QuizSection() {
                                                             </audio>
                                                         )}
                                                         {gameQuizzes[currentQuizIndex].youtubeId && (
-                                                            <div className="absolute inset-0 pointer-events-none opacity-0">
-                                                                <iframe
-                                                                    width="100%"
-                                                                    height="100%"
-                                                                    src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1&start=${gameQuizzes[currentQuizIndex].startTime ?? (90 + Math.floor(Math.random() * 15))}`}
-                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                                ></iframe>
+                                                            <div className="absolute inset-0 overflow-hidden">
+                                                                <div
+                                                                    className="absolute inset-0 pointer-events-none"
+                                                                    style={{ zIndex: 0 }}
+                                                                    ref={(el) => {
+                                                                        if (!el) return;
+                                                                        const qId = gameQuizzes[currentQuizIndex].id;
+                                                                        const playerId = `yt-quiz-player-${qId}`;
+                                                                        if ((el as any).__ytInit === qId) return;
+                                                                        (el as any).__ytInit = qId;
+                                                                        el.innerHTML = '';
+
+                                                                        const startSec = gameQuizzes[currentQuizIndex].startTime ?? (90 + Math.floor(Math.random() * 15));
+
+                                                                        const initPlayer = () => {
+                                                                            if (!(window as any).YT?.Player) return;
+                                                                            const playerDiv = document.createElement('div');
+                                                                            playerDiv.id = playerId;
+                                                                            playerDiv.style.width = '150%';
+                                                                            playerDiv.style.height = '150%';
+                                                                            playerDiv.style.position = 'absolute';
+                                                                            playerDiv.style.top = '-25%';
+                                                                            playerDiv.style.left = '-25%';
+                                                                            el.appendChild(playerDiv);
+                                                                            new (window as any).YT.Player(playerId, {
+                                                                                videoId: gameQuizzes[currentQuizIndex].youtubeId,
+                                                                                playerVars: {
+                                                                                    autoplay: 1,
+                                                                                    mute: 1,
+                                                                                    controls: 0,
+                                                                                    modestbranding: 1,
+                                                                                    rel: 0,
+                                                                                    iv_load_policy: 3,
+                                                                                    fs: 0,
+                                                                                    start: startSec,
+                                                                                    disablekb: 1,
+                                                                                },
+                                                                                events: {
+                                                                                    onReady: (event: any) => {
+                                                                                        event.target.playVideo();
+                                                                                        setTimeout(() => {
+                                                                                            event.target.unMute();
+                                                                                            event.target.setVolume(100);
+                                                                                        }, 800);
+                                                                                    }
+                                                                                }
+                                                                            });
+                                                                        };
+
+                                                                        if ((window as any).YT?.Player) {
+                                                                            initPlayer();
+                                                                        } else {
+                                                                            if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+                                                                                const tag = document.createElement('script');
+                                                                                tag.src = 'https://www.youtube.com/iframe_api';
+                                                                                document.head.appendChild(tag);
+                                                                            }
+                                                                            const prevCb = (window as any).onYouTubeIframeAPIReady;
+                                                                            (window as any).onYouTubeIframeAPIReady = () => {
+                                                                                if (prevCb) prevCb();
+                                                                                initPlayer();
+                                                                            };
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <div className="absolute inset-0 bg-black z-10 flex items-center justify-center">
+                                                                    <div className="relative">
+                                                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-xl rounded-full" />
+                                                                        <Music2 className="w-24 h-24 text-neon-cyan/50 rotate-12 relative z-20 animate-pulse" />
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         )}
                                                     </div>

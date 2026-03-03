@@ -87,7 +87,6 @@ export function ConfirmModal({
                             <button
                                 onClick={() => {
                                     onConfirm();
-                                    onCancel();
                                 }}
                                 className={`py-4 text-white font-black rounded-2xl transition-all uppercase tracking-widest text-[10px] shadow-lg ${currentColors.btn}`}
                             >
