@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
     X, Download, Upload, PlusCircle,
-    Video, Layout, Smartphone, Image as ImageIcon
+    Video, Layout, Smartphone, Image as ImageIcon,
+    Home
 } from 'lucide-react';
+
 
 interface SocialSuiteProps {
     title: string;
@@ -648,11 +650,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-3xl">
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] w-full max-w-6xl h-[90vh] rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row">
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center lg:p-4 bg-black/95 backdrop-blur-3xl">
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] w-full lg:max-w-6xl h-full lg:h-[90vh] lg:rounded-[40px] border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row">
 
                 {/* Preview Section - Moved to top on mobile */}
-                <div className="w-full lg:flex-1 bg-[#020202] py-6 px-4 flex flex-col items-center justify-center relative overflow-hidden h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-l border-white/10 order-first lg:order-last">
+                <div className="w-full lg:flex-1 bg-[#020202] py-4 lg:py-6 px-4 flex flex-col items-center justify-center relative overflow-hidden h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-l border-white/10 order-first lg:order-last">
                     <div className="h-full w-full max-w-[320px] lg:max-w-[450px] relative">
                         <div className="w-full h-full bg-[#111] rounded-[20px] lg:rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                             <canvas ref={canvasRef} className="w-full h-full object-contain" />
@@ -661,13 +663,32 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 </div>
 
                 {/* Controls Sidebar */}
-                <div className="w-full lg:w-[400px] border-r border-white/10 p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 overflow-y-auto custom-scrollbar h-[50vh] lg:h-full">
+                <div className="w-full lg:w-[400px] border-r border-white/10 p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 overflow-y-auto custom-scrollbar flex-1 lg:h-full">
+
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-xl lg:text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
+                            <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest lg:block hidden">ÉDITION CRÉATIVE</p>
                         </div>
-                        <button onClick={onClose} className="p-2 lg:p-3 bg-white/5 hover:bg-white/10 rounded-xl lg:rounded-2xl text-white transition-all"><X className="w-5 h-5" /></button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => window.location.href = '/'}
+                                className="p-2 lg:p-3 bg-white/5 hover:bg-white/10 rounded-xl lg:rounded-2xl text-gray-400 hover:text-neon-cyan transition-all flex items-center gap-2 group"
+                                title="Retour au site"
+                            >
+                                <Home className="w-5 h-5" />
+                                <span className="text-[10px] font-black uppercase hidden sm:block">SITE</span>
+                            </button>
+                            <button
+                                onClick={onClose}
+                                className="p-2 lg:p-3 bg-white/5 hover:bg-white/10 rounded-xl lg:rounded-2xl text-gray-400 hover:text-neon-red transition-all"
+                                title="Quitter"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
                     </div>
+
 
                     <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
                         <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-4 h-4" /> REEL</button>

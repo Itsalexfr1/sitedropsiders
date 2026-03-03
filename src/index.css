@@ -669,4 +669,67 @@
     backdrop-filter: none !important;
     background-color: #121212 !important;
   }
+
+  /* --- FLUID MOBILE REDESIGN --- */
+
+  /* Heading Scaling */
+  h1 {
+    font-size: clamp(2.5rem, 8vw, 4.5rem) !important;
+    line-height: 0.9 !important;
+  }
+
+  h2 {
+    font-size: clamp(1.8rem, 6vw, 3rem) !important;
+    line-height: 1 !important;
+  }
+
+  h3 {
+    font-size: clamp(1.4rem, 5vw, 2.2rem) !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Grid Adjustments */
+  .grid {
+    gap: 1rem !important;
+  }
+
+  .container,
+  [class*="px-"],
+  [class*="md:px-"] {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+
+  /* Remove heavy shadows that cause lag */
+  * {
+    text-shadow: none !important;
+  }
+
+  /* Optimize touch elements */
+  button,
+  a {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Section spacing */
+  section {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  /* Bottom spacing for main content */
+  body {
+    padding-bottom: 80px !important;
+  }
+}
+
+/* Fix for Safari/iOS Notch */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .fixed.bottom-0 {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)) !important;
+  }
 }

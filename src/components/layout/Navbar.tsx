@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
 import recapsData from '../../data/recaps.json';
 import agendaData from '../../data/agenda.json';
 import { useLanguage } from '../../context/LanguageContext';
+
 import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
 import settings from '../../data/settings.json';
@@ -259,19 +260,9 @@ export function Navbar() {
                                 <Shield className="w-4 h-4" />
                             </motion.button>
                         )}
-
-                        {/* Mobile Menu Button */}
-                        <div className="md:hidden">
-                            <button
-                                onClick={() => setIsOpen(!isOpen)}
-                                onMouseEnter={playHoverSound}
-                                className="p-2 text-gray-400 hover:text-white transition-colors"
-                            >
-                                {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                            </button>
-                        </div>
                     </div>
                 </div>
+
 
                 {/* Search Bar */}
                 <AnimatePresence>

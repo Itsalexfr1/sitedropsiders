@@ -1,5 +1,6 @@
 import { AnnouncementBanner } from '../AnnouncementBanner';
 import { Navbar } from './Navbar';
+import { MobileNavbar } from './MobileNavbar';
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -30,14 +31,16 @@ export function Layout({ children }: LayoutProps) {
     const isAdminPage = location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
+        location.pathname.startsWith('/social-studio') ||
         location.pathname.includes('/create') ||
         isMini;
+
 
     const ptClass = isAdminPage ? 'pt-0' :
         (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'));
 
     return (
-        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white">
+        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-32 md:pb-0">
             {/* Background Effects - Hidden on mobile for performance */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
@@ -53,6 +56,8 @@ export function Layout({ children }: LayoutProps) {
             </main>
 
             {!isAdminPage && <Footer />}
+            {!isAdminPage && <MobileNavbar />}
         </div>
     );
 }
+

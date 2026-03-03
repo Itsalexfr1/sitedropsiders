@@ -56,7 +56,7 @@ export function SocialStudioPage() {
 
     return (
         <div className="min-h-screen bg-black">
-            <div className="fixed top-8 left-8 z-[210] flex items-center gap-6">
+            <div className="hidden lg:flex fixed top-8 left-8 z-[210] items-center gap-6">
                 <button
                     onClick={() => navigate('/')}
                     className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group"
@@ -69,6 +69,7 @@ export function SocialStudioPage() {
                     <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">STUDIO MODE : ON</span>
                 </div>
             </div>
+
 
             <SocialSuite
                 title="NEWS DROPSIDERS"
