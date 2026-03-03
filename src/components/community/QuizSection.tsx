@@ -398,52 +398,36 @@ export function QuizSection() {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            <div className="space-y-4">
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Mode de Jeu</label>
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    {[
-                                                        { id: 'QCM', label: 'QCM' },
-                                                        { id: 'BLIND_TEST', label: 'BLIND TEST' },
-                                                        { id: 'BOTH', label: 'MIXTE' }
-                                                    ].map(opt => (
-                                                        <button
-                                                            key={opt.id}
-                                                            onClick={() => setSelectedMode(opt.id as any)}
-                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
-                                                        >
-                                                            {opt.label}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Nombre de questions</label>
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    {[5, 10, 20].map(n => (
-                                                        <button
-                                                            key={n}
-                                                            onClick={() => setSelectedLength(n as GameLength)}
-                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedLength === n ? 'bg-white text-black border-white shadow-lg' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
-                                                        >
-                                                            {n}
-                                                        </button>
-                                                    ))}
-                                                </div>
+                                        <div className="space-y-4">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Mode de Jeu</label>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                {[
+                                                    { id: 'ALL', label: 'TOUT' },
+                                                    { id: 'QCM', label: 'QCM' },
+                                                    { id: 'BLIND_TEST', label: 'BLIND TEST' },
+                                                    { id: 'IMAGE', label: 'QUIZZ IMAGE' }
+                                                ].map(opt => (
+                                                    <button
+                                                        key={opt.id}
+                                                        onClick={() => setSelectedMode(opt.id as any)}
+                                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
 
                                         <div className="space-y-4">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Thématique</label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {themes.map(t => (
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Nombre de questions</label>
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {[5, 10, 20].map(n => (
                                                     <button
-                                                        key={t}
-                                                        onClick={() => setSelectedTheme(t)}
-                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedTheme === t ? 'bg-neon-red text-white border-neon-red shadow-lg' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                        key={n}
+                                                        onClick={() => setSelectedLength(n as GameLength)}
+                                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedLength === n ? 'bg-white text-black border-white shadow-lg' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
                                                     >
-                                                        {t}
+                                                        {n}
                                                     </button>
                                                 ))}
                                             </div>
@@ -543,7 +527,7 @@ export function QuizSection() {
                                                                     width="100%"
                                                                     height="100%"
                                                                     src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1&start=${gameQuizzes[currentQuizIndex].startTime ?? (90 + Math.floor(Math.random() * 15))}`}
-                                                                    allow="autoplay"
+                                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                                 ></iframe>
                                                             </div>
                                                         )}
@@ -766,15 +750,15 @@ export function QuizSection() {
                                     value={formData.type}
                                     onChange={e => {
                                         const newType = e.target.value as QuizType;
-                                        let question = formData.question;
+                                        let newQuestion = formData.question;
                                         if (newType === 'BLIND_TEST') {
-                                            question = "Arrivera tu a trouver le titre ?";
+                                            newQuestion = "Arrivera tu a trouver le titre ?";
                                         } else if (newType === 'IMAGE') {
-                                            question = formData.imageType === 'FESTIVAL'
+                                            newQuestion = formData.imageType === 'FESTIVAL'
                                                 ? "Arrivera tu a reconnaitre ce festival ?"
                                                 : "Arrivera tu a reconnaitre cet artiste ?";
                                         }
-                                        setFormData({ ...formData, type: newType, question });
+                                        setFormData({ ...formData, type: newType, question: newQuestion });
                                     }}
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-neon-red transition-all appearance-none"
                                 >
