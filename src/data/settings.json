@@ -17,7 +17,7 @@
     "showTickerBanner": true,
     "showInNavbar": true,
     "forceHomepage": false,
-    "customCommands": "!tiktok:Suivez nous sur Tiktok >> https://tiktok.com/@dropsiders.eu",
+    "customCommands": "!tiktok:Suivez nous sur Tiktok >> https://tiktok.com/@dropsiders.eu\n!rs:Suivez nous sur nos Réseaux Sociaux >> Instagram https://instagram.com/dropsiders.eu  >> Tiktok  https://tiktok.com/@dropsiders.eu",
     "isSecret": false,
     "password": "2026",
     "channels": "",
