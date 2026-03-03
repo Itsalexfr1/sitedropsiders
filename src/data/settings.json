@@ -4,7 +4,7 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "DQHSj6cphm0",
+    "youtubeId": "",
     "title": "LIVE TAKEOVER",
     "moderators": "",
     "lineup": "",
@@ -20,14 +20,21 @@
     "customCommands": "!tiktok:Suivez nous sur Tiktok >> https://tiktok.com/@dropsiders.eu\n!rs:Suivez nous sur nos Réseaux Sociaux >> Instagram https://instagram.com/dropsiders.eu  >> Tiktok  https://tiktok.com/@dropsiders.eu",
     "isSecret": false,
     "password": "2026",
-    "channels": "DQHSj6cphm0:Stage 1\nDQHSj6cphm0:Stage 2\nDQHSj6cphm0:Stage 3\nDQHSj6cphm0:Stage 4",
+    "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
     "pinnedMessage": "",
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "edit",
+    "mainFluxName": "MAIN STAGE",
+    "shopItems": "",
+    "chat_enabled": true,
+    "botColor": "#00ffcc",
+    "botBgColor": "rgba(0, 255, 204, 0.05)",
+    "adminColor": "#ff0033",
+    "adminBgColor": "rgba(255, 0, 51, 0.05)"
   },
   "socials": {
     "instagram": "dropsiders.eu",
