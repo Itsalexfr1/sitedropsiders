@@ -1,7 +1,7 @@
 import { AnnouncementBanner } from '../AnnouncementBanner';
 import { Navbar } from './Navbar';
 import { MobileNavbar } from './MobileNavbar';
-import { MobileHeader } from './MobileHeader';
+
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -46,7 +46,7 @@ export function Layout({ children }: LayoutProps) {
 
 
     const ptClass = isAdminPage ? 'pt-0' :
-        (bannerEnabled ? 'pt-[112px]' : (isHome ? (isMobile ? 'pt-16' : 'pt-0') : 'pt-20'));
+        (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : (isMobile ? 'pt-0' : 'pt-20')));
 
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0">
@@ -59,7 +59,6 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             {!isMobile && !isAdminPage && <Navbar />}
-            {isMobile && !isAdminPage && <MobileHeader />}
             {!isAdminPage && <AnnouncementBanner />}
 
             <main className={`flex-grow relative ${ptClass}`}>

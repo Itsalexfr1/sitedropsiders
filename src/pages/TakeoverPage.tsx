@@ -2542,9 +2542,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </button>
                 )}
 
-                <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
+                <div className="flex-1 flex flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`shrink-0 w-[60%] lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
                         <div ref={videoPlayerRef} className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
@@ -4474,7 +4474,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </AnimatePresence>
 
                         {/* Chat Content and Sidebar Wrapper */}
-                        <div className={`flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
+                        <div className={`w-[40%] shrink-0 lg:w-auto lg:flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
                             <div className="flex-1 flex flex-col min-h-0 relative">
                                 {isLocalBanned ? (
                                     <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
@@ -4508,7 +4508,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-2 md:px-3 py-1.5 md:py-2 rounded-md md:rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[60px] md:min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-1.5 md:px-3 py-1 md:py-2 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[40px] md:min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
@@ -4531,10 +4531,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <button
                                                     key={tab.id}
                                                     onClick={() => setActiveChatTab(tab.id as any)}
-                                                    className={`flex-1 flex items-center justify-center gap-1 md:gap-1.5 py-1.5 md:py-2 rounded-md md:rounded-lg text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                    className={`flex-1 flex items-center justify-center gap-0.5 md:gap-1.5 py-1 md:py-2 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                                 >
-                                                    <tab.icon className="w-3.5 h-3.5" />
-                                                    <span className="hidden sm:inline text-[7px] md:text-[9px]">{tab.label}</span>
+                                                    <tab.icon className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" />
+                                                    <span className="text-[6px] md:text-[9px]">{tab.label.substring(0, 3)}</span>
                                                     {activeChatTab === tab.id && (
                                                         <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
                                                     )}
@@ -5217,16 +5217,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                             {getCountryFlag(msg.country || 'FR')}
                                                                                         </div>
                                                                                         <span
-                                                                                            className="text-[10px] md:text-[11px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
+                                                                                            className="text-[7px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
                                                                                             style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
                                                                                         >
                                                                                             {msg.pseudo}
                                                                                         </span>
-                                                                                        {isMsgAdmin && <span className="px-1.5 md:px-2 py-0.5 rounded text-white text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em]" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                                                        <span className="text-[8px] md:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                                        {isMsgAdmin && <span className="px-1 md:px-2 py-0.5 rounded text-white text-[6px] md:text-[8px] font-black uppercase tracking-widest" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
+                                                                                        <span className="text-[6px] md:text-[8px] lg:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                                     </div>
                                                                                     <div
-                                                                                        className={`p-1.5 md:p-2 px-2.5 md:px-3 rounded-lg md:rounded-xl text-[10px] md:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
+                                                                                        className={`p-1.5 md:p-2 px-2 md:px-3 rounded-md md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
                                                                                         style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
                                                                                     >
                                                                                         {/* Message with clickable links */}
@@ -5294,20 +5294,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <form onSubmit={handleSendMessage} className="relative group/input px-1 md:px-2 py-0.5 md:py-1">
                                                                         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                         <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                                            <div className="flex items-center px-1.5 md:px-2 py-0.5 lg:py-1">
-                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1.5 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                                                            <div className="flex items-center px-1 md:px-2 py-0.5 lg:py-1">
+                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1.5 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-3.5 h-3.5 md:w-5 md:h-5" /></button>
                                                                                 <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
 
                                                                                 <input
                                                                                     type="text"
                                                                                     value={newMessage}
                                                                                     onChange={(e) => setNewMessage(e.target.value)}
-                                                                                    placeholder={isSlowMode && !hasModPowers ? "⏳ Mode Lent..." : "Écrire..."}
-                                                                                    className="flex-1 bg-transparent px-2 md:px-3 py-1.5 text-xs md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                                    placeholder={isSlowMode && !hasModPowers ? "⏳ Lent..." : "Écrire..."}
+                                                                                    className="flex-1 bg-transparent px-1 md:px-3 py-1.5 text-[9px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
                                                                                 />
 
                                                                                 <button type="button" onClick={handleShazam} className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                                    <Headphones className="w-4 h-4 md:w-5 md:h-5" />
+                                                                                    <Headphones className="w-3.5 h-3.5 md:w-5 md:h-5" />
                                                                                 </button>
 
                                                                                 <button

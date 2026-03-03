@@ -60,14 +60,14 @@ export function MobileNavbar() {
     return (
         <>
             {/* Bottom Bar */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] px-4 pb-8 pt-2 pointer-events-none">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
                 <motion.div
                     initial={{ y: 100 }}
                     animate={{ y: 0 }}
-                    className="bg-black/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] h-16 flex items-center justify-around shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-auto relative overflow-hidden"
+                    className="bg-black/95 backdrop-blur-3xl border-t border-white/10 h-16 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.5)] pointer-events-auto relative overflow-hidden"
                 >
                     {/* Active Indicator Glow */}
-                    <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent opacity-50" />
+                    <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent opacity-50" />
                     <div className="absolute inset-0 bg-gradient-to-t from-neon-red/[0.03] to-transparent pointer-events-none" />
 
                     {mainItems.map((item) => {
