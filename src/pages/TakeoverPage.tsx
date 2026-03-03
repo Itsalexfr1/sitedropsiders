@@ -3014,7 +3014,21 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <div className="p-2 bg-neon-cyan/10 rounded-xl">
                                                                     <Youtube className="w-4 h-4 text-neon-cyan" />
                                                                 </div>
-                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Sources <span className="text-neon-cyan">Vidéo</span></h3>
+                                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter flex-1">Sources <span className="text-neon-cyan">Vidéo</span></h3>
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setFluxPrincipal('');
+                                                                        setStage1('');
+                                                                        setStage2('');
+                                                                        setStage3('');
+                                                                        setStage4('');
+                                                                        setStage5('');
+                                                                        setStage6('');
+                                                                    }}
+                                                                    className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest flex items-center gap-1.5 transition-colors px-2 py-1 rounded-lg hover:bg-neon-red/5"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" /> Tout Vider
+                                                                </button>
                                                             </div>
                                                             <div className="space-y-4">
                                                                 <div className="space-y-2">
@@ -3022,17 +3036,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <div className="grid grid-cols-2 gap-2">
                                                                         <div className="relative">
                                                                             <input type="text" placeholder="Flux Principal" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {editMainFluxName && <button onClick={() => setEditMainFluxName('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
                                                                         </div>
                                                                         <div className="relative">
                                                                             <input type="text" placeholder="YouTube ID Principal" value={fluxPrincipal} onChange={e => setFluxPrincipal(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
                                                                             {fluxPrincipal && <button onClick={() => setFluxPrincipal('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
                                                                         </div>
-                                                                        <input type="text" placeholder="Stage 1 Name" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="Stage 1 Name" value={stage1Name} onChange={e => setStage1Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage1Name && <button onClick={() => setStage1Name('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <div className="relative">
                                                                             <input type="text" placeholder="YouTube ID" value={stage1} onChange={e => setStage1(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
                                                                             {stage1 && <button onClick={() => setStage1('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
                                                                         </div>
-                                                                        <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="Stage 2 Name" value={stage2Name} onChange={e => setStage2Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage2Name && <button onClick={() => setStage2Name('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <div className="relative">
                                                                             <input type="text" placeholder="YouTube ID" value={stage2} onChange={e => setStage2(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
                                                                             {stage2 && <button onClick={() => setStage2('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
@@ -3043,12 +3064,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <div className="space-y-2">
                                                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Secondaires (3 & 4)</p>
                                                                     <div className="grid grid-cols-2 gap-2 relative group">
-                                                                        <input type="text" placeholder="Stage 3 Name" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="Stage 3 Name" value={stage3Name} onChange={e => setStage3Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage3Name && <button onClick={() => setStage3Name('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <div className="relative">
                                                                             <input type="text" placeholder="YouTube ID" value={stage3} onChange={e => setStage3(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
                                                                             {stage3 && <button onClick={() => setStage3('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
                                                                         </div>
-                                                                        <input type="text" placeholder="Stage 4 Name" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                        <div className="relative">
+                                                                            <input type="text" placeholder="Stage 4 Name" value={stage4Name} onChange={e => setStage4Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                            {stage4Name && <button onClick={() => setStage4Name('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                                                        </div>
                                                                         <div className="relative">
                                                                             <input type="text" placeholder="YouTube ID" value={stage4} onChange={e => setStage4(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
                                                                             {stage4 && <button onClick={() => setStage4('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
@@ -3068,12 +3095,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                     <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 overflow-hidden">
                                                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Flux Bonus (5 & 6)</p>
                                                                         <div className="grid grid-cols-2 gap-2">
-                                                                            <input type="text" placeholder="Stage 5 Name" value={stage5Name} onChange={e => setStage5Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <div className="relative">
+                                                                                <input type="text" placeholder="Stage 5 Name" value={stage5Name} onChange={e => setStage5Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                                {stage5Name && <button onClick={() => setStage5Name('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                                                            </div>
                                                                             <div className="relative">
                                                                                 <input type="text" placeholder="YouTube ID" value={stage5} onChange={e => setStage5(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
-                                                                                {stage5 && <button onClick={() => setStage5('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}
+                                                                                {stage5 && <button onClick={() => setStage5('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
                                                                             </div>
-                                                                            <input type="text" placeholder="Stage 6 Name" value={stage6Name} onChange={e => setStage6Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                            <div className="relative">
+                                                                                <input type="text" placeholder="Stage 6 Name" value={stage6Name} onChange={e => setStage6Name(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
+                                                                                {stage6Name && <button onClick={() => setStage6Name('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red transition-colors"><Trash2 className="w-3 h-3" /></button>}
+                                                                            </div>
                                                                             <div className="relative">
                                                                                 <input type="text" placeholder="YouTube ID" value={stage6} onChange={e => setStage6(e.target.value)} className="bg-black/40 border border-white/10 rounded-xl p-2 text-[10px] text-white outline-none focus:border-neon-cyan w-full" />
                                                                                 {stage6 && <button onClick={() => setStage6('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-neon-red"><Trash2 className="w-3 h-3" /></button>}

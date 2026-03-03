@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
-import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical, Instagram } from 'lucide-react';
+import { Layout, ArrowLeft, Loader2, Save, Eye, EyeOff, LayoutDashboard, Youtube, Calendar, Newspaper, MessageSquare, Music, Share2, GripVertical, Instagram, Trash2 } from 'lucide-react';
 import { Link, useBlocker, Navigate } from 'react-router-dom';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -94,15 +94,23 @@ function ReorderableItem({ item, updateItem, getColorValue, socials, updateSocia
                             </div>
 
                             {item.id === 'hero' && (
-                                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl">
+                                <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-1.5 rounded-xl relative group/input">
                                     <Youtube className="w-3 h-3 text-red-500" />
                                     <input
                                         type="text"
                                         value={item.videoId || ''}
                                         onChange={(e) => updateItem(item.id, { videoId: e.target.value })}
-                                        className="bg-transparent border-none text-[10px] font-bold outline-none w-24 text-white"
+                                        className="bg-transparent border-none text-[10px] font-bold outline-none w-24 text-white pr-6"
                                         placeholder="ID YouTube"
                                     />
+                                    {item.videoId && (
+                                        <button
+                                            onClick={() => updateItem(item.id, { videoId: '' })}
+                                            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-600 hover:text-red-500 transition-colors"
+                                        >
+                                            <Trash2 className="w-3 h-3" />
+                                        </button>
+                                    )}
                                 </div>
                             )}
 
