@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Play, Youtube, User, Zap, Camera, Upload, Image as ImageIcon } from 'lucide-react';
+import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon, Activity } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
 import { useLanguage } from '../../context/LanguageContext';
 
@@ -19,6 +19,7 @@ interface Quiz {
     imageType?: 'FESTIVAL' | 'ARTIST';
     revealEffect?: 'BLUR' | 'MOSAIC' | 'SILHOUETTE';
     youtubeId?: string;
+    spotifyUrl?: string;
     startTime?: number;
     author: string;
 }
@@ -33,7 +34,7 @@ interface ScoreRecord {
 }
 
 export function QuizSection() {
-    const { language } = useLanguage();
+    useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit'>('play');
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
     const [selectedMode, setSelectedMode] = useState<QuizType | 'ALL'>('ALL');
@@ -61,10 +62,11 @@ export function QuizSection() {
         audioUrl: '',
         imageUrl: '',
         youtubeId: '',
+        spotifyUrl: '',
+        startTime: 0,
         author: ''
     });
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [showPreview, setShowPreview] = useState(false);
     const [questionTimer, setQuestionTimer] = useState(15);
     const [totalGameTime, setTotalGameTime] = useState(0);
     const [isRevealing, setIsRevealing] = useState(false);
@@ -91,56 +93,6 @@ export function QuizSection() {
         }
         return () => clearInterval(interval);
     }, [gameState, selectedAnswer, isRevealing]);
-
-    useEffect(() => {
-        const fetchYoutubeTitle = async () => {
-            if (formData.type === 'BLIND_TEST' && formData.youtubeId.length === 11) {
-                try {
-                    const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${formData.youtubeId}`);
-                    const data = await res.json();
-                    if (data.title) {
-                        // Clean title
-                        let cleanTitle = data.title
-                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix).*?(\]|\))/gi, '')
-                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix)/gi, '')
-                            .replace(/\s+/g, ' ')
-                            .trim();
-
-                        // Add author_name if title doesn't seem to contain it
-                        const author = data.author_name?.replace(' - Topic', '').replace(' VEVO', '').trim();
-                        if (author && !cleanTitle.toUpperCase().includes(author.toUpperCase())) {
-                            cleanTitle = `${author} - ${cleanTitle}`;
-                        }
-
-                        // Get 3 distractors from existing quizzes
-                        const blindTestQuizzes = quizzes.filter(q => q.type === 'BLIND_TEST' && q.correctAnswer !== cleanTitle);
-                        let distractors = [...blindTestQuizzes]
-                            .sort(() => Math.random() - 0.5)
-                            .slice(0, 3)
-                            .map(q => q.correctAnswer);
-
-                        // Fill if not enough
-                        while (distractors.length < 3) {
-                            distractors.push("Generic Track " + (distractors.length + 1));
-                        }
-
-                        const allOptions = [cleanTitle, ...distractors].sort(() => Math.random() - 0.5);
-
-                        setFormData(prev => ({
-                            ...prev,
-                            question: prev.question || (language === 'fr' ? "QUI EST L'AUTEUR / QUEL EST LE TITRE ?" : "WHO IS THE ARTIST / WHAT IS THE TITLE?"),
-                            correctAnswer: cleanTitle,
-                            options: allOptions
-                        }));
-                    }
-                } catch (e) {
-                    console.error('Error fetching YT title:', e);
-                }
-            }
-        };
-
-        fetchYoutubeTitle();
-    }, [formData.youtubeId, formData.type]);
 
     const fetchQuizzes = async () => {
         setLoading(true);
@@ -306,6 +258,8 @@ export function QuizSection() {
                         audioUrl: '',
                         imageUrl: '',
                         youtubeId: '',
+                        spotifyUrl: '',
+                        startTime: 0,
                         author: ''
                     });
                     setActiveTab('play');
@@ -508,84 +462,60 @@ export function QuizSection() {
                                                 {gameQuizzes[currentQuizIndex].type === 'BLIND_TEST' && (
                                                     <div className="w-full h-full flex items-center justify-center bg-black">
                                                         {gameQuizzes[currentQuizIndex].audioUrl && (
-                                                            <audio autoPlay key={`${gameQuizzes[currentQuizIndex].id}-audio`}>
+                                                            <audio
+                                                                autoPlay
+                                                                key={`${gameQuizzes[currentQuizIndex].id}-audio`}
+                                                                ref={(el) => {
+                                                                    if (el) {
+                                                                        const start = gameQuizzes[currentQuizIndex].startTime || 0;
+                                                                        el.currentTime = start;
+                                                                        const handleTime = () => {
+                                                                            if (el.currentTime > start + 45) el.pause();
+                                                                        };
+                                                                        el.addEventListener('timeupdate', handleTime);
+                                                                    }
+                                                                }}
+                                                            >
                                                                 <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
                                                             </audio>
                                                         )}
-                                                        {gameQuizzes[currentQuizIndex].youtubeId && (
-                                                            <div className="absolute inset-0 overflow-hidden">
-                                                                <div
-                                                                    className="absolute inset-0 pointer-events-none"
-                                                                    style={{ zIndex: 0 }}
-                                                                    ref={(el) => {
-                                                                        if (!el) return;
-                                                                        const qId = gameQuizzes[currentQuizIndex].id;
-                                                                        const playerId = `yt-quiz-player-${qId}`;
-                                                                        if ((el as any).__ytInit === qId) return;
-                                                                        (el as any).__ytInit = qId;
-                                                                        el.innerHTML = '';
+                                                        <div className="absolute inset-0 bg-[#060606] overflow-hidden flex items-center justify-center">
+                                                            {/* Deep Glow Layer */}
+                                                            <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-neon-red/10 via-transparent to-transparent" />
+                                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.08)_0%,transparent_70%)] scale-150" />
 
-                                                                        const startSec = gameQuizzes[currentQuizIndex].startTime ?? (90 + Math.floor(Math.random() * 15));
+                                                            {/* Visualizer Bars (Premium) */}
+                                                            <div className="flex items-end gap-2 h-44 px-16 relative z-10">
+                                                                {[...Array(28)].map((_, i) => (
+                                                                    <motion.div
+                                                                        key={i}
+                                                                        animate={{
+                                                                            height: [20, 35 + Math.random() * 85, 20],
+                                                                            opacity: [0.3, 1, 0.3],
+                                                                            backgroundColor: i % 2 === 0 ? '#ff0033' : '#00f2ff'
+                                                                        }}
+                                                                        transition={{
+                                                                            duration: 0.5 + Math.random() * 0.8,
+                                                                            repeat: Infinity,
+                                                                            ease: "easeInOut",
+                                                                            delay: i * 0.04
+                                                                        }}
+                                                                        className="w-2.5 rounded-full shadow-[0_0_20px_rgba(0,0,0,0.5)]"
+                                                                    />
+                                                                ))}
+                                                            </div>
 
-                                                                        const initPlayer = () => {
-                                                                            if (!(window as any).YT?.Player) return;
-                                                                            const playerDiv = document.createElement('div');
-                                                                            playerDiv.id = playerId;
-                                                                            playerDiv.style.width = '150%';
-                                                                            playerDiv.style.height = '150%';
-                                                                            playerDiv.style.position = 'absolute';
-                                                                            playerDiv.style.top = '-25%';
-                                                                            playerDiv.style.left = '-25%';
-                                                                            el.appendChild(playerDiv);
-                                                                            new (window as any).YT.Player(playerId, {
-                                                                                videoId: gameQuizzes[currentQuizIndex].youtubeId,
-                                                                                playerVars: {
-                                                                                    autoplay: 1,
-                                                                                    mute: 1,
-                                                                                    controls: 0,
-                                                                                    modestbranding: 1,
-                                                                                    rel: 0,
-                                                                                    iv_load_policy: 3,
-                                                                                    fs: 0,
-                                                                                    start: startSec,
-                                                                                    disablekb: 1,
-                                                                                },
-                                                                                events: {
-                                                                                    onReady: (event: any) => {
-                                                                                        event.target.playVideo();
-                                                                                        setTimeout(() => {
-                                                                                            event.target.unMute();
-                                                                                            event.target.setVolume(100);
-                                                                                        }, 800);
-                                                                                    }
-                                                                                }
-                                                                            });
-                                                                        };
-
-                                                                        if ((window as any).YT?.Player) {
-                                                                            initPlayer();
-                                                                        } else {
-                                                                            if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-                                                                                const tag = document.createElement('script');
-                                                                                tag.src = 'https://www.youtube.com/iframe_api';
-                                                                                document.head.appendChild(tag);
-                                                                            }
-                                                                            const prevCb = (window as any).onYouTubeIframeAPIReady;
-                                                                            (window as any).onYouTubeIframeAPIReady = () => {
-                                                                                if (prevCb) prevCb();
-                                                                                initPlayer();
-                                                                            };
-                                                                        }
-                                                                    }}
-                                                                />
-                                                                <div className="absolute inset-0 bg-black z-10 flex items-center justify-center">
-                                                                    <div className="relative">
-                                                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-xl rounded-full" />
-                                                                        <Music2 className="w-24 h-24 text-neon-cyan/50 rotate-12 relative z-20 animate-pulse" />
-                                                                    </div>
+                                                            {/* Center Branding Layer */}
+                                                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                                <div className="relative">
+                                                                    <div className="absolute inset-0 bg-neon-cyan/10 blur-3xl rounded-full scale-[2.5] animate-pulse" />
+                                                                    <Music2 className="w-32 h-32 text-white/10 rotate-[15deg] relative z-20" />
                                                                 </div>
                                                             </div>
-                                                        )}
+
+                                                            {/* Scanning Effect */}
+                                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-24 w-full animate-scan" style={{ top: '-100%' }} />
+                                                        </div>
                                                     </div>
                                                 )}
                                                 {gameQuizzes[currentQuizIndex].type === 'QCM' && (
@@ -986,58 +916,35 @@ export function QuizSection() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Extrait Audio (.mp3)</label>
-                                    <input
-                                        type="url"
-                                        value={formData.audioUrl}
-                                        onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
-                                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
-                                        placeholder="https://example.com/track.mp3"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">ID Youtube (Optionnel)</label>
                                     <div className="flex gap-2">
-                                        <div className="relative flex-1">
-                                            <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                                        <input
+                                            type="url"
+                                            value={formData.audioUrl}
+                                            onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
+                                            className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
+                                            placeholder="URL MP3..."
+                                        />
+                                        <label className="cursor-pointer px-6 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center hover:bg-white/10 transition-all">
+                                            <Upload className="w-5 h-5 text-gray-400" />
                                             <input
-                                                type="text"
-                                                value={formData.youtubeId}
-                                                onChange={e => {
-                                                    setFormData({ ...formData, youtubeId: e.target.value });
-                                                    setShowPreview(false);
+                                                type="file"
+                                                accept="audio/*"
+                                                className="hidden"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    setUploading(true);
+                                                    try {
+                                                        const url = await uploadFile(file);
+                                                        setFormData({ ...formData, audioUrl: url });
+                                                    } catch (err) { alert('Erreur upload'); }
+                                                    finally { setUploading(false); }
                                                 }}
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
-                                                placeholder="dQw4w9WgXcQ"
                                             />
-                                        </div>
-                                        {formData.youtubeId && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPreview(!showPreview)}
-                                                className={`px-6 rounded-2xl font-black text-[10px] uppercase transition-all ${showPreview ? 'bg-neon-red text-white' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}
-                                            >
-                                                {showPreview ? 'FERMER' : 'VERIFIER'}
-                                            </button>
-                                        )}
+                                        </label>
                                     </div>
                                 </div>
                             </div>
-                        )}
-
-                        {showPreview && formData.youtubeId && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                className="relative aspect-video rounded-3xl overflow-hidden border border-neon-red/30 shadow-lg shadow-neon-red/10"
-                            >
-                                <iframe
-                                    width="100%"
-                                    height="100%"
-                                    src={`https://www.youtube.com/embed/${formData.youtubeId}?autoplay=1&start=90`}
-                                    allow="autoplay"
-                                    className="absolute inset-0"
-                                ></iframe>
-                            </motion.div>
                         )}
 
                         <div>

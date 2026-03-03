@@ -2746,8 +2746,13 @@ export default {
         }
 
         if (path === '/api/quiz/active' && request.method === 'GET') {
-            let activeRaw = await env.CHAT_KV.get('quiz_active');
-            if (!activeRaw || activeRaw === "[]") {
+            let activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            let active = JSON.parse(activeRaw);
+
+            // If the list is empty or seems to be missing the default set (e.g. less than 50 items),
+            // we merge the default quizzes but keep existing ones (deduplicated by ID).
+            const hasDefaults = active.some(q => q.id && (q.id.startsWith('t') || q.id.startsWith('nth') || q.id.startsWith('nba')));
+            if (!hasDefaults) {
                 const now = new Date().toISOString();
                 const defaultQuizzes = [
                     // --- TECHNO ---
@@ -2979,7 +2984,17 @@ export default {
                     { id: 'nba4', type: 'QCM', question: 'Who produced "Liquor \u0026 Cigarettes"?', options: ['Chase \u0026 Status \u0026 Hedex', 'Sub Focus', 'Dimension', 'Kanine'], correctAnswer: 'Chase \u0026 Status \u0026 Hedex', category: 'D\u0026B', author: 'Dropsiders', timestamp: now },
                     { id: 'nba5', type: 'QCM', question: 'Which D\u0026B group is famous for its drum-only live sets?', options: ['The Caracal Project', 'Noisia', 'Koven', 'IMANU'], correctAnswer: 'The Caracal Project', category: 'Bass', author: 'Dropsiders', timestamp: now },
                 ];
-                activeRaw = JSON.stringify(defaultQuizzes);
+
+                // Merge existing questions into defaults (deduplicate by id)
+                const activeIds = new Set(active.map(q => q.id));
+                const merged = [...active];
+                for (const dq of defaultQuizzes) {
+                    if (!activeIds.has(dq.id)) {
+                        merged.push(dq);
+                    }
+                }
+
+                activeRaw = JSON.stringify(merged);
                 await env.CHAT_KV.put('quiz_active', activeRaw);
             }
             return new Response(activeRaw, { status: 200, headers });

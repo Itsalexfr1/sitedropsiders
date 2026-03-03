@@ -228,7 +228,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
     // --- QUIZ POPUP ---
     const [showQuizPopup, setShowQuizPopup] = useState(false);
-    const [quizPopupQuestion, setQuizPopupQuestion] = useState<{ id: string; type: string; question: string; options: string[]; correctAnswer: string; category: string; audioUrl?: string; imageUrl?: string; youtubeId?: string; } | null>(null);
+    const [quizPopupQuestion, setQuizPopupQuestion] = useState<{ id: string; type: string; question: string; options: string[]; correctAnswer: string; category: string; audioUrl?: string; imageUrl?: string; youtubeId?: string; spotifyUrl?: string; startTime?: number; } | null>(null);
     const [quizPopupAnswer, setQuizPopupAnswer] = useState<string | null>(null);
     const [quizPopupLoading, setQuizPopupLoading] = useState(false);
 
@@ -5657,87 +5657,76 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </div>
                                         )}
 
-                                        {/* Video / Blind Test Vidéo */}
-                                        {(quizPopupQuestion.type?.toUpperCase() === 'VIDEO' || quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST') && quizPopupQuestion.youtubeId && (
-                                            <div
-                                                key={quizPopupQuestion.id}
-                                                className="relative rounded-xl overflow-hidden border border-white/10"
-                                                style={{ aspectRatio: '16/9' }}
-                                            >
-                                                <div
-                                                    id={`yt-blindtest-${quizPopupQuestion.id}`}
+                                        {/* Direct MP3 Audio (Most reliable) */}
+                                        {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
+                                            <div className="hidden">
+                                                <audio
+                                                    autoPlay
+                                                    src={quizPopupQuestion.audioUrl}
                                                     ref={(el) => {
-                                                        if (!el) return;
-                                                        const playerId = `yt-player-${quizPopupQuestion.id}`;
-                                                        // Avoid re-initializing
-                                                        if ((el as any).__ytInitialized) return;
-                                                        (el as any).__ytInitialized = true;
-
-                                                        const startSec = quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST'
-                                                            ? (Math.floor(Math.random() * 30) + 60)
-                                                            : 0;
-
-                                                        const initPlayer = () => {
-                                                            if (!(window as any).YT?.Player) return;
-                                                            const playerDiv = document.createElement('div');
-                                                            playerDiv.id = playerId;
-                                                            el.appendChild(playerDiv);
-                                                            new (window as any).YT.Player(playerId, {
-                                                                videoId: quizPopupQuestion.youtubeId,
-                                                                playerVars: {
-                                                                    autoplay: 1,
-                                                                    mute: 1,
-                                                                    controls: 0,
-                                                                    modestbranding: 1,
-                                                                    rel: 0,
-                                                                    iv_load_policy: 3,
-                                                                    fs: 0,
-                                                                    start: startSec,
-                                                                    disablekb: 1,
-                                                                },
-                                                                events: {
-                                                                    onReady: (event: any) => {
-                                                                        event.target.playVideo();
-                                                                        // Unmute after a short delay (user already interacted)
-                                                                        setTimeout(() => {
-                                                                            event.target.unMute();
-                                                                            event.target.setVolume(100);
-                                                                        }, 800);
-                                                                    }
-                                                                }
-                                                            });
-                                                        };
-
-                                                        if ((window as any).YT?.Player) {
-                                                            initPlayer();
-                                                        } else {
-                                                            if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-                                                                const tag = document.createElement('script');
-                                                                tag.src = 'https://www.youtube.com/iframe_api';
-                                                                document.head.appendChild(tag);
+                                                        if (el) {
+                                                            el.volume = isMutedGlobal ? 0 : 0.5;
+                                                            if (quizPopupQuestion.startTime) {
+                                                                el.currentTime = quizPopupQuestion.startTime;
                                                             }
-                                                            const prevCb = (window as any).onYouTubeIframeAPIReady;
-                                                            (window as any).onYouTubeIframeAPIReady = () => {
-                                                                if (prevCb) prevCb();
-                                                                initPlayer();
+                                                            // Limit to 45 seconds of playback
+                                                            const maxDuration = 45;
+                                                            const start = quizPopupQuestion.startTime || 0;
+                                                            const handleTime = () => {
+                                                                if (el.currentTime > start + maxDuration) el.pause();
                                                             };
+                                                            el.addEventListener('timeupdate', handleTime);
                                                         }
                                                     }}
-                                                    style={{ width: '100%', height: '100%' }}
                                                 />
-                                                {/* Overlay pour masquer le titre YouTube (bande noire en haut) */}
-                                                <div
-                                                    className="absolute top-0 left-0 right-0 pointer-events-none"
-                                                    style={{ height: '18%', background: 'linear-gradient(to bottom, #000 60%, transparent)' }}
-                                                />
-                                                {/* Overlay bas pour masquer les suggestions */}
-                                                <div
-                                                    className="absolute bottom-0 left-0 right-0 pointer-events-none"
-                                                    style={{ height: '12%', background: 'linear-gradient(to top, #000 60%, transparent)' }}
-                                                />
-                                                {/* Bandeau "BLIND TEST" centré en haut */}
-                                                <div className="absolute top-0 left-0 right-0 flex items-center justify-center pointer-events-none" style={{ height: '18%' }}>
-                                                    <span className="text-[9px] font-black text-yellow-400 uppercase tracking-[0.3em] opacity-70">🎵 Blind Test</span>
+                                            </div>
+                                        )}
+
+
+                                        {/* Blind Test Animation (Visualizer) - Premium Style */}
+                                        {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && (
+                                            <div className="relative h-44 bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden flex items-center justify-center group">
+                                                {/* Deep Ambient Glow */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-neon-red/10 via-transparent to-neon-cyan/5" />
+                                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.05)_0%,transparent_70%)]" />
+
+                                                {/* Animated Bars (Refined) */}
+                                                <div className="flex items-end gap-1.5 h-24 px-12 relative z-10">
+                                                    {[...Array(24)].map((_, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            animate={{
+                                                                height: [15, 25 + Math.random() * 55, 15],
+                                                                backgroundColor: i % 2 === 0 ? '#ff0033' : '#00f2ff'
+                                                            }}
+                                                            transition={{
+                                                                duration: 0.4 + Math.random() * 0.8,
+                                                                repeat: Infinity,
+                                                                ease: "easeInOut",
+                                                                delay: i * 0.03
+                                                            }}
+                                                            className="w-1.5 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                                                        />
+                                                    ))}
+                                                </div>
+
+                                                {/* Center Icon & Glow */}
+                                                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <div className="relative">
+                                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-2xl rounded-full scale-150 animate-pulse" />
+                                                        <Music2 className="w-12 h-12 text-white/20 rotate-12 relative z-20" />
+                                                    </div>
+                                                </div>
+
+                                                {/* Scanning Line */}
+                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[10%] w-full animate-scan" style={{ top: '-100%' }} />
+
+                                                {/* Premium Badge */}
+                                                <div className="absolute top-4 left-4">
+                                                    <div className="flex items-center gap-2 px-3 py-1 bg-black/60 border border-white/10 rounded-full backdrop-blur-md">
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red shadow-[0_0_8px_#ff0033]" />
+                                                        <span className="text-[7px] font-black text-white uppercase tracking-[0.2em] font-display italic">PREMIUM AUDIO</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}

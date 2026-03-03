@@ -4254,187 +4254,261 @@ export function AdminDashboard() {
 
                                 {/* TYPE TABS */}
                                 <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-2xl p-1 mb-6">
-                                    {(['QCM', 'BLIND_TEST', 'IMAGE'] as const).map(t => (
+                                    {(['QCM', 'BLIND_TEST', 'VIDEO', 'IMAGE'] as const).map(t => (
                                         <button
                                             key={t}
                                             onClick={() => setQuizToEdit({ ...quizToEdit, type: t })}
-                                            className={`flex-1 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-1 py-2.5 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            {t === 'QCM' ? 'QCM' : t === 'BLIND_TEST' ? 'BLIND TEST' : 'IMAGE'}
+                                            {t === 'QCM' ? 'QCM' : t === 'BLIND_TEST' ? 'BLIND TEST' : t === 'VIDEO' ? 'VIDEO' : 'IMAGE'}
                                         </button>
                                     ))}
                                 </div>
 
-                                <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
+                                <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+                                    {/* THEME SELECTION - AUTO FILLS QUESTION */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Thème / Genre</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {['Festivals', 'DJs', 'Classics', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Production'].map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => {
+                                                        const updates: any = { ...quizToEdit, category: t };
+                                                        if (quizToEdit.type === 'QCM') {
+                                                            const q: Record<string, string> = {
+                                                                'Techno': 'Quel est ce titre Techno ?', 'Bass Music': 'Quel est ce titre Bass ?',
+                                                                'Hardcore': 'Quel est ce titre Hardcore ?', 'Tech House': 'Quel est ce titre Tech House ?',
+                                                                'Big Room': 'Quel est ce titre Big Room ?', 'Trance': 'Quel est ce titre Trance ?',
+                                                                'Hardstyle': 'Quel est ce titre Hardstyle ?', 'Afro House': 'Quel est ce titre Afro House ?',
+                                                                'Progressive': 'Quel est ce titre Progressive ?', 'House': 'Quel est ce titre House ?',
+                                                                'Festivals': 'Quel est ce festival ?', 'DJs': 'Qui est cet artiste ?',
+                                                                'Classics': 'Quel est ce classique ?', 'Production': 'De quel outil s\'agit-il ?',
+                                                            };
+                                                            if (q[t]) updates.question = q[t];
+                                                        } else if (quizToEdit.type === 'IMAGE') {
+                                                            if (t === 'Festivals') { updates.question = 'Quel est ce festival ?'; updates.imageType = 'FESTIVAL'; }
+                                                            else if (t === 'DJs') { updates.question = 'Qui est cet artiste ?'; updates.imageType = 'ARTIST'; }
+                                                            else updates.question = `Quel est ce ${t} ?`;
+                                                        } else if (quizToEdit.type === 'BLIND_TEST') {
+                                                            updates.question = 'Quelle est ce titre ?';
+                                                        }
+                                                        setQuizToEdit(updates);
+                                                    }}
+                                                    className={`py-2 px-1 text-[8px] font-black uppercase tracking-tighter rounded-lg border transition-all ${quizToEdit.category === t ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:text-white'}`}
+                                                >
+                                                    {t}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <div>
                                         <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
-                                            {quizToEdit.type === 'BLIND_TEST' ? 'Titre du morceau' : 'Question'}
+                                            {quizToEdit.type === 'BLIND_TEST' ? 'Titre (Utilisée comme Bonne Réponse)' : 'Question'}
                                         </label>
                                         <input
                                             type="text"
                                             value={quizToEdit.question}
                                             onChange={(e) => setQuizToEdit({ ...quizToEdit, question: e.target.value })}
-                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                            placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Swedish House Mafia - One' : 'Ex: Quel DJ est headliner ?'}
+                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-xs"
+                                            placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Martin Garrix - Animals' : 'Ex: Quel DJ est headliner ?'}
                                         />
                                     </div>
 
-                                    {/* Theme dropdown with auto-question */}
-                                    <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">ThÃ¨me</label>
-                                        <select
-                                            value={quizToEdit.category || 'Festivals'}
-                                            onChange={(e) => {
-                                                const theme = e.target.value;
-                                                const updates: any = { ...quizToEdit, category: theme };
-                                                if (quizToEdit.type === 'QCM') {
-                                                    const q: Record<string, string> = {
-                                                        'Techno': 'Quel est ce titre Techno ?', 'Bass Music': 'Quel est ce titre Bass ?',
-                                                        'Hardcore': 'Quel est ce titre Hardcore ?', 'Tech House': 'Quel est ce titre Tech House ?',
-                                                        'Big Room': 'Quel est ce titre Big Room ?', 'Trance': 'Quel est ce titre Trance ?',
-                                                        'Hardstyle': 'Quel est ce titre Hardstyle ?', 'Afro House': 'Quel est ce titre Afro House ?',
-                                                        'Progressive': 'Quel est ce titre Progressive ?', 'House': 'Quel est ce titre House ?',
-                                                        'Festivals': 'Quel est ce festival ?', 'DJs': 'Quel est ce DJ ?',
-                                                        'Classics': 'Quel est ce classique ?', 'Production': 'Quel outil est utilisÃ© ?',
-                                                    };
-                                                    if (q[theme]) updates.question = q[theme];
-                                                } else if (quizToEdit.type === 'IMAGE') {
-                                                    if (theme === 'Festivals') { updates.question = 'Quel est ce festival ?'; updates.imageType = 'FESTIVAL'; }
-                                                    else if (theme === 'DJs') { updates.question = 'Qui est cet artiste ?'; updates.imageType = 'ARTIST'; }
-                                                    else updates.question = `Quel est ce ${theme} ?`;
-                                                } else if (quizToEdit.type === 'BLIND_TEST') {
-                                                    updates.question = 'Quelle est ce Banger ?';
-                                                }
-                                                setQuizToEdit(updates);
-                                            }}
-                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none"
-                                        >
-                                            {['Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'].map(t => (
-                                                <option key={t} value={t}>{t}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Options</label>
-                                        <div className="space-y-2">
-                                            {quizToEdit.options.map((opt: string, i: number) => (
-                                                <input key={i} type="text" value={opt}
-                                                    onChange={(e) => { const o = [...quizToEdit.options]; o[i] = e.target.value; setQuizToEdit({ ...quizToEdit, options: o }); }}
-                                                    className={`w-full bg-black border rounded-xl p-2.5 text-xs text-white focus:border-neon-red outline-none ${opt === quizToEdit.correctAnswer ? 'border-neon-green/50' : 'border-white/10'}`}
-                                                    autoComplete="off" placeholder={`Option ${i + 1}`}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Bonne RÃ©ponse</label>
-                                        <select value={quizToEdit.correctAnswer} onChange={(e) => setQuizToEdit({ ...quizToEdit, correctAnswer: e.target.value })}
-                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none">
-                                            <option value="">-- Choisir la bonne rÃ©ponse --</option>
-                                            {quizToEdit.options.map((opt: string, i: number) => (<option key={i} value={opt}>{opt}</option>))}
-                                        </select>
-                                    </div>
-
-                                    {quizToEdit.type === 'BLIND_TEST' && (
-                                        <div className="space-y-4 pt-4 border-t border-white/5">
+                                    {/* BLIND TEST / VIDEO SPECIFIC (Spotify / YouTube) */}
+                                    {(quizToEdit.type === 'BLIND_TEST' || quizToEdit.type === 'VIDEO') && (
+                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4">
+                                            {/* OPTION MP3 DIRECT (LE PLUS FIABLE) */}
                                             <div>
-                                                <label className="text-[10px] font-black text-green-400 uppercase tracking-widest block mb-2">ðŸŽ§ Spotify URL (RecommandÃ©)</label>
-                                                <input type="text" value={quizToEdit.spotifyUrl || ''}
-                                                    onChange={(e) => setQuizToEdit({ ...quizToEdit, spotifyUrl: e.target.value })}
-                                                    placeholder="https://open.spotify.com/track/..."
-                                                    className="w-full bg-black border border-green-500/30 rounded-xl p-3 text-white focus:border-green-500 outline-none" />
-                                                {quizToEdit.spotifyUrl && quizToEdit.spotifyUrl.includes('spotify.com/track/') && (
-                                                    <div className="mt-3 rounded-xl overflow-hidden border border-green-500/20">
-                                                        <iframe src={`https://open.spotify.com/embed/track/${quizToEdit.spotifyUrl.split('track/')[1]?.split('?')[0]}?theme=0`}
-                                                            width="100%" height="80" frameBorder="0"
-                                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" />
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="text-center text-[9px] text-gray-600 font-bold uppercase tracking-widest">â€” ou â€”</div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">YouTube ID</label>
-                                                    <input type="text" value={quizToEdit.youtubeId || ''}
-                                                        onChange={async (e) => {
-                                                            let val = e.target.value;
-                                                            if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
-                                                            else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
-                                                            setQuizToEdit({ ...quizToEdit, youtubeId: val });
-                                                            if (val.length === 11) {
+                                                <label className="text-[10px] font-black text-neon-cyan uppercase tracking-widest block mb-1.5 flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" /> Fichier MP3 (Le plus fiable pour le son)
+                                                </label>
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="text"
+                                                        value={quizToEdit.audioUrl || ''}
+                                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, audioUrl: e.target.value })}
+                                                        placeholder="URL MP3 ou Upload..."
+                                                        className="flex-1 bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px]"
+                                                    />
+                                                    <label className="cursor-pointer px-4 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl flex items-center justify-center hover:bg-neon-cyan hover:text-black transition-all group">
+                                                        <Upload className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                                                        <input
+                                                            type="file"
+                                                            accept="audio/*"
+                                                            multiple
+                                                            className="hidden"
+                                                            onChange={async (e) => {
+                                                                const files = e.target.files;
+                                                                if (!files || files.length === 0) return;
+
+                                                                setIsSaving(true); // Re-use saving state for feedback
+
                                                                 try {
-                                                                    const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${val}`);
-                                                                    const data = await resp.json();
-                                                                    if (data.title) {
-                                                                        let ct = data.title.replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Original Mix|Extended Mix|Vocal Mix|Radio Edit|Vevo).*?(\]|\))/gi, '')
-                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Original Mix|Extended Mix|Vocal Mix|Radio Edit|Vevo)/gi, '').replace(/\s+/g, ' ').trim();
-                                                                        const author = data.author_name?.replace(' - Topic', '').replace(' VEVO', '').trim();
-                                                                        if (author && !ct.toUpperCase().includes(author.toUpperCase())) ct = `${author} - ${ct}`;
-                                                                        if (!quizToEdit.question || quizToEdit.question.includes('?')) setQuizToEdit((p: any) => ({ ...p, question: ct, youtubeId: val }));
-                                                                        if (!quizToEdit.correctAnswer) {
-                                                                            const o = [...quizToEdit.options]; const ei = o.findIndex((x: string) => !x);
-                                                                            if (!o.includes(ct)) { if (ei !== -1) o[ei] = ct; else o[0] = ct; }
-                                                                            setQuizToEdit((p: any) => ({ ...p, correctAnswer: ct, options: o }));
+                                                                    for (let i = 0; i < files.length; i++) {
+                                                                        const file = files[i];
+
+                                                                        // 1. Guess Metadata from filename
+                                                                        const rawName = file.name.replace(/\.[^/.]+$/, "");
+
+                                                                        // Cleaning Function
+                                                                        const clean = (str: string) => {
+                                                                            return str
+                                                                                .replace(/(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi, "")
+                                                                                .replace(/\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi, "")
+                                                                                .replace(/\s+/g, " ")
+                                                                                .trim();
+                                                                        };
+
+                                                                        const cleanName = clean(rawName);
+                                                                        let artist = "";
+                                                                        let title = cleanName;
+                                                                        if (cleanName.includes(" - ")) {
+                                                                            const parts = cleanName.split(" - ");
+                                                                            artist = parts[0].trim();
+                                                                            title = parts[1].trim();
                                                                         }
+                                                                        const fullLabel = artist ? `${artist} - ${title}` : title;
+
+                                                                        // 2. Upload
+                                                                        const url = await uploadFile(file);
+
+                                                                        // 3. Get middle start time
+                                                                        const audio = new Audio();
+                                                                        const objectUrl = URL.createObjectURL(file);
+                                                                        audio.src = objectUrl;
+
+                                                                        // Logic for creation
+                                                                        const processFile = (startSec: number) => {
+                                                                            const newOptions = [...quizToEdit.options];
+                                                                            newOptions[0] = fullLabel;
+
+                                                                            const quizData = {
+                                                                                ...quizToEdit,
+                                                                                audioUrl: url,
+                                                                                question: fullLabel,
+                                                                                correctAnswer: fullLabel,
+                                                                                options: newOptions,
+                                                                                startTime: startSec
+                                                                            };
+
+                                                                            if (i === 0) {
+                                                                                // Update the current modal state for the first one
+                                                                                setQuizToEdit(quizData);
+                                                                            } else {
+                                                                                // Auto-create others in bulk
+                                                                                const { id, ...bulkData } = quizData;
+                                                                                handleUpdateQuiz(bulkData);
+                                                                            }
+                                                                        };
+
+                                                                        audio.onloadedmetadata = () => {
+                                                                            const mid = Math.floor(audio.duration / 2) - 15;
+                                                                            processFile(Math.max(0, mid));
+                                                                            URL.revokeObjectURL(objectUrl);
+                                                                        };
                                                                     }
-                                                                } catch (err) { console.error("Auto-fetch error:", err); }
-                                                            }
-                                                        }}
-                                                        placeholder="ex: dQw4w9WgXcQ"
-                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none" />
+                                                                    if (files.length > 1) {
+                                                                        alert(`${files.length} fichiers traités ! Les quiz supplémentaires ont été créés automatiquement.`);
+                                                                    }
+                                                                } catch (err) {
+                                                                    alert('Erreur lors du traitement bulk');
+                                                                } finally {
+                                                                    setIsSaving(false);
+                                                                }
+                                                            }}
+                                                        />
+                                                    </label>
                                                 </div>
-                                                <div>
-                                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">DÃ©but (Sec)</label>
-                                                    <div className="flex gap-2">
-                                                        <input type="number" value={quizToEdit.startTime || 0}
-                                                            onChange={(e) => setQuizToEdit({ ...quizToEdit, startTime: parseInt(e.target.value) })}
-                                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none" />
-                                                        <button onClick={() => setQuizToEdit({ ...quizToEdit, startTime: 90 })}
-                                                            className={`px-3 rounded-lg border text-[8px] font-bold uppercase transition-all ${quizToEdit.startTime === 90 ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>1:30</button>
-                                                        <button onClick={() => setQuizToEdit({ ...quizToEdit, startTime: 105 })}
-                                                            className={`px-3 rounded-lg border text-[8px] font-bold uppercase transition-all ${quizToEdit.startTime === 105 ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-gray-400'}`}>1:45</button>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">Paramètres de lecture</label>
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest block font-display italic opacity-80">Début de l'extrait (Sec)</label>
+                                                        <div className="flex gap-2">
+                                                            <input
+                                                                type="number"
+                                                                value={quizToEdit.startTime || 0}
+                                                                onChange={(e) => setQuizToEdit({ ...quizToEdit, startTime: parseInt(e.target.value) || 0 })}
+                                                                className="flex-1 bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px] font-black"
+                                                            />
+                                                            <div className="flex gap-1">
+                                                                {[30, 45, 60].map(s => (
+                                                                    <button
+                                                                        key={s}
+                                                                        onClick={() => setQuizToEdit({ ...quizToEdit, startTime: s })}
+                                                                        className={`px-3 rounded-lg border text-[8px] font-black uppercase transition-all ${quizToEdit.startTime === s ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/20' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                                                    >
+                                                                        {s}s
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            {quizToEdit.youtubeId && quizToEdit.youtubeId.length === 11 && (
-                                                <div className="mt-2 rounded-xl overflow-hidden border border-white/10 aspect-video bg-black">
-                                                    <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${quizToEdit.youtubeId}?start=${quizToEdit.startTime || 0}&autoplay=0`}
-                                                        title="YT" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                                                </div>
-                                            )}
                                         </div>
                                     )}
 
+                                    <div>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Options</label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {quizToEdit.options.map((opt: string, i: number) => (
+                                                <div key={i} className="relative group">
+                                                    <input
+                                                        type="text"
+                                                        value={opt}
+                                                        onChange={(e) => {
+                                                            const o = [...quizToEdit.options];
+                                                            o[i] = e.target.value;
+                                                            setQuizToEdit(prev => ({ ...prev, options: o }));
+                                                        }}
+                                                        className={`w-full bg-black border rounded-xl p-2.5 text-[10px] text-white focus:border-neon-red outline-none transition-all ${opt === quizToEdit.correctAnswer ? 'border-neon-green/50 bg-neon-green/5' : 'border-white/10'}`}
+                                                        placeholder={`Option ${i + 1}`}
+                                                    />
+                                                    <button
+                                                        onClick={() => setQuizToEdit({ ...quizToEdit, correctAnswer: opt })}
+                                                        className={`absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border flex items-center justify-center transition-all ${opt === quizToEdit.correctAnswer ? 'bg-neon-green border-neon-green text-black' : 'border-white/20 text-transparent hover:border-white/50'}`}
+                                                    >
+                                                        {opt === quizToEdit.correctAnswer && <Check className="w-2.5 h-2.5" />}
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     {quizToEdit.type === 'IMAGE' && (
-                                        <div className="space-y-4 pt-4 border-t border-white/5">
+                                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl space-y-4">
                                             <div>
-                                                <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Image URL</label>
+                                                <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-1">URL de l'image / Upload</label>
                                                 <div className="flex gap-2">
                                                     <input type="text" value={quizToEdit.imageUrl || ''} onChange={(e) => setQuizToEdit({ ...quizToEdit, imageUrl: e.target.value })}
-                                                        className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none" />
-                                                    <label className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all cursor-pointer flex items-center justify-center">
+                                                        className="flex-1 bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-[10px]" />
+                                                    <label className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white transition-all cursor-pointer">
                                                         <input type="file" accept="image/*" className="hidden"
-                                                            onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { const u = await uploadFile(f); setQuizToEdit({ ...quizToEdit, imageUrl: u }); } catch (err) { console.error("Upload failed", err); } } }} />
+                                                            onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { const u = await uploadFile(f); setQuizToEdit({ ...quizToEdit, imageUrl: u }); } catch (err) { } } }} />
                                                         <Upload className="w-5 h-5" />
                                                     </label>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Type Image</label>
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1">Type Image</label>
                                                     <select value={quizToEdit.imageType} onChange={(e) => setQuizToEdit({ ...quizToEdit, imageType: e.target.value })}
-                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none">
+                                                        className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:border-neon-red outline-none text-[10px]">
                                                         <option value="FESTIVAL">FESTIVAL (NET)</option>
                                                         <option value="ARTIST">ARTISTE (FLOU)</option>
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Effet Reveal</label>
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1">Effet Reveal</label>
                                                     <select value={quizToEdit.revealEffect} onChange={(e) => setQuizToEdit({ ...quizToEdit, revealEffect: e.target.value })}
-                                                        className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none">
+                                                        className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:border-neon-red outline-none text-[10px]">
                                                         <option value="BLUR">FLOU</option>
-                                                        <option value="MOSAIC">MOSAÃQUE</option>
+                                                        <option value="MOSAIC">MOSAÏQUE</option>
                                                         <option value="SILHOUETTE">SILHOUETTE</option>
                                                     </select>
                                                 </div>
@@ -4442,11 +4516,12 @@ export function AdminDashboard() {
                                         </div>
                                     )}
                                 </div>
+
                                 <div className="mt-8 flex gap-3">
                                     <button onClick={() => setIsEditQuizModalOpen(false)}
-                                        className="flex-1 py-3 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase text-[10px]">Annuler</button>
+                                        className="flex-1 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all hover:bg-white/10">Annuler</button>
                                     <button onClick={() => handleUpdateQuiz(quizToEdit)}
-                                        className="flex-1 py-3 bg-neon-red text-white rounded-xl font-bold uppercase text-[10px] shadow-lg shadow-neon-red/20">Enregistrer</button>
+                                        className="flex-1 py-4 bg-neon-red text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-neon-red/20 transition-all hover:scale-[1.02] active:scale-[0.98]">Enregistrer</button>
                                 </div>
                             </motion.div>
                         </div>
