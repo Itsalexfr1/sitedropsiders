@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -78,6 +78,16 @@ export function AdminDashboard() {
     const [quizFilter, setQuizFilter] = useState('ALL');
     const [quizSearch, setQuizSearch] = useState('');
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
+    const [testQuiz, setTestQuiz] = useState<any>(null);
+    const [isTestingModalOpen, setIsTestingModalOpen] = useState(false);
+
+    const quizCounts = useMemo(() => {
+        const all = [...allActiveQuizzes, ...allPendingQuizzes];
+        return {
+            blindTest: all.filter(q => q.type === 'BLIND_TEST').length,
+            image: all.filter(q => q.type === 'IMAGE').length
+        };
+    }, [allActiveQuizzes, allPendingQuizzes]);
     interface TakeoverState {
         enabled: boolean;
         youtubeId: string;
@@ -2610,8 +2620,11 @@ export function AdminDashboard() {
 
                                     <button
                                         onClick={() => { setIsQuizModalOpen(true); setIsContenuModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
                                     >
+                                        {(quizCounts.blindTest < 30 || quizCounts.image < 30) && (
+                                            <div className="absolute top-4 right-4 px-2 py-0.5 bg-black/60 border border-neon-red/30 rounded text-[7px] font-black text-neon-red uppercase tracking-widest animate-pulse">SOON</div>
+                                        )}
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Gamepad2 className="w-6 h-6 text-neon-red" />
                                         </div>
@@ -4101,6 +4114,18 @@ export function AdminDashboard() {
 
                                         <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
+                                        {(quizCounts.blindTest < 30 || quizCounts.image < 30) && (
+                                            <div className="flex items-center gap-3 px-3 py-2 bg-black/60 border border-neon-red/30 rounded-xl mx-2 shadow-[0_0_15px_rgba(255,0,51,0.1)] group">
+                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse">SOON</span>
+                                                <div className="h-4 w-[1px] bg-white/10" />
+                                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                                                    Contenu requis : <span className={quizCounts.blindTest < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.blindTest}/30 BT</span> • <span className={quizCounts.image < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.image}/30 Image</span>
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="h-6 w-[1px] bg-white/10 mx-2" />
+
                                         {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => (
                                             <button
                                                 key={filter}
@@ -4197,6 +4222,13 @@ export function AdminDashboard() {
                                                                             </button>
                                                                         )}
                                                                         <button
+                                                                            onClick={() => { setTestQuiz(quiz); setIsTestingModalOpen(true); }}
+                                                                            className="p-3 bg-purple-500/20 text-purple-500 border border-purple-500/30 rounded-2xl hover:bg-purple-500 hover:text-white transition-all shadow-xl shadow-purple-500/10"
+                                                                            title="Tester (AperÃ§u)"
+                                                                        >
+                                                                            <Play className="w-5 h-5" />
+                                                                        </button>
+                                                                        <button
                                                                             onClick={() => { setQuizToEdit(quiz); setIsEditQuizModalOpen(true); }}
                                                                             className="p-3 bg-blue-500/20 text-blue-500 border border-blue-500/30 rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-xl shadow-blue-500/10"
                                                                             title="Modifier"
@@ -4251,6 +4283,34 @@ export function AdminDashboard() {
                                 className="relative w-full max-w-lg bg-[#0f0f0f] border border-white/10 rounded-[2rem] p-8 shadow-2xl"
                             >
                                 <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Modifier la Question</h3>
+
+                                {(quizCounts.blindTest < 30 || quizCounts.image < 30) && (
+                                    <div className="mb-6 p-4 bg-black/60 border border-neon-red/20 rounded-2xl relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-neon-red/5 opacity-50" />
+                                        <div className="relative flex items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] animate-pulse">SOON</span>
+                                                <div className="h-4 w-[1px] bg-white/10" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] font-black text-white uppercase italic">Contenu manquant</span>
+                                                    <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
+                                                        Besoin de 30 items de chaque type pour activer
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <div className="text-right">
+                                                    <p className="text-[7px] text-gray-400 font-bold uppercase">Blind Test</p>
+                                                    <p className={`text-[10px] font-black ${quizCounts.blindTest >= 30 ? 'text-neon-green' : 'text-neon-red'}`}>{quizCounts.blindTest}/30</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[7px] text-gray-400 font-bold uppercase">Image</p>
+                                                    <p className={`text-[10px] font-black ${quizCounts.image >= 30 ? 'text-neon-green' : 'text-neon-red'}`}>{quizCounts.image}/30</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {/* TYPE TABS */}
                                 <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-2xl p-1 mb-6">
@@ -4527,6 +4587,95 @@ export function AdminDashboard() {
                         </div>
                     )}
                 </AnimatePresence>
+
+                {/* MODAL TEST QUIZ */}
+                <AnimatePresence>
+                    {isTestingModalOpen && testQuiz && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/98 backdrop-blur-2xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-xl w-full relative overflow-hidden shadow-[0_0_100px_rgba(255,18,65,0.1)]"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan" />
+
+                                <div className="flex justify-between items-start mb-8">
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Test de Question</h2>
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">AperÃ§u du rendu final pour les utilisateurs</p>
+                                    </div>
+                                    <button onClick={() => { setTestQuiz(null); setIsTestingModalOpen(false); }} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="p-8 bg-white/[0.02] border border-white/10 rounded-[2rem] relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-4">
+                                            <span className="px-3 py-1 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-full text-[8px] font-black uppercase tracking-widest">{testQuiz.type}</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{testQuiz.category}</span>
+                                        </div>
+
+                                        <h3 className="text-2xl font-bold text-white mb-8 uppercase italic tracking-tight leading-tight">{testQuiz.question}</h3>
+
+                                        {testQuiz.type === 'IMAGE' && testQuiz.imageUrl && (
+                                            <div className="aspect-video w-full rounded-2xl overflow-hidden mb-8 relative group border border-white/10 ring-1 ring-white/5 shadow-2xl">
+                                                <img src={testQuiz.imageUrl} alt="Quiz" className="w-full h-full object-cover" />
+                                                {testQuiz.imageType === 'PIXEL' && (
+                                                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
+                                                        <div className="px-4 py-2 bg-black/60 border border-white/20 rounded-xl">
+                                                            <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Effet Pixel ActivÃ©</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {testQuiz.type === 'BLIND_TEST' && testQuiz.audioUrl && (
+                                            <div className="mb-8 p-6 bg-black/40 border border-white/5 rounded-2xl">
+                                                <div className="flex items-center gap-4 mb-4">
+                                                    <div className="w-10 h-10 bg-neon-red/20 rounded-xl flex items-center justify-center border border-neon-red/30">
+                                                        <Music className="w-5 h-5 text-neon-red" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Extrait Audio</p>
+                                                        <p className="text-[10px] text-white font-black uppercase">PrÃ©-Ã©coute du Blind Test</p>
+                                                    </div>
+                                                </div>
+                                                <audio src={testQuiz.audioUrl} controls className="w-full h-8 custom-audio-player" />
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-1 gap-3">
+                                            {testQuiz.options.map((opt: string, i: number) => (
+                                                <div
+                                                    key={i}
+                                                    className={`p-5 rounded-2xl text-[11px] font-black uppercase tracking-widest border transition-all flex items-center justify-between ${opt === testQuiz.correctAnswer ? 'bg-neon-green/10 border-neon-green/30 text-neon-green shadow-[0_0_20px_rgba(34,197,94,0.1)]' : 'bg-black/40 border-white/5 text-gray-500 opacity-60'}`}
+                                                >
+                                                    {opt}
+                                                    {opt === testQuiz.correctAnswer && <CheckCircle2 className="w-4 h-4" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => { setTestQuiz(null); setIsTestingModalOpen(false); }}
+                                        className="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] transition-all"
+                                    >
+                                        Fermer l'aperÃ§u
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
                 <ConfirmModal
                     isOpen={confirmModal.isOpen}
                     title={confirmModal.title}
