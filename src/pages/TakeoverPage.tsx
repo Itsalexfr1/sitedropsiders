@@ -2480,10 +2480,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
                     <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-2 flex items-center justify-between z-30 shadow-xl shrink-0">
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600 border border-white/10 rounded-full shrink-0 shadow-[0_0_15px_rgba(255,0,0,0.3)]">
-                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                                <span className="text-[9px] font-black text-white uppercase tracking-widest">LIVE</span>
-                            </div>
                             <div className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-md shadow-[0_0_15px_rgba(37,99,235,0.2)]">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">EN DIRECT:</span>
                                 <span className="text-[10px] font-black uppercase tracking-widest text-white">{fluxCurrentArtist.artist || '---'}</span>
