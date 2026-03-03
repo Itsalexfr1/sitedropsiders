@@ -17,7 +17,7 @@ interface Quiz {
     audioUrl?: string;
     imageUrl?: string;
     imageType?: 'FESTIVAL' | 'ARTIST';
-    revealEffect?: 'BLUR' | 'MOSAIC';
+    revealEffect?: 'BLUR' | 'MOSAIC' | 'SILHOUETTE';
     youtubeId?: string;
     startTime?: number;
     author: string;
@@ -55,7 +55,7 @@ export function QuizSection() {
         type: 'QCM' as QuizType,
         category: 'Festivals',
         imageType: 'FESTIVAL' as 'FESTIVAL' | 'ARTIST',
-        revealEffect: 'BLUR' as 'BLUR' | 'MOSAIC',
+        revealEffect: 'BLUR' as 'BLUR' | 'MOSAIC' | 'SILHOUETTE',
         question: '',
         options: ['', '', '', ''],
         correctAnswer: '',
@@ -318,23 +318,16 @@ export function QuizSection() {
                         <feComposite in="SourceGraphic" in2="a" operator="in" />
                         <feMorphology operator="dilate" radius="2" />
                     </filter>
+                    <filter id="silhouette-effect">
+                        <feColorMatrix type="matrix" values="0 0 0 0 0
+                                                             0 0 0 0 0
+                                                             0 0 0 0 0
+                                                             0 0 0 1 0" />
+                    </filter>
                 </defs>
             </svg>
             {/* Tabs */}
-            <div className="flex justify-center gap-4">
-                <button
-                    onClick={() => setActiveTab('play')}
-                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'play' ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'bg-white/5 text-white/40 border border-white/10'}`}
-                >
-                    {t('article_reader.play')}
-                </button>
-                <button
-                    onClick={() => setActiveTab('submit')}
-                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'submit' ? 'bg-white text-black shadow-lg shadow-white/10' : 'bg-white/5 text-white/40 border border-white/10'}`}
-                >
-                    {t('communaute.quizz_submit_title')}
-                </button>
-            </div>
+            {/* Removed Tabs */}
 
             {activeTab === 'play' ? (
                 <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto px-4">
@@ -354,7 +347,7 @@ export function QuizSection() {
                                     </div>
                                     <h3 className="text-3xl font-display font-black text-white italic uppercase mb-8 flex items-center gap-4">
                                         <Gamepad2 className="w-8 h-8 text-neon-red" />
-                                        Paramètres du Quizz
+                                        Quizz
                                     </h3>
 
                                     <div className="space-y-8 relative z-10">
@@ -539,9 +532,11 @@ export function QuizSection() {
                                                                     style={{
                                                                         filter: (selectedAnswer || isRevealing)
                                                                             ? 'none'
-                                                                            : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
-                                                                                ? `url(#pixelate-mosaic) blur(${Math.max(0, questionTimer / 2)}px)`
-                                                                                : `blur(${Math.max(0, questionTimer * 2)}px)`
+                                                                            : gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
+                                                                                ? `brightness(0)`
+                                                                                : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
+                                                                                    ? `url(#pixelate-mosaic) blur(${Math.max(0, questionTimer / 2)}px)`
+                                                                                    : `blur(${Math.max(0, questionTimer * 2)}px)`
                                                                     }}
                                                                 />
                                                                 {!selectedAnswer && !isRevealing && (
@@ -636,20 +631,30 @@ export function QuizSection() {
                     {/* Sidebar Leaderboard */}
                     <div className="w-full lg:w-96 shrink-0">
                         <div className="bg-white/5 border border-white/10 rounded-[3rem] p-8 sticky top-32 backdrop-blur-3xl">
-                            <div className="flex items-center gap-3 mb-10">
-                                <Trophy className="w-6 h-6 text-yellow-500" />
-                                <h4 className="text-sm font-black text-white uppercase tracking-[0.3em]">CLASSEMENT GLOBAL</h4>
+                            <div className="flex flex-col gap-4 mb-8">
+                                <div className="flex items-center gap-3">
+                                    <Trophy className="w-6 h-6 text-yellow-500" />
+                                    <h4 className="text-sm font-black text-white uppercase tracking-[0.3em]">CLASSEMENT GLOBAL</h4>
+                                </div>
+                                <button
+                                    onClick={() => setActiveTab('submit')}
+                                    className="text-[9px] font-black text-neon-red hover:text-white uppercase tracking-widest text-left transition-colors flex items-center gap-2 group"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    PROPOSE TON QUIZZ
+                                    <div className="h-px flex-1 bg-neon-red/20 group-hover:bg-neon-red/40 transition-colors" />
+                                </button>
                             </div>
 
                             {/* Podium for top 3 */}
                             {leaderboard.length >= 3 && (
-                                <div className="flex items-end justify-center gap-2 mb-12 h-44">
+                                <div className="flex items-end justify-center gap-2 mb-12 h-56 px-2">
                                     {/* 2nd Place */}
                                     <div className="flex flex-col items-center flex-1">
                                         <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 overflow-hidden">
                                             <span className="text-white font-black text-[10px]">{leaderboard[1].pseudo.charAt(0)}</span>
                                         </div>
-                                        <div className="w-full bg-gradient-to-t from-gray-500/20 to-gray-500/40 rounded-t-xl h-24 flex flex-col items-center justify-center p-2 border-x border-t border-white/10">
+                                        <div className="w-full bg-gradient-to-t from-gray-500/20 to-gray-500/40 rounded-t-xl h-24 flex flex-col items-center justify-center p-2 border border-white/10">
                                             <span className="text-[9px] font-black text-white uppercase truncate w-full text-center">{leaderboard[1].pseudo}</span>
                                             <span className="text-[14px] font-black text-gray-300">{leaderboard[1].score}/{leaderboard[1].total}</span>
                                             <div className="mt-1 px-2 py-0.5 bg-gray-500/20 rounded-full text-[8px] font-black text-gray-400">2ND</div>
@@ -657,15 +662,15 @@ export function QuizSection() {
                                     </div>
 
                                     {/* 1st Place */}
-                                    <div className="flex flex-col items-center flex-1 -mb-4">
-                                        <div className="w-14 h-14 rounded-full bg-neon-red/20 border-2 border-neon-red flex items-center justify-center mb-2 overflow-hidden shadow-[0_0_20px_rgba(255,18,65,0.3)]">
+                                    <div className="flex flex-col items-center flex-1 -mb-2">
+                                        <div className="w-12 h-12 rounded-full bg-neon-red/20 border-2 border-neon-red flex items-center justify-center mb-2 overflow-hidden shadow-[0_0_20px_rgba(255,18,65,0.3)]">
                                             <span className="text-white font-black text-lg italic">{leaderboard[0].pseudo.charAt(0)}</span>
                                         </div>
-                                        <div className="w-full bg-gradient-to-t from-neon-red/20 to-neon-red/40 rounded-t-2xl h-36 flex flex-col items-center justify-center p-2 border-x border-t border-neon-red/30">
+                                        <div className="w-full bg-gradient-to-t from-neon-red/20 to-neon-red/40 rounded-t-2xl h-36 flex flex-col items-center justify-center p-2 border border-neon-red/30">
                                             <Zap className="w-4 h-4 text-neon-red mb-1 animate-pulse" />
                                             <span className="text-[11px] font-black text-white uppercase truncate w-full text-center">{leaderboard[0].pseudo}</span>
                                             <span className="text-[18px] font-black text-white">{leaderboard[0].score}/{leaderboard[0].total}</span>
-                                            <div className="mt-1 px-3 py-1 bg-neon-red rounded-full text-[10px] font-black text-white shadow-lg">WINNER</div>
+                                            <div className="mt-1 px-3 py-1 bg-neon-red rounded-full text-[10px] font-black text-white shadow-lg uppercase tracking-tighter">WINNER</div>
                                         </div>
                                     </div>
 
@@ -674,7 +679,7 @@ export function QuizSection() {
                                         <div className="w-10 h-10 rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 overflow-hidden">
                                             <span className="text-white font-black text-[10px]">{leaderboard[2].pseudo.charAt(0)}</span>
                                         </div>
-                                        <div className="w-full bg-gradient-to-t from-orange-500/30 to-orange-500/10 rounded-t-xl h-20 flex flex-col items-center justify-center p-2 border-x border-t border-white/10">
+                                        <div className="w-full bg-gradient-to-t from-orange-500/30 to-orange-500/10 rounded-t-xl h-20 flex flex-col items-center justify-center p-2 border border-white/10">
                                             <span className="text-[9px] font-black text-white uppercase truncate w-full text-center">{leaderboard[2].pseudo}</span>
                                             <span className="text-[13px] font-black text-orange-400">{leaderboard[2].score}/{leaderboard[2].total}</span>
                                             <div className="mt-1 px-2 py-0.5 bg-orange-500/20 rounded-full text-[8px] font-black text-orange-400">3RD</div>
@@ -707,9 +712,17 @@ export function QuizSection() {
                     <div className="absolute -bottom-10 -left-10 opacity-5">
                         <Plus className="w-48 h-48 text-white" />
                     </div>
-                    <h2 className="text-3xl font-display font-black text-white italic uppercase mb-8 flex items-center gap-4">
-                        <Plus className="w-8 h-8 text-neon-red" />
-                        Contribuer
+                    <h2 className="text-3xl font-display font-black text-white italic uppercase mb-8 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <Plus className="w-8 h-8 text-neon-red" />
+                            Contribuer
+                        </div>
+                        <button
+                            onClick={() => setActiveTab('play')}
+                            className="text-[10px] font-black text-gray-500 hover:text-white uppercase tracking-widest"
+                        >
+                            RETOUR AU JEU
+                        </button>
                     </h2>
 
                     <form onSubmit={handleFormSubmit} className="space-y-6 relative z-10">
@@ -766,6 +779,19 @@ export function QuizSection() {
                                     >
                                         <Camera className="w-4 h-4" />
                                         ARTISTE (FLOU)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({
+                                            ...formData,
+                                            imageType: 'ARTIST',
+                                            revealEffect: 'SILHOUETTE',
+                                            question: formData.question || "QUI EST CET ARTISTE ?"
+                                        })}
+                                        className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.revealEffect === 'SILHOUETTE' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                                    >
+                                        <User className="w-4 h-4" />
+                                        SILHOUETTE
                                     </button>
                                 </div>
 

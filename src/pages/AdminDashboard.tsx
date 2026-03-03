@@ -2634,23 +2634,7 @@ export function AdminDashboard() {
                                         </div>
                                     </button>
 
-                                    <button
-                                        onClick={() => { setIsQuizModalOpen(true); setIsTeamModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                                            <Gamepad2 className="w-6 h-6 text-neon-red" />
-                                        </div>
-                                        {pendingQuizzesCount > 0 && (
-                                            <div className="absolute top-4 right-8 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,11,62,0.6)]">
-                                                <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
-                                            </div>
-                                        )}
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Quizz</h3>
-                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none mt-1">Jeux & Quiz</p>
-                                        </div>
-                                    </button>
+
 
                                     <button
                                         onClick={() => { setIsTeamModalOpen(true); setIsTeamModalOpen(false); }}
@@ -4351,6 +4335,7 @@ export function AdminDashboard() {
                                                     >
                                                         <option value="BLUR">FLOU</option>
                                                         <option value="MOSAIC">MOSAÏQUE</option>
+                                                        <option value="SILHOUETTE">SILHOUETTE</option>
                                                     </select>
                                                 </div>
                                             </div>
