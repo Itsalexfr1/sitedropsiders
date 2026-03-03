@@ -5559,7 +5559,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="flex justify-center py-10">
                                         <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
                                     </div>
-                                ) : !(quizPopupQuestion && quizPopupQuestion.question) ? (
+                                ) : !(quizPopupQuestion != null && quizPopupQuestion.question) ? (
                                     <div className="py-10 text-center">
                                         <p className="text-gray-400 font-bold text-sm">Aucune question disponible pour le moment.</p>
                                     </div>
@@ -5568,7 +5568,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         {/* Category badge */}
                                         <div className="flex items-center gap-2">
                                             <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded-full">
-                                                {quizPopupQuestion.category ?? quizPopupQuestion.type ?? 'Quiz'}
+                                                {quizPopupQuestion?.category ?? quizPopupQuestion?.type ?? 'Quiz'}
                                             </span>
                                         </div>
 
