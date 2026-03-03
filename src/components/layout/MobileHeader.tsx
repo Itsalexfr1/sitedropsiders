@@ -1,6 +1,5 @@
-import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Search, Bell, User, Heart } from 'lucide-react';
+import { Search, User, Heart } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 export function MobileHeader() {
