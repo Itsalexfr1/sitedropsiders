@@ -407,20 +407,23 @@ export function QuizSection() {
                                                     { id: 'ALL', label: 'TOUT' },
                                                     { id: 'QCM', label: 'QCM' },
                                                     { id: 'BLIND_TEST', label: 'BLIND TEST' },
-                                                    { id: 'IMAGE', label: 'QUIZZ IMAGE' }
+                                                    { id: 'IMAGE', label: 'IMAGES' }
                                                 ].map(opt => {
-                                                    const isSoon = (opt.id === 'BLIND_TEST' && quizCounts.BLIND_TEST < 30) || (opt.id === 'IMAGE' && quizCounts.IMAGE < 30);
+                                                    const isBlindTestSoon = quizCounts.BLIND_TEST < 30;
+                                                    const isImageSoon = quizCounts.IMAGE < 30;
+                                                    const isSoon = (opt.id === 'BLIND_TEST' && isBlindTestSoon) || (opt.id === 'IMAGE' && isImageSoon);
                                                     const isDisabled = isSoon && !isAdmin;
 
                                                     return (
                                                         <button
                                                             key={opt.id}
-                                                            onClick={() => !isDisabled && setSelectedMode(opt.id as any)}
-                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/5 text-gray-700 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                            disabled={isDisabled}
+                                                            onClick={() => setSelectedMode(opt.id as any)}
+                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'opacity-40 grayscale cursor-not-allowed border-white/5' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
                                                         >
                                                             {isSoon && (
-                                                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-black/80 border border-neon-red/30 rounded text-[7px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse whitespace-nowrap">
-                                                                    SOON ({opt.id === 'BLIND_TEST' ? quizCounts.BLIND_TEST : quizCounts.IMAGE}/30)
+                                                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black border border-neon-red/50 rounded text-[7px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse whitespace-nowrap shadow-[0_0_10px_rgba(255,0,0,0.3)]">
+                                                                    SOON
                                                                 </div>
                                                             )}
                                                             {opt.label}
@@ -472,9 +475,10 @@ export function QuizSection() {
                                             </div>
                                             <h2 className="text-white font-black uppercase italic tracking-tighter">
                                                 {gamePseudo} <span className="text-neon-red mx-2">/</span>
-                                                <span className="text-gray-500">QUESTION {currentQuizIndex + 1} SUR {gameQuizzes.length}</span>
+                                                <span className="text-gray-500">{currentQuizIndex + 1} SUR {gameQuizzes.length}</span>
                                             </h2>
                                         </div>
+
                                         <div className="flex items-center gap-3 bg-neon-red/10 px-4 py-2 rounded-2xl border border-neon-red/20">
                                             <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-ping" />
                                             <span className="text-base font-display font-black text-white tabular-nums">{questionTimer.toFixed(1)}s</span>
@@ -491,8 +495,11 @@ export function QuizSection() {
                                             />
                                         </div>
                                         <h3 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter italic mb-10 leading-tight">
-                                            {gameQuizzes[currentQuizIndex].question}
+                                            {gameQuizzes[currentQuizIndex].type === 'IMAGE' ? 'QUI EST-CE ?' :
+                                                gameQuizzes[currentQuizIndex].type === 'BLIND_TEST' ? 'QUEL EST CE TITRE ?' :
+                                                    gameQuizzes[currentQuizIndex].question}
                                         </h3>
+
 
                                         {/* Visual Hider Area */}
                                         <div className="relative w-full aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl bg-[#0a0a0a]">
