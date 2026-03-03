@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Newspaper, Music, Calendar, Video, Camera, ArrowRight, TrendingUp, Star } from 'lucide-react';
+import { Newspaper, ArrowRight, TrendingUp, Star } from 'lucide-react';
 import newsData from '../../data/news.json';
 import { getArticleLink } from '../../utils/slugify';
 import { useLanguage } from '../../context/LanguageContext';
@@ -47,33 +47,7 @@ export function MobileHome() {
                 </div>
             </section>
 
-            {/* Quick Actions Grid */}
-            <section className="px-6 grid grid-cols-2 gap-4">
-                <QuickAction
-                    to="/musique"
-                    icon={Music}
-                    label={t('nav.music')}
-                    color="bg-neon-green/10 border-neon-green/20 text-neon-green"
-                />
-                <QuickAction
-                    to="/agenda"
-                    icon={Calendar}
-                    label={t('nav.agenda')}
-                    color="bg-neon-cyan/10 border-neon-cyan/20 text-neon-cyan"
-                />
-                <QuickAction
-                    to="/recaps"
-                    icon={Video}
-                    label={t('nav.recaps')}
-                    color="bg-neon-purple/10 border-neon-purple/20 text-neon-purple"
-                />
-                <QuickAction
-                    to="/communaute"
-                    icon={Camera}
-                    label={t('nav.communaute')}
-                    color="bg-neon-pink/10 border-neon-pink/20 text-neon-pink"
-                />
-            </section>
+
 
             {/* The Feed - News List */}
             <section className="px-6">
@@ -120,19 +94,5 @@ export function MobileHome() {
                 </div>
             </section>
         </div>
-    );
-}
-
-function QuickAction({ to, icon: Icon, label, color }: { to: string, icon: any, label: string, color: string }) {
-    return (
-        <Link
-            to={to}
-            className={`flex flex-col items-center justify-center p-6 border rounded-[2rem] gap-3 transition-all active:scale-95 ${color}`}
-        >
-            <div className="p-3 bg-white/10 rounded-2xl">
-                <Icon className="w-6 h-6" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{label}</span>
-        </Link>
     );
 }

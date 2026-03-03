@@ -59,7 +59,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             {!isMobile && !isAdminPage && <Navbar />}
-            {!isAdminPage && <AnnouncementBanner />}
+            {!isMobile && !isAdminPage && <AnnouncementBanner />}
 
             <main className={`flex-grow relative ${ptClass}`}>
                 {children}

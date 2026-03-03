@@ -2432,9 +2432,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-                {/* Flux Selection & Info Bar - Always visible above video */}
+                {/* Flux Selection & Info Bar - Always visible above video on Desktop */}
                 {!isFullScreen && (
-                    <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-2 md:px-4 py-2 flex items-center justify-between gap-2 z-40 relative overflow-hidden">
+                    <div className="hidden lg:flex w-full bg-[#0a0a0a] border-b border-white/10 px-2 md:px-4 py-2 items-center justify-between gap-2 z-40 relative overflow-hidden">
                         <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                             {/* LIVE TITLE */}
                             <div className="flex flex-col min-w-0 py-0.5">
@@ -2542,11 +2542,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </button>
                 )}
 
-                <div className="flex-1 flex flex-row min-h-0 bg-black gap-0 relative">
+                <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`shrink-0 w-[60%] lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`shrink-0 w-full h-[50vh] lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
-                        <div ref={videoPlayerRef} className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
+                        <div ref={videoPlayerRef} className="w-full h-full lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
                                 <div className={`grid ${playersOption === 4 ? (getVisiblePlayers().length > 2 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-1') : 'grid-cols-1'} h-full gap-0.5 bg-black`}>
                                     {getVisiblePlayers().map((item, idx) => (
@@ -4474,7 +4474,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         </AnimatePresence>
 
                         {/* Chat Content and Sidebar Wrapper */}
-                        <div className={`w-[40%] shrink-0 lg:w-auto lg:flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
+                        <div className={`flex-1 w-full lg:w-auto lg:flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
                             <div className="flex-1 flex flex-col min-h-0 relative">
                                 {isLocalBanned ? (
                                     <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
