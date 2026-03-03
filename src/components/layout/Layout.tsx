@@ -58,8 +58,8 @@ export function Layout({ children }: LayoutProps) {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             </div>
 
-            {!isAdminPage && <Navbar />}
-            {!isAdminPage && <MobileHeader />}
+            {!isMobile && !isAdminPage && <Navbar />}
+            {isMobile && !isAdminPage && <MobileHeader />}
             {!isAdminPage && <AnnouncementBanner />}
 
             <main className={`flex-grow relative ${ptClass}`}>
@@ -68,7 +68,7 @@ export function Layout({ children }: LayoutProps) {
 
             {!isAdminPage && <Footer />}
             {!isAdminPage && (
-                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/95 to-transparent z-[100] pointer-events-none" />
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/95 to-transparent z-[90] pointer-events-none" />
             )}
             {!isAdminPage && <MobileNavbar />}
         </div>
