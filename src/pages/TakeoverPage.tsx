@@ -2406,7 +2406,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             {/* LIVE TITLE MOVED HERE */}
                             <div className="flex flex-col min-w-0 py-0.5">
                                 <div className="flex items-center gap-3">
-                                    {settings.isOnline && (
+                                    {(settings.enabled || settings.isOnline || isServerAdmin) && (
                                         <div className="flex items-center gap-2 bg-red-600 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(255,0,0,0.4)] border border-white/20">
                                             <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
                                             <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">
