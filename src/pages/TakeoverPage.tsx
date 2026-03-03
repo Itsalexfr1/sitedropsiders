@@ -1932,46 +1932,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             const res = await fetch(`/api/settings?t=${Date.now()}`);
             if (res.ok) {
                 const currentSettings = await res.json();
-                const cleanId = (url: string) => {
-                    if (!url) return '';
-                    if (url.includes('v=')) return url.split('v=')[1].split('&')[0];
-                    if (url.includes('youtu.be/')) return url.split('youtu.be/')[1].split('?')[0];
-                    return url.trim();
-                };
-
-                // Auto-generate channels string if stages are being updated
-                const isStageUpdate =
-                    updates.stage1 !== undefined || updates.stage1Name !== undefined ||
-                    updates.stage2 !== undefined || updates.stage2Name !== undefined ||
-                    updates.stage3 !== undefined || updates.stage3Name !== undefined ||
-                    updates.stage4 !== undefined || updates.stage4Name !== undefined ||
-                    updates.stage5 !== undefined || updates.stage5Name !== undefined ||
-                    updates.stage6 !== undefined || updates.stage6Name !== undefined;
-
-                if (isStageUpdate) {
-                    const st1 = updates.stage1 ?? stage1;
-                    const st2 = updates.stage2 ?? stage2;
-                    const st3 = updates.stage3 ?? stage3;
-                    const st4 = updates.stage4 ?? stage4;
-                    const st5 = updates.stage5 ?? stage5;
-                    const st6 = updates.stage6 ?? stage6;
-                    const n1 = updates.stage1Name ?? stage1Name;
-                    const n2 = updates.stage2Name ?? stage2Name;
-                    const n3 = updates.stage3Name ?? stage3Name;
-                    const n4 = updates.stage4Name ?? stage4Name;
-                    const n5 = updates.stage5Name ?? stage5Name;
-                    const n6 = updates.stage6Name ?? stage6Name;
-
-                    const chList = [];
-                    if (st1) chList.push(`${cleanId(st1)}:${n1 || 'Stage 1'}`);
-                    if (st2) chList.push(`${cleanId(st2)}:${n2 || 'Stage 2'}`);
-                    if (st3) chList.push(`${cleanId(st3)}:${n3 || 'Stage 3'}`);
-                    if (st4) chList.push(`${cleanId(st4)}:${n4 || 'Stage 4'}`);
-                    if (st5) chList.push(`${cleanId(st5)}:${n5 || 'Stage 5'}`);
-                    if (st6) chList.push(`${cleanId(st6)}:${n6 || 'Stage 6'}`);
-
-                    updates.channels = chList.join('\n');
-                }
 
                 const newSettings = {
                     ...currentSettings,
@@ -2535,6 +2495,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     {/* Video Section */}
                     <div className={`flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
+                        <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
+                            <div className="absolute inset-0 z-0">
+                                <iframe
+                                    className="w-full h-full border-none"
+                                    src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
+                                    title={settings.title || 'Live Stream'}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+                        </div>
 
                         {/* Mini Planning Widget */}
                         <AnimatePresence>
