@@ -249,7 +249,7 @@ export function AdminDashboard() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Supprimer Quizz',
-                message: 'Voulez-vous vraiment supprimer dÃ©finitivement cette question ?',
+                message: 'Voulez-vous vraiment supprimer éfinitivement cette question ?',
                 type: 'danger',
                 onConfirm: () => performModerateQuiz(id, action)
             });
@@ -332,7 +332,7 @@ export function AdminDashboard() {
             });
 
             if (resp.ok) {
-                alert('Notification envoyÃ©e avec succÃ¨s Ã  tous les abonnÃ©s !');
+                alert('Notification envoyée avec succès à tous les abonnés !');
                 setIsNotificationModalOpen(false);
             } else {
                 throw new Error('Erreur lors de l\'envoi');
@@ -597,7 +597,7 @@ export function AdminDashboard() {
         setConfirmModal({
             isOpen: true,
             title: 'Supprimer Extrait',
-            message: 'Supprimer dÃ©finitivement cet extrait ? Cette action est irrÃ©versible.',
+            message: 'Supprimer éfinitivement cet extrait ? Cette action est irréversible.',
             type: 'danger',
             onConfirm: () => performDeleteClip(id)
         });
@@ -717,28 +717,28 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        // CONTENU & Ã‰DITORIAL
-        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & Ã‰DITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & Ã‰DITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        // CONTENU & À‰DITORIAL
+        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & À‰DITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & À‰DITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
         { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
 
-        // COMMUNAUTÃ‰ & ENGAGEMENT
-        { title: "CommunautÃ©", description: "ModÃ©ration & Jeux", icon: "ImageIcon", category: "COMMUNAUTÃ‰ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÃ‰ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        // COMMUNAUTÀ‰ & ENGAGEMENT
+        { title: "Communauté", description: "Moération & Jeux", icon: "ImageIcon", category: "COMMUNAUTÀ‰ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÀ‰ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails ReÃ§us", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
-        // SYSTÃˆME & TEAM
-        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÃˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
-        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÃˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Team", description: "Ã‰quipe & AccÃ¨s", icon: "Users", category: "SYSTÃˆME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        // SYSTÀˆME & TEAM
+        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Team", description: "À‰quipe & Accès", icon: "Users", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
     ];
 
 
@@ -770,7 +770,7 @@ export function AdminDashboard() {
                 }
             }
 
-            // Si l'API rÃ©pond avec une erreur explicite
+            // Si l'API répond avec une erreur explicite
             if (response.status === 401) {
                 setError('Identifiants incorrects');
                 return;
@@ -780,7 +780,7 @@ export function AdminDashboard() {
 
         } catch (err: any) {
             // FALLBACK LOCAL (DEV MODE)
-            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vÃ©rifie en dur ici pour dÃ©bloquer
+            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vérifie en dur ici pour ébloquer
             console.log("API Login failed, trying local check...", err);
 
             if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026') {
@@ -822,10 +822,10 @@ export function AdminDashboard() {
                         </div>
 
                         <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
-                            AccÃ¨s Restreint
+                            Accès Restreint
                         </h2>
                         <p className="text-center text-gray-400 text-sm mb-8">
-                            Veuillez vous identifier pour accÃ©der au tableau de bord.
+                            Veuillez vous identifier pour accéder au tableau de bord.
                         </p>
 
                         <form onSubmit={handleLogin} className="space-y-4">
@@ -875,8 +875,8 @@ export function AdminDashboard() {
 
                         <div className="mt-8 pt-6 border-t border-white/5">
                             <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
-                                Espace d'administration rÃ©servÃ© Ã  l'Ã©quipe Dropsiders.
-                                Ce portail permet la gestion des actualitÃ©s, des reportages festivals,
+                                Espace d'administration réservé à l'équipe Dropsiders.
+                                Ce portail permet la gestion des actualités, des reportages festivals,
                                 de la billetterie et des statistiques d'audience du site.
                             </p>
                         </div>
@@ -900,12 +900,12 @@ export function AdminDashboard() {
     const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
-        // Permission MaÃ®tre (Alex ou Administrateur "all" pour superadmin)
+        // Permission Maître (Alex ou Administrateur "all" pour superadmin)
         if (p === 'superadmin') return isAlex || storedPermissions.includes('all');
 
         if (storedPermissions.includes('all')) return true;
 
-        // SÃ©paration des permissions d'action (create, edit, delete)
+        // Séparation des permissions d'action (create, edit, delete)
         const actionPermissions = ['create', 'edit', 'delete'];
         if (actionPermissions.includes(p)) {
             return storedPermissions.includes(p);
@@ -913,13 +913,13 @@ export function AdminDashboard() {
 
         if (storedPermissions.includes(p)) return true;
 
-        // Si l'utilisateur possÃ¨de 'publications', il a accÃ¨s par dÃ©faut aux sous-sections Ã©ditoriales
+        // Si l'utilisateur possède 'publications', il a accès par éfaut aux sous-sections éditoriales
         if (storedPermissions.includes('publications')) {
             const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries', 'social_studio'];
             if (editorialSubsets.includes(p)) return true;
         }
 
-        // AccÃ¨s complet au Live Takeover par dÃ©faut si on a takeover_full
+        // Accès complet au Live Takeover par éfaut si on a takeover_full
         if (storedPermissions.includes('takeover_full')) {
             const liveSubsets = ['takeover_modo', 'clips', 'audio_rooms', 'hype_drops', 'shazam'];
             if (liveSubsets.includes(p)) return true;
@@ -1032,7 +1032,7 @@ export function AdminDashboard() {
                             </h1>
                         </div>
                         <p className="text-gray-400 text-lg max-w-2xl">
-                            Bienvenue dans votre espace d'administration. {isAdminAcc && "DÃ©placez les cartes pour rÃ©organiser."}
+                            Bienvenue dans votre espace d'administration. {isAdminAcc && "éplacez les cartes pour réorganiser."}
                         </p>
                         <div className="mt-4 flex flex-wrap items-center gap-6">
                             <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group">
@@ -1044,7 +1044,7 @@ export function AdminDashboard() {
                                 className="inline-flex items-center gap-2 text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-black transition-all group"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
-                                DÃ©connexion
+                                éconnexion
                             </button>
                         </div>
                     </div>
@@ -1075,7 +1075,7 @@ export function AdminDashboard() {
                                             className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"
                                         >
                                             <Paintbrush className="w-3.5 h-3.5" />
-                                            Mode Ã‰dition
+                                            Mode À‰dition
                                         </button>
                                     )}
                                 </>
@@ -1108,7 +1108,7 @@ export function AdminDashboard() {
                             <button
                                 onClick={fetchActions}
                                 className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center gap-2"
-                                title="RafraÃ®chir les donnÃ©es"
+                                title="Rafraîchir les données"
                             >
                                 <RefreshCw className="w-4 h-4" />
                                 Actualiser
@@ -1135,7 +1135,7 @@ export function AdminDashboard() {
                                         className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         <Youtube className="w-4 h-4" />
-                                        AccÃ¨s Live
+                                        Accès Live
                                     </Link>
 
                                     {/* Live Status Controls */}
@@ -1152,7 +1152,7 @@ export function AdminDashboard() {
                                             disabled={isUpdatingTakeover}
                                             className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            Ã‰DITION
+                                            À‰DITION
                                         </button>
                                         <button
                                             onClick={() => updateLiveStatus('live')}
@@ -1300,7 +1300,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Agenda') {
                                                     e.preventDefault();
                                                     setIsAgendaModalOpen(true);
-                                                } else if (action.title === 'CommunautÃ©') {
+                                                } else if (action.title === 'Communauté') {
                                                     e.preventDefault();
                                                     setIsCommunauteModalOpen(true);
                                                 } else if (action.title === 'Team') {
@@ -1310,7 +1310,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Contenu') {
                                                     e.preventDefault();
                                                     setIsContenuModalOpen(true);
-                                                } else if (action.title === 'Newsletter' || action.title === 'AbonnÃ©s') {
+                                                } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
                                                     e.preventDefault();
                                                     setIsNewsletterModalOpen(true);
                                                 } else if (action.title === 'LIVE / TAKEOVER') {
@@ -1361,7 +1361,7 @@ export function AdminDashboard() {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                                     {getIcon(action.icon, action.baseColor)}
-                                                    {action.title === 'ModÃ©ration' && pendingPhotosCount > 0 && (
+                                                    {action.title === 'Moération' && pendingPhotosCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                         </div>
@@ -1376,7 +1376,7 @@ export function AdminDashboard() {
                                                             <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
                                                         </div>
                                                     )}
-                                                    {action.title === 'CommunautÃ©' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
+                                                    {action.title === 'Communauté' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount + pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
                                                         </div>
@@ -1463,7 +1463,7 @@ export function AdminDashboard() {
                                                     value={bannerState.text}
                                                     onChange={(e) => setBannerState({ ...bannerState, text: e.target.value.toUpperCase() })}
                                                     className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
-                                                    placeholder="Message en FranÃ§ais..."
+                                                    placeholder="Message en Français..."
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -1486,7 +1486,7 @@ export function AdminDashboard() {
                                             </label>
                                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                                 {[
-                                                    { label: 'Aucun (DÃ©sactivÃ©)', val: '' },
+                                                    { label: 'Aucun (ésactivé)', val: '' },
                                                     { label: 'Accueil', val: '/' },
                                                     { label: 'News', val: '/news' },
                                                     { label: 'Agenda', val: '/agenda' },
@@ -1505,7 +1505,7 @@ export function AdminDashboard() {
                                             <div className="relative">
                                                 <input
                                                     type="text"
-                                                    placeholder="URL personnalisÃ©e ou lien externe (https://...)"
+                                                    placeholder="URL personnalisée ou lien externe (https://...)"
                                                     value={bannerState.link}
                                                     onChange={(e) => setBannerState({ ...bannerState, link: e.target.value })}
                                                     className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-[11px] focus:outline-none focus:border-neon-orange transition-all font-mono"
@@ -1583,7 +1583,7 @@ export function AdminDashboard() {
 
                                         {/* Preview */}
                                         <div className="pt-4 border-t border-white/5">
-                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">AperÃ§u direct (taille approx.)</div>
+                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aperçu direct (taille approx.)</div>
                                             <div
                                                 className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
                                                 style={{
@@ -1659,7 +1659,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-purple" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Ã‰crite</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">À‰crite</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format texte</p>
                                     </Link>
 
@@ -1670,8 +1670,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Youtube className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">VidÃ©o</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format vidÃ©o</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Viéo</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format viéo</p>
                                     </Link>
                                 </div>
 
@@ -1684,20 +1684,20 @@ export function AdminDashboard() {
                                             <Settings2 className="w-5 h-5 text-gray-400" />
                                         </div>
                                         <div className="text-left">
-                                            <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer mes interviews</h3>
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes interviews</h3>
                                             <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                 </Link>
 
-                                {/* Section SÃ©lection Home */}
+                                {/* Section Sélection Home */}
                                 <div className="pt-8 border-t border-white/5">
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
-                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Ã€ la une sur l'accueil</h3>
+                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">À€ la une sur l'accueil</h3>
                                             <div className="flex items-center gap-4 mt-1">
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews Ã  afficher</p>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews à afficher</p>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setSelectedInterviews([])}
@@ -1709,7 +1709,7 @@ export function AdminDashboard() {
                                                         onClick={() => setSelectedInterviews(allInterviews.slice(0, 4).map(i => i.id))}
                                                         className="text-[9px] font-black text-gray-400 hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/10"
                                                     >
-                                                        4 DerniÃ¨res
+                                                        4 Dernières
                                                     </button>
                                                 </div>
                                             </div>
@@ -1824,7 +1824,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-blue/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-blue" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">ActualitÃ©</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Actualité</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article news</p>
                                     </Link>
 
@@ -1851,7 +1851,7 @@ export function AdminDashboard() {
                                             <Settings2 className="w-5 h-5 text-gray-400" />
                                         </div>
                                         <div className="text-left">
-                                            <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer mes articles</h3>
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes articles</h3>
                                             <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                         </div>
                                     </div>
@@ -1879,7 +1879,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Social <span className="text-neon-pink">Studio</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">GÃ©nÃ©rez des visuels pour vos rÃ©seaux</p>
+                                        <p className="text-gray-400 font-medium">Générez des visuels pour vos réseaux</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSocialModalOpen(false)}
@@ -1890,7 +1890,7 @@ export function AdminDashboard() {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">SÃ©lectionner un article rÃ©cent ou crÃ©er Ã  vide</div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sélectionner un article récent ou créer à vide</div>
                                     <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                                         <button
                                             onClick={() => {
@@ -1904,7 +1904,7 @@ export function AdminDashboard() {
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="font-black text-white uppercase italic text-lg tracking-tighter">Visuel Vide / Manuel</h3>
-                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">DÃ©marrer sans article</p>
+                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">émarrer sans article</p>
                                             </div>
                                             <ArrowRight className="w-6 h-6 text-neon-pink" />
                                         </button>
@@ -1934,7 +1934,7 @@ export function AdminDashboard() {
                                                 </button>
                                             ))
                                         ) : (
-                                            <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouvÃ©</div>
+                                            <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouvé</div>
                                         )}
                                     </div>
 
@@ -1999,7 +1999,7 @@ export function AdminDashboard() {
                                             <Plus className="w-6 h-6 text-neon-yellow" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel Ã©vÃ©nement</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel événement</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Ajouter une date</p>
                                         </div>
                                     </Link>
@@ -2014,7 +2014,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer l'agenda</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer l'agenda</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -2026,7 +2026,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal CommunautÃ© */}
+                {/* Modal Communauté */}
                 <AnimatePresence>
                     {isGalerieModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2041,7 +2041,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-pink">CommunautÃ©</span>
+                                            Gestion <span className="text-neon-pink">Communauté</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -2064,12 +2064,12 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="text-left">
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel album</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÃ©er une galerie photo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une galerie photo</p>
                                         </div>
                                     </Link>
 
                                     <Link
-                                        to="/admin/manage?tab=CommunautÃ©"
+                                        to="/admin/manage?tab=Communauté"
                                         onClick={() => setIsGalerieModalOpen(false)}
                                         className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
                                     >
@@ -2078,7 +2078,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÃ©rer les galeries</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer les galeries</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -2137,7 +2137,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">GÃ©rer</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les articles</p>
                                     </Link>
                                 </div>
@@ -2146,7 +2146,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal RÃ©caps */}
+                {/* Modal Récaps */}
                 <AnimatePresence>
                     {isRecapModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
@@ -2161,7 +2161,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-red">RÃ©caps</span>
+                                            Gestion <span className="text-neon-red">Récaps</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -2182,7 +2182,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Plus className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau RÃ©cap</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau Récap</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Reportage Festival</p>
                                     </Link>
 
@@ -2194,8 +2194,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">GÃ©rer</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les rÃ©caps</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les récaps</p>
                                     </Link>
                                 </div>
                             </motion.div>
@@ -2220,7 +2220,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-orange">Messages</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">AccÃ¨s directs</p>
+                                        <p className="text-gray-400 font-medium">Accès directs</p>
                                     </div>
                                     <button
                                         onClick={() => setIsMessagesModalOpen(false)}
@@ -2240,7 +2240,7 @@ export function AdminDashboard() {
                                             <Mail className="w-6 h-6 text-neon-orange" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">BoÃ®te de rÃ©ception</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Boîte de réception</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les messages</p>
                                         </div>
                                     </Link>
@@ -2254,7 +2254,7 @@ export function AdminDashboard() {
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">ParamÃ¨tres Contact</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Contact</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
                                         </div>
                                     </Link>
@@ -2363,7 +2363,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vues Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÃ©rer les sections & le live</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les sections & le live</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2425,7 +2425,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Google Analytics</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse dÃ©taillÃ©e</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse étaillée</p>
                                         </div>
                                     </a>
                                 </div>
@@ -2472,7 +2472,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Playlists Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÃ©rer le top 10 hebdo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer le top 10 hebdo</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2498,7 +2498,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-green-400">Newsletter</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Campagnes & AbonnÃ©s</p>
+                                        <p className="text-gray-400 font-medium">Campagnes & Abonnés</p>
                                     </div>
                                     <button
                                         onClick={() => setIsNewsletterModalOpen(false)}
@@ -2518,7 +2518,7 @@ export function AdminDashboard() {
                                             <Mail className="w-6 h-6 text-green-400" />
                                         </div>
                                         <h3 className="text-xl font-bold text-white uppercase italic mb-1">Studio</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÃ©er une campagne</p>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une campagne</p>
                                     </Link>
 
                                     <Link
@@ -2529,8 +2529,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Users className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">AbonnÃ©s</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÃ©rer la liste mail</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Abonnés</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer la liste mail</p>
                                     </Link>
                                 </div>
                             </motion.div>
@@ -2538,7 +2538,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Contenu (Ã‰ditorial) */}
+                {/* Modal Contenu (À‰ditorial) */}
                 <AnimatePresence>
                     {isContenuModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2555,7 +2555,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-cyan">Contenu Editorial</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">ContrÃ´le des articles et mÃ©dias</p>
+                                        <p className="text-gray-400 font-medium">Contrôle des articles et médias</p>
                                     </div>
                                     <button
                                         onClick={() => setIsContenuModalOpen(false)}
@@ -2613,7 +2613,7 @@ export function AdminDashboard() {
                                             <Video className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">RÃ©caps</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Récaps</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Reportages</p>
                                         </div>
                                     </button>
@@ -2639,7 +2639,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal CommunautÃ© */}
+                {/* Modal Communauté */}
                 <AnimatePresence>
                     {isCommunauteModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2654,7 +2654,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            COMMUNAUTÃ‰
+                                            COMMUNAUTÀ‰
                                         </h2>
                                         <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Espace de partage et galeries</p>
                                     </div>
@@ -2702,7 +2702,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             TEAM
                                         </h2>
-                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et accÃ¨s</p>
+                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et accès</p>
                                     </div>
                                     <button
                                         onClick={() => setIsTeamModalOpen(false)}
@@ -2739,7 +2739,7 @@ export function AdminDashboard() {
                                             <Users className="w-6 h-6 text-neon-blue" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Ã‰quipe</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">À‰quipe</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Actifs</p>
                                         </div>
                                     </button>
@@ -2751,7 +2751,7 @@ export function AdminDashboard() {
                                             <Pencil className="w-6 h-6 text-neon-purple" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Ã‰diteurs</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">À‰diteurs</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Droits & Profils</p>
                                         </div>
                                     </button>
@@ -2763,7 +2763,7 @@ export function AdminDashboard() {
                                             <Shield className="w-6 h-6 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">SÃ©curitÃ©</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Sécurité</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Logs & Banlist</p>
                                         </div>
                                     </button>
@@ -2773,7 +2773,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Ã‰diteurs */}
+                {/* Modal À‰diteurs */}
                 <AnimatePresence>
                     {isEditorsModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
@@ -2788,9 +2788,9 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-red">Ã‰diteurs</span>
+                                            Gestion <span className="text-neon-red">À‰diteurs</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">ContrÃ´le des accÃ¨s</p>
+                                        <p className="text-gray-400 font-medium">Contrôle des accès</p>
                                     </div>
                                     <button
                                         onClick={() => setIsEditorsModalOpen(false)}
@@ -2810,8 +2810,8 @@ export function AdminDashboard() {
                                             <Lock className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes Ã‰diteurs</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÃ©er & GÃ©rer les permissions</p>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes À‰diteurs</h3>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer & Gérer les permissions</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2835,9 +2835,9 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            SÃ©curitÃ© <span className="text-neon-purple">& AccÃ¨s</span>
+                                            Sécurité <span className="text-neon-purple">& Accès</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">ParamÃ¨tres systÃ¨me</p>
+                                        <p className="text-gray-400 font-medium">Paramètres système</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSettingsModalOpen(false)}
@@ -2858,7 +2858,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mots de passe</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accÃ¨s globaux</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accès globaux</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2883,7 +2883,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
                                             Live <span className="text-neon-red">Takeover</span>
                                         </h2>
-                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrÃ´le de la page d'accueil</p>
+                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrôle de la page d'accueil</p>
                                     </div>
                                     <button
                                         onClick={() => { }}
@@ -2895,14 +2895,14 @@ export function AdminDashboard() {
 
                                 <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 overflow-x-auto z-20 relative no-scrollbar">
                                     <div className="flex min-w-max">
-                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VIDÃ‰O</button>
+                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VIDÀ‰O</button>
                                         <button onClick={() => setTakeoverTab('ticker')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'ticker' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}>BANDEAU</button>
-                                        <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MODÃ‰RATION</button>
+                                        <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MODÀ‰RATION</button>
                                         <button onClick={() => setTakeoverTab('planning')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'planning' ? 'bg-neon-purple/10 text-neon-purple shadow-lg' : 'text-gray-500 hover:text-white'}`}>PLANNING</button>
-                                        <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>Ã‰QUIPE</button>
+                                        <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>À‰QUIPE</button>
                                         <button onClick={() => setTakeoverTab('bot')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'bot' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>BOT</button>
-                                        <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACCÃˆS</button>
-                                        <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÃ‰S</button>
+                                        <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACCÀˆS</button>
+                                        <button onClick={() => setTakeoverTab('blocked')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'blocked' ? 'bg-red-500/10 text-red-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>BLOQUÀ‰S</button>
                                         <button
                                             onClick={() => {
                                                 setTakeoverTab('clips');
@@ -2910,7 +2910,7 @@ export function AdminDashboard() {
                                             }}
                                             className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'clips' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            VIDÃ‰O / CLIPS
+                                            VIDÀ‰O / CLIPS
                                         </button>
                                     </div>
                                 </div>
@@ -2925,7 +2925,7 @@ export function AdminDashboard() {
                                                     </div>
                                                     <div>
                                                         <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le systÃ¨me Live est opÃ©rationnel</p>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le système Live est opérationnel</p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -2957,7 +2957,7 @@ export function AdminDashboard() {
                                                 <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
                                                     <div className="flex flex-col">
                                                         <p className="text-[11px] font-black text-white uppercase tracking-widest">Afficher dans le Menu</p>
-                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">IcÃ´ne Video en haut du site</p>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Icône Video en haut du site</p>
                                                     </div>
                                                     <button
                                                         onClick={() => setTakeoverState({ ...takeoverState, showInNavbar: !takeoverState.showInNavbar })}
@@ -3005,7 +3005,7 @@ export function AdminDashboard() {
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-2">
                                                         <Video className="w-5 h-5 text-neon-red" />
-                                                        <h3 className="text-[11px] font-black text-white uppercase tracking-widest">ChaÃ®nes / CamÃ©ras</h3>
+                                                        <h3 className="text-[11px] font-black text-white uppercase tracking-widest">Chaînes / Caméras</h3>
                                                     </div>
                                                     <button
                                                         onClick={() => {
@@ -3042,7 +3042,7 @@ export function AdminDashboard() {
                                                             <div key={idx} className="grid grid-cols-12 gap-2 bg-black/20 p-2 rounded-xl border border-white/5 group">
                                                                 <div className="col-span-5">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID VidÃ©o / Lien</label>
+                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID Viéo / Lien</label>
                                                                         <input
                                                                             type="text"
                                                                             value={id}
@@ -3054,7 +3054,7 @@ export function AdminDashboard() {
                                                                 </div>
                                                                 <div className="col-span-6">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre CamÃ©ra</label>
+                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre Caméra</label>
                                                                         <input
                                                                             type="text"
                                                                             value={title}
@@ -3075,7 +3075,7 @@ export function AdminDashboard() {
 
                                                     {(!takeoverState.channels || takeoverState.channels.trim() === '') && (
                                                         <div className="p-4 bg-black/20 border border-dashed border-white/10 rounded-xl text-center">
-                                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune camÃ©ra configurÃ©e</p>
+                                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune caméra configurée</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -3098,7 +3098,7 @@ export function AdminDashboard() {
                                                 <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Calendar className="w-4 h-4 text-neon-cyan" />
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de DÃ©but</label>
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de ébut</label>
                                                     </div>
                                                     <input
                                                         type="datetime-local"
@@ -3163,7 +3163,7 @@ export function AdminDashboard() {
                                                     <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3">
                                                         <Activity className="w-5 h-5 text-neon-red" /> Activer le Bandeau
                                                     </p>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau dÃ©filant sous le player</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau éfilant sous le player</p>
                                                 </div>
                                                 <button
                                                     onClick={() => setTakeoverState({ ...takeoverState, showTickerBanner: !takeoverState.showTickerBanner })}
@@ -3202,7 +3202,7 @@ export function AdminDashboard() {
                                                 <div className="grid grid-cols-1 gap-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Message Perso</label>
-                                                        <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte Ã  faire dÃ©filer..." />
+                                                        <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte à faire éfiler..." />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Lien au clic (Optionnel)</label>
@@ -3217,13 +3217,13 @@ export function AdminDashboard() {
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
                                                 <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3 mb-4">
-                                                    <ShieldAlert className="w-5 h-5 text-red-500" /> SÃ©curitÃ© des Liens
+                                                    <ShieldAlert className="w-5 h-5 text-red-500" /> Sécurité des Liens
                                                 </p>
                                                 <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl">
                                                     <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Bloqueur auto de liens</span>
                                                     <span className="px-3 py-1 bg-green-500/10 text-green-500 rounded-lg text-[9px] font-black uppercase border border-green-500/20">Toujours Actif</span>
                                                 </div>
-                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les modÃ©rateurs peuvent partager des liens.</p>
+                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les moérateurs peuvent partager des liens.</p>
                                             </div>
 
                                             <div className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
@@ -3231,7 +3231,7 @@ export function AdminDashboard() {
                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
                                                         <Pin className="w-5 h-5 text-neon-red" />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">Ã‰pinglÃ©</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">À‰pinglé</span></h3>
                                                 </div>
 
                                                 <div className="space-y-3">
@@ -3240,7 +3240,7 @@ export function AdminDashboard() {
                                                         <textarea
                                                             value={takeoverState.pinnedMessage || ''}
                                                             onChange={(e) => setTakeoverState({ ...takeoverState, pinnedMessage: e.target.value })}
-                                                            placeholder="Ex: âš ï¸ DÃ©but du set dans 5 minutes ! âš ï¸"
+                                                            placeholder="Ex: âš ï¸ ébut du set dans 5 minutes ! âš ï¸"
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white font-bold focus:border-neon-red outline-none min-h-[80px] resize-none"
                                                         />
                                                     </div>
@@ -3250,10 +3250,10 @@ export function AdminDashboard() {
                                                             className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-[9px] font-black text-gray-400 hover:text-red-500 transition-all uppercase"
                                                         >
                                                             <PinOff className="w-3.5 h-3.5" />
-                                                            Retirer l'Ã©pingle
+                                                            Retirer l'épingle
                                                         </button>
                                                     )}
-                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message apparaÃ®tra en haut du chat pour tous les utilisateurs.</p>
+                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message apparaîtra en haut du chat pour tous les utilisateurs.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -3262,7 +3262,7 @@ export function AdminDashboard() {
                                     {takeoverTab === 'planning' && (
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Ã‰diteur de <span className="text-neon-red">Planning</span></h3>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">À‰diteur de <span className="text-neon-red">Planning</span></h3>
                                                 <button
                                                     onClick={() => {
                                                         const currentLines = (takeoverState.lineup || '').split('\n');
@@ -3294,10 +3294,10 @@ export function AdminDashboard() {
                                             <div className="space-y-2">
                                                 {takeoverState.lineup && takeoverState.lineup.trim() !== '' && (
                                                     <div className="grid grid-cols-12 gap-2 px-3 pb-1">
-                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">DÃ©but</div>
+                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">ébut</div>
                                                         <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Fin</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</div>
-                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">ScÃ¨ne</div>
+                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</div>
                                                         <div className="col-span-1"></div>
                                                     </div>
@@ -3378,7 +3378,7 @@ export function AdminDashboard() {
                                                                     type="text"
                                                                     value={row.stage}
                                                                     onChange={e => updateRow({ stage: e.target.value })}
-                                                                    placeholder="ScÃ¨ne"
+                                                                    placeholder="Scène"
                                                                     className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
@@ -3422,14 +3422,14 @@ export function AdminDashboard() {
 
                                                 {(!takeoverState.lineup || takeoverState.lineup.trim() === '') && (
                                                     <div className="text-center py-6 bg-white/5 border border-white/5 rounded-2xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configurÃ©</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configuré</p>
                                                     </div>
                                                 )}
                                             </div>
 
                                             <div className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl">
                                                 <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">
-                                                    * Le planning sera affichÃ© sur le player et accessible via la commande chat !lineup.
+                                                    * Le planning sera affiché sur le player et accessible via la commande chat !lineup.
                                                 </p>
                                             </div>
                                         </div>
@@ -3440,18 +3440,18 @@ export function AdminDashboard() {
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <Shield className="w-5 h-5 text-neon-red" />
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">ModÃ©rateurs</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">Moérateurs</span></h3>
                                                 </div>
                                                 <input
                                                     type="text"
                                                     value={takeoverState.moderators}
                                                     onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
                                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-neon-red outline-none"
-                                                    placeholder="SÃ©parez par des virgules (EX: ALEX, TANGUY, EMMA)"
+                                                    placeholder="Séparez par des virgules (EX: ALEX, TANGUY, EMMA)"
                                                 />
                                                 <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                                                     <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-widest">
-                                                        LES UTILISATEURS LISTÃ‰S ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
+                                                        LES UTILISATEURS LISTÀ‰S ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
                                                         <br /><span className="text-white">â€¢ SUPPRIMER DES MESSAGES</span>
                                                         <br /><span className="text-white">â€¢ ENVOYER DES LIENS</span>
                                                         <br /><span className="text-white">â€¢ BANNIR DES VIEWERS (SI ADMIN)</span>
@@ -3497,7 +3497,7 @@ export function AdminDashboard() {
                                                     </div>
                                                 </div>
                                                 <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic text-center">
-                                                    * LAISSEZ LE MESSAGE VIDE POUR DÃ‰SACTIVER L'AUTO-MESSAGE.
+                                                    * LAISSEZ LE MESSAGE VIDE POUR DÀ‰SACTIVER L'AUTO-MESSAGE.
                                                 </p>
                                             </div>
 
@@ -3509,14 +3509,14 @@ export function AdminDashboard() {
                                                             const parts = line.split(':');
                                                             return { cmd: parts[0] || '', res: parts[1] || '' };
                                                         });
-                                                        const newRow = { cmd: '!nouveau', res: 'Votre rÃ©ponse ici' };
+                                                        const newRow = { cmd: '!nouveau', res: 'Votre réponse ici' };
                                                         const newRows = [...rows, newRow];
                                                         const newText = newRows.map(r => `${r.cmd}:${r.res}`).join('\n');
                                                         setTakeoverState({ ...takeoverState, customCommands: newText });
                                                     }}
                                                     className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
                                                 >
-                                                    + CrÃ©er une commande
+                                                    + Créer une commande
                                                 </button>
                                             </div>
 
@@ -3561,7 +3561,7 @@ export function AdminDashboard() {
                                                             </div>
                                                             <div className="col-span-8">
                                                                 <div className="flex flex-col gap-1.5">
-                                                                    <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">RÃ©ponse du bot</label>
+                                                                    <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">Réponse du bot</label>
                                                                     <input
                                                                         type="text"
                                                                         value={row.res}
@@ -3584,7 +3584,7 @@ export function AdminDashboard() {
 
                                                 {(!takeoverState.customCommands || takeoverState.customCommands.trim() === '') && (
                                                     <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalisÃ©e</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalisée</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -3598,7 +3598,7 @@ export function AdminDashboard() {
                                                     <div className="p-2 bg-neon-purple/20 rounded-xl">
                                                         <Lock className="w-5 h-5 text-neon-purple" />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AccÃ¨s <span className="text-neon-purple">Restreint</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Accès <span className="text-neon-purple">Restreint</span></h3>
                                                 </div>
 
                                                 <div className="space-y-4">
@@ -3616,7 +3616,7 @@ export function AdminDashboard() {
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'accÃ¨s secret</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'accès secret</label>
                                                         <input
                                                             type="text"
                                                             value={takeoverState.password}
@@ -3673,7 +3673,7 @@ export function AdminDashboard() {
                                                             }}
                                                             className="px-4 py-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
                                                         >
-                                                            DÃ©bloquer
+                                                            ébloquer
                                                         </button>
                                                     </div>
                                                 ))
@@ -3686,7 +3686,7 @@ export function AdminDashboard() {
                                             <div className="flex items-center justify-between mb-2">
                                                 <div>
                                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des <span className="text-neon-cyan">Clips</span></h3>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Extraits crÃ©Ã©s par la communautÃ©</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Extraits créés par la communauté</p>
                                                 </div>
                                                 <button
                                                     onClick={fetchClips}
@@ -3707,7 +3707,7 @@ export function AdminDashboard() {
                                                         <VideoOff className="w-8 h-8 text-gray-600" />
                                                     </div>
                                                     <p className="text-gray-500 font-black uppercase italic tracking-widest">Aucun clip pour le moment</p>
-                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits crÃ©Ã©s en live apparaÃ®tront ici</p>
+                                                    <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits créés en live apparaîtront ici</p>
                                                 </div>
                                             ) : (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-20">
@@ -3775,9 +3775,9 @@ export function AdminDashboard() {
                                     className="w-full mt-8 py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-[2rem] transition-all shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50 relative z-30"
                                 >
                                     {isUpdatingTakeover ? (
-                                        <><Loader2 className="w-5 h-5 animate-spin" /> Mise Ã  jour...</>
+                                        <><Loader2 className="w-5 h-5 animate-spin" /> Mise à jour...</>
                                     ) : (
-                                        <><Save className="w-5 h-5" /> Enregistrer les rÃ©glages</>
+                                        <><Save className="w-5 h-5" /> Enregistrer les réglages</>
                                     )}
                                 </button>
                             </motion.div>
@@ -3803,7 +3803,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Push <span className="text-neon-red">Notifications</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">GÃ©rer les alertes en direct</p>
+                                        <p className="text-gray-400 font-medium">Gérer les alertes en direct</p>
                                     </div>
                                     <button
                                         onClick={() => setIsNotificationModalOpen(false)}
@@ -3819,8 +3819,8 @@ export function AdminDashboard() {
                                         <div className="w-16 h-16 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500">
                                             <Bell className="w-8 h-8 text-neon-red" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-white uppercase italic mb-1">SystÃ¨me Actif</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est opÃ©rationnel</p>
+                                        <h3 className="text-2xl font-bold text-white uppercase italic mb-1">Système Actif</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est opérationnel</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
@@ -3847,7 +3847,7 @@ export function AdminDashboard() {
                                     <div className="p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl flex gap-4 items-start">
                                         <Zap className="w-5 h-5 text-neon-purple shrink-0 mt-0.5" />
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                                            Le nouveau systÃ¨me demande dÃ©sormais l'accord pour les notifications et la newsletter dÃ¨s l'entrÃ©e sur le site.
+                                            Le nouveau système demande ésormais l'accord pour les notifications et la newsletter dès l'entrée sur le site.
                                         </p>
                                     </div>
 
@@ -3857,7 +3857,7 @@ export function AdminDashboard() {
                                             <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Envoi Manuel Sur Mesure</h4>
                                         </div>
 
-                                        {/* SÃ©lecteur de News */}
+                                        {/* Sélecteur de News */}
                                         <div className="space-y-2">
                                             <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">1. Cible (Optionnel)</label>
                                             <div className="relative group/select">
@@ -3896,7 +3896,7 @@ export function AdminDashboard() {
                                             <textarea
                                                 value={pushCustomBody}
                                                 onChange={(e) => setPushCustomBody(e.target.value)}
-                                                placeholder="Message personnalisÃ© pour les abonnÃ©s..."
+                                                placeholder="Message personnalisé pour les abonnés..."
                                                 rows={2}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all resize-none"
                                             />
@@ -3919,7 +3919,7 @@ export function AdminDashboard() {
                                             ) : (
                                                 <>
                                                     <Zap className="w-4 h-4" />
-                                                    Diffuser aux {pushSubscribersCount || 0} abonnÃ©s
+                                                    Diffuser aux {pushSubscribersCount || 0} abonnés
                                                     <ArrowRight className="w-4 h-4 group-hover/push:translate-x-1 transition-transform" />
                                                 </>
                                             )}
@@ -3930,7 +3930,7 @@ export function AdminDashboard() {
                                         onClick={() => setIsNotificationModalOpen(false)}
                                         className="w-full py-4 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[8px] transition-all border border-white/10"
                                     >
-                                        Annuler l'opÃ©ration
+                                        Annuler l'opération
                                     </button>
                                 </div>
                             </motion.div>
@@ -3955,7 +3955,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-cyan">Clips</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Extraits crÃ©Ã©s par la communautÃ©</p>
+                                        <p className="text-gray-400 font-medium">Extraits créés par la communauté</p>
                                     </div>
                                     <div className="flex items-center gap-4">
                                         <button
@@ -3982,8 +3982,8 @@ export function AdminDashboard() {
                                     ) : clips.length === 0 ? (
                                         <div className="py-32 text-center border-2 border-dashed border-white/5 rounded-[3rem] bg-white/[0.02]">
                                             <VideoOff className="w-12 h-12 text-gray-600 mx-auto mb-6" />
-                                            <h3 className="text-xl font-black text-white/40 uppercase italic tracking-widest">Aucun clip trouvÃ©</h3>
-                                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits apparaÃ®tront dÃ¨s qu'un viewer en crÃ©era en live</p>
+                                            <h3 className="text-xl font-black text-white/40 uppercase italic tracking-widest">Aucun clip trouvé</h3>
+                                            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">Les extraits apparaîtront dès qu'un viewer en créera en live</p>
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -4078,7 +4078,7 @@ export function AdminDashboard() {
                                                 <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
                                                     Gestion <span className="text-neon-red">Quizz</span>
                                                 </h2>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & proposÃ©es</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & proposées</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -4141,7 +4141,7 @@ export function AdminDashboard() {
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                placeholder="FILTRER PAR THÃˆME / ARTISTE..."
+                                                placeholder="FILTRER PAR THÀˆME / ARTISTE..."
                                                 value={quizSearch}
                                                 onChange={(e) => setQuizSearch(e.target.value)}
                                                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[9px] font-black text-white w-48 outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
@@ -4224,7 +4224,7 @@ export function AdminDashboard() {
                                                                         <button
                                                                             onClick={() => { setTestQuiz(quiz); setIsTestingModalOpen(true); }}
                                                                             className="p-3 bg-purple-500/20 text-purple-500 border border-purple-500/30 rounded-2xl hover:bg-purple-500 hover:text-white transition-all shadow-xl shadow-purple-500/10"
-                                                                            title="Tester (AperÃ§u)"
+                                                                            title="Tester (Aperçu)"
                                                                         >
                                                                             <Play className="w-5 h-5" />
                                                                         </button>
@@ -4603,7 +4603,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-8">
                                     <div>
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Test de Question</h2>
-                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">AperÃ§u du rendu final pour les utilisateurs</p>
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Aperçu du rendu final pour les utilisateurs</p>
                                     </div>
                                     <button onClick={() => { setTestQuiz(null); setIsTestingModalOpen(false); }} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
                                         <X className="w-6 h-6" />
@@ -4629,7 +4629,7 @@ export function AdminDashboard() {
                                                 {testQuiz.imageType === 'PIXEL' && (
                                                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                                                         <div className="px-4 py-2 bg-black/60 border border-white/20 rounded-xl">
-                                                            <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Effet Pixel ActivÃ©</p>
+                                                            <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Effet Pixel Activé</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -4644,7 +4644,7 @@ export function AdminDashboard() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Extrait Audio</p>
-                                                        <p className="text-[10px] text-white font-black uppercase">PrÃ©-Ã©coute du Blind Test</p>
+                                                        <p className="text-[10px] text-white font-black uppercase">Pré-écoute du Blind Test</p>
                                                     </div>
                                                 </div>
                                                 <audio src={testQuiz.audioUrl} controls className="w-full h-8 custom-audio-player" />
@@ -4668,7 +4668,7 @@ export function AdminDashboard() {
                                         onClick={() => { setTestQuiz(null); setIsTestingModalOpen(false); }}
                                         className="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] transition-all"
                                     >
-                                        Fermer l'aperÃ§u
+                                        Fermer l'aperçu
                                     </button>
                                 </div>
                             </motion.div>
